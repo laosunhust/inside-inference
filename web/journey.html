@@ -21,12 +21,12 @@
 <details id="system-details" class="model-notes"><summary>Inside prefill / decode · inspect model operations</summary><div>
 <p class="eyebrow">PLANNED NUMERICAL PATH · NOT EXECUTED BY THIS COST MODEL</p>
 <div class="computation-path" aria-label="Planned decoder-only GPT computation path">
-<button id="inspect-tokenizer" data-entity="tokenizer" data-term="Tokenizer" class="computation-stage"><strong>1 · Tokenizer</strong><span>Text / bytes → token IDs</span><small>Planned · inspect definition ↓</small></button>
+<button id="inspect-tokenizer" data-entity="tokenizer" data-term="Tokenizer" class="computation-stage"><strong>1 · Tokenizer</strong><span>Text / bytes → token IDs</span><small>Not active in this run · inspect definition ↓</small></button>
 <button id="inspect-embedding" data-entity="embedding" data-term="Embedding" class="computation-stage"><strong>2 · Embedding</strong><span>Token IDs → vectors</span><small>Planned · inspect definition ↓</small></button>
 <button id="inspect-layers" data-entity="layers" data-term="Transformer layers" class="computation-stage"><strong>3 · Transformer layers</strong><span>Vectors + state → hidden representations</span><small>Planned · inspect definition ↓</small></button>
 <button id="inspect-projection" data-entity="projection" data-term="Output projection" class="computation-stage"><strong>4 · Output projection</strong><span>Hidden representation → vocabulary logits</span><small>Planned · inspect definition ↓</small></button>
 <button id="inspect-selection" data-entity="selection" data-term="Token selection" class="computation-stage"><strong>5 · Token selection</strong><span>Logits → next token ID</span><small>Planned · inspect definition ↓</small></button>
-<button id="inspect-detokenizer" data-entity="detokenizer" data-term="Detokenizer" class="computation-stage"><strong>6 · Detokenizer</strong><span>Output IDs → text / bytes</span><small>Planned · inspect definition ↓</small></button>
+<button id="inspect-detokenizer" data-entity="detokenizer" data-term="Detokenizer" class="computation-stage"><strong>6 · Detokenizer</strong><span>Output IDs → text / bytes</span><small>Not active in this run · inspect definition ↓</small></button>
 </div><p><b>Generation loop:</b> prompt processing supplies logits for the first output. Each selected token feeds the next model step through embeddings and layers with retained sequence state; selection repeats until a stopping condition. Detokenization produces the client stream.</p>
 <p><b>Current execution:</b> input lengths → aggregate prefill cost → fixed output-step costs. No token IDs, embeddings, tensors, logits, or generated text exist in this trace. Its output-step accounting is not a GPT forward-pass trace.</p>
 <p>Serving policies, state placement, and resources also belong inside this system. Only prefix reuse, effective compute rate, and transfer rate are configurable here today.</p>

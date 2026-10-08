@@ -28,7 +28,7 @@
     $('entity-reference').href=`ontology.html#${definition.anchor}`;
     document.querySelectorAll('[data-entity]').forEach(n=>n.classList.toggle('selected-object',n===target));
     const planned=['tokenizer','embedding','layers','projection','selection','detokenizer'];
-    const fields=planned.includes(selected)?{Status:'Planned; no numerical execution or values in this run.',Evidence:'This stage requires observations from the actual GPT execution. The current trace supplies aggregate costs only.'}:{
+    const fields=planned.includes(selected)?{Status:['tokenizer','detokenizer'].includes(selected)?'Codec implemented separately; not connected to this run.':'Planned; no numerical execution or values in this run.',Evidence:'This stage requires observations from actual execution. The current scene uses supplied token counts and aggregate costs only.'}:{
       request:{Identity:'R1',Caller:source(),Input:`${run.input_tokens} pre-tokenized positions`,Output:`${run.output_tokens} fixed abstract steps`,Scope:'Same invocation semantics for every caller; no agent loop.'},
       system:{Identity:'S1',Execution:'One modeled resource (W1); numerical GPT not connected',Phase:time>=run.end?'Complete':names[active.kind],Ready:`${state.ready} abstract state units`,Reserved:`${state.reserved} / ${run.worker_capacity} units`,Rule:'Reservation is capacity accounting; it is not usable cached state.'},
       cache:{Identity:'P1',Residency:run.reuse?'Remote, ready at start':'Not instantiated in this scenario',Size:`${run.remote_state} abstract units`,Compatibility:'Assumed for this model; not verified by a model computation.',Lifetime:'Retained remotely after request completion.'},

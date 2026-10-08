@@ -15,6 +15,11 @@ goal; a natural three-year-old's full language is not the target being validated
 
 ## External evidence
 
+The follow-up [small-vocabulary model search](small-vocabulary-models.md) finds
+concrete 378-, 384-, and 512-entry examples, including Karpathy's `stories260K`.
+Models in this range already exist; compare token units and architecture before
+drawing conclusions about our proposed language world.
+
 - Eldan and Li's [TinyStories paper, introduction and §2](https://arxiv.org/html/2305.07759v2)
   uses about 1,500 basic words as prompts for generating diverse stories. This is
   not a hard output lexicon. Its model setup retains 10,000 tokenizer entries.

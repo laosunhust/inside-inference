@@ -1,0 +1,30 @@
+[
+  {
+    "id": "location-swap", "family": "location",
+    "cases": [
+      {"context": "the ball is in the box. the bear is on the bed.", "question": "where is the ball?", "answer": "box"},
+      {"context": "the ball is on the bed. the bear is in the box.", "question": "where is the ball?", "answer": "bed"}
+    ]
+  },
+  {
+    "id": "owner-swap", "family": "ownership",
+    "cases": [
+      {"context": "sam has the ball. tom has the bear.", "question": "who has the ball?", "answer": "sam"},
+      {"context": "tom has the ball. sam has the bear.", "question": "who has the ball?", "answer": "tom"}
+    ]
+  },
+  {
+    "id": "negation-swap", "family": "negation",
+    "cases": [
+      {"context": "sam would like the ball, not the bear.", "question": "what does sam want?", "answer": "ball"},
+      {"context": "sam would like the bear, not the ball.", "question": "what does sam want?", "answer": "bear"}
+    ]
+  },
+  {
+    "id": "correction-order", "family": "correction",
+    "cases": [
+      {"context": "the ball is in the box. now the ball is on the bed.", "question": "where is the ball now?", "answer": "bed"},
+      {"context": "the ball is on the bed. now the ball is in the box.", "question": "where is the ball now?", "answer": "box"}
+    ]
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "seed": "inside-inference-corpus-v1",
+  "objects": ["ball", "bear", "book", "cup", "toy"],
+  "people": ["sam", "tom", "mia", "ben", "ann"],
+  "locations": {"bed": "on", "box": "in", "room": "in", "house": "in", "park": "in"},
+  "groups_per_label": {"train": 10, "development": 3, "test": 5},
+  "surface_policy": {"train": "both", "development": "alternate", "test": "alternate"},
+  "context_budget_for_audit": 128
+}

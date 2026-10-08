@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "previous_sha256": "1c163b6adb70b6e80bb46920c611ceb403929897e614058d09f1b1ba421e4e61",
+  "current_sha256": "e5edde07a3002a8f1343f99f7664f45b76d33077fd90a9f71991b6d346ce3477",
+  "reason": "Before training, exchange optional nouns/time/counting words for gaps observed in the unchanged everyday probes. This narrows other topics and is an in-sample coverage repair, not new validation.",
+  "exchanges": [
+    {
+      "id": 337,
+      "before": "shelf",
+      "after": "fell"
+    },
+    {
+      "id": 342,
+      "before": "window",
+      "after": "coats"
+    },
+    {
+      "id": 343,
+      "before": "basket",
+      "after": "fill"
+    },
+    {
+      "id": 352,
+      "before": "truck",
+      "after": "done"
+    },
+    {
+      "id": 373,
+      "before": "four",
+      "after": "white"
+    },
+    {
+      "id": 374,
+      "before": "five",
+      "after": "out"
+    },
+    {
+      "id": 376,
+      "before": "evening",
+      "after": "draw"
+    },
+    {
+      "id": 381,
+      "before": "fish",
+      "after": "listen"
+    }
+  ]
+}

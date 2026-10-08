@@ -72,11 +72,15 @@ Current working code remains small:
 | `scripts/journey.py` | Aggregate event/cost simulator, without GPT execution. |
 | `scripts/kda.py` | Standalone numerical recurrence, without a trained model. |
 | `scripts/intro_page.py` | Build views and links from canonical definitions and catalog metadata. |
+| `observable_gpt/tokenizer.py` | Exact lexical/byte codec, conversation framing, and actual encoding traces. |
+| `observable_gpt/corpus.py` | Bounded task recipe, grouping, scoring forms, and corpus audit. |
+| `observable_gpt/language_data.py` | Separate authored language seed and provenance/coverage audit. |
+| `data/` | Candidate vocabulary and maintained corpus inputs. |
 | `web/` | Trace playback, navigation, and inspection. |
 | `tests/` | Independent arithmetic checks and generated-site checks. |
 
-As the first numerical path is implemented, introduce a cohesive `observable_gpt/`
-package with model, mechanism, simulation, and trace responsibilities. Move the
+The `observable_gpt/` package begins with tokenizer and corpus responsibilities.
+As the numerical path arrives, add model, mechanism, simulation, and trace responsibilities. Move the
 existing engines into the applicable modules and update callers together; keep
 `scripts/` for entry points and site generation. Add maintained vocabulary/corpus
 assets and serialized configurations with their first consumers. Do not create

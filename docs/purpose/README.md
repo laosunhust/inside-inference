@@ -38,9 +38,11 @@ The spoken lexicon will use simple, everyday words inspired by language familiar
 to a three-year-old, within a deliberately bounded world. It should support
 requests, questions, clarification, negation, feelings, ownership, and short
 context-dependent exchanges. This is not a developmental model of a child.
-The exact word list, token allocation, corpus, and tokenizer implementation remain
-to be built. The audit's 32-symbol overhead is a budget example, not a frozen
-manifest. Freeze and version the manifest before training or mechanism comparisons.
+An initial [384-entry manifest](../../data/tokenizer/README.md), reversible codec,
+and [bounded corpus recipe](../../data/corpus/README.md) now exist. The lexical
+selection is a candidate with known everyday coverage gaps; it is not a trained
+model or a validated conversational vocabulary. Freeze and version an accepted
+manifest before training or mechanism comparisons.
 
 Unfamiliar input is a learning opportunity: foreign scripts, large words, names,
 misspellings, and mixed scripts belong in tokenizer experiments. The design
@@ -49,8 +51,9 @@ hexadecimal symbols per byte, within the same 384 IDs. It must expose original
 spans, bytes, token IDs, fallback decisions, sequence expansion, and context cost.
 Case and Unicode normalization must not silently alter input. Decoding a supported
 input must reconstruct it exactly; malformed encodings and context overflow must
-be explicit, with no silent replacement or truncation. This is planned behavior,
-not functionality supplied by the vocabulary counting script.
+be explicit, with no silent replacement or truncation. The
+[implemented codec](../implementation/tokenizer.md) supplies this behavior;
+the earlier vocabulary counting script remains a separate budgeting instrument.
 
 Input representability does not imply learned meaning or multilingual ability.
 The default conversation experiment produces words from the declared simple
@@ -198,6 +201,14 @@ The tiny GPT is one instrument for studying inference arithmetic and learned beh
 simulate every part of a serving system. Use small state machines for cache
 semantics, event simulations for queues and scheduling, analytical resource models
 for hardware thought experiments, and real traces when execution details matter.
+
+An intended reusable artifact is a tiny reference model for testing inference
+changes cheaply with real, inspectable computation. Its checkpoint, tokenizer,
+inputs, and traces could support reproducible correctness tests and connect to
+explicit system simulations. This is a step between a mathematical proposal and
+deployment evidence, not a replacement for calibrated hardware models, realistic
+workloads, or cluster measurements. Fewer parameters than another tiny model is
+not a success criterion; preserving the mechanism under study is.
 
 The central configurable object is the inference system: input preparation,
 model computation, serving policies, state placement, and resource constraints.

@@ -1,0 +1,18 @@
+[
+  {"id":"open-request","turns":["please help me open my bag.","yes. show me your bag."]},
+  {"id":"negation-repair","turns":["i said the white one, not the red one.","i'm sorry. here is the white one."]},
+  {"id":"fill-request","turns":["can you fill this bowl with water?","yes. give me the bowl, please."]},
+  {"id":"listen-repair","turns":["please listen. i don't mean that.","okay. tell me what you mean."]},
+  {"id":"return","turns":["can you bring my coat back?","yes. i will bring it to you."]},
+  {"id":"time","turns":["is it time to go home?","not now. we will go home later."]},
+  {"id":"ownership-request","turns":["may i use your book?","yes. you can use mine."]},
+  {"id":"drawing-request","turns":["i want to draw a picture of our house.","you can use this paper."]},
+  {"id":"done-request","turns":["are you done with the toy?","yes. you can have a turn."]},
+  {"id":"fell-repair","turns":["my bear fell out of the box.","we can put it back."]},
+  {"id":"coats-request","turns":["do we need our coats today?","yes. it is cold outside."]},
+  {"id":"friend-request","turns":["can my friend come to play?","yes. you can play together."]},
+  {"id":"body-extension","turns":["my knee hurts.","show me where it hurts."]},
+  {"id":"feeling-extension","turns":["i feel lonely.","i can sit with you."]},
+  {"id":"size-extension","turns":["that bag is heavy.","i can help you hold it."]},
+  {"id":"action-extension","turns":["can you wipe the table?","yes. i can help."]}
+]

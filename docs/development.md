@@ -13,6 +13,8 @@ make intro-page       # Generate the offline site
 make check            # Validate required docs, catalog, and diff whitespace
 make test             # Run implemented numerical, audit, and generated-site checks
 make vocabulary-study # Reproduce the vocabulary-budget audit
+make tokenizer-example # Export actual word/byte decisions for a small input
+make dataset-audit    # Rebuild the bounded corpus, coverage report, and traces
 make design           # Read the historical laboratory plan
 make                  # List available workflows
 ```
@@ -38,6 +40,23 @@ These requirements describe the current site, not a future model execution engin
 - `out/experiments/vocabulary-study/report.json`: reproducible word/token budget
   accounting. See the [research](research/vocabulary-budget.md); this is not the
   eventual tokenizer or a language-quality test.
+- `out/experiments/tokenizer-dataset/`: the implemented tokenizer's example,
+  selected raw traces, three corpus splits, source/file identities, and coverage
+  report. See the [codec contract](implementation/tokenizer.md) and
+  [corpus contract](../data/corpus/README.md). This is an untrained checkpoint with
+  known vocabulary gaps, not a learned conversation demo.
+  The [first checkpoint findings](research/tokenizer-dataset-checkpoint.md)
+  distinguish passing mechanics from unfinished language coverage.
+
+Inspect arbitrary input without changing vocabulary:
+
+```sh
+python3 -m scripts.inspect_tokenizer --text 'cat Cat café 你好'
+python3 -m scripts.inspect_tokenizer --file path/to/input.txt --context-limit 128
+```
+
+The file path reads exact UTF-8 bytes. Overflow and malformed input fail explicitly.
+The command prints JSON; it does not modify the input file or train a model.
 
 The [milestone scorecard](purpose/milestones.md) owns capability status and
 acceptance criteria. Passing these workflows establishes only the checks they

@@ -5,7 +5,7 @@ SHELL := /bin/bash
 PYTHON ?= python3
 DESIGN_DOC := docs/purpose/original-lab-plan.md
 
-.PHONY: help design check intro-page test vocabulary-study
+.PHONY: help design check intro-page test vocabulary-study tokenizer-example dataset-audit
 
 help: ## List available developer workflows.
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  %-12s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -21,7 +21,15 @@ vocabulary-study: ## Reproduce the vocabulary-budget audit under out/experiments
 	@$(PYTHON) -m scripts.vocabulary_study > out/experiments/vocabulary-study/report.json
 	@printf '%s\n' 'Wrote out/experiments/vocabulary-study/report.json'
 
-test: ## Run numerical, vocabulary-audit, catalog, and generated-site checks.
+tokenizer-example: ## Export exact token IDs and byte/word decisions for a small input.
+	@mkdir -p out/experiments/tokenizer-dataset
+	@$(PYTHON) -m scripts.inspect_tokenizer --text 'cat Cat café 你好' > out/experiments/tokenizer-dataset/example.json
+	@printf '%s\n' 'Wrote out/experiments/tokenizer-dataset/example.json'
+
+dataset-audit: ## Build the bounded corpus, split/coverage audit, and selected tokenizer traces.
+	@$(PYTHON) -m scripts.prepare_corpus
+
+test: ## Run numerical, tokenizer/corpus, catalog, and generated-site checks.
 	@$(PYTHON) -m unittest discover -s tests -v
 
 check: ## Validate catalog, required documents, and diff whitespace.

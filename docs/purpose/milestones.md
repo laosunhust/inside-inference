@@ -15,13 +15,15 @@ size, and public launch are not success measures.
 | Decision | Boundary |
 | --- | --- |
 | Frozen | 384 total model token IDs; include lexical, punctuation, control, and fallback symbols. All token IDs and every output logit remain inspectable. |
-| Planned tokenizer baseline | Reversible UTF-8 byte/hex fallback for unfamiliar input; expose expansion and context costs. Full matching/framing rules and manifest still need specification. |
+| Tokenizer baseline | Implemented reversible UTF-8 byte/hex fallback with explicit matching, framing, and traces; candidate manifest has known coverage gaps. See the codec contract. |
 | Language world | Bounded everyday conversation inspired by language familiar to a three-year-old. Encoding foreign text is not evidence of understanding it. |
 | Still experimental | Width, depth, heads, context, precision, attention/state mechanism, serving policies, and resource assumptions. Record each change; training settings belong to checkpoint preparation. |
 | Separate evidence | Numerical execution, simulated resource costs, measured host performance, learned behavior, and real-system validity. None substitutes for another. |
 | Navigation | Customer journey → execution steps → configurable mechanism and numerical detail, over the same identified run. |
 
-The 384-ID decision is not a completed manifest. Do not fill unused entries with
+The 384-ID decision alone does not establish an adequate vocabulary. The first
+manifest candidate is complete as an ID allocation, but has known lexical gaps.
+Do not fill unused entries with
 undocumented dummy words, grow the tokenizer automatically, or switch vocabulary
 mid-comparison. Tokenizer comparisons also change sequence lengths and must record
 that effect; other mechanism comparisons hold tokenizer and corpus identities fixed.
@@ -46,7 +48,8 @@ Current capability ledger:
 | Request cost simulation and ontology inspection | Implemented; conditional arithmetic only. |
 | KDA recurrence lab | Existing optional side lab with hand-selected vectors; not integrated attention or a milestone prerequisite. |
 | Vocabulary-budget audit | Implemented counting study; not a tokenizer or language model. |
-| 384-entry manifest and reversible tokenizer | Planned. |
+| 384-entry manifest and reversible tokenizer | Implemented candidate; independent codec checks pass, everyday coverage gaps remain. T1 is not complete. |
+| Bounded task corpus | Implemented recipe and audit; template-based, untrained, and limited in lexical coverage. |
 | GPT forward execution and learned conversation | Planned; checkpoint preparation is supporting work. |
 | Connected mechanism switching and tensor inspection in all three views | Planned. |
 | Validated hardware, serving, or language-quality claims | Not established. |

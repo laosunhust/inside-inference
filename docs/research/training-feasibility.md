@@ -20,10 +20,14 @@ experimental. This study does not establish trained-model quality.
 | --- | ---: | --- |
 | [microGPT](https://karpathy.github.io/2026/02/12/microgpt/) | 27 | 26 characters plus a boundary token; names generation; width 16, one layer, four heads, context 16, 4,192 parameters. |
 | [nanoGPT Shakespeare character preparation](https://github.com/karpathy/nanoGPT/blob/master/data/shakespeare_char/prepare.py) | 65 | Distinct characters in the dataset, not 65 allowed words. |
+| [llama2.c stories260K](https://huggingface.co/karpathy/tinyllamas/blob/main/stories260K/readme.md) | 512 | Released approximately 260K-parameter story model with a custom tokenizer; five layers and shared K/V. |
 | [nanoGPT Shakespeare configuration](https://github.com/karpathy/nanoGPT/blob/master/config/train_shakespeare_char.py) | Uses dataset vocabulary | Six layers, width 384, six heads, context 256. Here 384 is hidden width, not vocabulary size. |
 | [nanoGPT default model configuration](https://github.com/karpathy/nanoGPT/blob/master/model.py) | 50,304 matrix rows | GPT-2's 50,257-entry vocabulary padded for efficiency; the separate [Shakespeare BPE preparation](https://github.com/karpathy/nanoGPT/blob/master/data/shakespeare/prepare.py) uses GPT-2 tokenization. |
 
 Sources inspected on the date above; repository master branches can change.
+The [follow-up inventory](small-vocabulary-models.md) also examines MacroStories
+with 378 entries and ByT5 with 384 entries. Hundreds of token IDs are not a gap
+in existing models; architecture, token units, and intended behavior differ.
 MicroGPT demonstrates complete learning machinery with scalar Python autograd;
 it does not demonstrate dialogue understanding. Its scalar execution is explicitly
 less efficient than tensor operations. NanoGPT supports several configurations,
