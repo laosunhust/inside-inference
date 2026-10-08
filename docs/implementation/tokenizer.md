@@ -84,8 +84,9 @@ of a limit); overflow exceptions record required and allowed lengths.
 
 ## Output policy boundary
 
-This checkpoint encodes and decodes text; it does not sample model outputs. A
-future closed-lexicon sampler must also enforce lexical boundaries: allowing
-`cat` and `dog` IDs alone would otherwise permit `catdog`. Raw logits and every
-mask must be traced. Do not equate a content codec or a vocabulary allow-list
-with a completed constrained-generation implementation.
+The codec encodes and decodes valid content streams; it does not constrain model
+selection. Unmasked generation can concatenate word IDs or produce incomplete
+byte triples and control IDs. Preserve those IDs. The generation inspector uses
+explicit diagnostic markers for non-text IDs; it must not repair or filter the
+sequence to make the strict codec accept it. See the
+[baseline selection contract](naive-inference.md#implemented-interfaces).

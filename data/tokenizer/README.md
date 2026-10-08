@@ -7,7 +7,7 @@ frozen by project purpose; this lexical selection is a reviewable second candida
 not a claim of sufficient conversational coverage.
 
 The first 259 word entries are the distinct written words in the earlier
-[authored budgeting dialogues](../../research/vocabulary/dialogues.json), ordered
+[authored budgeting dialogues](../../data/tokenizer/studies/vocabulary-budget-dialogues.json), ordered
 alphabetically. Those dialogues were used in selection, not held out. A further
 93 entries were manually selected by conversational function: grammar and repair,
 people and ownership, places and objects, actions and feelings, and world/time.
@@ -41,3 +41,8 @@ developmentally validated list. Known entries cover inflected forms separately.
 Unknown spelling, case, and scripts remain exactly encodable through the
 [codec contract](../../docs/implementation/tokenizer.md), at an explicit sequence
 cost. New words cannot be inferred from the ID budget alone.
+
+[studies/vocabulary-budget-dialogues.json](studies/vocabulary-budget-dialogues.json)
+is the maintained input to the original vocabulary-budget comparison. Its authored
+`design`/`probe` conversations support the [budget study](../../docs/research/vocabulary-budget.md);
+they are distinct from the checkpoint corpus in `data/corpus/`.

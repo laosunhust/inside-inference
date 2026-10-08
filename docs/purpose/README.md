@@ -56,13 +56,14 @@ be explicit, with no silent replacement or truncation. The
 the earlier vocabulary counting script remains a separate budgeting instrument.
 
 Input representability does not imply learned meaning or multilingual ability.
-The default conversation experiment produces words from the declared simple
-lexicon; any output constraints must be visible in the decoding configuration and
-trace, including raw logits and the distribution after constraints. Control tokens
-are not spoken text. An explicit unrestricted fallback-generation experiment may
-study invalid byte sequences and unfamiliar strings, but must not be presented as
-the default closed-lexicon conversation. Full tokenizer rules and output constraints
-must be specified and tested before model training.
+The baseline selects the highest raw logit across all 384 IDs, with lowest-ID
+tie-breaking. It imposes no lexical grammar, token mask, output repair, or forced
+spacing. Accepted runs stop only on a selected TURN_END or the requested token
+budget; prompt-plus-budget capacity is checked before execution. The complete
+output ID sequence remains inspectable, including byte/hex/control IDs and
+malformed encodings. Diagnostic token markers are not claims of decoded speech.
+Any future constrained-decoding experiment requires explicit authorization and a
+separate declared policy; it must not silently replace this baseline.
 
 Small vocabulary is intentional: readers should be able to inspect every logit,
 embedding row, and token decision. It does not freeze attention, state mechanisms,
@@ -113,8 +114,8 @@ A paper-specific explanation is one view into this system, not the whole story.
 ## Start with the simplest faithful computation
 
 Build and explain a naïve decoder-only GPT before adding inference optimizations.
-Then introduce one change at a time: reuse K/V, expose ordinary multi-head
-attention, and study sharing such as MQA. More advanced attention/state mechanisms
+Then introduce one change at a time: reuse K/V, inspect a state handoff, expose
+ordinary multi-head attention, and study sharing such as MQA. More advanced attention/state mechanisms
 can follow an understood reference. Novelty does not determine priority; an
 existing KDA side lab does not bypass this sequence. The
 [milestones](milestones.md#build-order-establish-the-reference-before-changing-it)
@@ -139,6 +140,44 @@ An improvement in one operation is not automatically an improvement in a whole
 request or a shared service. Show where saved work goes, what remains on the
 critical path, and which resource becomes limiting. Distinguish one request's
 experience from aggregate throughput and other requests' waiting time.
+
+## Current focus: runtime and serving across boundaries
+
+Model execution and serving constrain each other. Attention determines retained
+state; placement determines where it must move; scheduling changes batch shapes
+and execution costs; completion and state residency constrain the next scheduling
+decision. Heterogeneous and multi-node execution make these dependencies explicit.
+A fixed latency profile is useful only while the intervention preserves its regime.
+
+We will make the connection observable and experimentally changeable. Existing
+systems already study it jointly: the [heterogeneous design-space paper](https://arxiv.org/abs/2606.29708)
+examines placement, representation, and ownership, while
+[MegaScale-Infer](https://arxiv.org/abs/2504.02263) studies attention/expert separation.
+We do not claim that the field mostly studies runtime and serving in isolation.
+Our intended contribution is an approachable experiment that connects actual
+state and computation to declared system consequences. Its uniqueness is unproven.
+
+The first connection is a KV handoff after the cache baseline. Separate producer
+and consumer state, serialize it under an explicit representation, import it, and
+inspect resumed computation against an uninterrupted reference. Logical endpoints
+may initially execute on one CPU; label that honestly. A device label alone is
+not heterogeneous execution, and host timings are not accelerator predictions.
+
+Multi-node placement, heterogeneous runtimes, attention/FFN splitting, and MoE
+expert placement are subsequent questions. Hardware heterogeneity, sparse expert
+routing, and hybrid attention/recurrent architectures are separate interventions;
+do not combine them under an unexplained “hybrid” switch. For a MoE claim, preserve
+actual routing, dispatch/combine, and expert load; for a contention claim, represent
+shared capacity, competing traffic, and dependencies. Narrow the claim when these
+relationships are absent. The tiny model does not establish production traffic
+patterns, routing distributions, or hardware performance.
+
+Use existing engines and simulators to establish reference behavior and reuse
+validated components where applicable; adoption alone does not validate our
+abstraction. The [reuse assessment](../similar-products/README.md) owns candidates
+and public-source limitations. [Milestones](milestones.md) own order and acceptance.
+No training is needed for lossless state handoff or cache-equivalence checks;
+learned-quality claims remain a separate checkpoint assessment.
 
 ## The abstraction is the core work
 
@@ -221,7 +260,7 @@ is an inspection surface for computation and simulation.
 A first connected simulator should be deliberately small: a reproducible request,
 bounded execution resources, prefix-state residency, and explicit service
 and transfer assumptions. Add queues and competing requests when studying contention. First make its baseline timeline inspectable. Then
-change one policy and replay the same workload. The landing-page
+change one policy and replay the same workload. The separate
 [request playground](../labs/request-playground.md) implements a bounded,
 idealized instance of this direction. It is not a production serving engine
 or a validated predictor of real-system timings.
@@ -252,6 +291,16 @@ whether an experiment was worthwhile. The [milestones and acceptance criteria](m
 define the first instrument’s measurable targets and separate them from the current
 bootstrap checkpoint. Targets are not claims of results already achieved.
 
+## Reuse and the connected journey
+
+Concentrate our work on connecting model mechanisms to consequences in the request
+journey. Reuse existing explainers, reference engines, and simulators where their
+semantics fit; avoid rebuilding each specialty as an independent product. Keep
+small reference implementations when they serve understanding and inspection.
+The [similar-products assessment](../similar-products/README.md) owns the reuse
+choices and research evidence. The connected experience is an intended outcome,
+not a claim of uniqueness or a capability already completed.
+
 ## Public presentation
 
 Use [Rudrite Research](https://research.rudrite.com/) and
@@ -277,7 +326,7 @@ relative until a hosting implementation needs domain-specific configuration.
 
 This document owns the current purpose, learning priorities, and presentation
 direction. The root [README](../../README.md) introduces the purpose and philosophy;
-[development workflows](../development.md) own setup, commands, and entry points.
+[Makefile](../../Makefile) owns setup and validation workflows (`make help`).
 The [ontology](../ontology/README.md) owns shared meanings and experiment
 contracts. The [catalog](../../catalog/README.md) owns indexing conventions;
 executable code owns implemented behavior.

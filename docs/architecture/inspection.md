@@ -3,7 +3,8 @@
 This document owns code boundaries and navigation for the connected instrument.
 [Purpose](../purpose/README.md) owns the fixed-vocabulary learning scope;
 [ontology](../ontology/inference.md) owns shared meanings; the catalog owns lab
-placement. This is an implementation direction, not a claim of a working GPT.
+placement. The naïve numerical path now works with untrained parameters; optimized mechanisms
+and resource integration remain future work.
 
 ## One run, three views
 
@@ -69,26 +70,29 @@ Current working code remains small:
 
 | Location | Responsibility today |
 | --- | --- |
-| `scripts/journey.py` | Aggregate event/cost simulator, without GPT execution. |
-| `scripts/kda.py` | Standalone numerical recurrence, without a trained model. |
-| `scripts/intro_page.py` | Build views and links from canonical definitions and catalog metadata. |
-| `observable_gpt/tokenizer.py` | Exact lexical/byte codec, conversation framing, and actual encoding traces. |
-| `observable_gpt/corpus.py` | Bounded task recipe, grouping, scoring forms, and corpus audit. |
-| `observable_gpt/language_data.py` | Separate authored language seed and provenance/coverage audit. |
+| `inside_inference/labs/journey.py` | Aggregate event/cost simulator, without GPT execution. |
+| `inside_inference/labs/kda.py` | Standalone numerical recurrence, without a trained model. |
+| `scripts/build/intro_page.py` | Build views and links from canonical definitions and catalog metadata. |
+| `inside_inference/model.py` | One complete, untrained, single-head GPT forward path and tensor observations. |
+| `inside_inference/generation.py` | Unmasked greedy selection, uncached continuation, run identity, and replay. |
+| `scripts/dev/serve_intro.py` | Local HTTP adapter to that same execution path. |
+| `inside_inference/tokenizer.py` | Exact lexical/byte codec, conversation framing, and actual encoding traces. |
+| `inside_inference/corpus.py` | Bounded task recipe, grouping, scoring forms, and corpus audit. |
+| `inside_inference/language_data.py` | Separate authored language seed and provenance/coverage audit. |
 | `data/` | Candidate vocabulary and maintained corpus inputs. |
 | `web/` | Trace playback, navigation, and inspection. |
 | `tests/` | Independent arithmetic checks and generated-site checks. |
 
-The `observable_gpt/` package begins with tokenizer and corpus responsibilities.
-As the numerical path arrives, add model, mechanism, simulation, and trace responsibilities. Move the
+The `inside_inference/` package owns tokenizer, corpus, model, and generation responsibilities.
+As additional mechanisms arrive, keep their simulation and trace responsibilities explicit. Move the
 existing engines into the applicable modules and update callers together; keep
 `scripts/` for entry points and site generation. Add maintained vocabulary/corpus
 assets and serialized configurations with their first consumers. Do not create
 empty packages, speculative plugin loaders, or a second computation in JavaScript
 solely to animate values.
 
-The first vertical slice is a fixed-vocabulary prompt through tokenizer,
-embedding, one faithful single-head causal GPT layer, logits, selection, and decoded output,
+The implemented first vertical slice is a fixed-vocabulary prompt through tokenizer,
+embedding, one faithful single-head causal GPT layer, logits, selection, and diagnostic output-token display,
 with trace navigation across all three zoom levels. Verify tokenizer behavior,
 independent forward calculations, causality, and trace fidelity before connecting
 resource costs. Add attention alternatives behind the execution interface only
@@ -99,3 +103,29 @@ the initial computation and exclusions. Preserve its explicit uncached reference
 when introducing caching; do not route failed optimized execution through it
 silently. Add interfaces as the first real variants arrive rather than building
 an advanced-attention plugin framework before the baseline.
+
+## Browser execution and offline replay
+
+The generated `index.html` embeds one actual run for inspection without a server.
+`make serve-intro` adds live prompt/budget changes through the canonical Python
+engine. Offline controls never pretend to execute. Live failures keep the prior
+run visible with an explicit error. The cost simulator lives at `request-cost.html`;
+its schedules are not attached to the numerical run or presented as its timing.
+Parameter tensors, source hashes, masks, and complete intermediate tensors remain
+available in the exported record even when the UI shows only one position.
+
+Declaration and interaction governance lives in [declarations](declarations.md).
+Every run binds the generated model, system, and workload declarations. The browser
+keeps editable workloads separate from accepted evidence, and all three zoom levels
+share a run-bound inspection cursor. A model card presents the identified artifact;
+it does not own request policy or duplicate executable configuration.
+
+The [workload boundary](workloads.md) defines the ordered arrivals and recorded
+events. Client token display is projected from delivery events; numerical passes retain
+actual tensors. The current adapter has no queue or service-time model.
+
+Generated pages and experiment outputs under `out/` are disposable. Maintained
+fixtures and required datasets remain outside it. A static deployment can inspect
+recorded evidence; executing new inputs requires the local service or a future
+validated execution backend. Restart the local server after contract changes so
+its identity matches the page.

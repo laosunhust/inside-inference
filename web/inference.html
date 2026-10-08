@@ -1,0 +1,43 @@
+<section class="playground" id="playground">
+<div class="play-heading"><div><p class="eyebrow">A SMALL MODEL. THE ACTUAL COMPUTATION.</p><h1>What happens if<br>you <em>change this?</em></h1><p>Follow a token. Open a step. Inspect the numbers.</p></div><a class="atlas-button" href="atlas.html">Lab catalog ↗</a></div>
+<p class="scope-badge">Follow one declared request through one identified model and inference system.</p>
+<div id="binding-status" role="status" class="binding-status"></div>
+
+<div class="inference-workbench"><div class="inference-scene"><div class="token-journey" aria-label="Zoom 1: customer journey">
+<button id="inspect-request" data-entity="request" data-term="Request"><small>01 · CHAT REQUEST</small><strong id="request-preview"></strong><span>Inspect input + framing</span></button><span class="flow-arrow" aria-hidden="true">→</span>
+<button id="inspect-system" data-entity="system" data-term="Inference system"><small>02 · INFERENCE SYSTEM</small><strong>One causal GPT block</strong><span id="system-summary"></span></button><span class="flow-arrow" aria-hidden="true">→</span>
+<button id="inspect-response" data-entity="response" data-term="Detokenizer"><small>03 · BACK TO THE CLIENT</small><strong id="response-preview"></strong><span id="response-status"></span></button>
+</div>
+<section class="pass-panel"><div class="panel-heading"><h2>Zoom 2 · Follow the sequence</h2><button id="next-pass">Next prediction →</button></div><p id="run-outcome" class="run-outcome"></p><p id="submitted-request"></p><p id="workload-summary"></p>
+<details><summary>Recorded events: arrival → computation → commitment → delivery</summary><ol id="event-stream"></ol></details>
+<div id="pass-tabs" class="pass-tabs" aria-label="Executed model passes"></div><p id="pass-caption"></p><div id="sequence-strip" class="token-strip" aria-label="Input positions for selected pass"></div><div class="prediction-arrow">↓ final input position predicts ↓</div><div id="selected-token" class="selected-token"></div><p class="control-hint">Every chip is an actual token ID. Selecting a chip inspects that sequence position. All earlier positions are recomputed on every pass; there is no KV cache.</p></section>
+</div><form id="inference-form" class="inference-form">
+<p class="eyebrow">REQUEST · EDITABLE BEFORE EXECUTION</p>
+<div id="request-fields"></div><button id="execute" class="primary" disabled>Apply request and compute →</button>
+<p id="execution-mode" role="status">Checking execution availability…</p><p id="run-error" role="alert" hidden></p>
+<details><summary>Model · fixed artifact</summary><div id="model-declaration"></div></details>
+<details><summary>Inference system · supported capabilities</summary><div id="system-declaration"></div></details>
+<a href="declarations.html">What owns each setting? ↗</a>
+</form></div>
+<div class="computation-path" aria-label="Execution operations">
+<button id="inspect-tokenizer" data-entity="tokenizer" data-term="Tokenizer"><strong>Tokenize</strong><span>Text → IDs</span></button>
+<button id="inspect-embedding" data-entity="embedding" data-term="Embedding"><strong>Embed</strong><span>ID + position → vector</span></button>
+<button id="inspect-layers" data-entity="layers" data-term="Transformer layers"><strong>Causal GPT block</strong><span>Attend → mix → transform</span></button>
+<button id="inspect-projection" data-entity="projection" data-term="Output projection"><strong>Project</strong><span>Vector → 384 logits</span></button>
+<button id="inspect-selection" data-entity="selection" data-term="Token selection"><strong>Select</strong><span>Mask → greedy choice</span></button>
+<button id="inspect-detokenizer" data-entity="detokenizer" data-term="Detokenizer"><strong>Decode text</strong><span>IDs → visible output</span></button>
+</div>
+<section class="numerical-inspector" id="numerical-inspector" aria-label="Zoom 3: actual computation">
+<div class="panel-heading"><h2 id="detail-title">Zoom 3 · Inspect a step</h2><a id="definition-link" href="ontology.html">Ontology ↗</a></div><p id="definition"></p>
+<div id="detail-body"></div>
+</section>
+<details class="model-notes"><summary>Run identity, parameters, evidence, and replay</summary><div><p>This view reads recorded Python observations. It performs no model arithmetic. Numbers in tables are rounded for readability; exported JSON retains binary64 values. Both prefill and decode use the same parameters and causal head.</p><p><a href="naive-gpt-contract.html">Experiment contract and limits ↗</a> · <a href="request-cost.html">Separate request-cost simulation ↗</a></p><pre id="run-identity"></pre><button id="download-run">Download complete run + checkpoint</button><details><summary>Inspect a parameter tensor</summary><label for="parameter-name">Parameter</label><select id="parameter-name"></select><pre id="parameter-values"></pre></details></div></details>
+<noscript><p>JavaScript is needed to inspect the trace. <a href="naive-gpt-contract.html">Read the experiment contract</a>.</p></noscript>
+</section>
+<script id="inference-data" type="application/json">__INFERENCE_DATA__</script>
+<script id="ontology-data" type="application/json">__ONTOLOGY_DATA__</script>
+<script src="contract-validators.generated.js" defer></script>
+<script src="contract-runtime.js" defer></script>
+<script src="declarations.generated.js" defer></script>
+<script src="inspection-session.js" defer></script>
+<script src="inference.js" defer></script>

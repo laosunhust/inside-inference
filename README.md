@@ -4,50 +4,51 @@
 >
 > Understand what changed in AI inference. See the mechanism. Find its place in the stack.
 
-Inside Inference is a personal learning project, built in public. Follow a request
+Inside Inference is a personal learning project, built in public. Follow a workload
 from a chat, agent, or application through an inference system. Change one thing,
 observe what happens, and investigate why.
 
-The observatory covers the entire inference journey: how input becomes tokens,
-how a model computes a response, and how caching, scheduling, data movement, and
-hardware constraints affect that work. A tiny language model makes computation
-inspectable; focused simulations let us explore questions beyond that model.
+The intended outcome is an explanation you can inspect: where an innovation acts,
+what computation or state it changes, and which consequences follow under the
+experiment's assumptions. Explore **the request journey → an execution step → its
+mechanism and numbers**.
 
-The experience should invite three levels of exploration: **follow the request →
-inspect a step → change a mechanism and examine its computation**. Someone curious
-about an attention mechanism should be able to find where it acts, see what it
-retains or discards, and understand which tradeoffs the experiment can demonstrate.
+The scope spans the inference system, from tokenization and model computation to
+caching, scheduling, and data movement. A tiny GPT makes numerical work inspectable;
+focused simulations explore system questions. Choosing abstractions that preserve
+the relevant behavior is the core work. Small experiments help us learn, but their
+successes and failures do not establish production quality or performance.
 
-Our central work is choosing abstractions that preserve the behavior being
-studied. Visuals make those abstractions approachable and testable. The ontology
-gives the visuals precise meanings. Both must stay connected to executable evidence.
+Our current focus is the boundary between model execution and serving: what happens
+when state or computation moves between devices, runtimes, or nodes? Make those
+dependencies observable, reuse established tools, and add one explainable change
+at a time. Heterogeneous execution and mixture-of-experts are directions to explore;
+they are not capabilities already implemented here.
 
-Our philosophy:
+## Start exploring
 
-- **Learning first.** Personal understanding is the goal; public usefulness is
-  welcome. Competition and audience growth do not decide what is worth exploring.
-- **Evidence before claims.** Running software, correct computation, and a
-  representative abstraction are separate achievements.
-- **Expose the mechanism.** Let readers inspect inputs, state changes, assumptions,
-  and consequences rather than accept an animation as an explanation.
-- **One source of truth.** The computation owns its results. Documentation and
-  visuals must not invent a second account of what happened.
-- **Change one thing at a time.** Keep comparisons controlled, reproducible, and
-  honest about what they establish.
-- **Keep the limits visible.** Tiny successes and failures may not transfer to
-  real systems. A useful experiment explains where its conclusions apply.
+| I want to… | Start here |
+| --- | --- |
+| Run the visual laboratory | `make help` → [Makefile](Makefile) |
+| Understand the mission and expected outcomes | [Purpose](docs/purpose/README.md) |
+| Find existing tools and reuse opportunities | [Similar products](docs/similar-products/README.md) |
+| Understand the words and boundaries | [Ontology](docs/ontology/README.md) |
+| Follow how the system is designed | [Architecture](docs/architecture/README.md) |
+| Inspect declared inputs, outputs, and generated models | [Data model](data-model/README.md) |
+| Find an innovation and its lab | [Lab catalog](catalog/README.md) |
+| Inspect the tiny model's mechanics | [Implementation](docs/implementation/README.md) |
+| Assess progress and acceptance criteria | [Milestones](docs/purpose/milestones.md) |
+| Contribute code or documentation | [Contributor guidance](AGENTS.md) |
 
-The intended public home is **insideinference.dev**; this is a working assumption,
-not a deployment announcement.
+Workflow code follows the same boundaries: [build generators](scripts/build/),
+[checks](scripts/check/), [local development](scripts/dev/), and
+[experiment entry points](scripts/experiments/). Numerical and simulation behavior
+lives in [inside_inference/](inside_inference/); [web/](web/) presents its evidence.
+The [Makefile](Makefile) owns commands and setup. Use `make help`; uncommon
+maintenance targets begin with `_`.
 
-The project is at an early bootstrap stage, with a visual request-cost playground
-and a standalone attention recurrence lab. The connected model instrument is
-still being built.
-
-[Try the playground and development workflows](docs/development.md) ·
-[Scope and learning goals](docs/purpose/README.md) ·
-[Architecture](docs/architecture/inspection.md) ·
-[Ontology](docs/ontology/README.md) ·
-[Milestones](docs/purpose/milestones.md)
+The laboratory is evolving. The [milestone scorecard](docs/purpose/milestones.md)
+distinguishes working instruments, planned experiments, and missing evidence.
+The intended public home is **insideinference.dev**; this is not a deployment announcement.
 
 [MIT license](LICENSE).

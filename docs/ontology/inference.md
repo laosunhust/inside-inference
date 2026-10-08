@@ -100,7 +100,7 @@ that a single bandwidth number cannot represent. These are different claim scope
 
 ## Computation inside the system
 
-For the planned decoder-only GPT path, inspect input text/bytes → token IDs →
+For a decoder-only GPT path, inspect input text/bytes → token IDs →
 embedding vectors → transformer-layer tensors and sequence state → logits →
 selected token IDs → decoded output. Prefill and decode are execution phases
 through the model, not substitutes for these internal operations. The final
@@ -118,4 +118,5 @@ state updates, logits, and selection decisions. Resource simulation may attach
 explicit cost assumptions to those work items, but must not manufacture their
 values. Link observations by request, work item, sequence position, and layer
 where applicable. Keep actual computation, simulated costs, and measured host
-time distinct. The landing-page cost model does not yet implement this path.
+time distinct. The numerical instrument executes this path; the separate request-cost lab
+does not derive timings from its numerical execution.

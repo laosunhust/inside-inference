@@ -2,7 +2,7 @@
 
 Status: initial, untrained dataset checkpoint. This directory owns maintained
 corpus inputs and their provenance. Generated JSONL and reports are rebuildable
-with `make dataset-audit`; they live under `out/experiments/tokenizer-dataset/`.
+with `make _dataset-audit`; they live under `out/experiments/tokenizer-dataset/`.
 No external story dataset, model output, or pretrained weights were imported.
 These authored fixtures and generator are part of this repository under its
 [license](../../LICENSE).
@@ -17,7 +17,7 @@ at scale. Before training, it only tests data construction and tokenization.
 
 `recipe.json` owns entity inventories, split sizes, surface variants, deterministic
 selection seed, and the context budget used for the audit. The
-[generator](../../observable_gpt/corpus.py) defines four task families:
+[generator](../../inside_inference/corpus.py) defines four task families:
 
 - Location: retrieve the explicitly stated place of an object, with a distractor.
 - Ownership: retrieve the stated owner, with a distractor object and owner.

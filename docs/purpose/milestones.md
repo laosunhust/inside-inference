@@ -50,8 +50,10 @@ Current capability ledger:
 | Vocabulary-budget audit | Implemented counting study; not a tokenizer or language model. |
 | 384-entry manifest and reversible tokenizer | Implemented candidate; independent codec checks pass, everyday coverage gaps remain. T1 is not complete. |
 | Bounded task corpus | Implemented recipe and audit; template-based, untrained, and limited in lexical coverage. |
-| GPT forward execution and learned conversation | Planned; checkpoint preparation is supporting work. |
-| Connected mechanism switching and tensor inspection in all three views | Planned. |
+| GPT forward execution | Implemented untrained single-block/head baseline with independent numerical checks and replay. |
+| Learned conversation | Not established; checkpoint preparation is supporting work. |
+| Tensor inspection in all three views | Implemented for the naïve baseline; offline replay and local live execution. |
+| Attention mechanism switching | Planned; no optimized attention options exposed. |
 | Validated hardware, serving, or language-quality claims | Not established. |
 
 Passing B0 does not imply any criterion below is met. A failed future experiment
@@ -68,12 +70,14 @@ set the implementation order.
 | --- | --- | --- |
 | T1 + M1 | Fixed tokenizer and naïve single-head, single-block inference; recompute the full prefix for each generated token. | Where every token, score, mask, intermediate tensor, and output comes from. |
 | M2 | KV caching for the same computation and checkpoint. | What is reused, what work disappears, and why next-token logits remain equivalent. |
+| G1 | Transfer the M2 cache across a declared logical boundary. | State identity, representation, ownership, and resumed logits relative to uninterrupted execution. |
 | M3 | Ordinary multi-head attention with independent K/V per head. | Head splitting, per-head attention, concatenation, projection, and cache layout. |
 | M4 | Multi-query attention (MQA) as a controlled change to the multi-head reference. | Which K/V projections and state are shared, what storage changes, and what computation differs. |
 | Later | GQA, alternative state mechanisms such as KDA, or other justified interventions. | One new mechanism relative to an already understood reference. |
 
 M1 uses the [naïve inference contract](../implementation/naive-inference.md).
-M2–M4 depend on the preceding mechanical baseline. L1 is a separate checkpoint
+The planned sequence is M2 → G1 → M3 → M4 after T1/M1 correctness.
+G1 depends on M2; M3/M4 retain their preceding numerical baselines. L1 is a separate checkpoint
 suitability assessment; it is not a prerequisite for arithmetic, caching, or state
 layout experiments. E1's evidence requirements apply to every intervention.
 Neither production performance nor an advanced attention mechanism is required
@@ -116,15 +120,24 @@ computation; useful learned behavior is assessed separately in L1.
   where applicable; no invented state is used to complete a visual explanation.
 - A selected request must be navigable through all three zoom levels, reaching
   actual inputs, intermediate values, outputs, configuration, and evidence type.
-- The default closed-lexicon output rule must be tested: 100% of generation-suite
-  outputs obey it. Record any decoding masks alongside raw logits; distinguish
-  enforced vocabulary compliance from learned grammatical or semantic behavior.
+- Every baseline selection must equal the full-vocabulary raw-logit argmax, with
+  lowest-ID tie-breaking. Integration checks must independently recompute logits
+  from exported weights and enforce only TURN_END or token-budget termination.
+  Context capacity is admission validation, not an extra successful stop condition.
 - A replay from a recorded checkpoint and run specification must reproduce the
   selected inference reference cases within declared tolerances. Include decoding
   RNG state, inputs, sequence state, precision, checkpoint, and code identity.
   Any maintained trainer has separate preparation correctness/resume checks.
 
 These are implementation gates, not evidence that the model is useful at language.
+
+Current M1 evidence: the untrained reference implements the full path, tensor
+capture, unmasked greedy generation, and saved-run replay. Independent Decimal
+and hand-calculated fixtures cover its binary64 arithmetic; browser checks cover
+live/offline navigation and changed-input execution. See the
+[lab evidence](../labs/naive-gpt.md). This supports the implemented computation and inspection requirements; it does
+not establish completion of every milestone gate. T1's reviewed coverage gate and L1's learned-behavior gate remain
+unmet; no trained checkpoint, cache, or production timing claim is implied.
 
 ## M2 — reuse state without changing the answer
 
@@ -138,6 +151,34 @@ calculation; verify masks, absolute positions, cache reset, and context boundari
 Record retained bytes and the operations actually avoided. Compare logits rather
 than only sampled text, which can differ near probability or rounding boundaries.
 Do not claim that a cache is faster merely because the count of operations falls.
+
+## G1 — inspect a state handoff
+
+Planned, not implemented. The first scope is one request and a lossless cache
+handoff between two logical endpoints, which may run on the same host. Hold the
+checkpoint, token history, positions, attention computation, and precision fixed.
+This tests state semantics, not a vendor transport or distributed performance.
+
+Acceptance:
+
+- Export the actual M2 K/V and required continuation metadata; import into separate
+  consumer state without shared mutable tensor storage. Identify model, request,
+  cached positions, representation, and logical endpoints in the trace.
+- Exercise an explicit lossless layout conversion and inverse mapping. Inspect
+  serialized bytes and reconstructed tensors; compare every resumed next-token
+  logit against uninterrupted cached execution using M2's declared tolerance.
+  A copy with different endpoint labels is insufficient.
+- Reject incompatible identities, shapes, positions, representations, and malformed
+  payloads before decode. Expose the minimal handoff lifecycle: producer retains
+  state until import succeeds; consumer cannot decode from incomplete state.
+  Network retries and distributed failure recovery remain outside this first scope.
+- Reproduce the same declared handoff headlessly and through the interactive view.
+  Keep actual bytes/computation distinct from any separately modeled transfer cost.
+
+A lossy precision conversion is a subsequent intervention, not part of the lossless
+acceptance gate. Declare its numerical error criteria before comparison and report
+logit divergence; unchanged selected text does not prove equivalence. Neither
+variant requires trained weights. No real cross-vendor interoperability is implied.
 
 ## M3 — ordinary multi-head attention
 
@@ -229,7 +270,7 @@ training speed is not an inference-research success metric.
 ## Review outcome format
 
 Report each milestone as **passed**, **failed**, or **not evaluated**, with exact
-configuration/evidence links. For this bootstrap: T1, M1–M4, L1, and E1 are not yet
+configuration/evidence links. For this bootstrap: T1, M1–M4, G1, L1, and E1 are not yet
 evaluated as complete milestones. Existing unit tests support only their stated
 implemented subcomponents. Review the next milestone using new evidence; do not
 use the current hardware's capacity or a polished page as a proxy for completion.

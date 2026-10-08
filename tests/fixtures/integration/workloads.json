@@ -1,0 +1,123 @@
+[
+  {
+    "id": "budget-1",
+    "workload": {
+      "kind": "fixed-arrivals",
+      "requests": [
+        {
+          "request_id": "r1",
+          "arrival_us": 0,
+          "request": {
+            "text": "the ball is in",
+            "generation": {
+              "max_new_tokens": 1,
+              "selection": "greedy-lowest-id-tie",
+              "stopping": "turn-end-or-budget"
+            }
+          }
+        }
+      ]
+    },
+    "expected": {
+      "selected_tokens": 1,
+      "unused_budget": 0,
+      "stop_reason": "output_budget"
+    }
+  },
+  {
+    "id": "budget-2",
+    "workload": {
+      "kind": "fixed-arrivals",
+      "requests": [
+        {
+          "request_id": "r1",
+          "arrival_us": 0,
+          "request": {
+            "text": "the ball is in",
+            "generation": {
+              "max_new_tokens": 2,
+              "selection": "greedy-lowest-id-tie",
+              "stopping": "turn-end-or-budget"
+            }
+          }
+        }
+      ]
+    },
+    "expected": {
+      "selected_tokens": 2,
+      "unused_budget": 0,
+      "stop_reason": "output_budget"
+    }
+  },
+  {
+    "id": "budget-3",
+    "workload": {
+      "kind": "fixed-arrivals",
+      "requests": [
+        {
+          "request_id": "r1",
+          "arrival_us": 0,
+          "request": {
+            "text": "the ball is in",
+            "generation": {
+              "max_new_tokens": 3,
+              "selection": "greedy-lowest-id-tie",
+              "stopping": "turn-end-or-budget"
+            }
+          }
+        }
+      ]
+    },
+    "expected": {
+      "selected_tokens": 3,
+      "unused_budget": 0,
+      "stop_reason": "output_budget"
+    }
+  },
+  {
+    "id": "budget-8",
+    "workload": {
+      "kind": "fixed-arrivals",
+      "requests": [
+        {
+          "request_id": "r1",
+          "arrival_us": 0,
+          "request": {
+            "text": "the ball is in",
+            "generation": {
+              "max_new_tokens": 8,
+              "selection": "greedy-lowest-id-tie",
+              "stopping": "turn-end-or-budget"
+            }
+          }
+        }
+      ]
+    },
+    "expected": {
+      "selected_tokens": 8,
+      "unused_budget": 0,
+      "stop_reason": "output_budget"
+    }
+  },
+  {
+    "id": "byte-fallback",
+    "workload": {
+      "kind": "fixed-arrivals",
+      "requests": [
+        {
+          "request_id": "r1",
+          "arrival_us": 0,
+          "request": {
+            "text": "cat caf\u00e9",
+            "generation": {
+              "max_new_tokens": 8,
+              "selection": "greedy-lowest-id-tie",
+              "stopping": "turn-end-or-budget"
+            }
+          }
+        }
+      ]
+    },
+    "expected": {}
+  }
+]

@@ -1,6 +1,6 @@
 [
   {
-    "source_path": "research/vocabulary/dialogues.json",
+    "source_path": "data/tokenizer/studies/vocabulary-budget-dialogues.json",
     "record_id": "memory-1",
     "source_record_sha256": "0794421b61a853ce37ef5451703f30521f121538c7cb026c17c17b1f30409ea0",
     "task_group_id": "f881d944708e9607b45c0f1bf03b92351d0c1adee6c75bbea320b22e207e58b6",

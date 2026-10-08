@@ -1,0 +1,10 @@
+{
+  "name": "inside-inference-data-model-tools",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Build-time JSON Schema validation compilation; no browser runtime framework",
+  "devDependencies": {
+    "ajv": "8.20.0",
+    "esbuild": "0.28.2"
+  }
+}

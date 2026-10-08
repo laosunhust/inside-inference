@@ -1,0 +1,232 @@
+{
+  "purpose": "Own the meaning, lifetime, and allowed dependencies of inference declarations.",
+  "terms": {
+    "ModelArtifact": {
+      "meaning": "An identified set of model parameters bound to architecture and tokenizer identity.",
+      "lifetime": "Immutable for an artifact identity. Preparation seed is provenance, never a request control.",
+      "owns": [
+        "architecture",
+        "checkpoint identity",
+        "tokenizer identity"
+      ],
+      "excludes": [
+        "request text",
+        "generation limits",
+        "inspection position"
+      ],
+      "schemas": [
+        "ModelArchitecture",
+        "ModelArtifact"
+      ],
+      "depends_on": [],
+      "capability_reads": []
+    },
+    "InferenceSystem": {
+      "meaning": "The execution strategy and supported request capabilities of the selected inference implementation.",
+      "lifetime": "Fixed for an identified system configuration.",
+      "owns": [
+        "execution strategy",
+        "maximum supported generation limit"
+      ],
+      "excludes": [
+        "weights",
+        "requested generation limit",
+        "actual prediction count"
+      ],
+      "schemas": [
+        "InferenceSystem"
+      ],
+      "depends_on": [],
+      "capability_reads": []
+    },
+    "InferenceRequest": {
+      "meaning": "One input and generation policy submitted for execution against a selected model and system.",
+      "lifetime": "Editable before submission; immutable in a run binding.",
+      "owns": [
+        "input text",
+        "maximum new tokens",
+        "selection and stopping policy"
+      ],
+      "excludes": [
+        "model initialization",
+        "system capacity",
+        "observed outcomes"
+      ],
+      "schemas": [
+        "GenerationPolicy",
+        "InferenceRequest"
+      ],
+      "depends_on": [],
+      "capability_reads": [
+        "system.max_new_tokens_cap"
+      ]
+    },
+    "RunBinding": {
+      "meaning": "The exact model, system, and workload declarations consumed by one execution.",
+      "lifetime": "Immutable evidence, including after a later workload draft is edited.",
+      "owns": [
+        "references to the resolved declarations"
+      ],
+      "excludes": [
+        "independent copies of their individual settings",
+        "presentation state"
+      ],
+      "schemas": [
+        "RunBinding"
+      ],
+      "depends_on": [
+        "ModelArtifact",
+        "InferenceSystem",
+        "Workload"
+      ],
+      "capability_reads": []
+    },
+    "RunOutcome": {
+      "meaning": "Observed generation decisions and the condition that ended this execution.",
+      "lifetime": "Immutable evidence derived from execution, not requested values.",
+      "owns": [
+        "selected ID count including stop controls",
+        "visible ID count",
+        "unused budget",
+        "stop reason"
+      ],
+      "excludes": [
+        "requested settings",
+        "playback position"
+      ],
+      "schemas": [
+        "RunOutcome"
+      ],
+      "depends_on": [],
+      "capability_reads": []
+    },
+    "InspectionState": {
+      "meaning": "A cursor into an identified run; navigating it never executes the model.",
+      "lifetime": "Changes on inspection; reset when the bound run changes.",
+      "owns": [
+        "run identity",
+        "prediction index",
+        "sequence position"
+      ],
+      "excludes": [
+        "input text",
+        "model or generation configuration"
+      ],
+      "schemas": [
+        "InspectionState"
+      ],
+      "depends_on": [],
+      "capability_reads": []
+    },
+    "Workload": {
+      "meaning": "Identified requests and their arrival declarations; array order breaks equal-time ties.",
+      "lifetime": "Immutable in an identified execution record.",
+      "owns": [
+        "ScheduledRequest",
+        "Workload"
+      ],
+      "excludes": [
+        "Unrecorded behavior and presentation state"
+      ],
+      "schemas": [
+        "ScheduledRequest",
+        "Workload"
+      ],
+      "depends_on": [
+        "InferenceRequest"
+      ],
+      "capability_reads": []
+    },
+    "RunEvent": {
+      "meaning": "An occurrence recorded by execution, ordered and linked to actual earlier causes.",
+      "lifetime": "Immutable in an identified execution record.",
+      "owns": [
+        "EventClock",
+        "RequestArrived",
+        "InputEncoded",
+        "WorkCompleted",
+        "TokenSelected",
+        "TokenCommitted",
+        "TokenDelivered",
+        "RequestFinished",
+        "RunEvent"
+      ],
+      "excludes": [
+        "Unrecorded behavior and presentation state"
+      ],
+      "schemas": [
+        "EventClock",
+        "RequestArrived",
+        "InputEncoded",
+        "WorkCompleted",
+        "TokenSelected",
+        "TokenCommitted",
+        "TokenDelivered",
+        "RequestFinished",
+        "RunEvent"
+      ],
+      "depends_on": [
+        "RunOutcome"
+      ],
+      "capability_reads": []
+    },
+    "NumericalEvidence": {
+      "meaning": "Concrete single-request numerical traces and their exact computation binding.",
+      "lifetime": "Immutable in an identified execution record.",
+      "owns": [
+        "RequestBinding",
+        "NumericalTrace"
+      ],
+      "excludes": [
+        "Unrecorded behavior and presentation state"
+      ],
+      "schemas": [
+        "RequestBinding",
+        "NumericalTrace"
+      ],
+      "depends_on": [
+        "ModelArtifact",
+        "InferenceSystem",
+        "InferenceRequest",
+        "RunOutcome"
+      ],
+      "capability_reads": []
+    },
+    "RunRecord": {
+      "meaning": "The resolved workload and ordered evidence from one execution.",
+      "lifetime": "Immutable in an identified execution record.",
+      "owns": [
+        "RunRecord"
+      ],
+      "excludes": [
+        "Unrecorded behavior and presentation state"
+      ],
+      "schemas": [
+        "RunRecord"
+      ],
+      "depends_on": [
+        "RunBinding",
+        "RunEvent",
+        "NumericalEvidence"
+      ],
+      "capability_reads": []
+    },
+    "ServiceBoundary": {
+      "meaning": "HTTP capability and admission-error records; transport does not own domain meaning.",
+      "lifetime": "Immutable in an identified execution record.",
+      "owns": [
+        "Capabilities",
+        "ApiError"
+      ],
+      "excludes": [
+        "Unrecorded behavior and presentation state"
+      ],
+      "schemas": [
+        "Capabilities",
+        "ApiError"
+      ],
+      "depends_on": [],
+      "capability_reads": []
+    }
+  }
+}

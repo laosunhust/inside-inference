@@ -1,0 +1,73 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Inside Inference local execution",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/capabilities": {
+      "get": {
+        "operationId": "capabilities",
+        "responses": {
+          "200": {
+            "description": "Capabilities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/Capabilities"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runs": {
+      "post": {
+        "operationId": "run",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./inference.schema.json#/$defs/Workload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RunRecord",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/RunRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

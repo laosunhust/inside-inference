@@ -81,12 +81,12 @@ their own tests. Do not hide that change behind a fallback label.
 
 ## Local audit and reproducibility
 
-Run `make vocabulary-study`. It writes the full vocabulary lists, counts, missing
+Run `make _vocabulary-study`. It writes the full vocabulary lists, counts, missing
 words, successful dialogue IDs, and fixture hash to
 `out/experiments/vocabulary-study/report.json`.
 
-Maintained inputs: [dialogues.json](../../research/vocabulary/dialogues.json).
-Implementation: [vocabulary_study.py](../../scripts/vocabulary_study.py).
+Maintained inputs: [dialogues.json](../../data/tokenizer/studies/vocabulary-budget-dialogues.json).
+Implementation: [vocabulary_study.py](../../scripts/experiments/vocabulary_study.py).
 These 48 dialogues were authored by the coding agent for this audit, before
 counting their vocabulary. They are NOT sampled child transcripts, a training
 corpus, or language-model outputs. They contain 96 utterances, 689 word occurrences,

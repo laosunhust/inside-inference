@@ -1,8 +1,8 @@
 # Tokenizer and dataset: first experiment checkpoint
 
 Date: 2026-10-08. Scope: the first part of the requested four-hour experiment,
-before a trainer or GPT implementation. Commands: `make tokenizer-example`,
-`make dataset-audit`, `make test`, `make check`.
+before a trainer or GPT implementation. Commands: `make _tokenizer-example`,
+`make _dataset-audit`, `make test`, `make check`.
 
 ## What exists
 

@@ -1,6 +1,7 @@
 # Naïve inference reference
 
-Status: planned. Owns the first implementation's computation boundary.
+Status: implemented with untrained parameters. Owns the baseline computation boundary.
+See the [lab contract](../labs/naive-gpt.md) for evidence and limitations.
 [Milestones](../purpose/milestones.md) own build order and acceptance;
 [purpose](../purpose/README.md) owns vocabulary and project scope.
 
@@ -57,3 +58,46 @@ once multiple query heads are understood does sharing one K/V head make a useful
 MQA experiment. Keep dimensions, mappings, parameter identities, and any changed
 checkpoint preparation explicit. More advanced state mechanisms come later, each
 with its own baseline, invariants, and evidence boundary.
+
+## Implemented interfaces
+
+`data-model/inference.schema.json` owns the architecture fields and constraints;
+its generated `ModelArchitecture` is consumed directly by the forward engine.
+`initialize` creates a reproducible untrained checkpoint; `Model.forward` consumes
+IDs and emits logits plus observations from executed operations. Disabling capture
+changes retention only. `inside_inference.generation.run_request` owns prompt framing,
+full-prefix continuation, unmasked greedy selection, stopping, and run identity.
+
+Every exported run includes the complete checkpoint, parameter hash, vocabulary
+hash, input/framing trace, code source hashes and revision, Python version,
+configuration, precision, and each pass's input sequence. Greedy selection has no
+sampling RNG; initializer seed is recorded separately. Node dependencies reference
+other observations or checkpoint parameters. Positions are zero-based. Boolean
+causal masks exclude future scores before normalization; zero probability records
+that exclusion without nonfinite JSON values.
+
+Selection compares all 384 raw logits, resolving ties by lowest ID. There is no
+output grammar, filtering, repetition penalty, or minimum length. Only TURN_END
+and the requested maximum new-token count terminate an admitted run. Before
+execution, prompt length plus budget minus one must fit positional capacity: the
+last predicted ID needs no additional forward pass. Oversized requests fail;
+there is no successful context-limit stop or implicit truncation.
+
+The trace retains raw logits, full-vocabulary softmax probabilities, and the
+selected ID. Delivered IDs exclude only TURN_END. `output_display`,
+`display_so_far`, and delivery `display_delta` are diagnostic token renderings:
+word/space/punctuation pieces are concatenated exactly, while byte/hex/control
+IDs have labeled markers. This renderer cannot influence selection or stopping;
+it does not claim that arbitrary untrained output is valid UTF-8 codec input.
+
+`replay` checks checkpoint and source identity before executing a serialized run.
+Changed source versions require the original checkout; replay does not silently
+accept changed semantics. The local HTTP endpoint uses the same request function
+as CLI export and site generation. Browser JavaScript reads its results and the
+canonical ontology definitions, without reimplementing tokenizer or GPT math.
+
+The numerical trace binds its model, system, and request through `RequestBinding`.
+The outer workload run binds `ModelArtifact`, `InferenceSystem`, and `Workload`.
+`GenerationPolicy` owns selection and stopping; `RunOutcome` records selected and
+delivered counts, unused allowance, and the observed stop condition. Checkpoint
+preparation seed remains artifact provenance, not an inference request control.

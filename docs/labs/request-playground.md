@@ -19,7 +19,8 @@ simulated agent tool loops. Routing, contention, queues, batching, and multiple
 workers have been removed from this teaching scenario. The previous concurrent
 scenario is superseded rather than retained as a hidden execution path.
 
-Selecting the inference system opens its planned numerical path. Tokenizer,
+Selecting the inference system opens its numerical integration boundary.
+The separate [naïve GPT instrument](naive-gpt.md) now executes the model path. Tokenizer,
 embedding, transformer layers, output projection, token selection, and
 detokenizer each link to canonical definitions. These stages have no computed
 values in the current experiment. The system boundary also includes serving
@@ -28,7 +29,7 @@ a worker. Only the three existing controls affect the executable model today.
 
 ## Numerical integration boundary
 
-The forthcoming nano-GPT must emit observations from its actual execution:
+The numerical GPT emits observations from its actual execution:
 input bytes, token IDs, embeddings, layer tensors, retained state, logits,
 selected tokens, and decoded output. Connect those observations to request and
 work-item identities, positions, and layers as applicable. Cost simulation should
@@ -44,7 +45,8 @@ Do not reuse the current one-unit-per-output rule as a KV-cache invariant.
 Integration evidence must include tokenizer round trips, independent forward
 calculations, causality, cached-versus-recomputed equivalence, and trace fidelity.
 Simulation validity still requires separate evidence for each claimed cost or
-system consequence. This is an integration contract, not an implemented backend.
+system consequence. The coupling described here remains an integration contract; the numerical
+backend exists separately and does not validate this cost model.
 
 ## Model mapping
 
@@ -65,7 +67,7 @@ remain inspectable. Output delivery has zero modeled return-network delay.
 Transfer costs setup plus state size divided by transfer rate. Prefill costs
 uncached input work divided by compute rate. Decode costs the larger of its
 compute demand and a fixed memory-service floor, assuming perfect overlap within
-that step. Other phases serialize. Exact settings live in scripts/journey.py and
+that step. Other phases serialize. Exact settings live in inside_inference/labs/journey.py and
 are exported with each run. State units are abstract accounting units, not bytes.
 An output marker is one abstract output step, not computed text or verified KV.
 

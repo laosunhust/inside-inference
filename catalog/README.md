@@ -1,10 +1,11 @@
-# Extending the inference atlas
+# Lab catalog
 
 `stack.json` is the source of truth for classification and lab metadata.
 `make intro-page` validates it and builds a portable site under `out/intro-page/`.
 Edit sources, never generated HTML. The site's presentation lives in `web/` and
-its generator in `scripts/intro_page.py`. The visual landing page replays bounded
-request traces from `scripts/journey.py`; the catalog is rendered at `atlas.html`.
+its generator in `scripts/build/intro_page.py`. The visual landing page inspects actual
+GPT runs from `inside_inference/generation.py`; the catalog is rendered at `atlas.html`.
+The separate `request-cost.html` replays bounded cost traces from `inside_inference/labs/journey.py`.
 
 The request playground also generates an ontology view from
 `docs/ontology/inference.md`. Selectable visual objects reference canonical terms;
