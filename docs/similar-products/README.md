@@ -21,6 +21,15 @@ deployments and proposes the resulting focus.
 | Simulate queues, memory admission, and scheduling | InferScale-Sim; Vidur; Frontier; BLIS | Evaluate a narrow adapter or exported scenario before building another serving engine. |
 | Explore hardware and transfer detail | LLMServingSim; TokenSim | Use specialist models when their assumptions match the lab. |
 
+In the [constrained-fleet scenario](../labs/constrained-fleet.md), step cost depends
+on placement, batch composition, and routing. Profiled primitives can participate
+in such a coupled simulation when composed dynamically: [Frontier](https://github.com/NetX-lab/Frontier)
+models interacting runtime behavior, [AISimulate](https://github.com/ai-dynamo/aisimulate)
+predicts and searches deployment configurations offline, and LLMServingSim 2.0
+models heterogeneous accelerators and memory tiers. Their suitability for that
+scenario, including real routing traces and mixed-vendor instances, is unestablished,
+not disproven. Evaluate them against it before building a separate simulator.
+
 These are investigation choices, not approved dependencies. Source links and
 assessment limits belong to the survey. The next serving implementation should
 start by testing one candidate against one concrete lab question, rather than

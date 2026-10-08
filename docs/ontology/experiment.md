@@ -70,6 +70,34 @@ Evidence refers to exact relevant versions and conditions. Changed abstractions,
 inputs, or implementations require reassessing affected claims. A formerly
 supported claim stays historical; it does not automatically apply to the new run.
 
+## Candidate screening
+
+Candidate screening uses a declared comparison to prioritize later experiments.
+It may support a directional conclusion without establishing accurate absolute
+timings. Its validity belongs to the stated candidates, workload, constraints,
+and regime; a correct tiny-model trace alone does not validate their ranking.
+
+Use the existing abstraction contract to record:
+
+- The decision being supported, candidate set, fixed requirements, and permitted
+  changes to models, software, hardware, or topology.
+- The mapping from actual numerical state/work to modeled resource demand,
+  including any scale change, effective rates, capacity, and overlap assumptions.
+- The evidence and predeclared criterion for the claimed direction, bottleneck,
+  crossover, or shortlist. Use independent target-system cases outside calibration
+  for empirical screening claims; agreement between simulators is not a substitute.
+- Sensitivity to uncertain parameters and omitted effects. Retain unresolved
+  candidates if plausible changes reverse their ordering or feasibility.
+- False positives (advancing an unsuitable candidate) and false negatives
+  (discarding a useful one), plus the next real-hardware experiment that would
+  challenge the conclusion. Do not infer false-positive/negative rates without data.
+
+Without applicable validation, a shortlist is an explicitly conditional hypothesis
+for testing. With validation, state its supported regime and remaining uncertainty.
+Neither status establishes a globally optimal configuration or a procurement
+recommendation. Evidence for screening and evidence for absolute timing accuracy
+are separate claims; no universal error threshold applies to both.
+
 ## Keeping experiments inexpensive without changing the lesson
 
 Use event-driven execution to skip modeled idle time where its effects are fully

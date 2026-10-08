@@ -4,9 +4,18 @@
 >
 > Understand what changed in AI inference. See the mechanism. Find its place in the stack.
 
-Inside Inference is a personal learning project, built in public. Follow a workload
-from a chat, agent, or application through an inference system. Change one thing,
-observe what happens, and investigate why.
+Inside Inference is a laboratory for understanding inference systems, built in
+public. Follow a workload from a chat, agent, or application through an inference
+system. Change one thing, observe what happens, and investigate why.
+
+An inference system is a constrained optimization problem. Decisions from hardware
+planning to per-step scheduling must satisfy capacity, latency, quality, availability,
+and policy constraints while trading cost, service, and resilience against each other.
+Large public regions absorb much of this through statistical averaging across many
+tenants. Smaller regions, such as sovereign or dedicated deployments, often cannot:
+demand peaks, failures, residency rules, and mixed hardware become binding.
+The [system optimization ontology](docs/ontology/system-optimization.md) defines the
+invariants, inputs, decision variables, and objectives.
 
 The intended outcome is an explanation you can inspect: where an innovation acts,
 what computation or state it changes, and which consequences follow under the
@@ -15,9 +24,15 @@ mechanism and numbers**.
 
 The scope spans the inference system, from tokenization and model computation to
 caching, scheduling, and data movement. A tiny GPT makes numerical work inspectable;
-focused simulations explore system questions. Choosing abstractions that preserve
-the relevant behavior is the core work. Small experiments help us learn, but their
-successes and failures do not establish production quality or performance.
+explicit resource simulations explore system questions. Understanding mechanisms
+comes first, and it serves exploration: real-hardware experiments are slow and
+costly, so the laboratory aims to rule out infeasible options, expose crossover
+conditions, and identify which measurements matter before hardware is committed.
+With justified assumptions and evidence, it should help shortlist optimizations
+for an existing hardware pool, or hardware/software combinations worth testing.
+These are conditional candidates for real-hardware evaluation, not established
+production performance or procurement recommendations. Choosing abstractions that
+preserve the relevant behavior is the core work.
 
 Our current focus is the boundary between model execution and serving: what happens
 when state or computation moves between devices, runtimes, or nodes? Make those

@@ -9,6 +9,7 @@ that a serving simulator already exists or that an abstraction has been validate
 | --- | --- |
 | [Purpose](../purpose/README.md) | Why we build, learning priorities, and public presentation direction. |
 | [Inference ontology](inference.md) | Requests, work, sequence state, resources, policies, and their relationships. |
+| [System optimization](system-optimization.md) | Invariants versus constraints, inputs, decision variables by time scale, and objectives. |
 | [Experiment ontology](experiment.md) | Abstraction contracts, comparisons, evidence, applicability, and execution budgets. |
 | [Declaration ontology](declarations.json) | Model/system/request/run/inspection ownership, lifetimes, admitted schema names, and dependency permissions. |
 | [Data model](../../data-model/README.md) | Field contracts and generated consumer models; constrained by ontology ownership. |

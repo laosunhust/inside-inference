@@ -4,16 +4,54 @@
 >
 > Understand what changed in AI inference. See the mechanism. Find its place in the stack.
 
-Inside Inference is a personal learning project, built in public. Its primary goal
-is to help its author understand inference through implementation, observation,
-and experimentation. Helping other readers is a welcome outcome. A competitive
-advantage, an unoccupied niche, or audience growth is not a prerequisite for work.
-Existing explainers are learning resources and presentation references.
+Inside Inference is built in public to understand inference systems through
+implementation, observation, and experimentation, and to use that understanding
+in the exploration phase of system design. Real-hardware experiments are slow and
+costly; inspectable mechanisms and explicit resource models can narrow which ones
+are worth running. Understanding remains the foundation for every decision goal
+below. Helping other readers is a welcome outcome; audience growth is not a
+prerequisite for work. Existing explainers are learning resources and presentation
+references.
 
 The reader should be able to understand an innovation in two connected ways:
 
 1. Observe its underlying mechanism in a visually approachable form.
 2. Locate what it changes in the inference ecosystem and follow the consequences.
+
+## Learning and decision goals
+
+| Priority | Question | Intended outcome |
+| --- | --- | --- |
+| P0 · Understand | What changes mechanically, and why does it affect the request journey? | Inspectable computation, state, dependencies, and declared resource effects. |
+| P1 · Prioritize experiments | With requirements and the hardware pool fixed, which optimizations merit real-hardware trials? | A conditional shortlist, reasons for inclusion or exclusion, and measurements that could change the selection. |
+| P2 · Explore deployments | With requirements fixed and hardware variable, which hardware/software combinations merit further evaluation? | Feasible alternatives and tradeoffs under explicit cost and resource assumptions, to inform stack and procurement investigation. |
+
+The intended method is **tiny-model execution with explicit resource simulation**.
+Actual tensors and state transitions establish mechanics. A separately justified
+resource model estimates consequences for a declared target regime. Together they
+may directionally filter candidates without accurately predicting every absolute
+latency. Directional accuracy is itself a claim requiring evidence; plausible
+configuration alone does not establish it.
+
+The goals form one chain: P0 explains the mechanisms a P1 screen depends on, and
+an empty P1 shortlist becomes a P2 question about what to add. The
+[constrained-fleet scenario](../labs/constrained-fleet.md) works this chain through,
+including degraded operation under failure.
+
+Fix workload distributions and service, quality, and availability requirements for
+a comparison, and state whether model/checkpoint changes are allowed. For P1, fix hardware capacity
+and topology as well; for P2, declare the hardware choices, costs, and constraints
+being explored. Report sensitivity and unresolved candidates rather than forcing
+a single winner. A useful result may identify a bottleneck, crossover condition,
+or the next measurement needed to distinguish alternatives.
+
+These are intended capabilities, not completed milestones. Existing profiling,
+simulation, and search tools should support this work where their assumptions fit.
+The tiny model's host timings and language behavior do not automatically transfer
+to a production model. Procurement and deployment decisions need follow-up evidence
+on the actual workload and hardware. The [experiment ontology](../ontology/experiment.md#candidate-screening)
+owns what evidence supports candidate screening; the existing baseline and handoff
+milestones remain the immediate implementation plan.
 
 ## Inference is the research boundary
 

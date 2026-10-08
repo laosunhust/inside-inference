@@ -7,8 +7,9 @@ implementation boundaries; each lab owns its claim-specific validity evidence.
 
 Mission: **learn what happens when an inference mechanism changes, by inspecting
 actual computation or a justified simulation, and locating its consequences in
-the request journey.** Personal learning is primary. Model rankings, audience
-size, and public launch are not success measures.
+the request journey.** Understanding is the foundation for the
+[decision goals](README.md#learning-and-decision-goals). Model quality rankings,
+audience size, and public launch are not success measures.
 
 ## Boundaries at this checkpoint
 

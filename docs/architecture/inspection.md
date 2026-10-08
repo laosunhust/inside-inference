@@ -23,7 +23,8 @@ same attention mechanism configuration and implementation.
 The first path is request → prefill or decode → naïve causal attention and its
 actual arithmetic. Establish this reference before adding a mechanism selector.
 Follow the [incremental milestone order](../purpose/milestones.md#build-order-establish-the-reference-before-changing-it):
-naïve inference, KV reuse, ordinary multi-head attention, then shared-KV variants.
+naïve inference, KV reuse, lossless state handoff, ordinary multi-head attention,
+then shared-KV variants.
 Both prefill and decode use the same declared attention configuration.
 
 KDA is a possible later choice. Its existing standalone recurrence demo is a side
@@ -54,6 +55,33 @@ recurrent state must remain distinct representations. Unsupported combinations
 fail explicitly. Do not assume a checkpoint trained with one attention mechanism
 can be meaningfully evaluated with another: identify compatible parameters and
 training, and separate arithmetic comparison from language quality.
+
+## Connecting numerical execution to resource simulation
+
+This connection is planned, not implemented by the current numerical adapter.
+Actual execution supplies identified operations, tensor shapes, and state contents.
+An explicit mapping supplies modeled work, memory traffic, allocation, and transfer
+requirements to the resource simulator. Both views retain links to their evidence;
+the simulator owns virtual completion times, not the host execution clock.
+
+Do not assume logical tensor size equals device traffic, Python memory usage equals
+accelerator allocation, or a tiny operation's measured duration scales linearly to
+a production operation. If a scenario uses larger model dimensions, identify it as
+a modeled target configuration and expose the mapping from the small computation.
+Its tensors were not executed at that larger scale.
+
+For each question, preserve the relevant relationships: compute versus data movement,
+working set versus capacity, transfer versus saved work, offered load versus service
+capacity, and dependencies versus permitted overlap. Effective operation rates may
+depend on shape, batch, precision, and implementation. Start with the smallest
+resource model adequate for the lab; reuse profiles or simulator adapters where fit
+is demonstrated. Do not create a second numerical engine to explain its outcomes.
+
+Constrained CPU/RAM/SSD experiments can provide additional observations, but resource
+limits do not by themselves emulate a GPU or memory technology. Declare what those
+experiments represent and validate the mapping. Event simulation may advance through
+modeled delays without slowing the user's browser in real time. Candidate-selection
+claims follow the [screening evidence rules](../ontology/experiment.md#candidate-screening).
 
 ## Model preparation boundary
 
