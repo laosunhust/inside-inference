@@ -60,7 +60,7 @@ def run_request(request=None, *, checkpoint=None, capture=True, run_id=None, req
         raise ValueError('Declared inference policy has no execution implementation')
     if model.config.vocabulary != len(tokenizer.tokens):
         raise ValueError('Model and tokenizer vocabulary sizes differ')
-    encoding = tokenizer.encode_prompt([Turn('user', request.text)], context_limit=model.config.context)
+    encoding = tokenizer.encode_prompt([Turn(role='user', text=request.text)], context_limit=model.config.context)
     required = len(encoding.ids) + request.generation.max_new_tokens - 1
     if required > model.config.context:
         raise ValueError(f'Prompt plus token budget requires {required} positions; capacity is {model.config.context}. Reduce the prompt or token budget.')
@@ -102,7 +102,7 @@ def run_request(request=None, *, checkpoint=None, capture=True, run_id=None, req
                          unused_budget=request.generation.max_new_tokens - len(emitted),
                          stop_reason=stop_reason, complete=stop_reason == 'turn_end')
     record = {'format': 'naive-gpt-run-v2', 'id': run_id, 'request_id': request_id,
-            'evidence': 'actual untrained forward computation; no hardware cost model',
+            'evidence': 'actual forward computation; checkpoint preparation is recorded in provenance; no hardware cost model',
             'declaration': declaration.to_dict(), 'contract_sha256': CONTRACT_SHA256,
             'code': source, 'decoding_contract': DECODING_CONTRACT,
             'precision': {'storage': 'binary64', 'compute': 'binary64', 'accumulation': 'binary64'},

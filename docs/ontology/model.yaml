@@ -1,0 +1,119 @@
+terms:
+  ModelArchitecture:
+    meaning: Dimensions and numerical conventions that define the supported GPT computation.
+    lifetime: Immutable for an artifact identity. Preparation seed is provenance, never a request control.
+    owns:
+    - Dimensions and numerical conventions that define the supported GPT computation.
+    excludes:
+    - request text
+    - generation limits
+    - inspection position
+    schema: ModelArchitecture
+    depends_on: []
+    capability_reads: []
+    projections: {}
+  ModelArtifact:
+    meaning: An immutable descriptor identifying a checkpoint, architecture, tokenizer, and preparation
+      provenance.
+    lifetime: Immutable for an artifact identity. Preparation seed is provenance, never a request control.
+    owns:
+    - An immutable descriptor identifying a checkpoint, architecture, tokenizer, and preparation provenance.
+    excludes:
+    - request text
+    - generation limits
+    - inspection position
+    schema: ModelArtifact
+    depends_on:
+    - ModelArchitecture
+    capability_reads: []
+    projections: {}
+  InitializationProvenance:
+    meaning: The declared initializer and seed that produced untrained parameter values.
+    lifetime: Immutable for an artifact identity. Preparation seed is provenance, never a request control.
+    owns:
+    - The declared initializer and seed that produced untrained parameter values.
+    excludes:
+    - request text
+    - generation limits
+    - inspection position
+    schema: InitializationProvenance
+    depends_on: []
+    capability_reads: []
+    projections: {}
+  TrainingProvenance:
+    meaning: The identified preparation run and selection evidence that produced trained parameters.
+    lifetime: Immutable for an artifact identity. Preparation seed is provenance, never a request control.
+    owns:
+    - The identified preparation run and selection evidence that produced trained parameters.
+    excludes:
+    - request text
+    - generation limits
+    - inspection position
+    schema: TrainingProvenance
+    depends_on: []
+    capability_reads: []
+    projections: {}
+  KVState:
+    meaning: Immutable actual keys and values for a prefix, bound to checkpoint, tokenizer, positions,
+      and precision.
+    lifetime: Immutable snapshot; continuation creates a new snapshot. Residency is separate.
+    owns:
+    - Immutable actual keys and values for a prefix, bound to checkpoint, tokenizer, positions, and precision.
+    excludes:
+    - resource placement
+    - cached answers
+    - service timing
+    schema: KVState
+    depends_on: []
+    capability_reads: []
+    projections:
+      Sequence state:
+        meaning: Intermediate state used to continue an inference sequence, such as retained keys/values
+          or a recurrent state. It is distinct from trained parameters, input text, and a cached final
+          answer.
+        fields:
+          KVState:
+          - token_ids
+          - keys
+          - values
+          - precision
+      State artifact:
+        meaning: An identified snapshot or reusable portion of sequence state, tied to the computation
+          and input history that produced it. Logical identity is distinct from physical placement.
+        fields:
+          KVState:
+          - checkpoint_sha256
+          - tokenizer_sha256
+          - token_ids
+          - keys
+          - values
+  ModelCheckpoint:
+    meaning: The actual parameter arrays with their architecture, tokenizer identity, and preparation
+      provenance.
+    lifetime: Immutable for an artifact identity. Preparation seed is provenance, never a request control.
+    owns:
+    - The actual parameter arrays with their architecture, tokenizer identity, and preparation provenance.
+    excludes:
+    - request text
+    - generation limits
+    - inspection position
+    schema: ModelCheckpoint
+    depends_on:
+    - InitializationProvenance
+    - ModelArchitecture
+    - ModelParameters
+    - TrainingProvenance
+    capability_reads: []
+    projections: {}
+  ModelParameters:
+    meaning: Actual parameter arrays indexed by their declared operation names.
+    lifetime: Immutable within its identified artifact or recorded execution.
+    owns:
+    - Actual parameter arrays indexed by their declared operation names.
+    excludes:
+    - Unrecorded behavior
+    - Presentation state
+    schema: ModelParameters
+    depends_on: []
+    capability_reads: []
+    projections: {}

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "seed": 7,
+  "batch_size": 16,
+  "max_steps": 12000,
+  "max_seconds": 1800,
+  "evaluation_interval": 200,
+  "learning_rate": 0.001,
+  "betas": [
+    0.9,
+    0.999
+  ],
+  "epsilon": 1e-08,
+  "weight_decay": 0.01,
+  "threads": 1,
+  "dtype": "float64",
+  "device": "cpu",
+  "data_projection": "joined-user-turns-v1",
+  "loss": "final-response-and-turn-end-token-mean"
+}

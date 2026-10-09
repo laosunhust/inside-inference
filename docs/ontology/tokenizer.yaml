@@ -1,0 +1,67 @@
+terms:
+  Token:
+    meaning: One vocabulary entry with its stable ID, encoding role, spelling, and lexical group.
+    lifetime: Immutable value within its identified tokenizer input or encoding result.
+    owns:
+    - One vocabulary entry with its stable ID, encoding role, spelling, and lexical group.
+    excludes:
+    - model computation
+    - serving policy
+    - presentation state
+    schema: Token
+    depends_on: []
+    capability_reads: []
+    projections: {}
+  Span:
+    meaning: One encoding observation linking source byte offsets to emitted token IDs and an optional
+      conversation turn.
+    lifetime: Immutable value within its identified tokenizer input or encoding result.
+    owns:
+    - One encoding observation linking source byte offsets to emitted token IDs and an optional conversation
+      turn.
+    excludes:
+    - model computation
+    - serving policy
+    - presentation state
+    schema: Span
+    depends_on: []
+    capability_reads: []
+    projections: {}
+  Encoding:
+    meaning: An actual tokenizer result, including token IDs, span evidence, input identity, and codec
+      versions.
+    lifetime: Immutable value within its identified tokenizer input or encoding result.
+    owns:
+    - An actual tokenizer result, including token IDs, span evidence, input identity, and codec versions.
+    excludes:
+    - model computation
+    - serving policy
+    - presentation state
+    schema: Encoding
+    depends_on:
+    - Span
+    capability_reads: []
+    projections:
+      Tokenizer:
+        meaning: Encoding produces token IDs and byte-span evidence under an identified vocabulary and
+          codec.
+        fields:
+          Encoding:
+          - ids
+          - spans
+          - input_sha256
+          - manifest_sha256
+          - codec_version
+  Turn:
+    meaning: One role-tagged text turn supplied to conversation framing.
+    lifetime: Immutable value within its identified tokenizer input or encoding result.
+    owns:
+    - One role-tagged text turn supplied to conversation framing.
+    excludes:
+    - model computation
+    - serving policy
+    - presentation state
+    schema: Turn
+    depends_on: []
+    capability_reads: []
+    projections: {}

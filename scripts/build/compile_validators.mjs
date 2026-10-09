@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import Ajv2020 from 'ajv/dist/2020.js';
 import standalone from 'ajv/dist/standalone/index.js';
 import {build} from 'esbuild';
-const schema=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+const schema=JSON.parse(fs.readFileSync(process.argv[2]==='-'?0:process.argv[2],'utf8'));
 // Domain annotations are checked by ontology admission; they do not replace JSON Schema.
 const ajv=new Ajv2020({strict:true,strictNumbers:true,allErrors:true,code:{source:true},allowUnionTypes:true});
 ajv.addVocabulary(['x-owner','x-maximum-from']);

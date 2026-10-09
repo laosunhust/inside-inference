@@ -1,40 +1,59 @@
-# Contributor guidance
+# Agent constitution
 
-## Durable principles
+## 1. Purpose
 
-- Read the relevant authority before changing behavior. Give each concept one owner;
-  derive consumers and documentation from it rather than maintaining parallel truth.
-- Establish meanings, boundaries, and invariants before implementation. Running code,
-  correct computation, and a representative abstraction are separate achievements.
-- Build one explainable change at a time. Preserve causal relationships; narrow the
-  claim when an inexpensive abstraction cannot support it. Never hide misleading
-  behavior behind a disclaimer or attractive visualization.
-- Record evidence from actual execution. Presentation consumes that evidence;
-  controls must change supported execution, and observations must identify their run.
-- Fail explicitly on invalid or unsupported input. Defaults initialize configurations;
-  they must not repair failed ones or conceal an alternate execution path.
-- Evaluate existing components before implementing a new subsystem. Reuse when
-  semantics and inspectability fit; record provenance and preserve license notices.
-- Prefer cohesive modules and simple interfaces. Prioritize correctness over backward
-  compatibility; remove superseded paths and update their consumers together.
-- Verify against independent evidence and probe counterexamples. Do not weaken tests,
-  change acceptance thresholds silently, or confuse structural validation with semantics.
-- Preserve reproducibility and diagnose from original inputs and raw traces. State
-  missing evidence and distinguish implemented behavior from plans and hypotheses.
-- Keep documents focused and progressively disclosed. Link to the owning explanation;
-  do not repeat it in README, this file, and implementation notes.
-- Use the root Makefile as the workflow authority. Expose common commands with help;
-  prefix uncommon commands with `_`. Enforce source-of-truth drift in checks without
-  silently regenerating it. Keep disposable outputs under `out/`; retain required
-  fixtures, datasets, and irreplaceable state elsewhere. Report validation limits.
-- Run `make test` for the light contract/correctness harness. Run `make test-integration`
-  for the full harness after changes to contracts, execution, transport, or interactive
-  behavior. Each supported UI experiment must be reproducible headlessly from the
-  same contract; retain parity evidence and fail on divergence or missing prerequisites.
-- Do not add decoding filters, forced tokens/stops, output repair, or other inference
-  policies without explicit authorization and a declared contract. Preserve the
-  integration oracle that checks raw-logit selection and declared termination.
-- Commit only when asked. Use descriptive messages and a short body for nontrivial changes.
+The agent is a critical collaborator, not a yes-man. Challenge whether work is
+necessary, whether its assumptions hold, and whether its complexity serves the
+project's purpose. Recommend rejection, removal, or a narrower scope when the
+evidence warrants it.
 
-Read [README.md](README.md) for shared navigation, then the relevant authority
-and nearest lab contract before changing behavior or interpreting results.
+Proactively search for existing solutions before major work, without waiting for
+an explicit request. Reuse is the starting preference; new implementation requires
+a reason grounded in semantic fit, inspectability, and evidence.
+
+[README.md](README.md) owns the shared purpose and navigation. This constitution
+owns durable obligations, not implementation instructions.
+
+## 2. Ontology and data model
+
+Ontology is the backbone of the system. Meaning, boundaries, relationships, and
+invariants precede implementation. Authority must be readable by humans and
+consumable by machines; prefer YAML for authored ontology and declarations.
+
+Every admitted ontology entity maps one-to-one to a data-model declaration, with
+mechanically checked references in both directions. No exceptions are authorized.
+Any future exception requires explicit authorization and a traceable record.
+
+Each concept has one owner. Implementation and presentation derive from that
+owner. Prose alone cannot establish executable ontology authority; the ontology
+README may identify necessary but unimplemented concepts.
+
+## 3. Governance
+
+SSOT and repository structure are mechanically enforced obligations, not optional
+conventions. A public interface defined in implementation code instead of generated
+from its owning data model must block the build. Duplicate authorities, unowned
+declarations, and stale generated consumers must also block it.
+
+Folder structure has declared upper bounds on files per folder and size per file,
+with one machine-readable authority for scope, units, and limits. Violations block
+the build. Checks cannot silently repair drift, grant exceptions, or relax limits.
+
+Missing enforcement is a governance gap, not compliance. Establish the applicable
+gate before extending an affected boundary. Demonstrate rejection of violations;
+a policy document alone is insufficient evidence of enforcement.
+
+## 4. Evaluations
+
+The agent proactively proposes evaluations for every major work item. The question,
+baseline, success and failure criteria, evidence, and relevant counterexamples must
+be established before implementation. Major work without them is blocked.
+
+Running code, correct computation, and a representative abstraction are separate
+achievements. Structural validity does not establish behavioral or physical
+validity. Conclusions must be traceable to original inputs and execution evidence,
+with uncertainty and applicability made explicit.
+
+Success criteria cannot be weakened after observing failure to manufacture a pass.
+Unsupported claims must be narrowed or rejected. Missing evidence and failed
+evaluations remain visible; presentation cannot substitute for either.

@@ -128,7 +128,7 @@ def render(scenario, variant, recipe):
         ordered = events if variant == 0 else list(reversed(events))
         facts = ' '.join(_statement(e, recipe['locations']) for e in ordered)
         question = f'where is the {subject}?' if family == 'location' else f'who has the {subject}?'
-        turns = [Turn('user', facts), Turn('assistant', 'okay.'), Turn('user', question)]
+        turns = [Turn(role='user', text=facts), Turn(role='assistant', text='okay.'), Turn(role='user', text=question)]
     elif family == 'negation':
         event = events[0]
         chosen, rejected = event['value'], event['rejected']
@@ -136,8 +136,8 @@ def render(scenario, variant, recipe):
             facts = f'{subject} would like the {chosen}, not the {rejected}.'
         else:
             facts = f'{subject} does not want the {rejected}. {subject} would like the {chosen}.'
-        turns = [Turn('user', facts), Turn('assistant', 'okay.'),
-                 Turn('user', f'what does {subject} want?')]
+        turns = [Turn(role='user', text=facts), Turn(role='assistant', text='okay.'),
+                 Turn(role='user', text=f'what does {subject} want?')]
     elif family == 'correction':
         original, distractor, correction = events
         if variant == 0:
@@ -146,11 +146,11 @@ def render(scenario, variant, recipe):
         else:
             first = _statement(original, recipe['locations'])
             last = 'now ' + _statement(correction, recipe['locations']) + ' ' + _statement(distractor, recipe['locations'])
-        turns = [Turn('user', first), Turn('assistant', 'okay.'),
-                 Turn('user', last + f' where is the {subject} now?')]
+        turns = [Turn(role='user', text=first), Turn(role='assistant', text='okay.'),
+                 Turn(role='user', text=last + f' where is the {subject} now?')]
     else:
         raise ValueError(f'Unknown task family: {family}')
-    turns.append(Turn('assistant', answer + '.'))
+    turns.append(Turn(role='assistant', text=answer + '.'))
     return turns
 
 
@@ -306,7 +306,7 @@ def audit_dialogues(codec, path=DIALOGUES):
         if set(row) != {'id', 'turns'} or row['id'] in seen:
             raise ValueError('Invalid or duplicate dialogue probe')
         seen.add(row['id'])
-        turns = tuple(Turn('user' if i % 2 == 0 else 'assistant', text)
+        turns = tuple(Turn(role='user' if i % 2 == 0 else 'assistant', text=text)
                       for i, text in enumerate(row['turns']))
         encoded = codec.encode_dialogue(turns)
         fallback = [dict(turn=s.turn, text=bytes(s.raw_bytes).decode('utf-8'), reason=s.reason,

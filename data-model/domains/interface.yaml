@@ -1,0 +1,74 @@
+$defs:
+  InspectionState:
+    type: object
+    x-owner: InspectionState
+    additionalProperties: false
+    required:
+    - run_id
+    - prediction
+    - position
+    properties:
+      run_id:
+        type: string
+        title: Observed run
+        description: SHA-256 identity of the exact artifact bytes or canonical checkpoint.
+        pattern: ^[0-9a-f]{64}$
+      prediction:
+        type: integer
+        title: Prediction index
+        description: Zero-based cursor into actual passes.
+        minimum: 0
+      position:
+        type: integer
+        title: Sequence position
+        description: Zero-based position within selected pass.
+        minimum: 0
+  Capabilities:
+    type: object
+    x-owner: Capabilities
+    additionalProperties: false
+    required:
+    - engine
+    - contract_sha256
+    properties:
+      engine:
+        type: string
+        title: Engine version
+        description: Engine version
+        const: workload-engine-v1
+        default: workload-engine-v1
+      contract_sha256:
+        type: string
+        title: Contract identity
+        description: Contract identity
+        pattern: ^[0-9a-f]{64}$
+  ApiError:
+    type: object
+    x-owner: ApiError
+    additionalProperties: false
+    required:
+    - error
+    properties:
+      error:
+        type: string
+        title: Explicit rejection reason
+        description: Explicit rejection reason
+  CacheCapabilities:
+    type: object
+    x-owner: CacheCapabilities
+    additionalProperties: false
+    required:
+    - contract_sha256
+    - backends
+    properties:
+      contract_sha256:
+        type: string
+      backends:
+        type: array
+        items:
+          type: string
+          enum:
+          - reference
+          - cuda
+        minItems: 1
+        uniqueItems: true

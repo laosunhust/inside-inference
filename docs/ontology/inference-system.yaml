@@ -1,0 +1,121 @@
+terms:
+  InferenceSystem:
+    meaning: Capabilities and execution strategy of the uncached reference implementation.
+    lifetime: Fixed for an identified system configuration.
+    owns:
+    - Capabilities and execution strategy of the uncached reference implementation.
+    excludes:
+    - weights
+    - requested generation limit
+    - actual prediction count
+    schema: InferenceSystem
+    depends_on: []
+    capability_reads: []
+    projections:
+      Inference system:
+        meaning: The configured boundary that accepts requests and produces responses, including input
+          preparation, model execution, serving policies, state storage, and execution resources. Execution
+          locations within this boundary are workers.
+        fields:
+          InferenceSystem:
+          - execution
+          - max_requests
+  GenerationPolicy:
+    meaning: Requested selection budget and the permitted selection and termination rules.
+    lifetime: Editable before submission; immutable in a run binding.
+    owns:
+    - Requested selection budget and the permitted selection and termination rules.
+    excludes:
+    - model initialization
+    - system capacity
+    - observed outcomes
+    schema: GenerationPolicy
+    depends_on: []
+    capability_reads:
+    - system.max_new_tokens_cap
+    projections: {}
+  InferenceRequest:
+    meaning: Input text and generation policy for one invocation.
+    lifetime: Editable before submission; immutable in a run binding.
+    owns:
+    - Input text and generation policy for one invocation.
+    excludes:
+    - model initialization
+    - system capacity
+    - observed outcomes
+    schema: InferenceRequest
+    depends_on:
+    - GenerationPolicy
+    capability_reads: []
+    projections:
+      Request:
+        meaning: One invocation seeking output from an identified model/configuration, with input and
+          completion/cancellation conditions. An agent turn may produce multiple requests.
+        fields:
+          InferenceRequest:
+          - text
+          - generation
+  ScheduledRequest:
+    meaning: One identified inference request with its declared arrival time.
+    lifetime: Immutable in an identified execution record.
+    owns:
+    - One identified inference request with its declared arrival time.
+    excludes:
+    - Unrecorded behavior and presentation state
+    schema: ScheduledRequest
+    depends_on:
+    - InferenceRequest
+    capability_reads: []
+    projections: {}
+  Workload:
+    meaning: An ordered collection of scheduled requests; array order breaks equal-time ties.
+    lifetime: Immutable in an identified execution record.
+    owns:
+    - An ordered collection of scheduled requests; array order breaks equal-time ties.
+    excludes:
+    - Unrecorded behavior and presentation state
+    schema: Workload
+    depends_on:
+    - ScheduledRequest
+    capability_reads: []
+    projections: {}
+  CacheSystem:
+    meaning: KV execution backend, reservation and retention policy, workload limits, and hypothetical
+      service rates.
+    lifetime: Fixed for an identified system configuration.
+    owns:
+    - KV execution backend, reservation and retention policy, workload limits, and hypothetical service
+      rates.
+    excludes:
+    - weights
+    - requested generation limit
+    - actual prediction count
+    schema: CacheSystem
+    depends_on: []
+    capability_reads: []
+    projections:
+      Cache system:
+        meaning: The configured boundary that accepts requests and produces responses, including input
+          preparation, model execution, serving policies, state storage, and execution resources. Execution
+          locations within this boundary are workers.
+        fields:
+          CacheSystem:
+          - backend
+          - max_active_requests
+          - retention_policy
+      Resource:
+        meaning: A bounded capability or capacity consumed by work or retained state. Compute rate, storage
+          capacity, and data-transfer bandwidth have different units and constraints.
+        fields:
+          CacheSystem:
+          - device_kv_bytes
+          - host_kv_bytes
+          - compute_flops_per_us
+          - memory_bytes_per_us
+      Link:
+        meaning: A modeled transfer path between locations, with declared delay, bandwidth, and sharing
+          behavior. Links may share a bottleneck; independent-link assumptions must be explicit.
+        fields:
+          CacheSystem:
+          - link_bytes_per_us
+          - link_latency_us

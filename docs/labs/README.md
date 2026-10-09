@@ -1,25 +1,8 @@
-# Experiment ontology
+# Lab evidence and review
 
-Owns what an experiment means and which evidence supports its conclusions.
-Implementation availability remains a catalog concern; there is no blanket
-"validated simulator" status. These definitions do not validate existing labs.
-
-## Entities and distinctions
-
-| Term | Meaning |
-| --- | --- |
-| Question | A specific "what happens if?" with a target system, intervention, and outcome of interest. |
-| Claim | A falsifiable answer bounded by conditions; it may be conditional, quantitative, or qualitative. |
-| Abstraction | A mapping from the target problem to modeled state, transitions, constraints, and observables, with explicit omissions. |
-| Scenario | A concrete workload, initial state, resource configuration, policies, and assumptions supplied to a run. |
-| Intervention | A declared difference from the baseline. Derived consequences are outcomes, not additional secretly fixed controls. |
-| Run | Execution of an identified implementation and scenario, with randomness and ordering rules recorded. |
-| Observation | A result derived from a run or external measurement, with units and observation boundaries. |
-| Comparison | Baseline and intervention observations under a stated control strategy. |
-| Verification | Evidence that implementation conforms to its specified abstraction. |
-| Validation | Evidence that an abstraction is adequate for a particular claim and regime. |
-| Calibration | Fitting parameters to reference observations. Fit quality on those observations is not independent validation. |
-| Execution budget | A declared limit and measured cost for running the experiment on the host; separate from modeled system capacity. |
+This guide explains how to assess a lab. It is not executable ontology or a
+claim that passing structural checks establishes physical validity. Domain
+ownership is enforced by the [ontology declarations](../ontology/README.md).
 
 ## Abstraction contract
 
@@ -114,37 +97,5 @@ simulation decisions or computed metrics.
 Measure host runtime, memory, and trace growth on an identified workload and
 platform before saying an experiment is cheap enough for interactive use. Record
 simulation time separately. Feasibility evidence for the bounded landing-page simulator lives in its
-[lab contract](../labs/request-playground.md). This does not establish feasibility
+[lab contract](request-playground.md). This does not establish feasibility
 for larger or more detailed connected simulations.
-
-## Worked candidate: retrieve a prefix or recompute it
-
-**Status: proposed abstraction, not an implemented or validated timing model.**
-
-Question: for one compatible prefix needed by one worker, when does retrieval
-finish earlier than recomputing its state?
-
-Start with an isolated case: one artifact in one remote tier, a worker able to
-hold its restored state, no competing work, and serialized retrieval components.
-Define readiness as the point when the worker can continue with the required
-state. The candidate accounts for access/setup delay, all modeled transfer legs,
-any restoration work, and recomputation work. It compares their completion times
-from the same starting instant. Retrieval must restore equivalent usable state.
-
-This narrow question deliberately excludes queues, sharing, eviction during
-transfer, and overlap. It cannot select a routing policy under load or predict a
-particular device without additional evidence. If the question includes such
-conditions, extend the abstraction rather than reuse its isolated verdict.
-
-Verification should check readiness dependencies, unit accounting, compatible
-state, capacity failure, zero-transfer and zero-work limits, and agreement with
-an independent calculation. Validation of real timings needs reference retrieval
-and recomputation cases across the stated sizes and access patterns, including
-cases outside calibration. Sweep uncertain delays and rates around the crossover;
-if the winner changes within plausible ranges, report an unresolved choice.
-
-An inexpensive implementation could store artifact metadata and a handful of
-events instead of materializing its bytes. This preserves size and readiness
-accounting for this question; it cannot prove state contents are correct. A
-separate small numerical comparison can check reuse semantics. Host execution
-cost still needs measurement once implemented.

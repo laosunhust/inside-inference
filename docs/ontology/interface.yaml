@@ -1,0 +1,46 @@
+terms:
+  InspectionState:
+    meaning: A cursor into an identified recorded run; moving it never executes inference.
+    lifetime: Changes on inspection; reset when the bound run changes.
+    owns:
+    - A cursor into an identified recorded run; moving it never executes inference.
+    excludes:
+    - input text
+    - model or generation configuration
+    schema: InspectionState
+    depends_on: []
+    capability_reads: []
+    projections: {}
+  Capabilities:
+    meaning: The reference HTTP service contract identity and supported execution capabilities.
+    lifetime: Immutable in an identified execution record.
+    owns:
+    - The reference HTTP service contract identity and supported execution capabilities.
+    excludes:
+    - Unrecorded behavior and presentation state
+    schema: Capabilities
+    depends_on: []
+    capability_reads: []
+    projections: {}
+  ApiError:
+    meaning: An explicit transport admission or execution failure message.
+    lifetime: Immutable in an identified execution record.
+    owns:
+    - An explicit transport admission or execution failure message.
+    excludes:
+    - Unrecorded behavior and presentation state
+    schema: ApiError
+    depends_on: []
+    capability_reads: []
+    projections: {}
+  CacheCapabilities:
+    meaning: The KV service contract identity and available numerical backends.
+    lifetime: Immutable in an identified execution record.
+    owns:
+    - The KV service contract identity and available numerical backends.
+    excludes:
+    - Unrecorded behavior and presentation state
+    schema: CacheCapabilities
+    depends_on: []
+    capability_reads: []
+    projections: {}

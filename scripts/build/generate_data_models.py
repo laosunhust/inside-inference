@@ -12,6 +12,9 @@ from openapi_spec_validator import validate as validate_openapi
 from inside_inference.contract_runtime import validate, decode_json
 
 from scripts import ROOT
+from scripts.build.ontology import load_declarations
+from scripts.build.contracts import load_schema
+from scripts.build.structured import read_yaml
 
 
 def read(path):
@@ -24,17 +27,43 @@ def admit(ontology, spec):
     owners = {}
     terms, definitions = ontology['terms'], spec['$defs']
     for term, entry in terms.items():
-        if set(entry) != {'meaning', 'lifetime', 'owns', 'excludes', 'schemas', 'depends_on', 'capability_reads'}:
+        if set(entry) != {'meaning', 'lifetime', 'owns', 'excludes', 'schema', 'depends_on', 'capability_reads', 'projections'}:
             raise ValueError(f'{term}: malformed semantic owner')
-        if not entry['meaning'] or not entry['lifetime'] or not entry['owns'] or not entry['excludes']:
+        if not re.fullmatch('[A-Z][A-Za-z0-9]*', term):
+            raise ValueError(f'{term}: invalid semantic owner name')
+        if not all(isinstance(entry[k], str) and entry[k].strip() for k in ('meaning', 'lifetime')):
             raise ValueError(f'{term}: incomplete semantic boundary')
+        for key in ('owns', 'excludes', 'depends_on', 'capability_reads'):
+            value = entry[key]
+            if not isinstance(value, list) or not all(isinstance(v, str) and v.strip() for v in value) or len(set(value)) != len(value):
+                raise ValueError(f'{term}: invalid {key}')
+            if key in ('owns', 'excludes') and not value:
+                raise ValueError(f'{term}: {key} cannot be empty; no declaration-free ontology owners')
         if not set(entry['depends_on']) <= set(terms):
             raise ValueError(f'{term}: unknown dependency owner')
-        for name in entry['schemas']:
-            if name in owners: raise ValueError(f'{name}: competing semantic owners')
-            owners[name] = term
+        if entry['schema'] != term:
+            raise ValueError(f'{term}: ontology/declaration mapping must be one-to-one with identical names')
+        owners[term] = term
     if set(owners) != set(definitions):
         raise ValueError('Unowned schemas or stale semantic grants')
+    projections = set()
+    for term, entry in terms.items():
+        if not isinstance(entry['projections'], dict):
+            raise ValueError(f'{term}: projections must map labels to declared fields')
+        for label, projection in entry['projections'].items():
+            if not isinstance(label, str) or not re.fullmatch(r'[A-Za-z]+(?: [A-Za-z]+)*', label) or label.lower() in projections:
+                raise ValueError(f'{term}: invalid or competing visual projection')
+            projections.add(label.lower())
+            if not isinstance(projection, dict) or set(projection) != {'meaning', 'fields'} or not isinstance(projection['meaning'], str) or not projection['meaning'].strip():
+                raise ValueError(f'{label}: malformed visual projection')
+            fields = projection['fields']
+            if not isinstance(fields, dict) or not fields:
+                raise ValueError(f'{label}: projection must bind declared fields')
+            for schema_name, names in fields.items():
+                if owners.get(schema_name) != term:
+                    raise ValueError(f'{label}: projection cannot borrow another semantic owner')
+                if not isinstance(names, list) or not names or not all(isinstance(n, str) for n in names) or len(set(names)) != len(names) or not set(names) <= set(definitions[schema_name]['properties']):
+                    raise ValueError(f'{label}: projection references missing or invalid fields')
     dependencies = {name: set() for name in definitions}
     Draft202012Validator.check_schema(spec)
     keywords = {'type','title','description','const','default','minimum','maximum','enum','pattern',
@@ -43,6 +72,9 @@ def admit(ontology, spec):
     def walk(name, child):
         if set(child) - keywords:
             raise ValueError(f'{name}: unsupported schema vocabulary')
+        if child.get('type') == 'object' and child is not definitions[name]:
+            if 'properties' in child or not isinstance(child.get('additionalProperties'),dict):
+                raise ValueError(f'{name}: nested records require a named ontology-owned declaration')
         if '$ref' in child:
             if set(child) != {'$ref'} or not child['$ref'].startswith('#/$defs/'):
                 raise ValueError('Unsupported reference')
@@ -99,14 +131,16 @@ def python_type(schema):
 
 
 def outputs(root=ROOT):
-    ontology = read(root / 'docs/ontology/declarations.json')
-    spec = read(root / 'data-model/inference.schema.json')
-    api = read(root / 'data-model/openapi.json')
+    ontology = load_declarations(root)
+    spec = load_schema(root)
+    api = read_yaml(root / 'data-model/openapi.yaml')
     # Bundle in memory from the same canonical JSON, avoiding YAML coercion when
     # the OpenAPI resolver reads exponent-form JSON numbers from external files.
     bundled = copy.deepcopy(api)
     def api_refs(value):
         if isinstance(value,dict):
+            if 'schema' in value and (not isinstance(value['schema'],dict) or set(value['schema']) != {'$ref'}):
+                raise ValueError('Inline public schemas are forbidden; reference an admitted declaration')
             if '$ref' in value:
                 ref = value['$ref']
                 prefix = './inference.schema.json#/$defs/'
@@ -117,6 +151,9 @@ def outputs(root=ROOT):
             for item in value.values(): api_refs(item)
         elif isinstance(value,list):
             for item in value: api_refs(item)
+    for name, exported in api.get('components',{}).get('schemas',{}).items():
+        if exported != {'$ref':f'./inference.schema.json#/$defs/{name}'}:
+            raise ValueError('API schema exports must preserve canonical declaration names')
     api_refs(bundled)
     def domain_refs(value):
         if isinstance(value,dict):
@@ -129,6 +166,11 @@ def outputs(root=ROOT):
     bundled['components'] = {'schemas':definitions_for_api}
     validate_openapi(bundled)
     routes = {operation['operationId']: path for path, methods in api['paths'].items() for operation in methods.values()}
+    responses = {(path,method.upper(),int(status)):response['content']['application/json']['schema']['$ref'].split('/')[-1]
+                 for path,methods in api['paths'].items() for method,operation in methods.items()
+                 for status,response in operation['responses'].items()}
+    unknown = api['x-unknown-route-response']
+    unknown_response = (unknown['status'],unknown['schema']['$ref'].split('/')[-1])
     order = admit(ontology, spec)
     definitions = spec['$defs']
     digest = hashlib.sha256(json.dumps([ontology, spec, api], sort_keys=True, separators=(',', ':')).encode()).hexdigest()
@@ -170,9 +212,29 @@ def outputs(root=ROOT):
 })();
 '''
     compiled = subprocess.run(['node', str(ROOT/'scripts/build/compile_validators.mjs'),
-                               str(root/'data-model/inference.schema.json')],
+                               '-'], input=json.dumps(spec),
                               cwd=ROOT, check=True, capture_output=True, text=True).stdout
-    return {'web/contract-validators.generated.js':compiled, 'inside_inference/declarations_generated.py':py, 'web/declarations.generated.js':js}
+    transport = header + '''from http.server import SimpleHTTPRequestHandler
+from inside_inference.declarations_generated import MODELS
+from inside_inference.model import canonical
+
+'''+f'RESPONSES = {responses!r}\nUNKNOWN_RESPONSE = {unknown_response!r}\n\n'+'''class DeclaredResponseHandler(SimpleHTTPRequestHandler):
+    def send_declaration(self, status, value):
+        expected = RESPONSES.get((self.path, self.command, status))
+        if expected is None and self.path not in {path for path, _, _ in RESPONSES} and status == UNKNOWN_RESPONSE[0]:
+            expected = UNKNOWN_RESPONSE[1]
+        if expected is None or type(value) is not MODELS[expected]:
+            raise TypeError('Response type/status is not declared for this operation')
+        value.validate_shape(value.to_dict())
+        raw = canonical(value.to_dict())
+        self.send_response(status)
+        self.send_header('Content-Type', 'application/json; charset=utf-8')
+        self.send_header('Content-Length', str(len(raw)))
+        self.send_header('Cache-Control', 'no-store')
+        self.end_headers()
+        self.wfile.write(raw)
+'''
+    return {'data-model/inference.schema.json':json.dumps(spec,indent=2)+'\n', 'data-model/openapi.json':json.dumps(api,indent=2)+'\n', 'web/contract-validators.generated.js':compiled, 'inside_inference/declarations_generated.py':py, 'web/declarations.generated.js':js, 'scripts/dev/responses_generated.py':transport}
 
 
 def generate(root=ROOT, *, check=False):

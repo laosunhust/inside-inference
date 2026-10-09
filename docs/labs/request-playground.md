@@ -9,8 +9,8 @@ the arithmetic. This is a conditional model, not a real-device timing predictor.
 The scene has one request and an inference system with a single execution
 resource, an optional state artifact and residency,
 a transfer link, and output completion events. Each selectable object names its
-[canonical ontology term](../ontology/inference.md). The generator reads definitions
-from that document for both the inspector and linked ontology page. Ontology
+[canonical ontology term](../ontology/README.md). The generator reads admitted field projections
+from the registered YAML modules for both the inspector and linked ontology page. Ontology
 entries link back to the corresponding visual objects.
 
 Chat, Agent, and App are mutually exclusive caller labels for the same single

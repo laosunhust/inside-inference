@@ -3,10 +3,10 @@ from dataclasses import dataclass, field
 from typing import Any
 from inside_inference.contract_runtime import Declaration
 
-API_PATHS = {'capabilities': '/api/capabilities', 'run': '/api/runs'}
-CONTRACT_SHA256 = '239705d30c41762e71cf4315b148df278c8bf1b281c3b3ac34d7582f03c44b2c'
+API_PATHS = {'capabilities': '/api/capabilities', 'run': '/api/runs', 'cacheRun': '/api/cache-runs', 'cacheCapabilities': '/api/cache-capabilities'}
+CONTRACT_SHA256 = 'db240dfefe426b37a21eecc5df2787b7f04f4237d1bf478467ce187db8a01bae'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
-                       'x-owner': 'ModelArtifact',
+                       'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
                        'required': ['vocabulary',
                                     'width',
@@ -136,6 +136,170 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                       'checkpoint.',
                                                        'pattern': '^[0-9a-f]{64}$'},
                                   'architecture': {'$ref': '#/$defs/ModelArchitecture'}}},
+ 'InitializationProvenance': {'type': 'object',
+                              'properties': {'initializer': {'type': 'string'},
+                                             'kind': {'type': 'string',
+                                                      'const': 'untrained'},
+                                             'seed': {'type': 'integer',
+                                                      'minimum': 0,
+                                                      'maximum': 4294967295}},
+                              'required': ['initializer', 'kind', 'seed'],
+                              'additionalProperties': False,
+                              'x-owner': 'InitializationProvenance'},
+ 'TrainingProvenance': {'type': 'object',
+                        'properties': {'kind': {'type': 'string',
+                                                'const': 'trained'},
+                                       'seed': {'type': 'integer',
+                                                'minimum': 0,
+                                                'maximum': 4294967295},
+                                       'preparation_run_sha256': {'type': 'string',
+                                                                  'pattern': '^[0-9a-f]{64}$'},
+                                       'step': {'type': 'integer',
+                                                'minimum': 1},
+                                       'selection': {'type': 'string',
+                                                     'const': 'minimum-development-response-loss'},
+                                       'development_loss': {'type': 'number',
+                                                            'minimum': 0},
+                                       'data_sha256': {'type': 'string',
+                                                       'pattern': '^[0-9a-f]{64}$'},
+                                       'source_sha256': {'type': 'object',
+                                                         'additionalProperties': {'type': 'string',
+                                                                                  'pattern': '^[0-9a-f]{64}$'}}},
+                        'required': ['kind',
+                                     'seed',
+                                     'preparation_run_sha256',
+                                     'step',
+                                     'selection',
+                                     'development_loss',
+                                     'data_sha256',
+                                     'source_sha256'],
+                        'additionalProperties': False,
+                        'x-owner': 'TrainingProvenance'},
+ 'KVState': {'type': 'object',
+             'x-owner': 'KVState',
+             'additionalProperties': False,
+             'required': ['checkpoint_sha256',
+                          'tokenizer_sha256',
+                          'precision',
+                          'token_ids',
+                          'keys',
+                          'values'],
+             'properties': {'checkpoint_sha256': {'type': 'string',
+                                                  'pattern': '^[0-9a-f]{64}$'},
+                            'tokenizer_sha256': {'type': 'string',
+                                                 'pattern': '^[0-9a-f]{64}$'},
+                            'precision': {'type': 'string',
+                                          'const': 'binary64',
+                                          'default': 'binary64'},
+                            'token_ids': {'type': 'array',
+                                          'maxItems': 128,
+                                          'items': {'type': 'integer',
+                                                    'minimum': 0,
+                                                    'maximum': 383}},
+                            'keys': {'type': 'array',
+                                     'maxItems': 128,
+                                     'items': {'type': 'array',
+                                               'minItems': 2,
+                                               'maxItems': 32,
+                                               'items': {'type': 'number'}}},
+                            'values': {'type': 'array',
+                                       'maxItems': 128,
+                                       'items': {'type': 'array',
+                                                 'minItems': 2,
+                                                 'maxItems': 32,
+                                                 'items': {'type': 'number'}}}}},
+ 'ModelCheckpoint': {'type': 'object',
+                     'properties': {'config': {'$ref': '#/$defs/ModelArchitecture'},
+                                    'format': {'type': 'string'},
+                                    'manifest_sha256': {'type': 'string'},
+                                    'parameters': {'$ref': '#/$defs/ModelParameters'},
+                                    'provenance': {'oneOf': [{'$ref': '#/$defs/InitializationProvenance'},
+                                                             {'$ref': '#/$defs/TrainingProvenance'}]}},
+                     'required': ['config',
+                                  'format',
+                                  'manifest_sha256',
+                                  'parameters',
+                                  'provenance'],
+                     'additionalProperties': False,
+                     'x-owner': 'ModelCheckpoint'},
+ 'ModelParameters': {'type': 'object',
+                     'properties': {'attention_output': {'type': 'array',
+                                                         'items': {'type': 'array',
+                                                                   'items': {'type': 'number'}}},
+                                    'attention_output_bias': {'type': 'array',
+                                                              'items': {'type': 'number'}},
+                                    'ff_down': {'type': 'array',
+                                                'items': {'type': 'array',
+                                                          'items': {'type': 'number'}}},
+                                    'ff_down_bias': {'type': 'array',
+                                                     'items': {'type': 'number'}},
+                                    'ff_up': {'type': 'array',
+                                              'items': {'type': 'array',
+                                                        'items': {'type': 'number'}}},
+                                    'ff_up_bias': {'type': 'array',
+                                                   'items': {'type': 'number'}},
+                                    'key': {'type': 'array',
+                                            'items': {'type': 'array',
+                                                      'items': {'type': 'number'}}},
+                                    'key_bias': {'type': 'array',
+                                                 'items': {'type': 'number'}},
+                                    'lm_bias': {'type': 'array',
+                                                'items': {'type': 'number'}},
+                                    'lm_head': {'type': 'array',
+                                                'items': {'type': 'array',
+                                                          'items': {'type': 'number'}}},
+                                    'ln1_bias': {'type': 'array',
+                                                 'items': {'type': 'number'}},
+                                    'ln1_scale': {'type': 'array',
+                                                  'items': {'type': 'number'}},
+                                    'ln2_bias': {'type': 'array',
+                                                 'items': {'type': 'number'}},
+                                    'ln2_scale': {'type': 'array',
+                                                  'items': {'type': 'number'}},
+                                    'ln_final_bias': {'type': 'array',
+                                                      'items': {'type': 'number'}},
+                                    'ln_final_scale': {'type': 'array',
+                                                       'items': {'type': 'number'}},
+                                    'position_embedding': {'type': 'array',
+                                                           'items': {'type': 'array',
+                                                                     'items': {'type': 'number'}}},
+                                    'query': {'type': 'array',
+                                              'items': {'type': 'array',
+                                                        'items': {'type': 'number'}}},
+                                    'query_bias': {'type': 'array',
+                                                   'items': {'type': 'number'}},
+                                    'token_embedding': {'type': 'array',
+                                                        'items': {'type': 'array',
+                                                                  'items': {'type': 'number'}}},
+                                    'value': {'type': 'array',
+                                              'items': {'type': 'array',
+                                                        'items': {'type': 'number'}}},
+                                    'value_bias': {'type': 'array',
+                                                   'items': {'type': 'number'}}},
+                     'required': ['attention_output',
+                                  'attention_output_bias',
+                                  'ff_down',
+                                  'ff_down_bias',
+                                  'ff_up',
+                                  'ff_up_bias',
+                                  'key',
+                                  'key_bias',
+                                  'lm_bias',
+                                  'lm_head',
+                                  'ln1_bias',
+                                  'ln1_scale',
+                                  'ln2_bias',
+                                  'ln2_scale',
+                                  'ln_final_bias',
+                                  'ln_final_scale',
+                                  'position_embedding',
+                                  'query',
+                                  'query_bias',
+                                  'token_embedding',
+                                  'value',
+                                  'value_bias'],
+                     'additionalProperties': False,
+                     'x-owner': 'ModelParameters'},
  'InferenceSystem': {'type': 'object',
                      'x-owner': 'InferenceSystem',
                      'additionalProperties': False,
@@ -177,7 +341,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                        'const': 'single-at-zero',
                                                        'default': 'single-at-zero'}}},
  'GenerationPolicy': {'type': 'object',
-                      'x-owner': 'InferenceRequest',
+                      'x-owner': 'GenerationPolicy',
                       'additionalProperties': False,
                       'required': ['max_new_tokens', 'selection', 'stopping'],
                       'properties': {'max_new_tokens': {'type': 'integer',
@@ -223,6 +387,110 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                              'or truncation.',
                                               'default': 'the ball is in'},
                                      'generation': {'$ref': '#/$defs/GenerationPolicy'}}},
+ 'ScheduledRequest': {'type': 'object',
+                      'x-owner': 'ScheduledRequest',
+                      'additionalProperties': False,
+                      'required': ['request_id', 'arrival_us', 'request'],
+                      'properties': {'request_id': {'type': 'string',
+                                                    'title': 'Request identity',
+                                                    'description': 'Request '
+                                                                   'identity',
+                                                    'pattern': '^[a-z][a-z0-9-]*$'},
+                                     'arrival_us': {'type': 'integer',
+                                                    'title': 'Declared virtual '
+                                                             'arrival in '
+                                                             'microseconds',
+                                                    'description': 'Declared '
+                                                                   'virtual '
+                                                                   'arrival in '
+                                                                   'microseconds',
+                                                    'minimum': 0,
+                                                    'maximum': 9007199254740991},
+                                     'request': {'$ref': '#/$defs/InferenceRequest'}}},
+ 'Workload': {'type': 'object',
+              'x-owner': 'Workload',
+              'additionalProperties': False,
+              'required': ['kind', 'requests'],
+              'properties': {'kind': {'type': 'string',
+                                      'title': 'Arrival policy',
+                                      'description': 'Arrival policy',
+                                      'const': 'fixed-arrivals',
+                                      'default': 'fixed-arrivals'},
+                             'requests': {'type': 'array',
+                                          'title': 'Ordered requests',
+                                          'description': 'Ordered requests',
+                                          'items': {'$ref': '#/$defs/ScheduledRequest'},
+                                          'minItems': 1}}},
+ 'CacheSystem': {'type': 'object',
+                 'x-owner': 'CacheSystem',
+                 'additionalProperties': False,
+                 'required': ['backend',
+                              'device_kv_bytes',
+                              'host_kv_bytes',
+                              'max_active_requests',
+                              'compute_flops_per_us',
+                              'memory_bytes_per_us',
+                              'link_bytes_per_us',
+                              'link_latency_us',
+                              'retention_policy',
+                              'max_requests',
+                              'max_new_tokens_cap'],
+                 'properties': {'backend': {'type': 'string',
+                                            'enum': ['reference', 'cuda'],
+                                            'default': 'reference',
+                                            'title': 'Numerical backend'},
+                                'device_kv_bytes': {'type': 'integer',
+                                                    'minimum': 1,
+                                                    'maximum': 1048576,
+                                                    'default': 16384,
+                                                    'title': 'Device KV budget '
+                                                             '· bytes'},
+                                'host_kv_bytes': {'type': 'integer',
+                                                  'minimum': 0,
+                                                  'maximum': 1048576,
+                                                  'default': 32768,
+                                                  'title': 'Host KV budget · '
+                                                           'bytes'},
+                                'max_active_requests': {'type': 'integer',
+                                                        'minimum': 1,
+                                                        'maximum': 8,
+                                                        'default': 2,
+                                                        'title': 'Active '
+                                                                 'request '
+                                                                 'slots'},
+                                'compute_flops_per_us': {'type': 'number',
+                                                         'minimum': 0.001,
+                                                         'default': 1000,
+                                                         'title': 'Effective '
+                                                                  'matmul '
+                                                                  'FLOPs / '
+                                                                  'virtual µs'},
+                                'memory_bytes_per_us': {'type': 'number',
+                                                        'minimum': 0.001,
+                                                        'default': 1000,
+                                                        'title': 'Logical '
+                                                                 'memory bytes '
+                                                                 '/ virtual '
+                                                                 'µs'},
+                                'link_bytes_per_us': {'type': 'number',
+                                                      'minimum': 0.001,
+                                                      'default': 100,
+                                                      'title': 'Transfer bytes '
+                                                               '/ virtual µs'},
+                                'link_latency_us': {'type': 'number',
+                                                    'minimum': 0,
+                                                    'default': 10,
+                                                    'title': 'Transfer startup '
+                                                             '· virtual µs'},
+                                'retention_policy': {'type': 'string',
+                                                     'const': 'whole-prefix-lru',
+                                                     'default': 'whole-prefix-lru'},
+                                'max_requests': {'type': 'integer',
+                                                 'const': 8,
+                                                 'default': 8},
+                                'max_new_tokens_cap': {'type': 'integer',
+                                                       'const': 8,
+                                                       'default': 8}}},
  'RunOutcome': {'type': 'object',
                 'x-owner': 'RunOutcome',
                 'additionalProperties': False,
@@ -267,75 +535,13 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                             'description': 'True only if '
                                                            'TURN_END was '
                                                            'selected.'}}},
- 'InspectionState': {'type': 'object',
-                     'x-owner': 'InspectionState',
-                     'additionalProperties': False,
-                     'required': ['run_id', 'prediction', 'position'],
-                     'properties': {'run_id': {'type': 'string',
-                                               'title': 'Observed run',
-                                               'description': 'SHA-256 '
-                                                              'identity of the '
-                                                              'exact artifact '
-                                                              'bytes or '
-                                                              'canonical '
-                                                              'checkpoint.',
-                                               'pattern': '^[0-9a-f]{64}$'},
-                                    'prediction': {'type': 'integer',
-                                                   'title': 'Prediction index',
-                                                   'description': 'Zero-based '
-                                                                  'cursor into '
-                                                                  'actual '
-                                                                  'passes.',
-                                                   'minimum': 0},
-                                    'position': {'type': 'integer',
-                                                 'title': 'Sequence position',
-                                                 'description': 'Zero-based '
-                                                                'position '
-                                                                'within '
-                                                                'selected '
-                                                                'pass.',
-                                                 'minimum': 0}}},
  'RequestBinding': {'type': 'object',
-                    'x-owner': 'NumericalEvidence',
+                    'x-owner': 'RequestBinding',
                     'additionalProperties': False,
                     'required': ['model', 'system', 'request'],
                     'properties': {'model': {'$ref': '#/$defs/ModelArtifact'},
                                    'system': {'$ref': '#/$defs/InferenceSystem'},
                                    'request': {'$ref': '#/$defs/InferenceRequest'}}},
- 'ScheduledRequest': {'type': 'object',
-                      'x-owner': 'Workload',
-                      'additionalProperties': False,
-                      'required': ['request_id', 'arrival_us', 'request'],
-                      'properties': {'request_id': {'type': 'string',
-                                                    'title': 'Request identity',
-                                                    'description': 'Request '
-                                                                   'identity',
-                                                    'pattern': '^[a-z][a-z0-9-]*$'},
-                                     'arrival_us': {'type': 'integer',
-                                                    'title': 'Declared virtual '
-                                                             'arrival in '
-                                                             'microseconds',
-                                                    'description': 'Declared '
-                                                                   'virtual '
-                                                                   'arrival in '
-                                                                   'microseconds',
-                                                    'minimum': 0,
-                                                    'maximum': 9007199254740991},
-                                     'request': {'$ref': '#/$defs/InferenceRequest'}}},
- 'Workload': {'type': 'object',
-              'x-owner': 'Workload',
-              'additionalProperties': False,
-              'required': ['kind', 'requests'],
-              'properties': {'kind': {'type': 'string',
-                                      'title': 'Arrival policy',
-                                      'description': 'Arrival policy',
-                                      'const': 'fixed-arrivals',
-                                      'default': 'fixed-arrivals'},
-                             'requests': {'type': 'array',
-                                          'title': 'Ordered requests',
-                                          'description': 'Ordered requests',
-                                          'items': {'$ref': '#/$defs/ScheduledRequest'},
-                                          'minItems': 1}}},
  'RunBinding': {'type': 'object',
                 'x-owner': 'RunBinding',
                 'additionalProperties': False,
@@ -344,7 +550,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                'system': {'$ref': '#/$defs/InferenceSystem'},
                                'workload': {'$ref': '#/$defs/Workload'}}},
  'EventClock': {'type': 'object',
-                'x-owner': 'RunEvent',
+                'x-owner': 'EventClock',
                 'additionalProperties': False,
                 'required': ['kind'],
                 'properties': {'kind': {'type': 'string',
@@ -353,7 +559,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                         'const': 'execution-order',
                                         'default': 'execution-order'}}},
  'RequestArrived': {'type': 'object',
-                    'x-owner': 'RunEvent',
+                    'x-owner': 'RequestArrived',
                     'additionalProperties': False,
                     'required': ['kind', 'arrival_us'],
                     'properties': {'kind': {'type': 'string',
@@ -373,7 +579,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                   'minimum': 0,
                                                   'maximum': 9007199254740991}}},
  'InputEncoded': {'type': 'object',
-                  'x-owner': 'RunEvent',
+                  'x-owner': 'InputEncoded',
                   'additionalProperties': False,
                   'required': ['kind', 'input_sha256', 'token_count'],
                   'properties': {'kind': {'type': 'string',
@@ -394,7 +600,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                  'minimum': 0,
                                                  'maximum': 9007199254740991}}},
  'WorkCompleted': {'type': 'object',
-                   'x-owner': 'RunEvent',
+                   'x-owner': 'WorkCompleted',
                    'additionalProperties': False,
                    'required': ['kind', 'work_id', 'phase'],
                    'properties': {'kind': {'type': 'string',
@@ -413,7 +619,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                             'description': 'Execution phase',
                                             'enum': ['prefill', 'decode']}}},
  'TokenSelected': {'type': 'object',
-                   'x-owner': 'RunEvent',
+                   'x-owner': 'TokenSelected',
                    'additionalProperties': False,
                    'required': ['kind',
                                 'work_id',
@@ -445,7 +651,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                       'minimum': 0,
                                                       'maximum': 9007199254740991}}},
  'TokenCommitted': {'type': 'object',
-                    'x-owner': 'RunEvent',
+                    'x-owner': 'TokenCommitted',
                     'additionalProperties': False,
                     'required': ['kind',
                                  'work_id',
@@ -483,7 +689,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                     'minimum': 0,
                                                     'maximum': 9007199254740991}}},
  'TokenDelivered': {'type': 'object',
-                    'x-owner': 'RunEvent',
+                    'x-owner': 'TokenDelivered',
                     'additionalProperties': False,
                     'required': ['kind',
                                  'work_id',
@@ -537,7 +743,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                     'labeled '
                                                                     'markers.'}}},
  'RequestFinished': {'type': 'object',
-                     'x-owner': 'RunEvent',
+                     'x-owner': 'RequestFinished',
                      'additionalProperties': False,
                      'required': ['kind', 'outcome'],
                      'properties': {'kind': {'type': 'string',
@@ -588,123 +794,11 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                    {'$ref': '#/$defs/TokenDelivered'},
                                                    {'$ref': '#/$defs/RequestFinished'}]}}},
  'NumericalTrace': {'type': 'object',
-                    'properties': {'checkpoint': {'type': 'object',
-                                                  'properties': {'config': {'$ref': '#/$defs/ModelArchitecture'},
-                                                                 'format': {'type': 'string'},
-                                                                 'manifest_sha256': {'type': 'string'},
-                                                                 'parameters': {'type': 'object',
-                                                                                'properties': {'attention_output': {'type': 'array',
-                                                                                                                    'items': {'type': 'array',
-                                                                                                                              'items': {'type': 'number'}}},
-                                                                                               'attention_output_bias': {'type': 'array',
-                                                                                                                         'items': {'type': 'number'}},
-                                                                                               'ff_down': {'type': 'array',
-                                                                                                           'items': {'type': 'array',
-                                                                                                                     'items': {'type': 'number'}}},
-                                                                                               'ff_down_bias': {'type': 'array',
-                                                                                                                'items': {'type': 'number'}},
-                                                                                               'ff_up': {'type': 'array',
-                                                                                                         'items': {'type': 'array',
-                                                                                                                   'items': {'type': 'number'}}},
-                                                                                               'ff_up_bias': {'type': 'array',
-                                                                                                              'items': {'type': 'number'}},
-                                                                                               'key': {'type': 'array',
-                                                                                                       'items': {'type': 'array',
-                                                                                                                 'items': {'type': 'number'}}},
-                                                                                               'key_bias': {'type': 'array',
-                                                                                                            'items': {'type': 'number'}},
-                                                                                               'lm_bias': {'type': 'array',
-                                                                                                           'items': {'type': 'number'}},
-                                                                                               'lm_head': {'type': 'array',
-                                                                                                           'items': {'type': 'array',
-                                                                                                                     'items': {'type': 'number'}}},
-                                                                                               'ln1_bias': {'type': 'array',
-                                                                                                            'items': {'type': 'number'}},
-                                                                                               'ln1_scale': {'type': 'array',
-                                                                                                             'items': {'type': 'number'}},
-                                                                                               'ln2_bias': {'type': 'array',
-                                                                                                            'items': {'type': 'number'}},
-                                                                                               'ln2_scale': {'type': 'array',
-                                                                                                             'items': {'type': 'number'}},
-                                                                                               'ln_final_bias': {'type': 'array',
-                                                                                                                 'items': {'type': 'number'}},
-                                                                                               'ln_final_scale': {'type': 'array',
-                                                                                                                  'items': {'type': 'number'}},
-                                                                                               'position_embedding': {'type': 'array',
-                                                                                                                      'items': {'type': 'array',
-                                                                                                                                'items': {'type': 'number'}}},
-                                                                                               'query': {'type': 'array',
-                                                                                                         'items': {'type': 'array',
-                                                                                                                   'items': {'type': 'number'}}},
-                                                                                               'query_bias': {'type': 'array',
-                                                                                                              'items': {'type': 'number'}},
-                                                                                               'token_embedding': {'type': 'array',
-                                                                                                                   'items': {'type': 'array',
-                                                                                                                             'items': {'type': 'number'}}},
-                                                                                               'value': {'type': 'array',
-                                                                                                         'items': {'type': 'array',
-                                                                                                                   'items': {'type': 'number'}}},
-                                                                                               'value_bias': {'type': 'array',
-                                                                                                              'items': {'type': 'number'}}},
-                                                                                'required': ['attention_output',
-                                                                                             'attention_output_bias',
-                                                                                             'ff_down',
-                                                                                             'ff_down_bias',
-                                                                                             'ff_up',
-                                                                                             'ff_up_bias',
-                                                                                             'key',
-                                                                                             'key_bias',
-                                                                                             'lm_bias',
-                                                                                             'lm_head',
-                                                                                             'ln1_bias',
-                                                                                             'ln1_scale',
-                                                                                             'ln2_bias',
-                                                                                             'ln2_scale',
-                                                                                             'ln_final_bias',
-                                                                                             'ln_final_scale',
-                                                                                             'position_embedding',
-                                                                                             'query',
-                                                                                             'query_bias',
-                                                                                             'token_embedding',
-                                                                                             'value',
-                                                                                             'value_bias'],
-                                                                                'additionalProperties': False},
-                                                                 'provenance': {'type': 'object',
-                                                                                'properties': {'initializer': {'type': 'string'},
-                                                                                               'kind': {'type': 'string'},
-                                                                                               'seed': {'type': 'integer'}},
-                                                                                'required': ['initializer',
-                                                                                             'kind',
-                                                                                             'seed'],
-                                                                                'additionalProperties': False}},
-                                                  'required': ['config',
-                                                               'format',
-                                                               'manifest_sha256',
-                                                               'parameters',
-                                                               'provenance'],
-                                                  'additionalProperties': False},
-                                   'code': {'type': 'object',
-                                            'properties': {'python': {'type': 'string'},
-                                                           'revision': {'type': 'string'},
-                                                           'source_sha256': {'type': 'string'},
-                                                           'sources': {'type': 'object',
-                                                                       'additionalProperties': {'type': 'string',
-                                                                                                'pattern': '^[0-9a-f]{64}$'}}},
-                                            'required': ['python',
-                                                         'revision',
-                                                         'source_sha256',
-                                                         'sources'],
-                                            'additionalProperties': False},
+                    'properties': {'checkpoint': {'$ref': '#/$defs/ModelCheckpoint'},
+                                   'code': {'$ref': '#/$defs/CodeIdentity'},
                                    'contract_sha256': {'type': 'string'},
                                    'declaration': {'$ref': '#/$defs/RequestBinding'},
-                                   'decoding_contract': {'type': 'object',
-                                                         'properties': {'choice': {'type': 'string'},
-                                                                        'explanation': {'type': 'string'},
-                                                                        'rule': {'type': 'string'}},
-                                                         'required': ['choice',
-                                                                      'explanation',
-                                                                      'rule'],
-                                                         'additionalProperties': False},
+                                   'decoding_contract': {'$ref': '#/$defs/DecodingContract'},
                                    'evidence': {'type': 'string'},
                                    'format': {'type': 'string',
                                               'const': 'naive-gpt-run-v2'},
@@ -728,175 +822,14 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                      'labeled '
                                                                      'markers.'},
                                    'passes': {'type': 'array',
-                                              'items': {'type': 'object',
-                                                        'properties': {'display_so_far': {'type': 'string',
-                                                                                          'description': 'Diagnostic '
-                                                                                                         'token '
-                                                                                                         'display; '
-                                                                                                         'raw '
-                                                                                                         'IDs '
-                                                                                                         'are '
-                                                                                                         'authoritative. '
-                                                                                                         'Control, '
-                                                                                                         'byte, '
-                                                                                                         'and '
-                                                                                                         'hex '
-                                                                                                         'IDs '
-                                                                                                         'appear '
-                                                                                                         'as '
-                                                                                                         'labeled '
-                                                                                                         'markers.'},
-                                                                       'execution': {'type': 'string'},
-                                                                       'id': {'type': 'string'},
-                                                                       'input_ids': {'type': 'array',
-                                                                                     'items': {'type': 'integer'}},
-                                                                       'nodes': {'type': 'array',
-                                                                                 'items': {'type': 'object',
-                                                                                           'properties': {'axes': {'type': 'array',
-                                                                                                                   'items': {'type': 'string'}},
-                                                                                                          'dtype': {'type': 'string'},
-                                                                                                          'formula': {'type': 'string'},
-                                                                                                          'id': {'type': 'string'},
-                                                                                                          'inputs': {'type': 'array',
-                                                                                                                     'items': {'type': 'string'}},
-                                                                                                          'layer': {'type': ['integer',
-                                                                                                                             'null']},
-                                                                                                          'name': {'type': 'string'},
-                                                                                                          'positions': {'type': 'array',
-                                                                                                                        'items': {'type': 'integer'}},
-                                                                                                          'request_id': {'type': 'string'},
-                                                                                                          'run_id': {'type': 'string'},
-                                                                                                          'shape': {'type': 'array',
-                                                                                                                    'items': {'type': 'integer'}},
-                                                                                                          'step': {'type': 'integer'},
-                                                                                                          'term': {'type': 'string'},
-                                                                                                          'values': {'type': 'array',
-                                                                                                                     'items': {'anyOf': [{'type': 'number'},
-                                                                                                                                         {'type': 'boolean'},
-                                                                                                                                         {'type': 'array',
-                                                                                                                                          'items': {'type': ['number',
-                                                                                                                                                             'boolean']}}]}}},
-                                                                                           'required': ['axes',
-                                                                                                        'dtype',
-                                                                                                        'formula',
-                                                                                                        'id',
-                                                                                                        'inputs',
-                                                                                                        'layer',
-                                                                                                        'name',
-                                                                                                        'positions',
-                                                                                                        'request_id',
-                                                                                                        'run_id',
-                                                                                                        'shape',
-                                                                                                        'step',
-                                                                                                        'term',
-                                                                                                        'values'],
-                                                                                           'additionalProperties': False}},
-                                                                       'output_position': {'type': 'integer'},
-                                                                       'phase': {'type': 'string'},
-                                                                       'positions': {'type': 'array',
-                                                                                     'items': {'type': 'integer'}},
-                                                                       'request_id': {'type': 'string'},
-                                                                       'run_id': {'type': 'string'},
-                                                                       'selection': {'type': 'object',
-                                                                                     'properties': {'decoding': {'type': 'string'},
-                                                                                                    'probabilities': {'type': 'array',
-                                                                                                                      'items': {'type': 'number'}},
-                                                                                                    'raw_logits': {'type': 'array',
-                                                                                                                   'items': {'type': 'number'}},
-                                                                                                    'rng_state': {'type': 'null'},
-                                                                                                    'rule': {'type': 'string',
-                                                                                                             'const': 'unmasked-greedy-v1'},
-                                                                                                    'selected_id': {'type': 'integer'}},
-                                                                                     'required': ['decoding',
-                                                                                                  'probabilities',
-                                                                                                  'raw_logits',
-                                                                                                  'rng_state',
-                                                                                                  'rule',
-                                                                                                  'selected_id'],
-                                                                                     'additionalProperties': False},
-                                                                       'selection_position': {'type': 'integer'},
-                                                                       'step': {'type': 'integer'}},
-                                                        'required': ['display_so_far',
-                                                                     'execution',
-                                                                     'id',
-                                                                     'input_ids',
-                                                                     'nodes',
-                                                                     'output_position',
-                                                                     'phase',
-                                                                     'positions',
-                                                                     'request_id',
-                                                                     'run_id',
-                                                                     'selection',
-                                                                     'selection_position',
-                                                                     'step'],
-                                                        'additionalProperties': False}},
-                                   'precision': {'type': 'object',
-                                                 'properties': {'accumulation': {'type': 'string'},
-                                                                'compute': {'type': 'string'},
-                                                                'storage': {'type': 'string'}},
-                                                 'required': ['accumulation',
-                                                              'compute',
-                                                              'storage'],
-                                                 'additionalProperties': False},
+                                              'items': {'$ref': '#/$defs/NumericalPass'}},
+                                   'precision': {'$ref': '#/$defs/NumericalPrecision'},
                                    'request_id': {'type': 'string'},
                                    'sequence_ids': {'type': 'array',
                                                     'items': {'type': 'integer'}},
-                                   'tokenizer': {'type': 'object',
-                                                 'properties': {'codec_version': {'type': 'string'},
-                                                                'context_limit': {'type': ['integer',
-                                                                                           'null']},
-                                                                'ids': {'type': 'array',
-                                                                        'items': {'type': 'integer'}},
-                                                                'input_kind': {'type': 'string'},
-                                                                'input_sha256': {'type': 'string'},
-                                                                'manifest_sha256': {'type': 'string'},
-                                                                'spans': {'type': 'array',
-                                                                          'items': {'type': 'object',
-                                                                                    'properties': {'byte_end': {'type': ['integer',
-                                                                                                                         'null']},
-                                                                                                   'byte_start': {'type': ['integer',
-                                                                                                                           'null']},
-                                                                                                   'ids': {'type': 'array',
-                                                                                                           'items': {'type': 'integer'}},
-                                                                                                   'kind': {'type': 'string'},
-                                                                                                   'raw_bytes': {'type': 'array',
-                                                                                                                 'items': {'type': 'integer'}},
-                                                                                                   'reason': {'type': 'string'},
-                                                                                                   'token_end': {'type': 'integer'},
-                                                                                                   'token_start': {'type': 'integer'},
-                                                                                                   'turn': {'type': ['integer',
-                                                                                                                     'null']}},
-                                                                                    'required': ['byte_end',
-                                                                                                 'byte_start',
-                                                                                                 'ids',
-                                                                                                 'kind',
-                                                                                                 'raw_bytes',
-                                                                                                 'reason',
-                                                                                                 'token_end',
-                                                                                                 'token_start',
-                                                                                                 'turn'],
-                                                                                    'additionalProperties': False}},
-                                                                'unicode_version': {'type': 'string'}},
-                                                 'required': ['codec_version',
-                                                              'context_limit',
-                                                              'ids',
-                                                              'input_kind',
-                                                              'input_sha256',
-                                                              'manifest_sha256',
-                                                              'spans',
-                                                              'unicode_version'],
-                                                 'additionalProperties': False},
+                                   'tokenizer': {'$ref': '#/$defs/Encoding'},
                                    'vocabulary': {'type': 'array',
-                                                  'items': {'type': 'object',
-                                                            'properties': {'group': {'type': 'string'},
-                                                                           'id': {'type': 'integer'},
-                                                                           'kind': {'type': 'string'},
-                                                                           'piece': {'type': 'string'}},
-                                                            'required': ['group',
-                                                                         'id',
-                                                                         'kind',
-                                                                         'piece'],
-                                                            'additionalProperties': False}}},
+                                                  'items': {'$ref': '#/$defs/Token'}}},
                     'required': ['checkpoint',
                                  'code',
                                  'contract_sha256',
@@ -915,7 +848,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                  'tokenizer',
                                  'vocabulary'],
                     'additionalProperties': False,
-                    'x-owner': 'NumericalEvidence'},
+                    'x-owner': 'NumericalTrace'},
  'RunRecord': {'type': 'object',
                'x-owner': 'RunRecord',
                'additionalProperties': False,
@@ -955,8 +888,307 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                         'evidence',
                                          'items': {'$ref': '#/$defs/NumericalTrace'},
                                          'minItems': 1}}},
+ 'TensorObservation': {'type': 'object',
+                       'properties': {'axes': {'type': 'array',
+                                               'items': {'type': 'string'}},
+                                      'dtype': {'type': 'string'},
+                                      'formula': {'type': 'string'},
+                                      'id': {'type': 'string'},
+                                      'inputs': {'type': 'array',
+                                                 'items': {'type': 'string'}},
+                                      'layer': {'type': ['integer', 'null']},
+                                      'name': {'type': 'string'},
+                                      'positions': {'type': 'array',
+                                                    'items': {'type': 'integer'}},
+                                      'request_id': {'type': 'string'},
+                                      'run_id': {'type': 'string'},
+                                      'shape': {'type': 'array',
+                                                'items': {'type': 'integer'}},
+                                      'step': {'type': 'integer'},
+                                      'term': {'type': 'string'},
+                                      'values': {'type': 'array',
+                                                 'items': {'anyOf': [{'type': 'number'},
+                                                                     {'type': 'boolean'},
+                                                                     {'type': 'array',
+                                                                      'items': {'type': ['number',
+                                                                                         'boolean']}}]}}},
+                       'required': ['axes',
+                                    'dtype',
+                                    'formula',
+                                    'id',
+                                    'inputs',
+                                    'layer',
+                                    'name',
+                                    'positions',
+                                    'request_id',
+                                    'run_id',
+                                    'shape',
+                                    'step',
+                                    'term',
+                                    'values'],
+                       'additionalProperties': False,
+                       'x-owner': 'TensorObservation'},
+ 'TokenSelection': {'type': 'object',
+                    'properties': {'decoding': {'type': 'string'},
+                                   'probabilities': {'type': 'array',
+                                                     'items': {'type': 'number'}},
+                                   'raw_logits': {'type': 'array',
+                                                  'items': {'type': 'number'}},
+                                   'rng_state': {'type': 'null'},
+                                   'rule': {'type': 'string',
+                                            'const': 'unmasked-greedy-v1'},
+                                   'selected_id': {'type': 'integer'}},
+                    'required': ['decoding',
+                                 'probabilities',
+                                 'raw_logits',
+                                 'rng_state',
+                                 'rule',
+                                 'selected_id'],
+                    'additionalProperties': False,
+                    'x-owner': 'TokenSelection'},
+ 'CacheExperiment': {'type': 'object',
+                     'x-owner': 'CacheExperiment',
+                     'additionalProperties': False,
+                     'required': ['system', 'workload'],
+                     'properties': {'system': {'$ref': '#/$defs/CacheSystem'},
+                                    'workload': {'$ref': '#/$defs/Workload'}}},
+ 'CacheEvent': {'type': 'object',
+                'x-owner': 'CacheEvent',
+                'additionalProperties': False,
+                'required': ['event_id',
+                             'request_id',
+                             'time_us',
+                             'kind',
+                             'state_id',
+                             'bytes',
+                             'device_reserved_bytes',
+                             'host_retained_bytes',
+                             'detail',
+                             'causes'],
+                'properties': {'event_id': {'type': 'string'},
+                               'request_id': {'type': 'string'},
+                               'time_us': {'type': 'number', 'minimum': 0},
+                               'kind': {'type': 'string',
+                                        'enum': ['arrived',
+                                                 'queued',
+                                                 'admitted',
+                                                 'local-hit',
+                                                 'remote-hit',
+                                                 'miss',
+                                                 'evicted',
+                                                 'transfer-start',
+                                                 'transfer-end',
+                                                 'compute-start',
+                                                 'compute-end',
+                                                 'selected',
+                                                 'finished',
+                                                 'retained',
+                                                 'retention-start']},
+                               'state_id': {'type': ['string', 'null']},
+                               'bytes': {'type': 'integer',
+                                         'minimum': 0,
+                                         'maximum': 9007199254740991},
+                               'device_reserved_bytes': {'type': 'integer',
+                                                         'minimum': 0,
+                                                         'maximum': 9007199254740991},
+                               'host_retained_bytes': {'type': 'integer',
+                                                       'minimum': 0,
+                                                       'maximum': 9007199254740991},
+                               'detail': {'type': 'string'},
+                               'causes': {'type': 'array',
+                                          'items': {'type': 'string'}}}},
+ 'CacheComputation': {'type': 'object',
+                      'x-owner': 'CacheComputation',
+                      'additionalProperties': False,
+                      'required': ['work_id',
+                                   'request_id',
+                                   'step',
+                                   'input_ids',
+                                   'state_before',
+                                   'state_after',
+                                   'nodes',
+                                   'selection',
+                                   'matmul_flops',
+                                   'logical_memory_bytes',
+                                   'reference_max_abs_error',
+                                   'phase',
+                                   'reference_matmul_flops'],
+                      'properties': {'work_id': {'type': 'string'},
+                                     'request_id': {'type': 'string'},
+                                     'step': {'type': 'integer',
+                                              'minimum': 0,
+                                              'maximum': 9007199254740991},
+                                     'input_ids': {'type': 'array',
+                                                   'items': {'type': 'integer',
+                                                             'minimum': 0,
+                                                             'maximum': 383}},
+                                     'state_before': {'$ref': '#/$defs/KVState'},
+                                     'state_after': {'$ref': '#/$defs/KVState'},
+                                     'nodes': {'type': 'array',
+                                               'items': {'$ref': '#/$defs/TensorObservation'}},
+                                     'selection': {'oneOf': [{'$ref': '#/$defs/TokenSelection'},
+                                                             {'type': 'null'}]},
+                                     'matmul_flops': {'type': 'integer',
+                                                      'minimum': 0,
+                                                      'maximum': 9007199254740991},
+                                     'logical_memory_bytes': {'type': 'integer',
+                                                              'minimum': 0,
+                                                              'maximum': 9007199254740991},
+                                     'reference_max_abs_error': {'type': 'number',
+                                                                 'minimum': 0},
+                                     'phase': {'type': 'string',
+                                               'enum': ['cache-build',
+                                                        'prefill',
+                                                        'decode']},
+                                     'reference_matmul_flops': {'type': 'integer',
+                                                                'minimum': 0}}},
+ 'CacheMeasurement': {'type': 'object',
+                      'x-owner': 'CacheMeasurement',
+                      'additionalProperties': False,
+                      'required': ['event_id', 'kind', 'elapsed_us', 'bytes'],
+                      'properties': {'event_id': {'type': 'string'},
+                                     'kind': {'type': 'string',
+                                              'enum': ['compute',
+                                                       'host-to-device',
+                                                       'device-to-host',
+                                                       'device-copy',
+                                                       'reference-check']},
+                                     'elapsed_us': {'type': 'number',
+                                                    'minimum': 0},
+                                     'bytes': {'type': 'integer',
+                                               'minimum': 0,
+                                               'maximum': 9007199254740991}}},
+ 'CacheRun': {'type': 'object',
+              'x-owner': 'CacheRun',
+              'additionalProperties': False,
+              'required': ['id',
+                           'spec',
+                           'checkpoint',
+                           'source_sha256',
+                           'events',
+                           'computations',
+                           'measurements',
+                           'outcomes',
+                           'states',
+                           'evidence',
+                           'backend'],
+              'properties': {'id': {'type': 'string'},
+                             'spec': {'$ref': '#/$defs/CacheExperiment'},
+                             'checkpoint': {'$ref': '#/$defs/ModelCheckpoint'},
+                             'source_sha256': {'type': 'string'},
+                             'events': {'type': 'array',
+                                        'items': {'$ref': '#/$defs/CacheEvent'}},
+                             'computations': {'type': 'array',
+                                              'items': {'$ref': '#/$defs/CacheComputation'}},
+                             'measurements': {'type': 'array',
+                                              'items': {'$ref': '#/$defs/CacheMeasurement'}},
+                             'outcomes': {'type': 'object',
+                                          'additionalProperties': {'$ref': '#/$defs/RunOutcome'}},
+                             'states': {'type': 'object',
+                                        'additionalProperties': {'$ref': '#/$defs/KVState'}},
+                             'evidence': {'type': 'string'},
+                             'backend': {'$ref': '#/$defs/CacheBackend'}}},
+ 'CodeIdentity': {'type': 'object',
+                  'properties': {'python': {'type': 'string'},
+                                 'revision': {'type': 'string'},
+                                 'source_sha256': {'type': 'string'},
+                                 'sources': {'type': 'object',
+                                             'additionalProperties': {'type': 'string',
+                                                                      'pattern': '^[0-9a-f]{64}$'}}},
+                  'required': ['python',
+                               'revision',
+                               'source_sha256',
+                               'sources'],
+                  'additionalProperties': False,
+                  'x-owner': 'CodeIdentity'},
+ 'DecodingContract': {'type': 'object',
+                      'properties': {'choice': {'type': 'string'},
+                                     'explanation': {'type': 'string'},
+                                     'rule': {'type': 'string'}},
+                      'required': ['choice', 'explanation', 'rule'],
+                      'additionalProperties': False,
+                      'x-owner': 'DecodingContract'},
+ 'NumericalPrecision': {'type': 'object',
+                        'properties': {'accumulation': {'type': 'string'},
+                                       'compute': {'type': 'string'},
+                                       'storage': {'type': 'string'}},
+                        'required': ['accumulation', 'compute', 'storage'],
+                        'additionalProperties': False,
+                        'x-owner': 'NumericalPrecision'},
+ 'NumericalPass': {'type': 'object',
+                   'properties': {'display_so_far': {'type': 'string',
+                                                     'description': 'Diagnostic '
+                                                                    'token '
+                                                                    'display; '
+                                                                    'raw IDs '
+                                                                    'are '
+                                                                    'authoritative. '
+                                                                    'Control, '
+                                                                    'byte, and '
+                                                                    'hex IDs '
+                                                                    'appear as '
+                                                                    'labeled '
+                                                                    'markers.'},
+                                  'execution': {'type': 'string'},
+                                  'id': {'type': 'string'},
+                                  'input_ids': {'type': 'array',
+                                                'items': {'type': 'integer'}},
+                                  'nodes': {'type': 'array',
+                                            'items': {'$ref': '#/$defs/TensorObservation'}},
+                                  'output_position': {'type': 'integer'},
+                                  'phase': {'type': 'string'},
+                                  'positions': {'type': 'array',
+                                                'items': {'type': 'integer'}},
+                                  'request_id': {'type': 'string'},
+                                  'run_id': {'type': 'string'},
+                                  'selection': {'$ref': '#/$defs/TokenSelection'},
+                                  'selection_position': {'type': 'integer'},
+                                  'step': {'type': 'integer'}},
+                   'required': ['display_so_far',
+                                'execution',
+                                'id',
+                                'input_ids',
+                                'nodes',
+                                'output_position',
+                                'phase',
+                                'positions',
+                                'request_id',
+                                'run_id',
+                                'selection',
+                                'selection_position',
+                                'step'],
+                   'additionalProperties': False,
+                   'x-owner': 'NumericalPass'},
+ 'InspectionState': {'type': 'object',
+                     'x-owner': 'InspectionState',
+                     'additionalProperties': False,
+                     'required': ['run_id', 'prediction', 'position'],
+                     'properties': {'run_id': {'type': 'string',
+                                               'title': 'Observed run',
+                                               'description': 'SHA-256 '
+                                                              'identity of the '
+                                                              'exact artifact '
+                                                              'bytes or '
+                                                              'canonical '
+                                                              'checkpoint.',
+                                               'pattern': '^[0-9a-f]{64}$'},
+                                    'prediction': {'type': 'integer',
+                                                   'title': 'Prediction index',
+                                                   'description': 'Zero-based '
+                                                                  'cursor into '
+                                                                  'actual '
+                                                                  'passes.',
+                                                   'minimum': 0},
+                                    'position': {'type': 'integer',
+                                                 'title': 'Sequence position',
+                                                 'description': 'Zero-based '
+                                                                'position '
+                                                                'within '
+                                                                'selected '
+                                                                'pass.',
+                                                 'minimum': 0}}},
  'Capabilities': {'type': 'object',
-                  'x-owner': 'ServiceBoundary',
+                  'x-owner': 'Capabilities',
                   'additionalProperties': False,
                   'required': ['engine', 'contract_sha256'],
                   'properties': {'engine': {'type': 'string',
@@ -971,13 +1203,105 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                     'identity',
                                                      'pattern': '^[0-9a-f]{64}$'}}},
  'ApiError': {'type': 'object',
-              'x-owner': 'ServiceBoundary',
+              'x-owner': 'ApiError',
               'additionalProperties': False,
               'required': ['error'],
               'properties': {'error': {'type': 'string',
                                        'title': 'Explicit rejection reason',
                                        'description': 'Explicit rejection '
-                                                      'reason'}}}}
+                                                      'reason'}}},
+ 'CacheCapabilities': {'type': 'object',
+                       'x-owner': 'CacheCapabilities',
+                       'additionalProperties': False,
+                       'required': ['contract_sha256', 'backends'],
+                       'properties': {'contract_sha256': {'type': 'string'},
+                                      'backends': {'type': 'array',
+                                                   'items': {'type': 'string',
+                                                             'enum': ['reference',
+                                                                      'cuda']},
+                                                   'minItems': 1,
+                                                   'uniqueItems': True}}},
+ 'CacheBackend': {'type': 'object',
+                  'x-owner': 'CacheBackend',
+                  'additionalProperties': False,
+                  'required': ['compute_device',
+                               'device_state_storage',
+                               'host_state_storage',
+                               'library',
+                               'precision'],
+                  'properties': {'compute_device': {'type': 'string'},
+                                 'device_state_storage': {'type': 'string'},
+                                 'host_state_storage': {'type': 'string'},
+                                 'library': {'type': 'string'},
+                                 'precision': {'type': 'string'}}},
+ 'Token': {'type': 'object',
+           'x-owner': 'Token',
+           'properties': {'id': {'type': 'integer',
+                                 'minimum': 0,
+                                 'maximum': 383},
+                          'kind': {'type': 'string'},
+                          'piece': {'type': 'string'},
+                          'group': {'type': 'string'}},
+           'required': ['id', 'kind', 'piece', 'group'],
+           'additionalProperties': False},
+ 'Span': {'type': 'object',
+          'x-owner': 'Span',
+          'properties': {'kind': {'type': 'string'},
+                         'reason': {'type': 'string'},
+                         'byte_start': {'type': ['integer', 'null']},
+                         'byte_end': {'type': ['integer', 'null']},
+                         'token_start': {'type': 'integer'},
+                         'token_end': {'type': 'integer'},
+                         'raw_bytes': {'type': 'array',
+                                       'items': {'type': 'integer',
+                                                 'minimum': 0,
+                                                 'maximum': 255}},
+                         'ids': {'type': 'array',
+                                 'items': {'type': 'integer',
+                                           'minimum': 0,
+                                           'maximum': 383}},
+                         'turn': {'type': ['integer', 'null'],
+                                  'default': None}},
+          'required': ['kind',
+                       'reason',
+                       'byte_start',
+                       'byte_end',
+                       'token_start',
+                       'token_end',
+                       'raw_bytes',
+                       'ids',
+                       'turn'],
+          'additionalProperties': False},
+ 'Encoding': {'type': 'object',
+              'x-owner': 'Encoding',
+              'properties': {'ids': {'type': 'array',
+                                     'items': {'type': 'integer',
+                                               'minimum': 0,
+                                               'maximum': 383}},
+                             'spans': {'type': 'array',
+                                       'items': {'$ref': '#/$defs/Span'}},
+                             'input_sha256': {'type': 'string'},
+                             'input_kind': {'type': 'string'},
+                             'manifest_sha256': {'type': 'string'},
+                             'context_limit': {'type': ['integer', 'null'],
+                                               'default': None},
+                             'codec_version': {'type': 'string'},
+                             'unicode_version': {'type': 'string'}},
+              'required': ['ids',
+                           'spans',
+                           'input_sha256',
+                           'input_kind',
+                           'manifest_sha256',
+                           'context_limit',
+                           'codec_version',
+                           'unicode_version'],
+              'additionalProperties': False},
+ 'Turn': {'type': 'object',
+          'x-owner': 'Turn',
+          'properties': {'role': {'type': 'string'},
+                         'text': {'type': 'string'}},
+          'required': ['role', 'text'],
+          'additionalProperties': False}}
 
 @dataclass(frozen=True, kw_only=True)
 class ModelArchitecture(Declaration):
@@ -1002,6 +1326,70 @@ class ModelArtifact(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class InitializationProvenance(Declaration):
+    initializer: str
+    kind: str
+    seed: int
+
+
+@dataclass(frozen=True, kw_only=True)
+class TrainingProvenance(Declaration):
+    kind: str
+    seed: int
+    preparation_run_sha256: str
+    step: int
+    selection: str
+    development_loss: float
+    data_sha256: str
+    source_sha256: dict[str, Any]
+
+
+@dataclass(frozen=True, kw_only=True)
+class KVState(Declaration):
+    checkpoint_sha256: str
+    tokenizer_sha256: str
+    precision: str = 'binary64'
+    token_ids: tuple[int, ...]
+    keys: tuple[tuple[float, ...], ...]
+    values: tuple[tuple[float, ...], ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class ModelParameters(Declaration):
+    attention_output: tuple[tuple[float, ...], ...]
+    attention_output_bias: tuple[float, ...]
+    ff_down: tuple[tuple[float, ...], ...]
+    ff_down_bias: tuple[float, ...]
+    ff_up: tuple[tuple[float, ...], ...]
+    ff_up_bias: tuple[float, ...]
+    key: tuple[tuple[float, ...], ...]
+    key_bias: tuple[float, ...]
+    lm_bias: tuple[float, ...]
+    lm_head: tuple[tuple[float, ...], ...]
+    ln1_bias: tuple[float, ...]
+    ln1_scale: tuple[float, ...]
+    ln2_bias: tuple[float, ...]
+    ln2_scale: tuple[float, ...]
+    ln_final_bias: tuple[float, ...]
+    ln_final_scale: tuple[float, ...]
+    position_embedding: tuple[tuple[float, ...], ...]
+    query: tuple[tuple[float, ...], ...]
+    query_bias: tuple[float, ...]
+    token_embedding: tuple[tuple[float, ...], ...]
+    value: tuple[tuple[float, ...], ...]
+    value_bias: tuple[float, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class ModelCheckpoint(Declaration):
+    config: ModelArchitecture = field(default_factory=ModelArchitecture)
+    format: str
+    manifest_sha256: str
+    parameters: ModelParameters
+    provenance: InitializationProvenance | TrainingProvenance
+
+
+@dataclass(frozen=True, kw_only=True)
 class InferenceSystem(Declaration):
     execution: str = 'full-prefix-recomputation'
     max_new_tokens_cap: int = 8
@@ -1023,29 +1411,6 @@ class InferenceRequest(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
-class RunOutcome(Declaration):
-    selected_tokens: int
-    delivered_tokens: int
-    unused_budget: int
-    stop_reason: str
-    complete: bool
-
-
-@dataclass(frozen=True, kw_only=True)
-class InspectionState(Declaration):
-    run_id: str
-    prediction: int
-    position: int
-
-
-@dataclass(frozen=True, kw_only=True)
-class RequestBinding(Declaration):
-    model: ModelArtifact
-    system: InferenceSystem = field(default_factory=InferenceSystem)
-    request: InferenceRequest = field(default_factory=InferenceRequest)
-
-
-@dataclass(frozen=True, kw_only=True)
 class ScheduledRequest(Declaration):
     request_id: str
     arrival_us: int
@@ -1056,6 +1421,37 @@ class ScheduledRequest(Declaration):
 class Workload(Declaration):
     kind: str = 'fixed-arrivals'
     requests: tuple[ScheduledRequest, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class CacheSystem(Declaration):
+    backend: str = 'reference'
+    device_kv_bytes: int = 16384
+    host_kv_bytes: int = 32768
+    max_active_requests: int = 2
+    compute_flops_per_us: float = 1000
+    memory_bytes_per_us: float = 1000
+    link_bytes_per_us: float = 100
+    link_latency_us: float = 10
+    retention_policy: str = 'whole-prefix-lru'
+    max_requests: int = 8
+    max_new_tokens_cap: int = 8
+
+
+@dataclass(frozen=True, kw_only=True)
+class RunOutcome(Declaration):
+    selected_tokens: int
+    delivered_tokens: int
+    unused_budget: int
+    stop_reason: str
+    complete: bool
+
+
+@dataclass(frozen=True, kw_only=True)
+class RequestBinding(Declaration):
+    model: ModelArtifact
+    system: InferenceSystem = field(default_factory=InferenceSystem)
+    request: InferenceRequest = field(default_factory=InferenceRequest)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -1132,24 +1528,124 @@ class RunEvent(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class CodeIdentity(Declaration):
+    python: str
+    revision: str
+    source_sha256: str
+    sources: dict[str, Any]
+
+
+@dataclass(frozen=True, kw_only=True)
+class DecodingContract(Declaration):
+    choice: str
+    explanation: str
+    rule: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class Span(Declaration):
+    kind: str
+    reason: str
+    byte_start: int | None
+    byte_end: int | None
+    token_start: int
+    token_end: int
+    raw_bytes: tuple[int, ...]
+    ids: tuple[int, ...]
+    turn: int | None = None
+
+
+@dataclass(frozen=True, kw_only=True)
+class Encoding(Declaration):
+    ids: tuple[int, ...]
+    spans: tuple[Span, ...]
+    input_sha256: str
+    input_kind: str
+    manifest_sha256: str
+    context_limit: int | None = None
+    codec_version: str
+    unicode_version: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class TensorObservation(Declaration):
+    axes: tuple[str, ...]
+    dtype: str
+    formula: str
+    id: str
+    inputs: tuple[str, ...]
+    layer: int | None
+    name: str
+    positions: tuple[int, ...]
+    request_id: str
+    run_id: str
+    shape: tuple[int, ...]
+    step: int
+    term: str
+    values: tuple[float | bool | tuple[float | bool, ...], ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class TokenSelection(Declaration):
+    decoding: str
+    probabilities: tuple[float, ...]
+    raw_logits: tuple[float, ...]
+    rng_state: None
+    rule: str
+    selected_id: int
+
+
+@dataclass(frozen=True, kw_only=True)
+class NumericalPass(Declaration):
+    display_so_far: str
+    execution: str
+    id: str
+    input_ids: tuple[int, ...]
+    nodes: tuple[TensorObservation, ...]
+    output_position: int
+    phase: str
+    positions: tuple[int, ...]
+    request_id: str
+    run_id: str
+    selection: TokenSelection
+    selection_position: int
+    step: int
+
+
+@dataclass(frozen=True, kw_only=True)
+class NumericalPrecision(Declaration):
+    accumulation: str
+    compute: str
+    storage: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class Token(Declaration):
+    id: int
+    kind: str
+    piece: str
+    group: str
+
+
+@dataclass(frozen=True, kw_only=True)
 class NumericalTrace(Declaration):
-    checkpoint: dict[str, Any]
-    code: dict[str, Any]
+    checkpoint: ModelCheckpoint
+    code: CodeIdentity
     contract_sha256: str
     declaration: RequestBinding
-    decoding_contract: dict[str, Any]
+    decoding_contract: DecodingContract
     evidence: str
     format: str
     id: str
     outcome: RunOutcome
     output_ids: tuple[int, ...]
     output_display: str
-    passes: tuple[dict[str, Any], ...]
-    precision: dict[str, Any]
+    passes: tuple[NumericalPass, ...]
+    precision: NumericalPrecision
     request_id: str
     sequence_ids: tuple[int, ...]
-    tokenizer: dict[str, Any]
-    vocabulary: tuple[dict[str, Any], ...]
+    tokenizer: Encoding
+    vocabulary: tuple[Token, ...]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -1164,6 +1660,82 @@ class RunRecord(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class CacheExperiment(Declaration):
+    system: CacheSystem = field(default_factory=CacheSystem)
+    workload: Workload
+
+
+@dataclass(frozen=True, kw_only=True)
+class CacheEvent(Declaration):
+    event_id: str
+    request_id: str
+    time_us: float
+    kind: str
+    state_id: str | None
+    bytes: int
+    device_reserved_bytes: int
+    host_retained_bytes: int
+    detail: str
+    causes: tuple[str, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class CacheComputation(Declaration):
+    work_id: str
+    request_id: str
+    step: int
+    input_ids: tuple[int, ...]
+    state_before: KVState
+    state_after: KVState
+    nodes: tuple[TensorObservation, ...]
+    selection: TokenSelection | None
+    matmul_flops: int
+    logical_memory_bytes: int
+    reference_max_abs_error: float
+    phase: str
+    reference_matmul_flops: int
+
+
+@dataclass(frozen=True, kw_only=True)
+class CacheMeasurement(Declaration):
+    event_id: str
+    kind: str
+    elapsed_us: float
+    bytes: int
+
+
+@dataclass(frozen=True, kw_only=True)
+class CacheBackend(Declaration):
+    compute_device: str
+    device_state_storage: str
+    host_state_storage: str
+    library: str
+    precision: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class CacheRun(Declaration):
+    id: str
+    spec: CacheExperiment
+    checkpoint: ModelCheckpoint
+    source_sha256: str
+    events: tuple[CacheEvent, ...]
+    computations: tuple[CacheComputation, ...]
+    measurements: tuple[CacheMeasurement, ...]
+    outcomes: dict[str, Any]
+    states: dict[str, Any]
+    evidence: str
+    backend: CacheBackend
+
+
+@dataclass(frozen=True, kw_only=True)
+class InspectionState(Declaration):
+    run_id: str
+    prediction: int
+    position: int
+
+
+@dataclass(frozen=True, kw_only=True)
 class Capabilities(Declaration):
     engine: str = 'workload-engine-v1'
     contract_sha256: str
@@ -1174,7 +1746,19 @@ class ApiError(Declaration):
     error: str
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifact': ModelArtifact, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RunOutcome': RunOutcome, 'InspectionState': InspectionState, 'RequestBinding': RequestBinding, 'ScheduledRequest': ScheduledRequest, 'Workload': Workload, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'WorkCompleted': WorkCompleted, 'TokenSelected': TokenSelected, 'TokenCommitted': TokenCommitted, 'TokenDelivered': TokenDelivered, 'RequestFinished': RequestFinished, 'RunEvent': RunEvent, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'Capabilities': Capabilities, 'ApiError': ApiError}
+@dataclass(frozen=True, kw_only=True)
+class CacheCapabilities(Declaration):
+    contract_sha256: str
+    backends: tuple[str, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class Turn(Declaration):
+    role: str
+    text: str
+
+
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifact': ModelArtifact, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelParameters': ModelParameters, 'ModelCheckpoint': ModelCheckpoint, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'ScheduledRequest': ScheduledRequest, 'Workload': Workload, 'CacheSystem': CacheSystem, 'RunOutcome': RunOutcome, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'WorkCompleted': WorkCompleted, 'TokenSelected': TokenSelected, 'TokenCommitted': TokenCommitted, 'TokenDelivered': TokenDelivered, 'RequestFinished': RequestFinished, 'RunEvent': RunEvent, 'CodeIdentity': CodeIdentity, 'DecodingContract': DecodingContract, 'Span': Span, 'Encoding': Encoding, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'CacheExperiment': CacheExperiment, 'CacheEvent': CacheEvent, 'CacheComputation': CacheComputation, 'CacheMeasurement': CacheMeasurement, 'CacheBackend': CacheBackend, 'CacheRun': CacheRun, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'Turn': Turn}
 for model in MODELS.values():
     model._definitions = SCHEMAS
     model._registry = MODELS

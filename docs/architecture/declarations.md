@@ -1,10 +1,11 @@
 # Declaration ownership and browser state
 
-The [declaration ontology](../ontology/declarations.json) owns meanings, lifetimes,
+The [declaration ontology modules](../ontology/README.md) own meanings, lifetimes,
 exclusions, schema names, and permitted dependencies. The
-[contract](../../data-model/inference.schema.json) owns field shapes, baseline defaults,
+[contract](../../data-model/declarations.yaml) owns field shapes, baseline defaults,
 labels, constraints, and references. Neither may silently redefine the other.
-The existing inference ontology continues to own numerical operations and resources.
+Visual meanings bind to declared fields in those same owners; no separate prose
+ontology can introduce domain authority.
 
 The contract is a deliberately bounded JSON Schema vocabulary, read with duplicate
 key rejection. Generation rejects unsupported keywords, unowned/duplicate schema

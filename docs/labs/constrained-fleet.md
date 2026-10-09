@@ -10,7 +10,7 @@ P0 explains each mechanism, P1 screens options on the fixed fleet, and P2 screen
 hardware additions when P1 has no acceptable candidate. Nothing here is implemented.
 Numbers are illustrative arithmetic on assumed configurations, not measurements
 or vendor claims. Screening evidence follows the
-[candidate-screening rules](../ontology/experiment.md#candidate-screening).
+[candidate-screening rules](../labs/README.md#candidate-screening).
 
 ## Why profiled step times are insufficient
 

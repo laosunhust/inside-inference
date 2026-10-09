@@ -1,0 +1,371 @@
+$defs:
+  ModelArchitecture:
+    type: object
+    x-owner: ModelArchitecture
+    additionalProperties: false
+    required:
+    - vocabulary
+    - width
+    - ffn
+    - context
+    - layers
+    - heads
+    - epsilon
+    - position
+    - normalization
+    - activation
+    - precision
+    properties:
+      vocabulary:
+        type: integer
+        title: Vocabulary IDs
+        description: Supported baseline value.
+        const: 384
+        default: 384
+      width:
+        type: integer
+        title: Hidden width
+        description: Channels per position.
+        default: 8
+        minimum: 2
+        maximum: 32
+      ffn:
+        type: integer
+        title: Feed-forward width
+        description: Intermediate channels.
+        default: 16
+        minimum: 2
+        maximum: 128
+      context:
+        type: integer
+        title: Context capacity
+        description: Maximum input positions in a forward pass.
+        default: 128
+        minimum: 1
+        maximum: 128
+      layers:
+        type: integer
+        title: Blocks
+        description: Supported baseline value.
+        const: 1
+        default: 1
+      heads:
+        type: integer
+        title: Attention heads
+        description: Supported baseline value.
+        const: 1
+        default: 1
+      epsilon:
+        type: number
+        title: Normalization epsilon
+        description: Supported baseline value.
+        const: 1.0e-05
+        default: 1.0e-05
+      position:
+        type: string
+        title: Position encoding
+        description: Supported baseline value.
+        const: learned-absolute
+        default: learned-absolute
+      normalization:
+        type: string
+        title: Normalization order
+        description: Supported baseline value.
+        const: pre-layernorm
+        default: pre-layernorm
+      activation:
+        type: string
+        title: Activation
+        description: Supported baseline value.
+        const: gelu-tanh
+        default: gelu-tanh
+      precision:
+        type: string
+        title: Storage / compute / accumulation
+        description: Supported baseline value.
+        const: binary64
+        default: binary64
+  ModelArtifact:
+    type: object
+    x-owner: ModelArtifact
+    additionalProperties: false
+    required:
+    - checkpoint_sha256
+    - tokenizer_sha256
+    - architecture
+    properties:
+      checkpoint_sha256:
+        type: string
+        title: Checkpoint identity
+        description: SHA-256 identity of the exact artifact bytes or canonical checkpoint.
+        pattern: ^[0-9a-f]{64}$
+      tokenizer_sha256:
+        type: string
+        title: Tokenizer identity
+        description: SHA-256 identity of the exact artifact bytes or canonical checkpoint.
+        pattern: ^[0-9a-f]{64}$
+      architecture:
+        $ref: '#/$defs/ModelArchitecture'
+  InitializationProvenance:
+    type: object
+    properties:
+      initializer:
+        type: string
+      kind:
+        type: string
+        const: untrained
+      seed:
+        type: integer
+        minimum: 0
+        maximum: 4294967295
+    required:
+    - initializer
+    - kind
+    - seed
+    additionalProperties: false
+    x-owner: InitializationProvenance
+  TrainingProvenance:
+    type: object
+    properties:
+      kind:
+        type: string
+        const: trained
+      seed:
+        type: integer
+        minimum: 0
+        maximum: 4294967295
+      preparation_run_sha256:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      step:
+        type: integer
+        minimum: 1
+      selection:
+        type: string
+        const: minimum-development-response-loss
+      development_loss:
+        type: number
+        minimum: 0
+      data_sha256:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      source_sha256:
+        type: object
+        additionalProperties:
+          type: string
+          pattern: ^[0-9a-f]{64}$
+    required:
+    - kind
+    - seed
+    - preparation_run_sha256
+    - step
+    - selection
+    - development_loss
+    - data_sha256
+    - source_sha256
+    additionalProperties: false
+    x-owner: TrainingProvenance
+  KVState:
+    type: object
+    x-owner: KVState
+    additionalProperties: false
+    required:
+    - checkpoint_sha256
+    - tokenizer_sha256
+    - precision
+    - token_ids
+    - keys
+    - values
+    properties:
+      checkpoint_sha256:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      tokenizer_sha256:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      precision:
+        type: string
+        const: binary64
+        default: binary64
+      token_ids:
+        type: array
+        maxItems: 128
+        items:
+          type: integer
+          minimum: 0
+          maximum: 383
+      keys:
+        type: array
+        maxItems: 128
+        items:
+          type: array
+          minItems: 2
+          maxItems: 32
+          items:
+            type: number
+      values:
+        type: array
+        maxItems: 128
+        items:
+          type: array
+          minItems: 2
+          maxItems: 32
+          items:
+            type: number
+  ModelCheckpoint:
+    type: object
+    properties:
+      config:
+        $ref: '#/$defs/ModelArchitecture'
+      format:
+        type: string
+      manifest_sha256:
+        type: string
+      parameters:
+        $ref: '#/$defs/ModelParameters'
+      provenance:
+        oneOf:
+        - $ref: '#/$defs/InitializationProvenance'
+        - $ref: '#/$defs/TrainingProvenance'
+    required:
+    - config
+    - format
+    - manifest_sha256
+    - parameters
+    - provenance
+    additionalProperties: false
+    x-owner: ModelCheckpoint
+  ModelParameters:
+    type: object
+    properties:
+      attention_output:
+        type: array
+        items:
+          type: array
+          items:
+            type: number
+      attention_output_bias:
+        type: array
+        items:
+          type: number
+      ff_down:
+        type: array
+        items:
+          type: array
+          items:
+            type: number
+      ff_down_bias:
+        type: array
+        items:
+          type: number
+      ff_up:
+        type: array
+        items:
+          type: array
+          items:
+            type: number
+      ff_up_bias:
+        type: array
+        items:
+          type: number
+      key:
+        type: array
+        items:
+          type: array
+          items:
+            type: number
+      key_bias:
+        type: array
+        items:
+          type: number
+      lm_bias:
+        type: array
+        items:
+          type: number
+      lm_head:
+        type: array
+        items:
+          type: array
+          items:
+            type: number
+      ln1_bias:
+        type: array
+        items:
+          type: number
+      ln1_scale:
+        type: array
+        items:
+          type: number
+      ln2_bias:
+        type: array
+        items:
+          type: number
+      ln2_scale:
+        type: array
+        items:
+          type: number
+      ln_final_bias:
+        type: array
+        items:
+          type: number
+      ln_final_scale:
+        type: array
+        items:
+          type: number
+      position_embedding:
+        type: array
+        items:
+          type: array
+          items:
+            type: number
+      query:
+        type: array
+        items:
+          type: array
+          items:
+            type: number
+      query_bias:
+        type: array
+        items:
+          type: number
+      token_embedding:
+        type: array
+        items:
+          type: array
+          items:
+            type: number
+      value:
+        type: array
+        items:
+          type: array
+          items:
+            type: number
+      value_bias:
+        type: array
+        items:
+          type: number
+    required:
+    - attention_output
+    - attention_output_bias
+    - ff_down
+    - ff_down_bias
+    - ff_up
+    - ff_up_bias
+    - key
+    - key_bias
+    - lm_bias
+    - lm_head
+    - ln1_bias
+    - ln1_scale
+    - ln2_bias
+    - ln2_scale
+    - ln_final_bias
+    - ln_final_scale
+    - position_embedding
+    - query
+    - query_bias
+    - token_embedding
+    - value
+    - value_bias
+    additionalProperties: false
+    x-owner: ModelParameters

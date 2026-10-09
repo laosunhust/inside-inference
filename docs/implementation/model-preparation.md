@@ -24,6 +24,14 @@ an inference-quality comparison. Record that preparation and its differences.
 Do not assume weights can be swapped unchanged between mechanisms. Independent
 arithmetic/state labs can proceed without training an entire model.
 
+The bounded first-run choices and evaluation are declared in the
+[checkpoint pilot](checkpoint-pilot.md).
+
+The first local run is documented in the
+[pilot findings](../research/checkpoint-pilot-2026-10-09.md): numerical preparation
+and export pass; the provisional learned-behavior gate fails. PyTorch is an optional
+CPU-only preparation dependency; ordinary inference remains independent of it.
+
 ## Cost planning
 
 The [training-feasibility study](../research/training-feasibility.md) contains

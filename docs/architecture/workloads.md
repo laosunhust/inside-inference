@@ -1,9 +1,9 @@
 # Workloads, events, and client output
 
 Owns the executable input/output boundary. Declaration meanings and ownership are
-in [ontology](../ontology/declarations.json); field shapes belong to
-[JSON Schema](../../data-model/inference.schema.json). HTTP operations belong to
-[OpenAPI](../../data-model/openapi.json). The UI is a projection of the recorded run.
+in [ontology modules](../ontology/README.md); field shapes belong to
+[JSON Schema](../../data-model/declarations.yaml). HTTP operations belong to
+[OpenAPI](../../data-model/openapi.yaml). The UI is a projection of the recorded run.
 
 ## Input: a workload, bound to a model and system
 
@@ -13,7 +13,7 @@ are ordered by arrival time; array position breaks ties deterministically. Reque
 identities are unique within the workload. Equal-time ordering is a deterministic
 choice, not evidence of a causal dependency.
 
-The first numerical adapter admits exactly one arrival at virtual time zero. It
+The uncached numerical adapter admits exactly one arrival at virtual time zero. It
 rejects multiple requests and delayed arrivals before model execution. This defines
 the wider boundary without pretending to implement queues, resources, or concurrency.
 The input arrival declaration does not establish simulated service times.
@@ -21,6 +21,12 @@ The input arrival declaration does not establish simulated service times.
 Dependent agent workloads will need a separately declared arrival rule tied to
 prior results. Do not preassign their actual arrival times or silently convert
 feedback-driven traffic into fixed traffic. That behavior is not implemented here.
+
+The [KV residency adapter](../labs/kv-residency.md) reuses this workload shape,
+with its own generated `CacheSystem` and `CacheRun` contracts. It admits multiple
+fixed arrivals through bounded reservations and records virtual service times,
+causal events, actual numerical work, and separate local measurements. It does not
+change the uncached adapter's execution-order-only clock.
 
 ## Output: ordered evidence, with causal links
 

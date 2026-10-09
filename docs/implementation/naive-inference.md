@@ -1,6 +1,8 @@
 # Naïve inference reference
 
-Status: implemented with untrained parameters. Owns the baseline computation boundary.
+Status: implemented with seeded untrained defaults and explicit compatible checkpoint
+loading. Owns the baseline computation boundary. The first trained pilot and its
+limits are recorded under [model preparation](model-preparation.md).
 See the [lab contract](../labs/naive-gpt.md) for evidence and limitations.
 [Milestones](../purpose/milestones.md) own build order and acceptance;
 [purpose](../purpose/README.md) owns vocabulary and project scope.
@@ -61,7 +63,7 @@ with its own baseline, invariants, and evidence boundary.
 
 ## Implemented interfaces
 
-`data-model/inference.schema.json` owns the architecture fields and constraints;
+`data-model/domains/model.yaml` owns the architecture fields and constraints;
 its generated `ModelArchitecture` is consumed directly by the forward engine.
 `initialize` creates a reproducible untrained checkpoint; `Model.forward` consumes
 IDs and emits logits plus observations from executed operations. Disabling capture

@@ -68,6 +68,76 @@
           }
         }
       }
+    },
+    "/api/cache-runs": {
+      "post": {
+        "operationId": "cacheRun",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./inference.schema.json#/$defs/CacheExperiment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CacheRun",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/CacheRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cache-capabilities": {
+      "get": {
+        "operationId": "cacheCapabilities",
+        "responses": {
+          "200": {
+            "description": "Capabilities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/CacheCapabilities"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-unknown-route-response": {
+    "status": 404,
+    "schema": {
+      "$ref": "./inference.schema.json#/$defs/ApiError"
     }
   }
 }

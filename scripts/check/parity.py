@@ -19,7 +19,8 @@ def assert_same(expected, actual, label):
         raise AssertionError(f'{label}: complete run differs from headless execution')
 
 
-def prepare(base, output):
+def prepare(base, output, *, checkpoint_path=None):
+    checkpoint = decode_json(checkpoint_path.read_text()) if checkpoint_path else None
     with urlopen(base + API_PATHS['capabilities'],timeout=30) as response:
         capabilities=json.load(response)
     Capabilities.validate_shape(capabilities)
@@ -32,16 +33,19 @@ def prepare(base, output):
         workload=case['workload']
         workload_path=output/f'{name}.workload.json'
         workload_path.write_bytes(canonical(workload)+b'\n')
-        expected=run_workload(workload)
+        expected=run_workload(workload, checkpoint=checkpoint)
         assert_unrestricted_generation(expected)
         (output/f"inference-{expected['id'][:12]}.json").unlink(missing_ok=True)
-        for field,value in case['expected'].items():
+        # These fixture outcomes belong to the default weights. External artifacts
+        # must satisfy the same raw-logit/termination oracle, but may select TURN_END.
+        for field,value in (case['expected'] if checkpoint is None else {}).items():
             if expected['traces'][0]['outcome'][field] != value:
                 raise AssertionError(f'{name}: baseline outcome differs at {field}')
         (output/f'{name}.headless.json').write_bytes(canonical(expected)+b'\n')
         cli_path=output/f'{name}.cli.json'
         subprocess.run([sys.executable,'-m','scripts.experiments.run_inference',
-            '--workload',str(workload_path),'--output',str(cli_path)],cwd=ROOT,check=True,
+            '--workload',str(workload_path),'--output',str(cli_path)]
+            + (['--checkpoint',str(checkpoint_path)] if checkpoint_path else []),cwd=ROOT,check=True,
             capture_output=True,text=True,timeout=60)
         assert_same(expected,decode_json(cli_path.read_text()),name+' CLI')
         request=Request(base+API_PATHS['run'],data=canonical(workload),headers={'Content-Type':'application/json'})

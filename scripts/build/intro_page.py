@@ -9,7 +9,10 @@ import shutil
 from inside_inference.labs.kda import demo
 from inside_inference.labs.journey import scenarios
 from inside_inference.workload import run_workload
-from scripts.build.generate_data_models import generate, read
+from inside_inference.cache_lab import run_cache_experiment
+from inside_inference.tokenizer import Tokenizer
+from scripts.build.generate_data_models import admit, generate, read
+from scripts.build.ontology import load_declarations
 
 from scripts import ROOT
 CATALOG = ROOT / 'catalog/stack.json'
@@ -43,7 +46,7 @@ def load_catalog(path=CATALOG):
             raise ValueError(f"Unknown layer in {entry['id']}")
         if entry['status'] not in STATUS:
             raise ValueError(f"Unknown status in {entry['id']}")
-        if entry['status'] == 'mechanical-demo' and entry['id'] != 'kimi-delta-attention':
+        if entry['status'] == 'mechanical-demo' and entry['id'] not in ('kimi-delta-attention','prefix-cache'):
             raise ValueError('A mechanical demo requires a registered implementation')
         for source in entry['sources']:
             if not source['url'].startswith('https://') or not source['title']:
@@ -73,24 +76,23 @@ Evidence applies only to its stated model, workload, implementation, and hardwar
 
 
 def ontology_terms():
-    """Read canonical meanings directly from the ontology's Entities table."""
-    source = (ROOT / 'docs/ontology/inference.md').read_text()
-    section = source.split('## Entities\n', 1)[1].split('## Relationships', 1)[0]
+    """Project admitted ontology fields; never scrape a prose glossary."""
+    ontology = load_declarations()
+    admit(ontology, read(ROOT / 'data-model/inference.schema.json'))
     terms = {}
-    for line in section.splitlines():
-        if not line.startswith('| ') or line.startswith(('| Term ', '| ---')):
-            continue
-        term, meaning = [cell.strip() for cell in line.strip('|').split('|')]
-        terms[term] = dict(meaning=meaning, anchor=term.lower().replace(' ', '-'))
+    for owner, entry in ontology['terms'].items():
+        for label, projection in entry['projections'].items():
+            terms[label] = dict(meaning=projection['meaning'], anchor=label.lower().replace(' ', '-'),
+                                owner=owner, fields=projection['fields'])
     return terms
 
 
-def build(output):
+def build(output, *, checkpoint=None):
     generate(check=True)
     data = load_catalog()
     output.mkdir(parents=True, exist_ok=True)
     (output / 'labs').mkdir(exist_ok=True)
-    for name in ('style.css', 'app.js', 'journey.js', 'inference.js', 'inference.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
+    for name in ('style.css', 'app.js', 'journey.js', 'inference.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
         shutil.copyfile(ROOT / 'web' / name, output / name)
     layers = {x['id']: x for x in data['layers']}
     nav = ''.join(f'<a href="#layer-{x["id"]}">{i:02d} {esc(x["name"])}</a>'
@@ -135,21 +137,25 @@ Inspect every read, correction, and state update. No trained-model or speed clai
 <b>Compare</b> a stated baseline under controlled conditions. <b>Separate</b> mathematical properties,
 toy observations, simulated costs, and real measurements. <b>Declare</b> failure cases and what cannot transfer.</p>
 <p>Catalog entries: {sum(e["status"] == "mechanical-demo" for e in data["innovations"])} mechanical demo(s) and {sum(e["status"] == "planned" for e in data["innovations"])} planned lab(s).
-The landing page executes an inspectable untrained GPT; a separate lab models bounded request costs. No trained tiny GPT, real-system timing validation, framework benchmark, or hardware measurement exists yet.</p></section>'''
+The landing page executes an inspectable GPT with identified checkpoint provenance; its default weights are untrained. A separate lab models bounded request costs. Neither path establishes production language quality or real-system performance.</p></section>'''
     (output / 'atlas.html').write_text(shell('Lab catalog', body))
     terms = ontology_terms()
     visual_source = (ROOT / 'web/inference.html').read_text()
     visual_terms = dict((term, entity) for entity, term in re.findall(r'data-entity="([^"]+)" data-term="([^"]+)"', visual_source))
     cost_source = (ROOT / 'web/journey.html').read_text()
     cost_terms = dict((term, entity) for entity, term in re.findall(r'data-entity="([^"]+)" data-term="([^"]+)"', cost_source))
-    if not (set(visual_terms) | set(cost_terms)) <= terms.keys():
+    cache_source = (ROOT / 'web/cache.html').read_text()
+    cache_terms = dict((term, entity) for entity, term in re.findall(r'data-entity="([^"]+)" data-term="([^"]+)"', cache_source))
+    if not (set(visual_terms) | set(cost_terms) | set(cache_terms)) <= terms.keys():
         raise ValueError('Visual references an unknown ontology term')
-    ontology_body = '<h1>Visuals have meanings.</h1><p>Canonical definitions from docs/ontology/inference.md. '
+    ontology_body = '<h1>Visuals have meanings.</h1><p>Every visual concept maps to fields admitted by the machine-readable ontology. '
     ontology_body += 'These define the model; they do not prove its real-world validity.</p>'
     for term, entry in terms.items():
         destination = 'index.html#inspect-' + visual_terms[term] if term in visual_terms else 'index.html'
         cost_link = f'<a href="request-cost.html#inspect-{cost_terms[term]}">Inspect in the separate cost simulation ↗</a>' if term in cost_terms else ''
-        ontology_body += f'<section id="{entry["anchor"]}"><h2>{esc(term)}</h2><p>{esc(entry["meaning"])}</p><a href="{destination}">Inspect in the request scene ↗</a> {cost_link}</section>'
+        cache_link = f'<a href="kv-cache.html#{cache_terms[term]}">Inspect in the KV residency lab ↗</a>' if term in cache_terms else ''
+        bindings = ', '.join(f'{schema}.{field}' for schema, fields in entry['fields'].items() for field in fields)
+        ontology_body += f'<section id="{entry["anchor"]}"><h2>{esc(term)}</h2><p>{esc(entry["meaning"])}</p><p><a href="declarations.html#{entry["owner"]}">{esc(entry["owner"])}</a>: {esc(bindings)}</p><a href="{destination}">Inspect in the request scene ↗</a> {cost_link} {cache_link}</section>'
     (output / 'ontology.html').write_text(shell('Inference ontology', ontology_body))
     step_labs = {step: [dict(id=e['id'], name=e['name'], status=STATUS[e['status']])
                         for e in data['innovations'] if step in e['journey_steps']]
@@ -160,16 +166,28 @@ The landing page executes an inspectable untrained GPT; a separate lab models bo
         '__STEP_LABS__', json.dumps(step_labs).replace('<', '\\u003c'))
     (output / 'request-cost.html').write_text(shell('Request cost simulation', landing))
     numerical = (ROOT / 'web/inference.html').read_text().replace(
-        '__INFERENCE_DATA__', json.dumps(run_workload(), allow_nan=False).replace('<', '\\u003c')).replace(
+        '__INFERENCE_DATA__', json.dumps(run_workload(checkpoint=checkpoint), allow_nan=False).replace('<', '\\u003c')).replace(
         '__ONTOLOGY_DATA__', json.dumps(terms).replace('<', '\\u003c'))
     numerical = '<link rel="stylesheet" href="inference.css">' + numerical
     (output / 'index.html').write_text(shell('What happens if you change this?', numerical))
-    declaration_ontology = read(ROOT / 'docs/ontology/declarations.json')
+    cache_record = run_cache_experiment(checkpoint=checkpoint)
+    # Disposable static builds are reproducible. Real wall-clock samples remain
+    # available from live/CLI execution, never invented as deterministic timings.
+    cache_record['measurements'] = []
+    cache = (ROOT / 'web/cache.html').read_text().replace(
+        '__CACHE_DATA__', json.dumps(cache_record, allow_nan=False).replace('<', '\\u003c')).replace(
+        '__ONTOLOGY_DATA__', json.dumps(terms).replace('<', '\\u003c')).replace(
+        '__CACHE_TOKENS__', json.dumps([t.piece for t in Tokenizer().tokens]).replace('<', '\\u003c'))
+    (output / 'kv-cache.html').write_text(shell('What if the cache is not here?', cache))
+    contract = (ROOT / 'docs/labs/kv-residency.md').read_text()
+    (output / 'kv-contract.html').write_text(shell('KV residency experiment contract',
+        '<h1>KV residency evidence contract</h1><pre class="contract-text">' + esc(contract) + '</pre>'))
+    declaration_ontology = load_declarations()
     declaration_schemas = read(ROOT / 'data-model/inference.schema.json')['$defs']
     declarations = '<h1>What governs this run?</h1><p>Meanings from the declaration ontology; fields from the executable contract. Generated views are not authorities.</p>'
     for name, term in declaration_ontology['terms'].items():
         declarations += f'<section id="{name}"><h2>{name}</h2><p>{esc(term["meaning"])}</p><p>{esc(term["lifetime"])}</p><p>Owns: {esc(", ".join(term["owns"]))}. Excludes: {esc(", ".join(term["excludes"]))}.</p>'
-        for schema_name in term['schemas']:
+        for schema_name in [term['schema']]:
             declarations += f'<h3>{schema_name}</h3><dl>'
             for field, definition in declaration_schemas[schema_name]['properties'].items():
                 declarations += f'<dt>{esc(field)}</dt><dd>{esc(definition.get("description", definition.get("$ref")))}</dd>'
@@ -225,6 +243,8 @@ quality comparison; a future lab needs matched training and controlled recall wo
 and optimized kernels. This four-step example is not the full architecture or a reproduction of its reported results.</p>
 <p>Next lab work: controlled associative recall, a trained baseline, a hybrid comparison, and separate
 kernel measurements at representative shapes. No universal winner follows from the current demo.</p></section>'''
+        elif entry['id'] == 'prefix-cache':
+            content += '<p><a href="../kv-cache.html">Run the KV residency experiment: cold, warm, remote hit, and eviction ↗</a></p><p><a href="../kv-contract.html">Read its abstraction and evidence contract ↗</a></p>'
         else:
             content += '<p class="warning"><b>Planned lab:</b> this is a specification only. No experiment or measured result is available.</p>'
         if sources:

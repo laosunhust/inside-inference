@@ -1,0 +1,861 @@
+$defs:
+  RunOutcome:
+    type: object
+    x-owner: RunOutcome
+    additionalProperties: false
+    required:
+    - selected_tokens
+    - delivered_tokens
+    - unused_budget
+    - stop_reason
+    - complete
+    properties:
+      selected_tokens:
+        type: integer
+        title: Selected IDs
+        description: Includes terminal controls.
+        minimum: 1
+      delivered_tokens:
+        type: integer
+        title: Delivered IDs
+        description: Every selected ID except TURN_END, including diagnostic control/byte/hex tokens.
+        minimum: 0
+      unused_budget:
+        type: integer
+        title: Unused allowance
+        description: Requested ceiling minus actual selected ID count.
+        minimum: 0
+      stop_reason:
+        type: string
+        title: Termination condition
+        description: Recorded by the execution loop.
+        enum:
+        - turn_end
+        - output_budget
+      complete:
+        type: boolean
+        title: Turn complete
+        description: True only if TURN_END was selected.
+  RequestBinding:
+    type: object
+    x-owner: RequestBinding
+    additionalProperties: false
+    required:
+    - model
+    - system
+    - request
+    properties:
+      model:
+        $ref: '#/$defs/ModelArtifact'
+      system:
+        $ref: '#/$defs/InferenceSystem'
+      request:
+        $ref: '#/$defs/InferenceRequest'
+  RunBinding:
+    type: object
+    x-owner: RunBinding
+    additionalProperties: false
+    required:
+    - model
+    - system
+    - workload
+    properties:
+      model:
+        $ref: '#/$defs/ModelArtifact'
+      system:
+        $ref: '#/$defs/InferenceSystem'
+      workload:
+        $ref: '#/$defs/Workload'
+  EventClock:
+    type: object
+    x-owner: EventClock
+    additionalProperties: false
+    required:
+    - kind
+    properties:
+      kind:
+        type: string
+        title: Clock domain
+        description: Clock domain
+        const: execution-order
+        default: execution-order
+  RequestArrived:
+    type: object
+    x-owner: RequestArrived
+    additionalProperties: false
+    required:
+    - kind
+    - arrival_us
+    properties:
+      kind:
+        type: string
+        title: Event kind
+        description: Event kind
+        const: request-arrived
+        default: request-arrived
+      arrival_us:
+        type: integer
+        title: Declared virtual arrival; not service latency
+        description: Declared virtual arrival; not service latency
+        minimum: 0
+        maximum: 9007199254740991
+  InputEncoded:
+    type: object
+    x-owner: InputEncoded
+    additionalProperties: false
+    required:
+    - kind
+    - input_sha256
+    - token_count
+    properties:
+      kind:
+        type: string
+        title: Event kind
+        description: Event kind
+        const: input-encoded
+        default: input-encoded
+      input_sha256:
+        type: string
+        title: Framed input identity
+        description: Framed input identity
+        pattern: ^[0-9a-f]{64}$
+      token_count:
+        type: integer
+        title: Encoded positions
+        description: Encoded positions
+        minimum: 0
+        maximum: 9007199254740991
+  WorkCompleted:
+    type: object
+    x-owner: WorkCompleted
+    additionalProperties: false
+    required:
+    - kind
+    - work_id
+    - phase
+    properties:
+      kind:
+        type: string
+        title: Event kind
+        description: Event kind
+        const: work-completed
+        default: work-completed
+      work_id:
+        type: string
+        title: Numerical observation identity
+        description: Numerical observation identity
+      phase:
+        type: string
+        title: Execution phase
+        description: Execution phase
+        enum:
+        - prefill
+        - decode
+  TokenSelected:
+    type: object
+    x-owner: TokenSelected
+    additionalProperties: false
+    required:
+    - kind
+    - work_id
+    - token_id
+    - output_position
+    properties:
+      kind:
+        type: string
+        title: Event kind
+        description: Event kind
+        const: token-selected
+        default: token-selected
+      work_id:
+        type: string
+        title: Producing computation
+        description: Producing computation
+      token_id:
+        type: integer
+        title: Selected vocabulary ID
+        description: Selected vocabulary ID
+        minimum: 0
+        maximum: 9007199254740991
+      output_position:
+        type: integer
+        title: Absolute sequence position
+        description: Absolute sequence position
+        minimum: 0
+        maximum: 9007199254740991
+  TokenCommitted:
+    type: object
+    x-owner: TokenCommitted
+    additionalProperties: false
+    required:
+    - kind
+    - work_id
+    - token_ids
+    - output_start
+    properties:
+      kind:
+        type: string
+        title: Event kind
+        description: Event kind
+        const: token-committed
+        default: token-committed
+      work_id:
+        type: string
+        title: Producing computation
+        description: Producing computation
+      token_ids:
+        type: array
+        title: Accepted continuation
+        description: Accepted continuation
+        items:
+          type: integer
+          title: Committed token ID
+          description: Committed token ID
+          minimum: 0
+          maximum: 9007199254740991
+        minItems: 1
+      output_start:
+        type: integer
+        title: Client token offset
+        description: Client token offset
+        minimum: 0
+        maximum: 9007199254740991
+  TokenDelivered:
+    type: object
+    x-owner: TokenDelivered
+    additionalProperties: false
+    required:
+    - kind
+    - work_id
+    - token_ids
+    - output_start
+    - display_delta
+    properties:
+      kind:
+        type: string
+        title: Event kind
+        description: Event kind
+        const: token-delivered
+        default: token-delivered
+      work_id:
+        type: string
+        title: Producing computation
+        description: Producing computation
+      token_ids:
+        type: array
+        title: Delivered token IDs
+        description: Delivered token IDs
+        items:
+          type: integer
+          title: Delivered token ID
+          description: Delivered token ID
+          minimum: 0
+          maximum: 9007199254740991
+        minItems: 1
+      output_start:
+        type: integer
+        title: Client token offset
+        description: Client token offset
+        minimum: 0
+        maximum: 9007199254740991
+      display_delta:
+        type: string
+        title: Decoded text delivered to the client
+        description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
+          as labeled markers.
+  RequestFinished:
+    type: object
+    x-owner: RequestFinished
+    additionalProperties: false
+    required:
+    - kind
+    - outcome
+    properties:
+      kind:
+        type: string
+        title: Event kind
+        description: Event kind
+        const: request-finished
+        default: request-finished
+      outcome:
+        $ref: '#/$defs/RunOutcome'
+  RunEvent:
+    type: object
+    x-owner: RunEvent
+    additionalProperties: false
+    required:
+    - event_id
+    - run_id
+    - request_id
+    - sequence
+    - causes
+    - payload
+    properties:
+      event_id:
+        type: string
+        title: Event identity
+        description: Event identity
+      run_id:
+        type: string
+        title: Run identity
+        description: Run identity
+        pattern: ^[0-9a-f]{64}$
+      request_id:
+        type: string
+        title: Request identity
+        description: Request identity
+      sequence:
+        type: integer
+        title: Global sequence order
+        description: Global sequence order
+        minimum: 0
+        maximum: 9007199254740991
+      causes:
+        type: array
+        title: Earlier event identities
+        description: Earlier event identities
+        items:
+          type: string
+          title: Causal predecessor
+          description: Causal predecessor
+        uniqueItems: true
+      payload:
+        oneOf:
+        - $ref: '#/$defs/RequestArrived'
+        - $ref: '#/$defs/InputEncoded'
+        - $ref: '#/$defs/WorkCompleted'
+        - $ref: '#/$defs/TokenSelected'
+        - $ref: '#/$defs/TokenCommitted'
+        - $ref: '#/$defs/TokenDelivered'
+        - $ref: '#/$defs/RequestFinished'
+  NumericalTrace:
+    type: object
+    properties:
+      checkpoint:
+        $ref: '#/$defs/ModelCheckpoint'
+      code:
+        $ref: '#/$defs/CodeIdentity'
+      contract_sha256:
+        type: string
+      declaration:
+        $ref: '#/$defs/RequestBinding'
+      decoding_contract:
+        $ref: '#/$defs/DecodingContract'
+      evidence:
+        type: string
+      format:
+        type: string
+        const: naive-gpt-run-v2
+      id:
+        type: string
+      outcome:
+        $ref: '#/$defs/RunOutcome'
+      output_ids:
+        type: array
+        items:
+          type: integer
+      output_display:
+        type: string
+        description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
+          as labeled markers.
+      passes:
+        type: array
+        items:
+          $ref: '#/$defs/NumericalPass'
+      precision:
+        $ref: '#/$defs/NumericalPrecision'
+      request_id:
+        type: string
+      sequence_ids:
+        type: array
+        items:
+          type: integer
+      tokenizer:
+        $ref: '#/$defs/Encoding'
+      vocabulary:
+        type: array
+        items:
+          $ref: '#/$defs/Token'
+    required:
+    - checkpoint
+    - code
+    - contract_sha256
+    - declaration
+    - decoding_contract
+    - evidence
+    - format
+    - id
+    - outcome
+    - output_ids
+    - output_display
+    - passes
+    - precision
+    - request_id
+    - sequence_ids
+    - tokenizer
+    - vocabulary
+    additionalProperties: false
+    x-owner: NumericalTrace
+  RunRecord:
+    type: object
+    x-owner: RunRecord
+    additionalProperties: false
+    required:
+    - format
+    - id
+    - contract_sha256
+    - declaration
+    - clock
+    - events
+    - traces
+    properties:
+      format:
+        type: string
+        title: Run format
+        description: Run format
+        const: workload-run-v1
+        default: workload-run-v1
+      id:
+        type: string
+        title: Run identity
+        description: Run identity
+        pattern: ^[0-9a-f]{64}$
+      contract_sha256:
+        type: string
+        title: Contract identity
+        description: Contract identity
+        pattern: ^[0-9a-f]{64}$
+      declaration:
+        $ref: '#/$defs/RunBinding'
+      clock:
+        $ref: '#/$defs/EventClock'
+      events:
+        type: array
+        title: Ordered execution events
+        description: Ordered execution events
+        items:
+          $ref: '#/$defs/RunEvent'
+        minItems: 1
+      traces:
+        type: array
+        title: Request computation evidence
+        description: Request computation evidence
+        items:
+          $ref: '#/$defs/NumericalTrace'
+        minItems: 1
+  TensorObservation:
+    type: object
+    properties:
+      axes:
+        type: array
+        items:
+          type: string
+      dtype:
+        type: string
+      formula:
+        type: string
+      id:
+        type: string
+      inputs:
+        type: array
+        items:
+          type: string
+      layer:
+        type:
+        - integer
+        - 'null'
+      name:
+        type: string
+      positions:
+        type: array
+        items:
+          type: integer
+      request_id:
+        type: string
+      run_id:
+        type: string
+      shape:
+        type: array
+        items:
+          type: integer
+      step:
+        type: integer
+      term:
+        type: string
+      values:
+        type: array
+        items:
+          anyOf:
+          - type: number
+          - type: boolean
+          - type: array
+            items:
+              type:
+              - number
+              - boolean
+    required:
+    - axes
+    - dtype
+    - formula
+    - id
+    - inputs
+    - layer
+    - name
+    - positions
+    - request_id
+    - run_id
+    - shape
+    - step
+    - term
+    - values
+    additionalProperties: false
+    x-owner: TensorObservation
+  TokenSelection:
+    type: object
+    properties:
+      decoding:
+        type: string
+      probabilities:
+        type: array
+        items:
+          type: number
+      raw_logits:
+        type: array
+        items:
+          type: number
+      rng_state:
+        type: 'null'
+      rule:
+        type: string
+        const: unmasked-greedy-v1
+      selected_id:
+        type: integer
+    required:
+    - decoding
+    - probabilities
+    - raw_logits
+    - rng_state
+    - rule
+    - selected_id
+    additionalProperties: false
+    x-owner: TokenSelection
+  CacheExperiment:
+    type: object
+    x-owner: CacheExperiment
+    additionalProperties: false
+    required:
+    - system
+    - workload
+    properties:
+      system:
+        $ref: '#/$defs/CacheSystem'
+      workload:
+        $ref: '#/$defs/Workload'
+  CacheEvent:
+    type: object
+    x-owner: CacheEvent
+    additionalProperties: false
+    required:
+    - event_id
+    - request_id
+    - time_us
+    - kind
+    - state_id
+    - bytes
+    - device_reserved_bytes
+    - host_retained_bytes
+    - detail
+    - causes
+    properties:
+      event_id:
+        type: string
+      request_id:
+        type: string
+      time_us:
+        type: number
+        minimum: 0
+      kind:
+        type: string
+        enum:
+        - arrived
+        - queued
+        - admitted
+        - local-hit
+        - remote-hit
+        - miss
+        - evicted
+        - transfer-start
+        - transfer-end
+        - compute-start
+        - compute-end
+        - selected
+        - finished
+        - retained
+        - retention-start
+      state_id:
+        type:
+        - string
+        - 'null'
+      bytes:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      device_reserved_bytes:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      host_retained_bytes:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      detail:
+        type: string
+      causes:
+        type: array
+        items:
+          type: string
+  CacheComputation:
+    type: object
+    x-owner: CacheComputation
+    additionalProperties: false
+    required:
+    - work_id
+    - request_id
+    - step
+    - input_ids
+    - state_before
+    - state_after
+    - nodes
+    - selection
+    - matmul_flops
+    - logical_memory_bytes
+    - reference_max_abs_error
+    - phase
+    - reference_matmul_flops
+    properties:
+      work_id:
+        type: string
+      request_id:
+        type: string
+      step:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      input_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+          maximum: 383
+      state_before:
+        $ref: '#/$defs/KVState'
+      state_after:
+        $ref: '#/$defs/KVState'
+      nodes:
+        type: array
+        items:
+          $ref: '#/$defs/TensorObservation'
+      selection:
+        oneOf:
+        - $ref: '#/$defs/TokenSelection'
+        - type: 'null'
+      matmul_flops:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      logical_memory_bytes:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      reference_max_abs_error:
+        type: number
+        minimum: 0
+      phase:
+        type: string
+        enum:
+        - cache-build
+        - prefill
+        - decode
+      reference_matmul_flops:
+        type: integer
+        minimum: 0
+  CacheMeasurement:
+    type: object
+    x-owner: CacheMeasurement
+    additionalProperties: false
+    required:
+    - event_id
+    - kind
+    - elapsed_us
+    - bytes
+    properties:
+      event_id:
+        type: string
+      kind:
+        type: string
+        enum:
+        - compute
+        - host-to-device
+        - device-to-host
+        - device-copy
+        - reference-check
+      elapsed_us:
+        type: number
+        minimum: 0
+      bytes:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+  CacheRun:
+    type: object
+    x-owner: CacheRun
+    additionalProperties: false
+    required:
+    - id
+    - spec
+    - checkpoint
+    - source_sha256
+    - events
+    - computations
+    - measurements
+    - outcomes
+    - states
+    - evidence
+    - backend
+    properties:
+      id:
+        type: string
+      spec:
+        $ref: '#/$defs/CacheExperiment'
+      checkpoint:
+        $ref: '#/$defs/ModelCheckpoint'
+      source_sha256:
+        type: string
+      events:
+        type: array
+        items:
+          $ref: '#/$defs/CacheEvent'
+      computations:
+        type: array
+        items:
+          $ref: '#/$defs/CacheComputation'
+      measurements:
+        type: array
+        items:
+          $ref: '#/$defs/CacheMeasurement'
+      outcomes:
+        type: object
+        additionalProperties:
+          $ref: '#/$defs/RunOutcome'
+      states:
+        type: object
+        additionalProperties:
+          $ref: '#/$defs/KVState'
+      evidence:
+        type: string
+      backend:
+        $ref: '#/$defs/CacheBackend'
+  CodeIdentity:
+    type: object
+    properties:
+      python:
+        type: string
+      revision:
+        type: string
+      source_sha256:
+        type: string
+      sources:
+        type: object
+        additionalProperties:
+          type: string
+          pattern: ^[0-9a-f]{64}$
+    required:
+    - python
+    - revision
+    - source_sha256
+    - sources
+    additionalProperties: false
+    x-owner: CodeIdentity
+  DecodingContract:
+    type: object
+    properties:
+      choice:
+        type: string
+      explanation:
+        type: string
+      rule:
+        type: string
+    required:
+    - choice
+    - explanation
+    - rule
+    additionalProperties: false
+    x-owner: DecodingContract
+  NumericalPrecision:
+    type: object
+    properties:
+      accumulation:
+        type: string
+      compute:
+        type: string
+      storage:
+        type: string
+    required:
+    - accumulation
+    - compute
+    - storage
+    additionalProperties: false
+    x-owner: NumericalPrecision
+  NumericalPass:
+    type: object
+    properties:
+      display_so_far:
+        type: string
+        description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
+          as labeled markers.
+      execution:
+        type: string
+      id:
+        type: string
+      input_ids:
+        type: array
+        items:
+          type: integer
+      nodes:
+        type: array
+        items:
+          $ref: '#/$defs/TensorObservation'
+      output_position:
+        type: integer
+      phase:
+        type: string
+      positions:
+        type: array
+        items:
+          type: integer
+      request_id:
+        type: string
+      run_id:
+        type: string
+      selection:
+        $ref: '#/$defs/TokenSelection'
+      selection_position:
+        type: integer
+      step:
+        type: integer
+    required:
+    - display_so_far
+    - execution
+    - id
+    - input_ids
+    - nodes
+    - output_position
+    - phase
+    - positions
+    - request_id
+    - run_id
+    - selection
+    - selection_position
+    - step
+    additionalProperties: false
+    x-owner: NumericalPass

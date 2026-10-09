@@ -14,8 +14,8 @@ and policy constraints while trading cost, service, and resilience against each 
 Large public regions absorb much of this through statistical averaging across many
 tenants. Smaller regions, such as sovereign or dedicated deployments, often cannot:
 demand peaks, failures, residency rules, and mixed hardware become binding.
-The [system optimization ontology](docs/ontology/system-optimization.md) defines the
-invariants, inputs, decision variables, and objectives.
+The [ontology roadmap](docs/ontology/README.md#system-optimization-direction) distinguishes
+these planned optimization inputs and objectives from executable declarations.
 
 The intended outcome is an explanation you can inspect: where an innovation acts,
 what computation or state it changes, and which consequences follow under the
@@ -53,6 +53,7 @@ they are not capabilities already implemented here.
 | Find an innovation and its lab | [Lab catalog](catalog/README.md) |
 | Inspect the tiny model's mechanics | [Implementation](docs/implementation/README.md) |
 | Assess progress and acceptance criteria | [Milestones](docs/purpose/milestones.md) |
+| Inspect build limits and evaluation criteria | [Limits](governance/limits.yaml) · [Evaluation](governance/evaluations.yaml) |
 | Contribute code or documentation | [Contributor guidance](AGENTS.md) |
 
 Workflow code follows the same boundaries: [build generators](scripts/build/),

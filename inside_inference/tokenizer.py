@@ -1,6 +1,8 @@
 """Exact lexical/UTF-8 codec; trace observations are emitted by the encoding loop."""
 
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, replace
+from inside_inference.declarations_generated import Token, Span, Encoding, Turn
+from functools import lru_cache
 import hashlib
 import json
 from pathlib import Path
@@ -24,48 +26,6 @@ class ContextOverflow(TokenizerError):
         self.required = required
         self.limit = limit
         super().__init__(f'Encoding requires {required} tokens; context limit is {limit}')
-
-
-@dataclass(frozen=True)
-class Token:
-    id: int
-    kind: str
-    piece: str
-    group: str
-
-
-@dataclass(frozen=True)
-class Span:
-    kind: str
-    reason: str
-    byte_start: int | None
-    byte_end: int | None
-    token_start: int
-    token_end: int
-    raw_bytes: tuple[int, ...]
-    ids: tuple[int, ...]
-    turn: int | None = None
-
-
-@dataclass(frozen=True)
-class Encoding:
-    ids: tuple[int, ...]
-    spans: tuple[Span, ...]
-    input_sha256: str
-    input_kind: str
-    manifest_sha256: str
-    context_limit: int | None = None
-    codec_version: str = CODEC_VERSION
-    unicode_version: str = unicodedata.unidata_version
-
-    def to_dict(self):
-        return asdict(self)
-
-
-@dataclass(frozen=True)
-class Turn:
-    role: str
-    text: str
 
 
 def _sha(data):
@@ -94,51 +54,58 @@ def _check_limit(limit, length):
             raise ContextOverflow(length, limit)
 
 
+@lru_cache(maxsize=16)
+def _validated_manifest(raw):
+    """Cache validation by exact bytes; returned entries are immutable generated values."""
+    try:
+        document = json.loads(raw.decode('utf-8'), object_pairs_hook=_manifest_object)
+    except (json.JSONDecodeError, UnicodeError) as exc:
+        raise TokenizerError('Manifest is not valid UTF-8 JSON') from exc
+    if (not isinstance(document, dict)
+            or set(document) != {'format_version', 'name', 'tokens'}
+            or type(document['format_version']) is not int
+            or document['format_version'] != 1
+            or not isinstance(document['name'], str) or not document['name']):
+        raise TokenizerError('Unsupported manifest header')
+    rows = document['tokens']
+    if not isinstance(rows, list) or len(rows) != 384:
+        raise TokenizerError('Manifest must contain exactly 384 tokens')
+    tokens = []
+    for index, row in enumerate(rows):
+        if (not isinstance(row, dict) or set(row) != {'id', 'kind', 'piece', 'group'}
+                or type(row['id']) is not int or row['id'] != index
+                or any(not isinstance(row[key], str) or not row[key]
+                       for key in ('kind', 'piece', 'group'))):
+            raise TokenizerError(f'Invalid manifest entry at index {index}')
+        tokens.append(Token(**row))
+    pairs = [(t.kind, t.piece) for t in tokens]
+    if len(set(pairs)) != 384:
+        raise TokenizerError('Duplicate token kind/piece')
+    required = {
+        'control': set(CONTROLS), 'space': {' '}, 'byte': {'BYTE'},
+        'hex': set('0123456789ABCDEF'), 'punctuation': set(PUNCTUATION),
+    }
+    if set(t.kind for t in tokens) != set(required) | {'word'}:
+        raise TokenizerError('Unknown or missing token kind')
+    for kind, pieces in required.items():
+        if {t.piece for t in tokens if t.kind == kind} != pieces:
+            raise TokenizerError(f'Invalid {kind} inventory')
+    words = [t for t in tokens if t.kind == 'word']
+    if len(words) != 352 or any(not re.fullmatch("[a-z]+(?:'[a-z]+)*", t.piece)
+                                for t in words):
+        raise TokenizerError('Expected 352 distinct lowercase lexical entries')
+    return document["name"], tuple(tokens)
+
+
 class Tokenizer:
     def __init__(self, manifest_path=MANIFEST):
         raw = Path(manifest_path).read_bytes()
-        try:
-            document = json.loads(raw.decode('utf-8'), object_pairs_hook=_manifest_object)
-        except (json.JSONDecodeError, UnicodeError) as exc:
-            raise TokenizerError('Manifest is not valid UTF-8 JSON') from exc
-        if (not isinstance(document, dict)
-                or set(document) != {'format_version', 'name', 'tokens'}
-                or type(document['format_version']) is not int
-                or document['format_version'] != 1
-                or not isinstance(document['name'], str) or not document['name']):
-            raise TokenizerError('Unsupported manifest header')
-        rows = document['tokens']
-        if not isinstance(rows, list) or len(rows) != 384:
-            raise TokenizerError('Manifest must contain exactly 384 tokens')
-        tokens = []
-        for index, row in enumerate(rows):
-            if (not isinstance(row, dict) or set(row) != {'id', 'kind', 'piece', 'group'}
-                    or type(row['id']) is not int or row['id'] != index
-                    or any(not isinstance(row[key], str) or not row[key]
-                           for key in ('kind', 'piece', 'group'))):
-                raise TokenizerError(f'Invalid manifest entry at index {index}')
-            tokens.append(Token(**row))
-        pairs = [(t.kind, t.piece) for t in tokens]
-        if len(set(pairs)) != 384:
-            raise TokenizerError('Duplicate token kind/piece')
-        required = {
-            'control': set(CONTROLS), 'space': {' '}, 'byte': {'BYTE'},
-            'hex': set('0123456789ABCDEF'), 'punctuation': set(PUNCTUATION),
-        }
-        if set(t.kind for t in tokens) != set(required) | {'word'}:
-            raise TokenizerError('Unknown or missing token kind')
-        for kind, pieces in required.items():
-            if {t.piece for t in tokens if t.kind == kind} != pieces:
-                raise TokenizerError(f'Invalid {kind} inventory')
-        words = [t for t in tokens if t.kind == 'word']
-        if len(words) != 352 or any(not re.fullmatch("[a-z]+(?:'[a-z]+)*", t.piece)
-                                    for t in words):
-            raise TokenizerError('Expected 352 distinct lowercase lexical entries')
+        name, tokens = _validated_manifest(raw)
         self.tokens = tuple(tokens)
-        self.name = document['name']
+        self.name = name
         self.manifest_sha256 = _sha(raw)
         self._lookup = MappingProxyType({(t.kind, t.piece): t.id for t in tokens})
-        self.words = MappingProxyType({t.piece: t.id for t in words})
+        self.words = MappingProxyType({t.piece: t.id for t in tokens if t.kind == 'word'})
 
     def token_id(self, kind, piece):
         try:
@@ -194,13 +161,11 @@ class Tokenizer:
                 ))
             start = len(ids)
             ids.extend(emitted)
-            observations.append(Span(kind, reason, byte_offset, byte_offset + len(raw_bytes),
-                                     start, len(ids), tuple(raw_bytes), emitted))
+            observations.append(Span(kind=kind, reason=reason, byte_start=byte_offset, byte_end=byte_offset + len(raw_bytes), token_start=start, token_end=len(ids), raw_bytes=tuple(raw_bytes), ids=emitted))
             byte_offset += len(raw_bytes)
             index = end
         _check_limit(context_limit, len(ids))
-        return Encoding(tuple(ids), tuple(observations), _sha(source), 'text',
-                        self.manifest_sha256, context_limit)
+        return Encoding(ids=tuple(ids), spans=tuple(observations), input_sha256=_sha(source), input_kind='text', manifest_sha256=self.manifest_sha256, context_limit=context_limit, unicode_version=unicodedata.unidata_version, codec_version=CODEC_VERSION)
 
     def encode_utf8(self, source, *, context_limit=None):
         if not isinstance(source, bytes):
@@ -252,8 +217,7 @@ class Tokenizer:
             emitted = (self.token_id('control', piece),)
             start = len(ids)
             ids.extend(emitted)
-            observations.append(Span('control', piece, None, None, start, len(ids), (),
-                                     emitted, turn))
+            observations.append(Span(kind='control', reason=piece, byte_start=None, byte_end=None, token_start=start, token_end=len(ids), raw_bytes=(), ids=emitted, turn=turn))
 
         control('BOS', None)
         for number, turn in enumerate(turns):
@@ -269,8 +233,7 @@ class Tokenizer:
         _check_limit(context_limit, len(ids))
         source = json.dumps([asdict(t) for t in turns], ensure_ascii=False,
                             separators=(',', ':')).encode('utf-8')
-        return Encoding(tuple(ids), tuple(observations), _sha(source),
-                        'prompt' if prompt else 'dialogue', self.manifest_sha256, context_limit)
+        return Encoding(ids=tuple(ids), spans=tuple(observations), input_sha256=_sha(source), input_kind='prompt' if prompt else 'dialogue', manifest_sha256=self.manifest_sha256, context_limit=context_limit, unicode_version=unicodedata.unidata_version, codec_version=CODEC_VERSION)
 
     def encode_dialogue(self, turns, *, context_limit=None):
         return self._frame(turns, prompt=False, context_limit=context_limit)
@@ -294,7 +257,7 @@ class Tokenizer:
                 position += 1
             if position == len(ids) - 1:
                 raise TokenizerError('Missing TURN_END')
-            turns.append(Turn(role, self.decode(ids[content_start:position])))
+            turns.append(Turn(role=role, text=self.decode(ids[content_start:position])))
             position += 1
         if not turns or len(turns) % 2:
             raise TokenizerError('Complete dialogue must contain user/assistant pairs')

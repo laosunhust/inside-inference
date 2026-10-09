@@ -1,41 +1,72 @@
-# Inference and experiment ontology
+# Executable ontology
 
-This directory defines shared meanings, relationships, and invariants for the
-observable inference laboratory. Domain meaning is separate from implementation.
-These are project contracts for reasoning and future implementations, not claims
-that a serving simulator already exists or that an abstraction has been validated.
+Only this README may contain standalone prose in this directory. The ontology
+itself is registered YAML, consumed by declaration generation and visual inspection.
+`make check`, `make test`, and `make test-integration` reject additional prose files,
+unregistered files, nested authorities, symlinks, malformed modules, and ownership drift.
 
 | Authority | Owns |
 | --- | --- |
-| [Purpose](../purpose/README.md) | Why we build, learning priorities, and public presentation direction. |
-| [Inference ontology](inference.md) | Requests, work, sequence state, resources, policies, and their relationships. |
-| [System optimization](system-optimization.md) | Invariants versus constraints, inputs, decision variables by time scale, and objectives. |
-| [Experiment ontology](experiment.md) | Abstraction contracts, comparisons, evidence, applicability, and execution budgets. |
-| [Declaration ontology](declarations.json) | Model/system/request/run/inspection ownership, lifetimes, admitted schema names, and dependency permissions. |
-| [Data model](../../data-model/README.md) | Field contracts and generated consumer models; constrained by ontology ownership. |
-| [Catalog](../../catalog/README.md) | Discoverable areas, innovation identities, and links to labs. |
-| Executable code and tests | Implemented behavior and enforcement of the applicable contracts. |
-| Individual lab evidence | Whether a particular claim is supported under stated conditions. |
+| [Manifest](declarations.yaml) | Exact module inventory. |
+| [Model](model.yaml) | Parameter identity and numerical sequence-state snapshots. |
+| [Inference system](inference-system.yaml) | Execution configuration, request policy, workloads, and current logical resource limits. |
+| [Hardware](hardware.yaml) | Observed compute and storage backend identity. |
+| [Experiment](experiment.yaml) | Resolved bindings, outcomes, events, and numerical/resource evidence. |
+| [Interface](interface.yaml) | Inspection cursors and service capability/error boundaries. |
+| [Tokenizer](tokenizer.yaml) | Vocabulary entries, turns, encoding spans, and encoding results. |
+| [Data model](../../data-model/README.md) | Concrete field shapes and generated consumers. |
 
-The ontology constrains implementation meaning; code records what actually runs.
-A mismatch is a defect to resolve, not permission for either to silently redefine
-the other. Neither ontology prose nor a passing schema check proves physical
-accuracy. Empirical claims need evidence outside the definitions themselves.
+## Enforced mapping
 
-## Representative and inexpensive are separate requirements
+Each admitted entity names exactly one same-named schema using `schema`. Every
+schema has exactly that entity as its `x-owner`. There are no mapping exceptions. Unused grants, unowned schemas, duplicate
+owners, and forbidden dependencies fail admission. Owners cannot introduce fields;
+field shapes remain in the data model.
 
-Choose the least expensive abstraction that preserves the relationships needed
-for the question, with evidence for that choice. Do not simplify until something
-runs and assume that the resulting behavior remains representative.
+Each visual projection belongs to one owner and names existing fields in that
+owner's schema. Unknown labels, missing fields, and cross-owner bindings fail
+checks. The site derives meanings and declaration links from these projections;
+there is no parallel Markdown glossary. A projection labels a view of a declaration,
+not a new independently configurable entity. Structural mapping does not prove
+that computation or an abstraction is correct; behavioral tests and lab evidence
+remain necessary.
 
-A useful experiment needs both a supported scope and a measured execution cost.
-When the two conflict, narrow the question, bound the workload, or use another
-instrument. Keep unresolved claims visible. A small numerical demonstration and
-a larger event simulation may coexist without pretending they use the same model
-scale or establish the same facts.
+The shared loader and admission checker run before generating Python models,
+browser validators, or pages. `make _data-models` explicitly regenerates consumers;
+checks never repair drift. [Architecture](../architecture/declarations.md) explains
+how the declarations govern execution and inspection. [Lab guidance](../labs/README.md)
+explains how to assess evidence without treating prose as an enforced contract.
 
-Read the relevant definitions before introducing new simulation concepts. Keep
-IDs and terms consistent across labs and the atlas. Extend these documents when
-a concrete question requires a new concept; do not predefine an entire data center.
-Markdown tables are the initial representation. Add machine-readable schemas
-with their first consumers rather than maintaining an unused parallel schema.
+## Not yet declared
+
+A configurable **worker** would identify an execution location within the inference
+system, with supported work and bindings to resources. It need not correspond to
+one GPU, process, Pod, or machine. Prefill and decode are phases of work; an
+experiment must explicitly introduce separate locations to study their placement.
+The current KV lab has one serialized execution resource and no worker-fleet
+configuration. There is no `Worker` schema or admitted owner yet. Introduce both
+with the first executable placement experiment, and account for shared resources
+without duplicating their capacity.
+
+Reusable hardware profiles, multi-node topology, deployment controllers, and
+optimization objectives are also pending. Current `CacheSystem` limits and rates
+are hypothetical system assumptions; `CacheBackend` identifies actual execution.
+Neither is a calibrated hardware model. The [KV lab](../labs/kv-residency.md) owns
+the implemented boundary and evidence.
+
+## System optimization direction
+
+The intended planning problem is to choose hardware, deployment, and runtime
+policies under fixed requirements. Computational fidelity, dependency order, state
+identity, and capacity conservation are correctness obligations. Latency, quality,
+availability, residency policy, budget, and delivery deadlines are candidate
+constraints; failing one means a candidate is infeasible, not that the requirement
+should be silently relaxed.
+
+P1 holds the hardware pool fixed while varying software and execution choices.
+P2 also varies hardware and topology. Candidate comparisons should disclose
+uncertain workload, reliability, economic, and policy inputs, and tradeoffs among
+cost, service, resilience, energy, robustness, and operability. These are intended
+questions, not implemented optimization declarations. See the
+[purpose](../purpose/README.md#learning-and-decision-goals) and
+[candidate-screening guidance](../labs/README.md#candidate-screening).

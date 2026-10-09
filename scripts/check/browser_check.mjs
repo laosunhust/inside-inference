@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {checkCache} from './cache_browser_check.mjs';
 import {writeFile,readFile} from 'node:fs/promises';
 const [port, base, file, output] = process.argv.slice(2);
 const references=JSON.parse(await readFile(output+'/references.json','utf8'));
@@ -124,6 +125,7 @@ try {
   assert.ok(await evaluate(`document.documentElement.scrollWidth <= window.innerWidth`), 'mobile overflow');
   shot = await send('Page.captureScreenshot', {format:'png'});
   await writeFile(output+'/mobile.png', Buffer.from(shot.data,'base64'));
+  await checkCache({send,evaluate,until,click,base,file,output});
   assert.deepEqual(errors, []);
   await writeFile(output+'/browser-checks.json', JSON.stringify({passed:true, initial_run:initial.id, changed_run:changed.run_id, checks:['complete headless/CLI/HTTP/browser record parity','per-pass delivered text and token IDs','draft/applied separation','budgets 1/2/3/8','early stop explanation','in-flight edit lock','live execution','offline inspection','three zoom levels','token positions','attention values','prefill/decode','384-logit inspection','same-checkpoint intervention','trace-to-render equality','128-position attention','fallback trace','explicit overflow','mobile layout','no runtime exceptions']}, null, 2));
   console.log('Browser checks passed; screenshots and evidence: '+output);

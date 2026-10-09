@@ -118,7 +118,7 @@ class TokenizerTests(unittest.TestCase):
                 self.codec.encode('', context_limit=limit)
 
     def test_dialogue_and_prompt_framing_with_hand_reference(self):
-        turns = (Turn('user', 'cat'), Turn('assistant', 'cat!'))
+        turns = (Turn(role='user', text='cat'), Turn(role='assistant', text='cat!'))
         result = self.codec.encode_dialogue(turns)
         self.assertEqual(result.ids, (0, 3, 79, 5, 4, 79, 27, 5, 1))
         self.assertEqual(self.codec.decode_dialogue(result.ids), turns)
@@ -136,12 +136,15 @@ class TokenizerTests(unittest.TestCase):
             self.codec.encode_dialogue(turns, context_limit=8)
         with self.assertRaises(ContextOverflow):
             self.codec.encode_prompt(turns[:1], context_limit=4)
-        empty = (Turn('user', ''), Turn('assistant', ''))
+        empty = (Turn(role='user', text=''), Turn(role='assistant', text=''))
         self.assertEqual(self.codec.decode_dialogue(self.codec.encode_dialogue(empty).ids), empty)
 
     def test_bad_conversation_grammar(self):
-        for turns in [(), (Turn('user', 'cat'),), (Turn('system', ''), Turn('assistant', '')),
-                      (Turn('user', ''), Turn('user', '')), (Turn('user', None), Turn('assistant', ''))]:
+        # Generated declarations reject invalid field types before framing.
+        with self.assertRaises(ValueError):
+            Turn(role="user", text=None)
+        for turns in [(), (Turn(role='user', text='cat'),), (Turn(role='system', text=''), Turn(role='assistant', text='')),
+                      (Turn(role='user', text=''), Turn(role='user', text=''))]:
             with self.assertRaises(TokenizerError):
                 self.codec.encode_dialogue(turns)
         for ids in [(0, 1), (0, 3, 79, 5, 1), (0, 4, 79, 5, 3, 79, 5, 1),

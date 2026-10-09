@@ -8,7 +8,7 @@ GPT runs from `inside_inference/generation.py`; the catalog is rendered at `atla
 The separate `request-cost.html` replays bounded cost traces from `inside_inference/labs/journey.py`.
 
 The request playground also generates an ontology view from
-`docs/ontology/inference.md`. Selectable visual objects reference canonical terms;
+the YAML modules in `docs/ontology/`. Selectable visual objects reference canonical terms;
 phase explanations use recorded event rules and state snapshots. Keep these
 connections intact when adding visual mechanisms.
 
@@ -58,8 +58,8 @@ implementations; unknown statuses fail validation today.
 
 ## Lab evidence contract
 
-Use the [inference ontology](../docs/ontology/inference.md) for shared terms and
-attach the [abstraction contract](../docs/ontology/experiment.md#abstraction-contract)
+Use the [inference ontology](../docs/ontology/README.md) for shared terms and
+attach the [abstraction contract](../docs/labs/README.md#abstraction-contract)
 to each implemented lab's specification. The ontology owns those meanings; the
 catalog locates labs and does not redefine them. Record execution cost separately
 from evidence that the abstraction is adequate for its question.

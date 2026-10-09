@@ -2,9 +2,10 @@
 
 This document owns code boundaries and navigation for the connected instrument.
 [Purpose](../purpose/README.md) owns the fixed-vocabulary learning scope;
-[ontology](../ontology/inference.md) owns shared meanings; the catalog owns lab
-placement. The naïve numerical path now works with untrained parameters; optimized mechanisms
-and resource integration remain future work.
+[ontology](../ontology/README.md) owns shared meanings; the catalog owns lab
+placement. The naïve numerical path supports identified checkpoints, with seeded untrained
+weights by default. The [KV residency lab](../labs/kv-residency.md) adds cached
+execution and a bounded resource scheduler alongside that explicit reference.
 
 ## One run, three views
 
@@ -58,7 +59,8 @@ training, and separate arithmetic comparison from language quality.
 
 ## Connecting numerical execution to resource simulation
 
-This connection is planned, not implemented by the current numerical adapter.
+The uncached adapter does not model resources. The KV residency adapter implements
+this connection for exact-prefix reuse, bounded KV reservations, and serial service.
 Actual execution supplies identified operations, tensor shapes, and state contents.
 An explicit mapping supplies modeled work, memory traffic, allocation, and transfer
 requirements to the resource simulator. Both views retain links to their evidence;
@@ -81,7 +83,7 @@ Constrained CPU/RAM/SSD experiments can provide additional observations, but res
 limits do not by themselves emulate a GPU or memory technology. Declare what those
 experiments represent and validate the mapping. Event simulation may advance through
 modeled delays without slowing the user's browser in real time. Candidate-selection
-claims follow the [screening evidence rules](../ontology/experiment.md#candidate-screening).
+claims follow the [screening evidence rules](../labs/README.md#candidate-screening).
 
 ## Model preparation boundary
 
@@ -101,7 +103,11 @@ Current working code remains small:
 | `inside_inference/labs/journey.py` | Aggregate event/cost simulator, without GPT execution. |
 | `inside_inference/labs/kda.py` | Standalone numerical recurrence, without a trained model. |
 | `scripts/build/intro_page.py` | Build views and links from canonical definitions and catalog metadata. |
-| `inside_inference/model.py` | One complete, untrained, single-head GPT forward path and tensor observations. |
+| `inside_inference/model.py` | One complete single-head GPT forward path, explicit checkpoint validation, and tensor observations. |
+| `inside_inference/cache_lab.py` | Cached computation linked to admission, retention, retrieval, and virtual resource service. |
+| `inside_inference/kv_runtime.py` | Reference execution and logical residency pools. |
+| `inside_inference/cuda_runtime.py` | Optional CUDA computation and actual VRAM/pinned-DRAM K/V transfers. |
+| `inside_inference/tensor_model.py` | Explicit tensor equations shared by preparation and CUDA inspection. |
 | `inside_inference/generation.py` | Unmasked greedy selection, uncached continuation, run identity, and replay. |
 | `scripts/dev/serve_intro.py` | Local HTTP adapter to that same execution path. |
 | `inside_inference/tokenizer.py` | Exact lexical/byte codec, conversation framing, and actual encoding traces. |
@@ -150,7 +156,9 @@ it does not own request policy or duplicate executable configuration.
 
 The [workload boundary](workloads.md) defines the ordered arrivals and recorded
 events. Client token display is projected from delivery events; numerical passes retain
-actual tensors. The current adapter has no queue or service-time model.
+actual tensors. The uncached adapter has no queue or service-time model. `kv-cache.html` consumes
+`CacheRun` evidence with virtual times and separate host measurements, under the
+KV lab contract.
 
 Generated pages and experiment outputs under `out/` are disposable. Maintained
 fixtures and required datasets remain outside it. A static deployment can inspect

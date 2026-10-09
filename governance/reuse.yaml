@@ -1,0 +1,21 @@
+source_repository: CNCRover (local project-owner-authorized reuse)
+source_commit: d6d31277b462a292f7a06932023a5db70ee324fc
+license_notice: No top-level license file found in the source checkout. These are
+  local adaptations authorized by the repository owner; no third-party license is
+  asserted.
+adaptations:
+- source: scripts/build-enforce/docs/check-ontology-docs.mjs
+  sha256: c154caf38c17bf5a746993579cc9f6ee05c04d3f238f084d77d1b997256cd812
+  destination: scripts/build/ontology.py
+  scope: Port admission rules to existing Python/JSON-Schema pipeline; omit domain-specific
+    suffix grants, review exceptions, and geometry rules.
+- source: scripts/build-enforce/api/schema-semantic-owners.mjs
+  sha256: 0b6ba71ef37b7bba48addaa3ed14239555f08e3c8280e176dca3b39d70cd482e
+  destination: scripts/build/structured.py
+  scope: Port admission rules to existing Python/JSON-Schema pipeline; omit domain-specific
+    suffix grants, review exceptions, and geometry rules.
+- source: scripts/build-enforce/api/check-schema-semantics.mjs
+  sha256: 6bb66092d1805a59980e12bd5cb31fcaacef8051b61ffe30ec247c8d6af1e33e
+  destination: scripts/build/generate_data_models.py
+  scope: Port admission rules to existing Python/JSON-Schema pipeline; omit domain-specific
+    suffix grants, review exceptions, and geometry rules.

@@ -1,0 +1,10 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Inside Inference declaration contracts
+version: 1
+modules:
+- domains/model.yaml
+- domains/inference-system.yaml
+- domains/experiment.yaml
+- domains/interface.yaml
+- domains/hardware.yaml
+- domains/tokenizer.yaml

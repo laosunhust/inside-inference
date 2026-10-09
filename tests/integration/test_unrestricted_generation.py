@@ -51,7 +51,7 @@ class UnrestrictedGenerationTests(unittest.TestCase):
         # the second position. No mocked forward function or scripted token stream.
         word=self.tokenizer.words['cat'];end=self.tokenizer.token_id('control','TURN_END')
         prompt=self.workload['requests'][0]['request']['text']
-        prefix=list(self.tokenizer.encode_prompt([Turn('user',prompt)]).ids)
+        prefix=list(self.tokenizer.encode_prompt([Turn(role='user', text=prompt)]).ids)
         model=Model(self.checkpoint)
         def hidden(ids):
             return next(n['values'][-1] for n in model.forward(ids)['nodes'] if n['name']=='ln_final')

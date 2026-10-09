@@ -1,6 +1,7 @@
 # Corpus recipe and coverage probes
 
-Status: initial, untrained dataset checkpoint. This directory owns maintained
+Status: maintained dataset recipe; a [first checkpoint pilot](../../docs/research/checkpoint-pilot-2026-10-09.md)
+used an explicit projection of the controlled train/development splits. This directory owns maintained
 corpus inputs and their provenance. Generated JSONL and reports are rebuildable
 with `make _dataset-audit`; they live under `out/experiments/tokenizer-dataset/`.
 No external story dataset, model output, or pretrained weights were imported.
@@ -58,11 +59,12 @@ Those probes are not a separate held-out benchmark; they may overlap task relati
 Accepted responses are enumerated per example before any training, including the
 bare answer and specific natural short forms. The scorer ignores only surrounding
 ASCII whitespace. It does not accept substring matches, extra alternatives, or
-answers containing both a correct and an incorrect location. Full model evaluation
-and constrained generation are not implemented. A context-blind majority baseline
+answers containing both a correct and an incorrect location. The pilot reports
+unmasked model evaluation on development data; constrained generation is not
+implemented. A context-blind majority baseline
 uses only training label frequencies (alphabetical tie break) and scores 20/100
-on this balanced test set. This is not a measured model score. The shuffled-context
-model baseline required by L1 remains to be implemented before model evaluation.
+on this balanced test set. This is not a measured model score. The pilot includes a development-only rotated-context diagnostic. The independent
+test comparison required by L1 remains unevaluated.
 The audit also compares first/last-mentioned answer guesses, choosing the policy
 per family using development cases only. These ignore relationships and negation.
 Their test scores diagnose position shortcuts; passing that check does not rule
@@ -124,8 +126,8 @@ would not teach those unused words or broader conversation. A future preparation
 corpus needs varied contexts beyond the sparse language seed if we want those
 capabilities. More template permutations alone are not sufficient.
 
-Do not claim L1 or T1 complete from this checkpoint: learned behavior is untested
-and everyday topic extensions still expose gaps. Authored probes are not
+Do not claim L1 or T1 complete from this checkpoint: the pilot failed its provisional behavior gate, the held-out model test remains
+unevaluated, and everyday topic extensions still expose gaps. Authored probes are not
 independent language samples. The 128-token audit budget is a planning choice, not an implemented model
 context or a production workload distribution. Export complete examples without
 truncation; any future packing, padding, loss masks, and split changes need their

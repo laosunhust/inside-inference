@@ -1,0 +1,197 @@
+$defs:
+  InferenceSystem:
+    type: object
+    x-owner: InferenceSystem
+    additionalProperties: false
+    required:
+    - execution
+    - max_new_tokens_cap
+    - max_requests
+    - arrival_policy
+    properties:
+      execution:
+        type: string
+        title: Execution strategy
+        description: Supported baseline value.
+        const: full-prefix-recomputation
+        default: full-prefix-recomputation
+      max_new_tokens_cap:
+        type: integer
+        title: Supported new-token limit
+        description: Supported baseline value.
+        const: 8
+        default: 8
+      max_requests:
+        type: integer
+        title: Supported request count
+        description: Supported request count
+        minimum: 0
+        maximum: 9007199254740991
+        const: 1
+        default: 1
+      arrival_policy:
+        type: string
+        title: Supported arrivals
+        description: Supported arrivals
+        const: single-at-zero
+        default: single-at-zero
+  GenerationPolicy:
+    type: object
+    x-owner: GenerationPolicy
+    additionalProperties: false
+    required:
+    - max_new_tokens
+    - selection
+    - stopping
+    properties:
+      max_new_tokens:
+        type: integer
+        title: Maximum new tokens
+        description: An upper bound on selected IDs, including TURN_END. Generation may stop earlier.
+        minimum: 1
+        default: 6
+        x-maximum-from: system.max_new_tokens_cap
+      selection:
+        type: string
+        title: Selection rule
+        description: Supported baseline value.
+        const: greedy-lowest-id-tie
+        default: greedy-lowest-id-tie
+      stopping:
+        type: string
+        title: Stopping rule
+        description: Supported baseline value.
+        const: turn-end-or-budget
+        default: turn-end-or-budget
+  InferenceRequest:
+    type: object
+    x-owner: InferenceRequest
+    additionalProperties: false
+    required:
+    - text
+    - generation
+    properties:
+      text:
+        type: string
+        title: Request input
+        description: Exact user text; no normalization or truncation.
+        default: the ball is in
+      generation:
+        $ref: '#/$defs/GenerationPolicy'
+  ScheduledRequest:
+    type: object
+    x-owner: ScheduledRequest
+    additionalProperties: false
+    required:
+    - request_id
+    - arrival_us
+    - request
+    properties:
+      request_id:
+        type: string
+        title: Request identity
+        description: Request identity
+        pattern: ^[a-z][a-z0-9-]*$
+      arrival_us:
+        type: integer
+        title: Declared virtual arrival in microseconds
+        description: Declared virtual arrival in microseconds
+        minimum: 0
+        maximum: 9007199254740991
+      request:
+        $ref: '#/$defs/InferenceRequest'
+  Workload:
+    type: object
+    x-owner: Workload
+    additionalProperties: false
+    required:
+    - kind
+    - requests
+    properties:
+      kind:
+        type: string
+        title: Arrival policy
+        description: Arrival policy
+        const: fixed-arrivals
+        default: fixed-arrivals
+      requests:
+        type: array
+        title: Ordered requests
+        description: Ordered requests
+        items:
+          $ref: '#/$defs/ScheduledRequest'
+        minItems: 1
+  CacheSystem:
+    type: object
+    x-owner: CacheSystem
+    additionalProperties: false
+    required:
+    - backend
+    - device_kv_bytes
+    - host_kv_bytes
+    - max_active_requests
+    - compute_flops_per_us
+    - memory_bytes_per_us
+    - link_bytes_per_us
+    - link_latency_us
+    - retention_policy
+    - max_requests
+    - max_new_tokens_cap
+    properties:
+      backend:
+        type: string
+        enum:
+        - reference
+        - cuda
+        default: reference
+        title: Numerical backend
+      device_kv_bytes:
+        type: integer
+        minimum: 1
+        maximum: 1048576
+        default: 16384
+        title: "Device KV budget \xB7 bytes"
+      host_kv_bytes:
+        type: integer
+        minimum: 0
+        maximum: 1048576
+        default: 32768
+        title: "Host KV budget \xB7 bytes"
+      max_active_requests:
+        type: integer
+        minimum: 1
+        maximum: 8
+        default: 2
+        title: Active request slots
+      compute_flops_per_us:
+        type: number
+        minimum: 0.001
+        default: 1000
+        title: "Effective matmul FLOPs / virtual \xB5s"
+      memory_bytes_per_us:
+        type: number
+        minimum: 0.001
+        default: 1000
+        title: "Logical memory bytes / virtual \xB5s"
+      link_bytes_per_us:
+        type: number
+        minimum: 0.001
+        default: 100
+        title: "Transfer bytes / virtual \xB5s"
+      link_latency_us:
+        type: number
+        minimum: 0
+        default: 10
+        title: "Transfer startup \xB7 virtual \xB5s"
+      retention_policy:
+        type: string
+        const: whole-prefix-lru
+        default: whole-prefix-lru
+      max_requests:
+        type: integer
+        const: 8
+        default: 8
+      max_new_tokens_cap:
+        type: integer
+        const: 8
+        default: 8

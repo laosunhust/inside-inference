@@ -3,7 +3,7 @@ globalThis.Declarations = (() => {
   const schemas = {
   "ModelArchitecture": {
     "type": "object",
-    "x-owner": "ModelArtifact",
+    "x-owner": "ModelArchitecture",
     "additionalProperties": false,
     "required": [
       "vocabulary",
@@ -128,6 +128,370 @@ globalThis.Declarations = (() => {
       }
     }
   },
+  "InitializationProvenance": {
+    "type": "object",
+    "properties": {
+      "initializer": {
+        "type": "string"
+      },
+      "kind": {
+        "type": "string",
+        "const": "untrained"
+      },
+      "seed": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4294967295
+      }
+    },
+    "required": [
+      "initializer",
+      "kind",
+      "seed"
+    ],
+    "additionalProperties": false,
+    "x-owner": "InitializationProvenance"
+  },
+  "TrainingProvenance": {
+    "type": "object",
+    "properties": {
+      "kind": {
+        "type": "string",
+        "const": "trained"
+      },
+      "seed": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4294967295
+      },
+      "preparation_run_sha256": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "step": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "selection": {
+        "type": "string",
+        "const": "minimum-development-response-loss"
+      },
+      "development_loss": {
+        "type": "number",
+        "minimum": 0
+      },
+      "data_sha256": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "source_sha256": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "required": [
+      "kind",
+      "seed",
+      "preparation_run_sha256",
+      "step",
+      "selection",
+      "development_loss",
+      "data_sha256",
+      "source_sha256"
+    ],
+    "additionalProperties": false,
+    "x-owner": "TrainingProvenance"
+  },
+  "KVState": {
+    "type": "object",
+    "x-owner": "KVState",
+    "additionalProperties": false,
+    "required": [
+      "checkpoint_sha256",
+      "tokenizer_sha256",
+      "precision",
+      "token_ids",
+      "keys",
+      "values"
+    ],
+    "properties": {
+      "checkpoint_sha256": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "tokenizer_sha256": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "precision": {
+        "type": "string",
+        "const": "binary64",
+        "default": "binary64"
+      },
+      "token_ids": {
+        "type": "array",
+        "maxItems": 128,
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 383
+        }
+      },
+      "keys": {
+        "type": "array",
+        "maxItems": 128,
+        "items": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 32,
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "values": {
+        "type": "array",
+        "maxItems": 128,
+        "items": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 32,
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  },
+  "ModelCheckpoint": {
+    "type": "object",
+    "properties": {
+      "config": {
+        "$ref": "#/$defs/ModelArchitecture"
+      },
+      "format": {
+        "type": "string"
+      },
+      "manifest_sha256": {
+        "type": "string"
+      },
+      "parameters": {
+        "$ref": "#/$defs/ModelParameters"
+      },
+      "provenance": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/InitializationProvenance"
+          },
+          {
+            "$ref": "#/$defs/TrainingProvenance"
+          }
+        ]
+      }
+    },
+    "required": [
+      "config",
+      "format",
+      "manifest_sha256",
+      "parameters",
+      "provenance"
+    ],
+    "additionalProperties": false,
+    "x-owner": "ModelCheckpoint"
+  },
+  "ModelParameters": {
+    "type": "object",
+    "properties": {
+      "attention_output": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "attention_output_bias": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "ff_down": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "ff_down_bias": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "ff_up": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "ff_up_bias": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "key": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "key_bias": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "lm_bias": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "lm_head": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "ln1_bias": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "ln1_scale": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "ln2_bias": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "ln2_scale": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "ln_final_bias": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "ln_final_scale": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "position_embedding": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "query": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "query_bias": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "token_embedding": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "value": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "value_bias": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "required": [
+      "attention_output",
+      "attention_output_bias",
+      "ff_down",
+      "ff_down_bias",
+      "ff_up",
+      "ff_up_bias",
+      "key",
+      "key_bias",
+      "lm_bias",
+      "lm_head",
+      "ln1_bias",
+      "ln1_scale",
+      "ln2_bias",
+      "ln2_scale",
+      "ln_final_bias",
+      "ln_final_scale",
+      "position_embedding",
+      "query",
+      "query_bias",
+      "token_embedding",
+      "value",
+      "value_bias"
+    ],
+    "additionalProperties": false,
+    "x-owner": "ModelParameters"
+  },
   "InferenceSystem": {
     "type": "object",
     "x-owner": "InferenceSystem",
@@ -173,7 +537,7 @@ globalThis.Declarations = (() => {
   },
   "GenerationPolicy": {
     "type": "object",
-    "x-owner": "InferenceRequest",
+    "x-owner": "GenerationPolicy",
     "additionalProperties": false,
     "required": [
       "max_new_tokens",
@@ -225,106 +589,9 @@ globalThis.Declarations = (() => {
       }
     }
   },
-  "RunOutcome": {
-    "type": "object",
-    "x-owner": "RunOutcome",
-    "additionalProperties": false,
-    "required": [
-      "selected_tokens",
-      "delivered_tokens",
-      "unused_budget",
-      "stop_reason",
-      "complete"
-    ],
-    "properties": {
-      "selected_tokens": {
-        "type": "integer",
-        "title": "Selected IDs",
-        "description": "Includes terminal controls.",
-        "minimum": 1
-      },
-      "delivered_tokens": {
-        "type": "integer",
-        "title": "Delivered IDs",
-        "description": "Every selected ID except TURN_END, including diagnostic control/byte/hex tokens.",
-        "minimum": 0
-      },
-      "unused_budget": {
-        "type": "integer",
-        "title": "Unused allowance",
-        "description": "Requested ceiling minus actual selected ID count.",
-        "minimum": 0
-      },
-      "stop_reason": {
-        "type": "string",
-        "title": "Termination condition",
-        "description": "Recorded by the execution loop.",
-        "enum": [
-          "turn_end",
-          "output_budget"
-        ]
-      },
-      "complete": {
-        "type": "boolean",
-        "title": "Turn complete",
-        "description": "True only if TURN_END was selected."
-      }
-    }
-  },
-  "InspectionState": {
-    "type": "object",
-    "x-owner": "InspectionState",
-    "additionalProperties": false,
-    "required": [
-      "run_id",
-      "prediction",
-      "position"
-    ],
-    "properties": {
-      "run_id": {
-        "type": "string",
-        "title": "Observed run",
-        "description": "SHA-256 identity of the exact artifact bytes or canonical checkpoint.",
-        "pattern": "^[0-9a-f]{64}$"
-      },
-      "prediction": {
-        "type": "integer",
-        "title": "Prediction index",
-        "description": "Zero-based cursor into actual passes.",
-        "minimum": 0
-      },
-      "position": {
-        "type": "integer",
-        "title": "Sequence position",
-        "description": "Zero-based position within selected pass.",
-        "minimum": 0
-      }
-    }
-  },
-  "RequestBinding": {
-    "type": "object",
-    "x-owner": "NumericalEvidence",
-    "additionalProperties": false,
-    "required": [
-      "model",
-      "system",
-      "request"
-    ],
-    "properties": {
-      "model": {
-        "$ref": "#/$defs/ModelArtifact"
-      },
-      "system": {
-        "$ref": "#/$defs/InferenceSystem"
-      },
-      "request": {
-        "$ref": "#/$defs/InferenceRequest"
-      }
-    }
-  },
   "ScheduledRequest": {
     "type": "object",
-    "x-owner": "Workload",
+    "x-owner": "ScheduledRequest",
     "additionalProperties": false,
     "required": [
       "request_id",
@@ -377,6 +644,162 @@ globalThis.Declarations = (() => {
       }
     }
   },
+  "CacheSystem": {
+    "type": "object",
+    "x-owner": "CacheSystem",
+    "additionalProperties": false,
+    "required": [
+      "backend",
+      "device_kv_bytes",
+      "host_kv_bytes",
+      "max_active_requests",
+      "compute_flops_per_us",
+      "memory_bytes_per_us",
+      "link_bytes_per_us",
+      "link_latency_us",
+      "retention_policy",
+      "max_requests",
+      "max_new_tokens_cap"
+    ],
+    "properties": {
+      "backend": {
+        "type": "string",
+        "enum": [
+          "reference",
+          "cuda"
+        ],
+        "default": "reference",
+        "title": "Numerical backend"
+      },
+      "device_kv_bytes": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1048576,
+        "default": 16384,
+        "title": "Device KV budget \u00b7 bytes"
+      },
+      "host_kv_bytes": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1048576,
+        "default": 32768,
+        "title": "Host KV budget \u00b7 bytes"
+      },
+      "max_active_requests": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 8,
+        "default": 2,
+        "title": "Active request slots"
+      },
+      "compute_flops_per_us": {
+        "type": "number",
+        "minimum": 0.001,
+        "default": 1000,
+        "title": "Effective matmul FLOPs / virtual \u00b5s"
+      },
+      "memory_bytes_per_us": {
+        "type": "number",
+        "minimum": 0.001,
+        "default": 1000,
+        "title": "Logical memory bytes / virtual \u00b5s"
+      },
+      "link_bytes_per_us": {
+        "type": "number",
+        "minimum": 0.001,
+        "default": 100,
+        "title": "Transfer bytes / virtual \u00b5s"
+      },
+      "link_latency_us": {
+        "type": "number",
+        "minimum": 0,
+        "default": 10,
+        "title": "Transfer startup \u00b7 virtual \u00b5s"
+      },
+      "retention_policy": {
+        "type": "string",
+        "const": "whole-prefix-lru",
+        "default": "whole-prefix-lru"
+      },
+      "max_requests": {
+        "type": "integer",
+        "const": 8,
+        "default": 8
+      },
+      "max_new_tokens_cap": {
+        "type": "integer",
+        "const": 8,
+        "default": 8
+      }
+    }
+  },
+  "RunOutcome": {
+    "type": "object",
+    "x-owner": "RunOutcome",
+    "additionalProperties": false,
+    "required": [
+      "selected_tokens",
+      "delivered_tokens",
+      "unused_budget",
+      "stop_reason",
+      "complete"
+    ],
+    "properties": {
+      "selected_tokens": {
+        "type": "integer",
+        "title": "Selected IDs",
+        "description": "Includes terminal controls.",
+        "minimum": 1
+      },
+      "delivered_tokens": {
+        "type": "integer",
+        "title": "Delivered IDs",
+        "description": "Every selected ID except TURN_END, including diagnostic control/byte/hex tokens.",
+        "minimum": 0
+      },
+      "unused_budget": {
+        "type": "integer",
+        "title": "Unused allowance",
+        "description": "Requested ceiling minus actual selected ID count.",
+        "minimum": 0
+      },
+      "stop_reason": {
+        "type": "string",
+        "title": "Termination condition",
+        "description": "Recorded by the execution loop.",
+        "enum": [
+          "turn_end",
+          "output_budget"
+        ]
+      },
+      "complete": {
+        "type": "boolean",
+        "title": "Turn complete",
+        "description": "True only if TURN_END was selected."
+      }
+    }
+  },
+  "RequestBinding": {
+    "type": "object",
+    "x-owner": "RequestBinding",
+    "additionalProperties": false,
+    "required": [
+      "model",
+      "system",
+      "request"
+    ],
+    "properties": {
+      "model": {
+        "$ref": "#/$defs/ModelArtifact"
+      },
+      "system": {
+        "$ref": "#/$defs/InferenceSystem"
+      },
+      "request": {
+        "$ref": "#/$defs/InferenceRequest"
+      }
+    }
+  },
   "RunBinding": {
     "type": "object",
     "x-owner": "RunBinding",
@@ -400,7 +823,7 @@ globalThis.Declarations = (() => {
   },
   "EventClock": {
     "type": "object",
-    "x-owner": "RunEvent",
+    "x-owner": "EventClock",
     "additionalProperties": false,
     "required": [
       "kind"
@@ -417,7 +840,7 @@ globalThis.Declarations = (() => {
   },
   "RequestArrived": {
     "type": "object",
-    "x-owner": "RunEvent",
+    "x-owner": "RequestArrived",
     "additionalProperties": false,
     "required": [
       "kind",
@@ -442,7 +865,7 @@ globalThis.Declarations = (() => {
   },
   "InputEncoded": {
     "type": "object",
-    "x-owner": "RunEvent",
+    "x-owner": "InputEncoded",
     "additionalProperties": false,
     "required": [
       "kind",
@@ -474,7 +897,7 @@ globalThis.Declarations = (() => {
   },
   "WorkCompleted": {
     "type": "object",
-    "x-owner": "RunEvent",
+    "x-owner": "WorkCompleted",
     "additionalProperties": false,
     "required": [
       "kind",
@@ -507,7 +930,7 @@ globalThis.Declarations = (() => {
   },
   "TokenSelected": {
     "type": "object",
-    "x-owner": "RunEvent",
+    "x-owner": "TokenSelected",
     "additionalProperties": false,
     "required": [
       "kind",
@@ -546,7 +969,7 @@ globalThis.Declarations = (() => {
   },
   "TokenCommitted": {
     "type": "object",
-    "x-owner": "RunEvent",
+    "x-owner": "TokenCommitted",
     "additionalProperties": false,
     "required": [
       "kind",
@@ -591,7 +1014,7 @@ globalThis.Declarations = (() => {
   },
   "TokenDelivered": {
     "type": "object",
-    "x-owner": "RunEvent",
+    "x-owner": "TokenDelivered",
     "additionalProperties": false,
     "required": [
       "kind",
@@ -642,7 +1065,7 @@ globalThis.Declarations = (() => {
   },
   "RequestFinished": {
     "type": "object",
-    "x-owner": "RunEvent",
+    "x-owner": "RequestFinished",
     "additionalProperties": false,
     "required": [
       "kind",
@@ -739,263 +1162,10 @@ globalThis.Declarations = (() => {
     "type": "object",
     "properties": {
       "checkpoint": {
-        "type": "object",
-        "properties": {
-          "config": {
-            "$ref": "#/$defs/ModelArchitecture"
-          },
-          "format": {
-            "type": "string"
-          },
-          "manifest_sha256": {
-            "type": "string"
-          },
-          "parameters": {
-            "type": "object",
-            "properties": {
-              "attention_output": {
-                "type": "array",
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  }
-                }
-              },
-              "attention_output_bias": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "ff_down": {
-                "type": "array",
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  }
-                }
-              },
-              "ff_down_bias": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "ff_up": {
-                "type": "array",
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  }
-                }
-              },
-              "ff_up_bias": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "key": {
-                "type": "array",
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  }
-                }
-              },
-              "key_bias": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "lm_bias": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "lm_head": {
-                "type": "array",
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  }
-                }
-              },
-              "ln1_bias": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "ln1_scale": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "ln2_bias": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "ln2_scale": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "ln_final_bias": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "ln_final_scale": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "position_embedding": {
-                "type": "array",
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  }
-                }
-              },
-              "query": {
-                "type": "array",
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  }
-                }
-              },
-              "query_bias": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              },
-              "token_embedding": {
-                "type": "array",
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  }
-                }
-              },
-              "value": {
-                "type": "array",
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  }
-                }
-              },
-              "value_bias": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
-            },
-            "required": [
-              "attention_output",
-              "attention_output_bias",
-              "ff_down",
-              "ff_down_bias",
-              "ff_up",
-              "ff_up_bias",
-              "key",
-              "key_bias",
-              "lm_bias",
-              "lm_head",
-              "ln1_bias",
-              "ln1_scale",
-              "ln2_bias",
-              "ln2_scale",
-              "ln_final_bias",
-              "ln_final_scale",
-              "position_embedding",
-              "query",
-              "query_bias",
-              "token_embedding",
-              "value",
-              "value_bias"
-            ],
-            "additionalProperties": false
-          },
-          "provenance": {
-            "type": "object",
-            "properties": {
-              "initializer": {
-                "type": "string"
-              },
-              "kind": {
-                "type": "string"
-              },
-              "seed": {
-                "type": "integer"
-              }
-            },
-            "required": [
-              "initializer",
-              "kind",
-              "seed"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "required": [
-          "config",
-          "format",
-          "manifest_sha256",
-          "parameters",
-          "provenance"
-        ],
-        "additionalProperties": false
+        "$ref": "#/$defs/ModelCheckpoint"
       },
       "code": {
-        "type": "object",
-        "properties": {
-          "python": {
-            "type": "string"
-          },
-          "revision": {
-            "type": "string"
-          },
-          "source_sha256": {
-            "type": "string"
-          },
-          "sources": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
-            }
-          }
-        },
-        "required": [
-          "python",
-          "revision",
-          "source_sha256",
-          "sources"
-        ],
-        "additionalProperties": false
+        "$ref": "#/$defs/CodeIdentity"
       },
       "contract_sha256": {
         "type": "string"
@@ -1004,24 +1174,7 @@ globalThis.Declarations = (() => {
         "$ref": "#/$defs/RequestBinding"
       },
       "decoding_contract": {
-        "type": "object",
-        "properties": {
-          "choice": {
-            "type": "string"
-          },
-          "explanation": {
-            "type": "string"
-          },
-          "rule": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "choice",
-          "explanation",
-          "rule"
-        ],
-        "additionalProperties": false
+        "$ref": "#/$defs/DecodingContract"
       },
       "evidence": {
         "type": "string"
@@ -1049,226 +1202,11 @@ globalThis.Declarations = (() => {
       "passes": {
         "type": "array",
         "items": {
-          "type": "object",
-          "properties": {
-            "display_so_far": {
-              "type": "string",
-              "description": "Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear as labeled markers."
-            },
-            "execution": {
-              "type": "string"
-            },
-            "id": {
-              "type": "string"
-            },
-            "input_ids": {
-              "type": "array",
-              "items": {
-                "type": "integer"
-              }
-            },
-            "nodes": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "axes": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "dtype": {
-                    "type": "string"
-                  },
-                  "formula": {
-                    "type": "string"
-                  },
-                  "id": {
-                    "type": "string"
-                  },
-                  "inputs": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "layer": {
-                    "type": [
-                      "integer",
-                      "null"
-                    ]
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "positions": {
-                    "type": "array",
-                    "items": {
-                      "type": "integer"
-                    }
-                  },
-                  "request_id": {
-                    "type": "string"
-                  },
-                  "run_id": {
-                    "type": "string"
-                  },
-                  "shape": {
-                    "type": "array",
-                    "items": {
-                      "type": "integer"
-                    }
-                  },
-                  "step": {
-                    "type": "integer"
-                  },
-                  "term": {
-                    "type": "string"
-                  },
-                  "values": {
-                    "type": "array",
-                    "items": {
-                      "anyOf": [
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "boolean"
-                        },
-                        {
-                          "type": "array",
-                          "items": {
-                            "type": [
-                              "number",
-                              "boolean"
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "axes",
-                  "dtype",
-                  "formula",
-                  "id",
-                  "inputs",
-                  "layer",
-                  "name",
-                  "positions",
-                  "request_id",
-                  "run_id",
-                  "shape",
-                  "step",
-                  "term",
-                  "values"
-                ],
-                "additionalProperties": false
-              }
-            },
-            "output_position": {
-              "type": "integer"
-            },
-            "phase": {
-              "type": "string"
-            },
-            "positions": {
-              "type": "array",
-              "items": {
-                "type": "integer"
-              }
-            },
-            "request_id": {
-              "type": "string"
-            },
-            "run_id": {
-              "type": "string"
-            },
-            "selection": {
-              "type": "object",
-              "properties": {
-                "decoding": {
-                  "type": "string"
-                },
-                "probabilities": {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  }
-                },
-                "raw_logits": {
-                  "type": "array",
-                  "items": {
-                    "type": "number"
-                  }
-                },
-                "rng_state": {
-                  "type": "null"
-                },
-                "rule": {
-                  "type": "string",
-                  "const": "unmasked-greedy-v1"
-                },
-                "selected_id": {
-                  "type": "integer"
-                }
-              },
-              "required": [
-                "decoding",
-                "probabilities",
-                "raw_logits",
-                "rng_state",
-                "rule",
-                "selected_id"
-              ],
-              "additionalProperties": false
-            },
-            "selection_position": {
-              "type": "integer"
-            },
-            "step": {
-              "type": "integer"
-            }
-          },
-          "required": [
-            "display_so_far",
-            "execution",
-            "id",
-            "input_ids",
-            "nodes",
-            "output_position",
-            "phase",
-            "positions",
-            "request_id",
-            "run_id",
-            "selection",
-            "selection_position",
-            "step"
-          ],
-          "additionalProperties": false
+          "$ref": "#/$defs/NumericalPass"
         }
       },
       "precision": {
-        "type": "object",
-        "properties": {
-          "accumulation": {
-            "type": "string"
-          },
-          "compute": {
-            "type": "string"
-          },
-          "storage": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "accumulation",
-          "compute",
-          "storage"
-        ],
-        "additionalProperties": false
+        "$ref": "#/$defs/NumericalPrecision"
       },
       "request_id": {
         "type": "string"
@@ -1280,135 +1218,12 @@ globalThis.Declarations = (() => {
         }
       },
       "tokenizer": {
-        "type": "object",
-        "properties": {
-          "codec_version": {
-            "type": "string"
-          },
-          "context_limit": {
-            "type": [
-              "integer",
-              "null"
-            ]
-          },
-          "ids": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            }
-          },
-          "input_kind": {
-            "type": "string"
-          },
-          "input_sha256": {
-            "type": "string"
-          },
-          "manifest_sha256": {
-            "type": "string"
-          },
-          "spans": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "byte_end": {
-                  "type": [
-                    "integer",
-                    "null"
-                  ]
-                },
-                "byte_start": {
-                  "type": [
-                    "integer",
-                    "null"
-                  ]
-                },
-                "ids": {
-                  "type": "array",
-                  "items": {
-                    "type": "integer"
-                  }
-                },
-                "kind": {
-                  "type": "string"
-                },
-                "raw_bytes": {
-                  "type": "array",
-                  "items": {
-                    "type": "integer"
-                  }
-                },
-                "reason": {
-                  "type": "string"
-                },
-                "token_end": {
-                  "type": "integer"
-                },
-                "token_start": {
-                  "type": "integer"
-                },
-                "turn": {
-                  "type": [
-                    "integer",
-                    "null"
-                  ]
-                }
-              },
-              "required": [
-                "byte_end",
-                "byte_start",
-                "ids",
-                "kind",
-                "raw_bytes",
-                "reason",
-                "token_end",
-                "token_start",
-                "turn"
-              ],
-              "additionalProperties": false
-            }
-          },
-          "unicode_version": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "codec_version",
-          "context_limit",
-          "ids",
-          "input_kind",
-          "input_sha256",
-          "manifest_sha256",
-          "spans",
-          "unicode_version"
-        ],
-        "additionalProperties": false
+        "$ref": "#/$defs/Encoding"
       },
       "vocabulary": {
         "type": "array",
         "items": {
-          "type": "object",
-          "properties": {
-            "group": {
-              "type": "string"
-            },
-            "id": {
-              "type": "integer"
-            },
-            "kind": {
-              "type": "string"
-            },
-            "piece": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "group",
-            "id",
-            "kind",
-            "piece"
-          ],
-          "additionalProperties": false
+          "$ref": "#/$defs/Token"
         }
       }
     },
@@ -1432,7 +1247,7 @@ globalThis.Declarations = (() => {
       "vocabulary"
     ],
     "additionalProperties": false,
-    "x-owner": "NumericalEvidence"
+    "x-owner": "NumericalTrace"
   },
   "RunRecord": {
     "type": "object",
@@ -1493,9 +1308,608 @@ globalThis.Declarations = (() => {
       }
     }
   },
+  "TensorObservation": {
+    "type": "object",
+    "properties": {
+      "axes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "dtype": {
+        "type": "string"
+      },
+      "formula": {
+        "type": "string"
+      },
+      "id": {
+        "type": "string"
+      },
+      "inputs": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "layer": {
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "name": {
+        "type": "string"
+      },
+      "positions": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      },
+      "request_id": {
+        "type": "string"
+      },
+      "run_id": {
+        "type": "string"
+      },
+      "shape": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      },
+      "step": {
+        "type": "integer"
+      },
+      "term": {
+        "type": "string"
+      },
+      "values": {
+        "type": "array",
+        "items": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": [
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "required": [
+      "axes",
+      "dtype",
+      "formula",
+      "id",
+      "inputs",
+      "layer",
+      "name",
+      "positions",
+      "request_id",
+      "run_id",
+      "shape",
+      "step",
+      "term",
+      "values"
+    ],
+    "additionalProperties": false,
+    "x-owner": "TensorObservation"
+  },
+  "TokenSelection": {
+    "type": "object",
+    "properties": {
+      "decoding": {
+        "type": "string"
+      },
+      "probabilities": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "raw_logits": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "rng_state": {
+        "type": "null"
+      },
+      "rule": {
+        "type": "string",
+        "const": "unmasked-greedy-v1"
+      },
+      "selected_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "decoding",
+      "probabilities",
+      "raw_logits",
+      "rng_state",
+      "rule",
+      "selected_id"
+    ],
+    "additionalProperties": false,
+    "x-owner": "TokenSelection"
+  },
+  "CacheExperiment": {
+    "type": "object",
+    "x-owner": "CacheExperiment",
+    "additionalProperties": false,
+    "required": [
+      "system",
+      "workload"
+    ],
+    "properties": {
+      "system": {
+        "$ref": "#/$defs/CacheSystem"
+      },
+      "workload": {
+        "$ref": "#/$defs/Workload"
+      }
+    }
+  },
+  "CacheEvent": {
+    "type": "object",
+    "x-owner": "CacheEvent",
+    "additionalProperties": false,
+    "required": [
+      "event_id",
+      "request_id",
+      "time_us",
+      "kind",
+      "state_id",
+      "bytes",
+      "device_reserved_bytes",
+      "host_retained_bytes",
+      "detail",
+      "causes"
+    ],
+    "properties": {
+      "event_id": {
+        "type": "string"
+      },
+      "request_id": {
+        "type": "string"
+      },
+      "time_us": {
+        "type": "number",
+        "minimum": 0
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "arrived",
+          "queued",
+          "admitted",
+          "local-hit",
+          "remote-hit",
+          "miss",
+          "evicted",
+          "transfer-start",
+          "transfer-end",
+          "compute-start",
+          "compute-end",
+          "selected",
+          "finished",
+          "retained",
+          "retention-start"
+        ]
+      },
+      "state_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "bytes": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "device_reserved_bytes": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "host_retained_bytes": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "detail": {
+        "type": "string"
+      },
+      "causes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "CacheComputation": {
+    "type": "object",
+    "x-owner": "CacheComputation",
+    "additionalProperties": false,
+    "required": [
+      "work_id",
+      "request_id",
+      "step",
+      "input_ids",
+      "state_before",
+      "state_after",
+      "nodes",
+      "selection",
+      "matmul_flops",
+      "logical_memory_bytes",
+      "reference_max_abs_error",
+      "phase",
+      "reference_matmul_flops"
+    ],
+    "properties": {
+      "work_id": {
+        "type": "string"
+      },
+      "request_id": {
+        "type": "string"
+      },
+      "step": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "input_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 383
+        }
+      },
+      "state_before": {
+        "$ref": "#/$defs/KVState"
+      },
+      "state_after": {
+        "$ref": "#/$defs/KVState"
+      },
+      "nodes": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/TensorObservation"
+        }
+      },
+      "selection": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/TokenSelection"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "matmul_flops": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "logical_memory_bytes": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "reference_max_abs_error": {
+        "type": "number",
+        "minimum": 0
+      },
+      "phase": {
+        "type": "string",
+        "enum": [
+          "cache-build",
+          "prefill",
+          "decode"
+        ]
+      },
+      "reference_matmul_flops": {
+        "type": "integer",
+        "minimum": 0
+      }
+    }
+  },
+  "CacheMeasurement": {
+    "type": "object",
+    "x-owner": "CacheMeasurement",
+    "additionalProperties": false,
+    "required": [
+      "event_id",
+      "kind",
+      "elapsed_us",
+      "bytes"
+    ],
+    "properties": {
+      "event_id": {
+        "type": "string"
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "compute",
+          "host-to-device",
+          "device-to-host",
+          "device-copy",
+          "reference-check"
+        ]
+      },
+      "elapsed_us": {
+        "type": "number",
+        "minimum": 0
+      },
+      "bytes": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      }
+    }
+  },
+  "CacheRun": {
+    "type": "object",
+    "x-owner": "CacheRun",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "spec",
+      "checkpoint",
+      "source_sha256",
+      "events",
+      "computations",
+      "measurements",
+      "outcomes",
+      "states",
+      "evidence",
+      "backend"
+    ],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "spec": {
+        "$ref": "#/$defs/CacheExperiment"
+      },
+      "checkpoint": {
+        "$ref": "#/$defs/ModelCheckpoint"
+      },
+      "source_sha256": {
+        "type": "string"
+      },
+      "events": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/CacheEvent"
+        }
+      },
+      "computations": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/CacheComputation"
+        }
+      },
+      "measurements": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/CacheMeasurement"
+        }
+      },
+      "outcomes": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/$defs/RunOutcome"
+        }
+      },
+      "states": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/$defs/KVState"
+        }
+      },
+      "evidence": {
+        "type": "string"
+      },
+      "backend": {
+        "$ref": "#/$defs/CacheBackend"
+      }
+    }
+  },
+  "CodeIdentity": {
+    "type": "object",
+    "properties": {
+      "python": {
+        "type": "string"
+      },
+      "revision": {
+        "type": "string"
+      },
+      "source_sha256": {
+        "type": "string"
+      },
+      "sources": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "required": [
+      "python",
+      "revision",
+      "source_sha256",
+      "sources"
+    ],
+    "additionalProperties": false,
+    "x-owner": "CodeIdentity"
+  },
+  "DecodingContract": {
+    "type": "object",
+    "properties": {
+      "choice": {
+        "type": "string"
+      },
+      "explanation": {
+        "type": "string"
+      },
+      "rule": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "choice",
+      "explanation",
+      "rule"
+    ],
+    "additionalProperties": false,
+    "x-owner": "DecodingContract"
+  },
+  "NumericalPrecision": {
+    "type": "object",
+    "properties": {
+      "accumulation": {
+        "type": "string"
+      },
+      "compute": {
+        "type": "string"
+      },
+      "storage": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "accumulation",
+      "compute",
+      "storage"
+    ],
+    "additionalProperties": false,
+    "x-owner": "NumericalPrecision"
+  },
+  "NumericalPass": {
+    "type": "object",
+    "properties": {
+      "display_so_far": {
+        "type": "string",
+        "description": "Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear as labeled markers."
+      },
+      "execution": {
+        "type": "string"
+      },
+      "id": {
+        "type": "string"
+      },
+      "input_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      },
+      "nodes": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/TensorObservation"
+        }
+      },
+      "output_position": {
+        "type": "integer"
+      },
+      "phase": {
+        "type": "string"
+      },
+      "positions": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      },
+      "request_id": {
+        "type": "string"
+      },
+      "run_id": {
+        "type": "string"
+      },
+      "selection": {
+        "$ref": "#/$defs/TokenSelection"
+      },
+      "selection_position": {
+        "type": "integer"
+      },
+      "step": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "display_so_far",
+      "execution",
+      "id",
+      "input_ids",
+      "nodes",
+      "output_position",
+      "phase",
+      "positions",
+      "request_id",
+      "run_id",
+      "selection",
+      "selection_position",
+      "step"
+    ],
+    "additionalProperties": false,
+    "x-owner": "NumericalPass"
+  },
+  "InspectionState": {
+    "type": "object",
+    "x-owner": "InspectionState",
+    "additionalProperties": false,
+    "required": [
+      "run_id",
+      "prediction",
+      "position"
+    ],
+    "properties": {
+      "run_id": {
+        "type": "string",
+        "title": "Observed run",
+        "description": "SHA-256 identity of the exact artifact bytes or canonical checkpoint.",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "prediction": {
+        "type": "integer",
+        "title": "Prediction index",
+        "description": "Zero-based cursor into actual passes.",
+        "minimum": 0
+      },
+      "position": {
+        "type": "integer",
+        "title": "Sequence position",
+        "description": "Zero-based position within selected pass.",
+        "minimum": 0
+      }
+    }
+  },
   "Capabilities": {
     "type": "object",
-    "x-owner": "ServiceBoundary",
+    "x-owner": "Capabilities",
     "additionalProperties": false,
     "required": [
       "engine",
@@ -1519,7 +1933,7 @@ globalThis.Declarations = (() => {
   },
   "ApiError": {
     "type": "object",
-    "x-owner": "ServiceBoundary",
+    "x-owner": "ApiError",
     "additionalProperties": false,
     "required": [
       "error"
@@ -1531,239 +1945,1206 @@ globalThis.Declarations = (() => {
         "description": "Explicit rejection reason"
       }
     }
+  },
+  "CacheCapabilities": {
+    "type": "object",
+    "x-owner": "CacheCapabilities",
+    "additionalProperties": false,
+    "required": [
+      "contract_sha256",
+      "backends"
+    ],
+    "properties": {
+      "contract_sha256": {
+        "type": "string"
+      },
+      "backends": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "reference",
+            "cuda"
+          ]
+        },
+        "minItems": 1,
+        "uniqueItems": true
+      }
+    }
+  },
+  "CacheBackend": {
+    "type": "object",
+    "x-owner": "CacheBackend",
+    "additionalProperties": false,
+    "required": [
+      "compute_device",
+      "device_state_storage",
+      "host_state_storage",
+      "library",
+      "precision"
+    ],
+    "properties": {
+      "compute_device": {
+        "type": "string"
+      },
+      "device_state_storage": {
+        "type": "string"
+      },
+      "host_state_storage": {
+        "type": "string"
+      },
+      "library": {
+        "type": "string"
+      },
+      "precision": {
+        "type": "string"
+      }
+    }
+  },
+  "Token": {
+    "type": "object",
+    "x-owner": "Token",
+    "properties": {
+      "id": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 383
+      },
+      "kind": {
+        "type": "string"
+      },
+      "piece": {
+        "type": "string"
+      },
+      "group": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "id",
+      "kind",
+      "piece",
+      "group"
+    ],
+    "additionalProperties": false
+  },
+  "Span": {
+    "type": "object",
+    "x-owner": "Span",
+    "properties": {
+      "kind": {
+        "type": "string"
+      },
+      "reason": {
+        "type": "string"
+      },
+      "byte_start": {
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "byte_end": {
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "token_start": {
+        "type": "integer"
+      },
+      "token_end": {
+        "type": "integer"
+      },
+      "raw_bytes": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        }
+      },
+      "ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 383
+        }
+      },
+      "turn": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "default": null
+      }
+    },
+    "required": [
+      "kind",
+      "reason",
+      "byte_start",
+      "byte_end",
+      "token_start",
+      "token_end",
+      "raw_bytes",
+      "ids",
+      "turn"
+    ],
+    "additionalProperties": false
+  },
+  "Encoding": {
+    "type": "object",
+    "x-owner": "Encoding",
+    "properties": {
+      "ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 383
+        }
+      },
+      "spans": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/Span"
+        }
+      },
+      "input_sha256": {
+        "type": "string"
+      },
+      "input_kind": {
+        "type": "string"
+      },
+      "manifest_sha256": {
+        "type": "string"
+      },
+      "context_limit": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "default": null
+      },
+      "codec_version": {
+        "type": "string"
+      },
+      "unicode_version": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "ids",
+      "spans",
+      "input_sha256",
+      "input_kind",
+      "manifest_sha256",
+      "context_limit",
+      "codec_version",
+      "unicode_version"
+    ],
+    "additionalProperties": false
+  },
+  "Turn": {
+    "type": "object",
+    "x-owner": "Turn",
+    "properties": {
+      "role": {
+        "type": "string"
+      },
+      "text": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "role",
+      "text"
+    ],
+    "additionalProperties": false
   }
 };
   const meanings = {
-  "ModelArtifact": {
-    "meaning": "An identified set of model parameters bound to architecture and tokenizer identity.",
+  "ModelArchitecture": {
+    "meaning": "Dimensions and numerical conventions that define the supported GPT computation.",
     "lifetime": "Immutable for an artifact identity. Preparation seed is provenance, never a request control.",
     "owns": [
-      "architecture",
-      "checkpoint identity",
-      "tokenizer identity"
+      "Dimensions and numerical conventions that define the supported GPT computation."
     ],
     "excludes": [
       "request text",
       "generation limits",
       "inspection position"
     ],
-    "schemas": [
-      "ModelArchitecture",
-      "ModelArtifact"
-    ],
+    "schema": "ModelArchitecture",
     "depends_on": [],
-    "capability_reads": []
+    "capability_reads": [],
+    "projections": {}
+  },
+  "ModelArtifact": {
+    "meaning": "An immutable descriptor identifying a checkpoint, architecture, tokenizer, and preparation provenance.",
+    "lifetime": "Immutable for an artifact identity. Preparation seed is provenance, never a request control.",
+    "owns": [
+      "An immutable descriptor identifying a checkpoint, architecture, tokenizer, and preparation provenance."
+    ],
+    "excludes": [
+      "request text",
+      "generation limits",
+      "inspection position"
+    ],
+    "schema": "ModelArtifact",
+    "depends_on": [
+      "ModelArchitecture"
+    ],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "InitializationProvenance": {
+    "meaning": "The declared initializer and seed that produced untrained parameter values.",
+    "lifetime": "Immutable for an artifact identity. Preparation seed is provenance, never a request control.",
+    "owns": [
+      "The declared initializer and seed that produced untrained parameter values."
+    ],
+    "excludes": [
+      "request text",
+      "generation limits",
+      "inspection position"
+    ],
+    "schema": "InitializationProvenance",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "TrainingProvenance": {
+    "meaning": "The identified preparation run and selection evidence that produced trained parameters.",
+    "lifetime": "Immutable for an artifact identity. Preparation seed is provenance, never a request control.",
+    "owns": [
+      "The identified preparation run and selection evidence that produced trained parameters."
+    ],
+    "excludes": [
+      "request text",
+      "generation limits",
+      "inspection position"
+    ],
+    "schema": "TrainingProvenance",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "KVState": {
+    "meaning": "Immutable actual keys and values for a prefix, bound to checkpoint, tokenizer, positions, and precision.",
+    "lifetime": "Immutable snapshot; continuation creates a new snapshot. Residency is separate.",
+    "owns": [
+      "Immutable actual keys and values for a prefix, bound to checkpoint, tokenizer, positions, and precision."
+    ],
+    "excludes": [
+      "resource placement",
+      "cached answers",
+      "service timing"
+    ],
+    "schema": "KVState",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {
+      "Sequence state": {
+        "meaning": "Intermediate state used to continue an inference sequence, such as retained keys/values or a recurrent state. It is distinct from trained parameters, input text, and a cached final answer.",
+        "fields": {
+          "KVState": [
+            "token_ids",
+            "keys",
+            "values",
+            "precision"
+          ]
+        }
+      },
+      "State artifact": {
+        "meaning": "An identified snapshot or reusable portion of sequence state, tied to the computation and input history that produced it. Logical identity is distinct from physical placement.",
+        "fields": {
+          "KVState": [
+            "checkpoint_sha256",
+            "tokenizer_sha256",
+            "token_ids",
+            "keys",
+            "values"
+          ]
+        }
+      }
+    }
+  },
+  "ModelCheckpoint": {
+    "meaning": "The actual parameter arrays with their architecture, tokenizer identity, and preparation provenance.",
+    "lifetime": "Immutable for an artifact identity. Preparation seed is provenance, never a request control.",
+    "owns": [
+      "The actual parameter arrays with their architecture, tokenizer identity, and preparation provenance."
+    ],
+    "excludes": [
+      "request text",
+      "generation limits",
+      "inspection position"
+    ],
+    "schema": "ModelCheckpoint",
+    "depends_on": [
+      "InitializationProvenance",
+      "ModelArchitecture",
+      "ModelParameters",
+      "TrainingProvenance"
+    ],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "ModelParameters": {
+    "meaning": "Actual parameter arrays indexed by their declared operation names.",
+    "lifetime": "Immutable within its identified artifact or recorded execution.",
+    "owns": [
+      "Actual parameter arrays indexed by their declared operation names."
+    ],
+    "excludes": [
+      "Unrecorded behavior",
+      "Presentation state"
+    ],
+    "schema": "ModelParameters",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
   },
   "InferenceSystem": {
-    "meaning": "The execution strategy and supported request capabilities of the selected inference implementation.",
+    "meaning": "Capabilities and execution strategy of the uncached reference implementation.",
     "lifetime": "Fixed for an identified system configuration.",
     "owns": [
-      "execution strategy",
-      "maximum supported generation limit"
+      "Capabilities and execution strategy of the uncached reference implementation."
     ],
     "excludes": [
       "weights",
       "requested generation limit",
       "actual prediction count"
     ],
-    "schemas": [
-      "InferenceSystem"
-    ],
+    "schema": "InferenceSystem",
     "depends_on": [],
-    "capability_reads": []
+    "capability_reads": [],
+    "projections": {
+      "Inference system": {
+        "meaning": "The configured boundary that accepts requests and produces responses, including input preparation, model execution, serving policies, state storage, and execution resources. Execution locations within this boundary are workers.",
+        "fields": {
+          "InferenceSystem": [
+            "execution",
+            "max_requests"
+          ]
+        }
+      }
+    }
   },
-  "InferenceRequest": {
-    "meaning": "One input and generation policy submitted for execution against a selected model and system.",
+  "GenerationPolicy": {
+    "meaning": "Requested selection budget and the permitted selection and termination rules.",
     "lifetime": "Editable before submission; immutable in a run binding.",
     "owns": [
-      "input text",
-      "maximum new tokens",
-      "selection and stopping policy"
+      "Requested selection budget and the permitted selection and termination rules."
     ],
     "excludes": [
       "model initialization",
       "system capacity",
       "observed outcomes"
     ],
-    "schemas": [
-      "GenerationPolicy",
-      "InferenceRequest"
-    ],
+    "schema": "GenerationPolicy",
     "depends_on": [],
     "capability_reads": [
       "system.max_new_tokens_cap"
-    ]
+    ],
+    "projections": {}
   },
-  "RunBinding": {
-    "meaning": "The exact model, system, and workload declarations consumed by one execution.",
-    "lifetime": "Immutable evidence, including after a later workload draft is edited.",
+  "InferenceRequest": {
+    "meaning": "Input text and generation policy for one invocation.",
+    "lifetime": "Editable before submission; immutable in a run binding.",
     "owns": [
-      "references to the resolved declarations"
+      "Input text and generation policy for one invocation."
     ],
     "excludes": [
-      "independent copies of their individual settings",
-      "presentation state"
+      "model initialization",
+      "system capacity",
+      "observed outcomes"
     ],
-    "schemas": [
-      "RunBinding"
-    ],
+    "schema": "InferenceRequest",
     "depends_on": [
-      "ModelArtifact",
-      "InferenceSystem",
-      "Workload"
+      "GenerationPolicy"
     ],
-    "capability_reads": []
+    "capability_reads": [],
+    "projections": {
+      "Request": {
+        "meaning": "One invocation seeking output from an identified model/configuration, with input and completion/cancellation conditions. An agent turn may produce multiple requests.",
+        "fields": {
+          "InferenceRequest": [
+            "text",
+            "generation"
+          ]
+        }
+      }
+    }
+  },
+  "ScheduledRequest": {
+    "meaning": "One identified inference request with its declared arrival time.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "One identified inference request with its declared arrival time."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "ScheduledRequest",
+    "depends_on": [
+      "InferenceRequest"
+    ],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "Workload": {
+    "meaning": "An ordered collection of scheduled requests; array order breaks equal-time ties.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "An ordered collection of scheduled requests; array order breaks equal-time ties."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "Workload",
+    "depends_on": [
+      "ScheduledRequest"
+    ],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "CacheSystem": {
+    "meaning": "KV execution backend, reservation and retention policy, workload limits, and hypothetical service rates.",
+    "lifetime": "Fixed for an identified system configuration.",
+    "owns": [
+      "KV execution backend, reservation and retention policy, workload limits, and hypothetical service rates."
+    ],
+    "excludes": [
+      "weights",
+      "requested generation limit",
+      "actual prediction count"
+    ],
+    "schema": "CacheSystem",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {
+      "Cache system": {
+        "meaning": "The configured boundary that accepts requests and produces responses, including input preparation, model execution, serving policies, state storage, and execution resources. Execution locations within this boundary are workers.",
+        "fields": {
+          "CacheSystem": [
+            "backend",
+            "max_active_requests",
+            "retention_policy"
+          ]
+        }
+      },
+      "Resource": {
+        "meaning": "A bounded capability or capacity consumed by work or retained state. Compute rate, storage capacity, and data-transfer bandwidth have different units and constraints.",
+        "fields": {
+          "CacheSystem": [
+            "device_kv_bytes",
+            "host_kv_bytes",
+            "compute_flops_per_us",
+            "memory_bytes_per_us"
+          ]
+        }
+      },
+      "Link": {
+        "meaning": "A modeled transfer path between locations, with declared delay, bandwidth, and sharing behavior. Links may share a bottleneck; independent-link assumptions must be explicit.",
+        "fields": {
+          "CacheSystem": [
+            "link_bytes_per_us",
+            "link_latency_us"
+          ]
+        }
+      }
+    }
   },
   "RunOutcome": {
-    "meaning": "Observed generation decisions and the condition that ended this execution.",
+    "meaning": "Observed selection and delivery counts, unused budget, and termination reason.",
     "lifetime": "Immutable evidence derived from execution, not requested values.",
     "owns": [
-      "selected ID count including stop controls",
-      "visible ID count",
-      "unused budget",
-      "stop reason"
+      "Observed selection and delivery counts, unused budget, and termination reason."
     ],
     "excludes": [
       "requested settings",
       "playback position"
     ],
-    "schemas": [
+    "schema": "RunOutcome",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "RequestBinding": {
+    "meaning": "The model, system, and request consumed by a single numerical trace.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "The model, system, and request consumed by a single numerical trace."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "RequestBinding",
+    "depends_on": [
+      "InferenceRequest",
+      "InferenceSystem",
+      "ModelArtifact"
+    ],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "RunBinding": {
+    "meaning": "The exact model, system, and workload consumed by one execution.",
+    "lifetime": "Immutable evidence, including after a later workload draft is edited.",
+    "owns": [
+      "The exact model, system, and workload consumed by one execution."
+    ],
+    "excludes": [
+      "independent copies of their individual settings",
+      "presentation state"
+    ],
+    "schema": "RunBinding",
+    "depends_on": [
+      "InferenceSystem",
+      "ModelArtifact",
+      "Workload"
+    ],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "EventClock": {
+    "meaning": "The declared time interpretation for an ordered execution event.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "The declared time interpretation for an ordered execution event."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "EventClock",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "RequestArrived": {
+    "meaning": "Evidence that a request reached the modeled input boundary.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "Evidence that a request reached the modeled input boundary."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "RequestArrived",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "InputEncoded": {
+    "meaning": "Evidence identifying the input and resulting token count after encoding.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "Evidence identifying the input and resulting token count after encoding."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "InputEncoded",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "WorkCompleted": {
+    "meaning": "Evidence linking completed numerical work to its sequence positions.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "Evidence linking completed numerical work to its sequence positions."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "WorkCompleted",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "TokenSelected": {
+    "meaning": "Evidence linking a selected token to the numerical work that selected it.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "Evidence linking a selected token to the numerical work that selected it."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "TokenSelected",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "TokenCommitted": {
+    "meaning": "Evidence that selected token IDs became committed continuation state.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "Evidence that selected token IDs became committed continuation state."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "TokenCommitted",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "TokenDelivered": {
+    "meaning": "Evidence that committed token IDs were published to the modeled output collector.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "Evidence that committed token IDs were published to the modeled output collector."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "TokenDelivered",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "RequestFinished": {
+    "meaning": "Evidence of the outcome that ended one request.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "Evidence of the outcome that ended one request."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "RequestFinished",
+    "depends_on": [
       "RunOutcome"
     ],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "RunEvent": {
+    "meaning": "An identified ordered occurrence with explicit earlier causes and a typed payload.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "An identified ordered occurrence with explicit earlier causes and a typed payload."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "RunEvent",
+    "depends_on": [
+      "InputEncoded",
+      "RequestArrived",
+      "RequestFinished",
+      "TokenCommitted",
+      "TokenDelivered",
+      "TokenSelected",
+      "WorkCompleted"
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Event": {
+        "meaning": "A modeled occurrence or transition at a simulation time, linked to causes and affected entities. Equal-time events require explicit ordering semantics.",
+        "fields": {
+          "RunEvent": [
+            "event_id",
+            "causes",
+            "payload"
+          ]
+        }
+      }
+    }
+  },
+  "NumericalTrace": {
+    "meaning": "Actual single-request tensors, token selections, model binding, and replay evidence.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "Actual single-request tensors, token selections, model binding, and replay evidence."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "NumericalTrace",
+    "depends_on": [
+      "CodeIdentity",
+      "DecodingContract",
+      "Encoding",
+      "ModelCheckpoint",
+      "NumericalPass",
+      "NumericalPrecision",
+      "RequestBinding",
+      "RunOutcome",
+      "Token"
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Detokenizer": {
+        "meaning": "Converts output token IDs back to text or bytes using the tokenizer configuration. A streamed token may not complete a printable character; buffering can be required.",
+        "fields": {
+          "NumericalTrace": [
+            "output_ids",
+            "output_display",
+            "tokenizer"
+          ]
+        }
+      }
+    }
+  },
+  "RunRecord": {
+    "meaning": "The bound workload and its ordered events and linked numerical traces.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "The bound workload and its ordered events and linked numerical traces."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "RunRecord",
+    "depends_on": [
+      "EventClock",
+      "NumericalTrace",
+      "RunBinding",
+      "RunEvent"
+    ],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "TensorObservation": {
+    "meaning": "Actual intermediate tensor values with shape, position, operation, and run identity.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "Actual intermediate tensor values with shape, position, operation, and run identity."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "TensorObservation",
     "depends_on": [],
-    "capability_reads": []
+    "capability_reads": [],
+    "projections": {
+      "Embedding": {
+        "meaning": "Maps token IDs to parameter vectors; position information is applied according to the model configuration. These vectors are model inputs, not sequence-state cache entries.",
+        "fields": {
+          "TensorObservation": [
+            "term",
+            "name",
+            "positions",
+            "values",
+            "formula"
+          ]
+        }
+      },
+      "Transformer layers": {
+        "meaning": "Transform position-aware representations through attention, feed-forward operations, normalization, and residual paths under the model configuration. Causal attention restricts accessible history; execution may read or update sequence state.",
+        "fields": {
+          "TensorObservation": [
+            "term",
+            "layer",
+            "inputs",
+            "shape",
+            "values",
+            "formula"
+          ]
+        }
+      },
+      "Output projection": {
+        "meaning": "Maps final hidden representations to vocabulary logits. Logits are scores, not selected tokens or decoded text.",
+        "fields": {
+          "TensorObservation": [
+            "term",
+            "shape",
+            "values",
+            "formula"
+          ]
+        }
+      }
+    }
+  },
+  "TokenSelection": {
+    "meaning": "Raw logits, probabilities, selection rule, and the selected vocabulary ID.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "Raw logits, probabilities, selection rule, and the selected vocabulary ID."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "TokenSelection",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {
+      "Token selection": {
+        "meaning": "Chooses a next token from logits under a specified decoding rule, stopping conditions, and any randomness. The selected token can feed the next model step.",
+        "fields": {
+          "TokenSelection": [
+            "raw_logits",
+            "selected_id",
+            "rule"
+          ]
+        }
+      }
+    }
+  },
+  "CacheExperiment": {
+    "meaning": "A fixed-arrival workload bound to the declared KV execution system.",
+    "lifetime": "Immutable within an identified experiment or recorded run.",
+    "owns": [
+      "A fixed-arrival workload bound to the declared KV execution system."
+    ],
+    "excludes": [
+      "Undeclared behavior",
+      "Presentation state"
+    ],
+    "schema": "CacheExperiment",
+    "depends_on": [
+      "CacheSystem",
+      "Workload"
+    ],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "CacheEvent": {
+    "meaning": "An ordered causal cache or scheduling transition with resource accounting and virtual time.",
+    "lifetime": "Immutable within an identified experiment or recorded run.",
+    "owns": [
+      "An ordered causal cache or scheduling transition with resource accounting and virtual time."
+    ],
+    "excludes": [
+      "Undeclared behavior",
+      "Presentation state"
+    ],
+    "schema": "CacheEvent",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {
+      "Residency": {
+        "meaning": "A copy of a state artifact at a location, with allocated size, readiness, and lifetime. A remote or in-flight copy is not automatically ready for local computation.",
+        "fields": {
+          "CacheEvent": [
+            "state_id",
+            "kind",
+            "device_reserved_bytes",
+            "host_retained_bytes"
+          ]
+        }
+      },
+      "Queue": {
+        "meaning": "Work or requests waiting for eligibility or resources. Being queued is different from actively consuming service.",
+        "fields": {
+          "CacheEvent": [
+            "request_id",
+            "kind",
+            "time_us",
+            "causes"
+          ]
+        }
+      }
+    }
+  },
+  "CacheComputation": {
+    "meaning": "Actual numerical work linking its input and output KV states, tensors, selection, and operation counts.",
+    "lifetime": "Immutable within an identified experiment or recorded run.",
+    "owns": [
+      "Actual numerical work linking its input and output KV states, tensors, selection, and operation counts."
+    ],
+    "excludes": [
+      "Undeclared behavior",
+      "Presentation state"
+    ],
+    "schema": "CacheComputation",
+    "depends_on": [
+      "KVState",
+      "TensorObservation",
+      "TokenSelection"
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Work item": {
+        "meaning": "A unit of modeled computation or data movement, with prerequisites, inputs, outputs, and resource demands. Its granularity is an abstraction choice.",
+        "fields": {
+          "CacheComputation": [
+            "work_id",
+            "input_ids",
+            "nodes",
+            "state_before",
+            "state_after"
+          ]
+        }
+      }
+    }
+  },
+  "CacheMeasurement": {
+    "meaning": "One local wall-time observation linked to its event and measurement boundary.",
+    "lifetime": "Immutable within an identified experiment or recorded run.",
+    "owns": [
+      "One local wall-time observation linked to its event and measurement boundary."
+    ],
+    "excludes": [
+      "Undeclared behavior",
+      "Presentation state"
+    ],
+    "schema": "CacheMeasurement",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "CacheRun": {
+    "meaning": "The complete KV experiment binding, computations, events, outcomes, states, and measurements.",
+    "lifetime": "Immutable within an identified experiment or recorded run.",
+    "owns": [
+      "The complete KV experiment binding, computations, events, outcomes, states, and measurements."
+    ],
+    "excludes": [
+      "Undeclared behavior",
+      "Presentation state"
+    ],
+    "schema": "CacheRun",
+    "depends_on": [
+      "CacheBackend",
+      "CacheComputation",
+      "CacheEvent",
+      "CacheExperiment",
+      "CacheMeasurement",
+      "KVState",
+      "ModelCheckpoint",
+      "RunOutcome"
+    ],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "CodeIdentity": {
+    "meaning": "Runtime and source identities needed to reproduce a numerical execution.",
+    "lifetime": "Immutable within its identified artifact or recorded execution.",
+    "owns": [
+      "Runtime and source identities needed to reproduce a numerical execution."
+    ],
+    "excludes": [
+      "Unrecorded behavior",
+      "Presentation state"
+    ],
+    "schema": "CodeIdentity",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "DecodingContract": {
+    "meaning": "Recorded explanation and identifier of the executed token-selection policy.",
+    "lifetime": "Immutable within its identified artifact or recorded execution.",
+    "owns": [
+      "Recorded explanation and identifier of the executed token-selection policy."
+    ],
+    "excludes": [
+      "Unrecorded behavior",
+      "Presentation state"
+    ],
+    "schema": "DecodingContract",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "NumericalPrecision": {
+    "meaning": "Declared storage, compute, and accumulation precision of a numerical trace.",
+    "lifetime": "Immutable within its identified artifact or recorded execution.",
+    "owns": [
+      "Declared storage, compute, and accumulation precision of a numerical trace."
+    ],
+    "excludes": [
+      "Unrecorded behavior",
+      "Presentation state"
+    ],
+    "schema": "NumericalPrecision",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "NumericalPass": {
+    "meaning": "One actual prediction step with its inputs, positions, tensors, selection, and output progress.",
+    "lifetime": "Immutable within its identified artifact or recorded execution.",
+    "owns": [
+      "One actual prediction step with its inputs, positions, tensors, selection, and output progress."
+    ],
+    "excludes": [
+      "Unrecorded behavior",
+      "Presentation state"
+    ],
+    "schema": "NumericalPass",
+    "depends_on": [
+      "TensorObservation",
+      "TokenSelection"
+    ],
+    "capability_reads": [],
+    "projections": {}
   },
   "InspectionState": {
-    "meaning": "A cursor into an identified run; navigating it never executes the model.",
+    "meaning": "A cursor into an identified recorded run; moving it never executes inference.",
     "lifetime": "Changes on inspection; reset when the bound run changes.",
     "owns": [
-      "run identity",
-      "prediction index",
-      "sequence position"
+      "A cursor into an identified recorded run; moving it never executes inference."
     ],
     "excludes": [
       "input text",
       "model or generation configuration"
     ],
-    "schemas": [
-      "InspectionState"
-    ],
+    "schema": "InspectionState",
     "depends_on": [],
-    "capability_reads": []
+    "capability_reads": [],
+    "projections": {}
   },
-  "Workload": {
-    "meaning": "Identified requests and their arrival declarations; array order breaks equal-time ties.",
+  "Capabilities": {
+    "meaning": "The reference HTTP service contract identity and supported execution capabilities.",
     "lifetime": "Immutable in an identified execution record.",
     "owns": [
-      "ScheduledRequest",
-      "Workload"
+      "The reference HTTP service contract identity and supported execution capabilities."
     ],
     "excludes": [
       "Unrecorded behavior and presentation state"
     ],
-    "schemas": [
-      "ScheduledRequest",
-      "Workload"
-    ],
-    "depends_on": [
-      "InferenceRequest"
-    ],
-    "capability_reads": []
-  },
-  "RunEvent": {
-    "meaning": "An occurrence recorded by execution, ordered and linked to actual earlier causes.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "EventClock",
-      "RequestArrived",
-      "InputEncoded",
-      "WorkCompleted",
-      "TokenSelected",
-      "TokenCommitted",
-      "TokenDelivered",
-      "RequestFinished",
-      "RunEvent"
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schemas": [
-      "EventClock",
-      "RequestArrived",
-      "InputEncoded",
-      "WorkCompleted",
-      "TokenSelected",
-      "TokenCommitted",
-      "TokenDelivered",
-      "RequestFinished",
-      "RunEvent"
-    ],
-    "depends_on": [
-      "RunOutcome"
-    ],
-    "capability_reads": []
-  },
-  "NumericalEvidence": {
-    "meaning": "Concrete single-request numerical traces and their exact computation binding.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "RequestBinding",
-      "NumericalTrace"
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schemas": [
-      "RequestBinding",
-      "NumericalTrace"
-    ],
-    "depends_on": [
-      "ModelArtifact",
-      "InferenceSystem",
-      "InferenceRequest",
-      "RunOutcome"
-    ],
-    "capability_reads": []
-  },
-  "RunRecord": {
-    "meaning": "The resolved workload and ordered evidence from one execution.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "RunRecord"
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schemas": [
-      "RunRecord"
-    ],
-    "depends_on": [
-      "RunBinding",
-      "RunEvent",
-      "NumericalEvidence"
-    ],
-    "capability_reads": []
-  },
-  "ServiceBoundary": {
-    "meaning": "HTTP capability and admission-error records; transport does not own domain meaning.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "Capabilities",
-      "ApiError"
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schemas": [
-      "Capabilities",
-      "ApiError"
-    ],
+    "schema": "Capabilities",
     "depends_on": [],
-    "capability_reads": []
+    "capability_reads": [],
+    "projections": {}
+  },
+  "ApiError": {
+    "meaning": "An explicit transport admission or execution failure message.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "An explicit transport admission or execution failure message."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "ApiError",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "CacheCapabilities": {
+    "meaning": "The KV service contract identity and available numerical backends.",
+    "lifetime": "Immutable in an identified execution record.",
+    "owns": [
+      "The KV service contract identity and available numerical backends."
+    ],
+    "excludes": [
+      "Unrecorded behavior and presentation state"
+    ],
+    "schema": "CacheCapabilities",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "CacheBackend": {
+    "meaning": "Actual compute device, state-storage implementation, library, and precision observed for execution.",
+    "lifetime": "Fixed in the recorded run; a different backend requires a new run binding.",
+    "owns": [
+      "Actual compute device, state-storage implementation, library, and precision observed for execution."
+    ],
+    "excludes": [
+      "hypothetical service rates",
+      "logical capacity budgets",
+      "worker placement policy"
+    ],
+    "schema": "CacheBackend",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {
+      "Hardware backend": {
+        "meaning": "The actual compute and memory backend recorded by execution; it does not establish a target-accelerator performance model.",
+        "fields": {
+          "CacheBackend": [
+            "compute_device",
+            "device_state_storage",
+            "host_state_storage",
+            "library",
+            "precision"
+          ]
+        }
+      }
+    }
+  },
+  "Token": {
+    "meaning": "One vocabulary entry with its stable ID, encoding role, spelling, and lexical group.",
+    "lifetime": "Immutable value within its identified tokenizer input or encoding result.",
+    "owns": [
+      "One vocabulary entry with its stable ID, encoding role, spelling, and lexical group."
+    ],
+    "excludes": [
+      "model computation",
+      "serving policy",
+      "presentation state"
+    ],
+    "schema": "Token",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "Span": {
+    "meaning": "One encoding observation linking source byte offsets to emitted token IDs and an optional conversation turn.",
+    "lifetime": "Immutable value within its identified tokenizer input or encoding result.",
+    "owns": [
+      "One encoding observation linking source byte offsets to emitted token IDs and an optional conversation turn."
+    ],
+    "excludes": [
+      "model computation",
+      "serving policy",
+      "presentation state"
+    ],
+    "schema": "Span",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
+  },
+  "Encoding": {
+    "meaning": "An actual tokenizer result, including token IDs, span evidence, input identity, and codec versions.",
+    "lifetime": "Immutable value within its identified tokenizer input or encoding result.",
+    "owns": [
+      "An actual tokenizer result, including token IDs, span evidence, input identity, and codec versions."
+    ],
+    "excludes": [
+      "model computation",
+      "serving policy",
+      "presentation state"
+    ],
+    "schema": "Encoding",
+    "depends_on": [
+      "Span"
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Tokenizer": {
+        "meaning": "Encoding produces token IDs and byte-span evidence under an identified vocabulary and codec.",
+        "fields": {
+          "Encoding": [
+            "ids",
+            "spans",
+            "input_sha256",
+            "manifest_sha256",
+            "codec_version"
+          ]
+        }
+      }
+    }
+  },
+  "Turn": {
+    "meaning": "One role-tagged text turn supplied to conversation framing.",
+    "lifetime": "Immutable value within its identified tokenizer input or encoding result.",
+    "owns": [
+      "One role-tagged text turn supplied to conversation framing."
+    ],
+    "excludes": [
+      "model computation",
+      "serving policy",
+      "presentation state"
+    ],
+    "schema": "Turn",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {}
   }
 };
-  const routes = {"capabilities": "/api/capabilities", "run": "/api/runs"};
-  const hash = "239705d30c41762e71cf4315b148df278c8bf1b281c3b3ac34d7582f03c44b2c";
+  const routes = {"capabilities": "/api/capabilities", "run": "/api/runs", "cacheRun": "/api/cache-runs", "cacheCapabilities": "/api/cache-capabilities"};
+  const hash = "db240dfefe426b37a21eecc5df2787b7f04f4237d1bf478467ce187db8a01bae";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

@@ -12,7 +12,8 @@ untied output projection are preserved. Every continuation recomputes the whole
 prefix. This preserves the baseline's arithmetic and causal dependencies; it
 does not simulate a scheduler, network, cache, accelerator, or training process.
 
-The first checkpoint contains seeded **untrained** parameters. Its outputs do not
+The default checkpoint contains seeded **untrained** parameters. Explicit checkpoint
+loading also supports the [bounded trained pilot](../research/checkpoint-pilot-2026-10-09.md). Its outputs do not
 establish language understanding. Unmasked greedy selection compares all 384 logits;
 readable words and spacing are not enforced. Changing a prompt is an intervention on the
 input; changing the initialization seed changes the checkpoint, not an inference
@@ -116,3 +117,7 @@ See the [input/output contract](../architecture/workloads.md).
 For exact replay, pass the downloaded record to
 `.venv/bin/python -m scripts.experiments.run_inference --replay PATH`.
 Replay verifies source and checkpoint identity as well as the resulting evidence.
+
+Changes to decoding filters, forced tokens or stops, output repair, or other
+inference policies require explicit authorization and a declared contract. The
+raw-logit selection and declared-termination integration oracle must be preserved.

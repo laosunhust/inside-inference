@@ -1,0 +1,25 @@
+version: 1
+files_per_folder: 15
+authored_file_bytes: 24576
+generated_file_bytes: 2097152
+fixture_file_bytes: 131072
+fixture_roots:
+- data/
+- tests/fixtures/
+excluded_directories:
+- .git
+- out
+- .venv
+- node_modules
+- __pycache__
+- '**/__pycache__'
+excluded_file_suffixes:
+- .pyc
+- .pyo
+fixture_extensions:
+- .json
+- .yaml
+- .jsonl
+- .csv
+- .txt
+- .bin

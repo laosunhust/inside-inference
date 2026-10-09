@@ -1,0 +1,232 @@
+[
+  {
+    "id": "warm",
+    "spec": {
+      "system": {
+        "backend": "reference",
+        "device_kv_bytes": 16384,
+        "host_kv_bytes": 32768,
+        "max_active_requests": 1,
+        "compute_flops_per_us": 1000,
+        "memory_bytes_per_us": 1000,
+        "link_bytes_per_us": 100,
+        "link_latency_us": 10,
+        "retention_policy": "whole-prefix-lru",
+        "max_requests": 8,
+        "max_new_tokens_cap": 8
+      },
+      "workload": {
+        "kind": "fixed-arrivals",
+        "requests": [
+          {
+            "request_id": "r1",
+            "arrival_us": 0,
+            "request": {
+              "text": "the ball",
+              "generation": {
+                "max_new_tokens": 2,
+                "selection": "greedy-lowest-id-tie",
+                "stopping": "turn-end-or-budget"
+              }
+            }
+          },
+          {
+            "request_id": "r2",
+            "arrival_us": 0,
+            "request": {
+              "text": "the ball",
+              "generation": {
+                "max_new_tokens": 2,
+                "selection": "greedy-lowest-id-tie",
+                "stopping": "turn-end-or-budget"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "lookups": [
+      "miss",
+      "local-hit"
+    ]
+  },
+  {
+    "id": "remote",
+    "spec": {
+      "system": {
+        "backend": "reference",
+        "device_kv_bytes": 1024,
+        "host_kv_bytes": 32768,
+        "max_active_requests": 1,
+        "compute_flops_per_us": 1000,
+        "memory_bytes_per_us": 1000,
+        "link_bytes_per_us": 100,
+        "link_latency_us": 10,
+        "retention_policy": "whole-prefix-lru",
+        "max_requests": 8,
+        "max_new_tokens_cap": 8
+      },
+      "workload": {
+        "kind": "fixed-arrivals",
+        "requests": [
+          {
+            "request_id": "r1",
+            "arrival_us": 0,
+            "request": {
+              "text": "the ball",
+              "generation": {
+                "max_new_tokens": 2,
+                "selection": "greedy-lowest-id-tie",
+                "stopping": "turn-end-or-budget"
+              }
+            }
+          },
+          {
+            "request_id": "r2",
+            "arrival_us": 0,
+            "request": {
+              "text": "the cup",
+              "generation": {
+                "max_new_tokens": 2,
+                "selection": "greedy-lowest-id-tie",
+                "stopping": "turn-end-or-budget"
+              }
+            }
+          },
+          {
+            "request_id": "r3",
+            "arrival_us": 0,
+            "request": {
+              "text": "the ball",
+              "generation": {
+                "max_new_tokens": 2,
+                "selection": "greedy-lowest-id-tie",
+                "stopping": "turn-end-or-budget"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "lookups": [
+      "miss",
+      "miss",
+      "remote-hit"
+    ]
+  },
+  {
+    "id": "evicted",
+    "spec": {
+      "system": {
+        "backend": "reference",
+        "device_kv_bytes": 1024,
+        "host_kv_bytes": 0,
+        "max_active_requests": 1,
+        "compute_flops_per_us": 1000,
+        "memory_bytes_per_us": 1000,
+        "link_bytes_per_us": 100,
+        "link_latency_us": 10,
+        "retention_policy": "whole-prefix-lru",
+        "max_requests": 8,
+        "max_new_tokens_cap": 8
+      },
+      "workload": {
+        "kind": "fixed-arrivals",
+        "requests": [
+          {
+            "request_id": "r1",
+            "arrival_us": 0,
+            "request": {
+              "text": "the ball",
+              "generation": {
+                "max_new_tokens": 2,
+                "selection": "greedy-lowest-id-tie",
+                "stopping": "turn-end-or-budget"
+              }
+            }
+          },
+          {
+            "request_id": "r2",
+            "arrival_us": 0,
+            "request": {
+              "text": "the cup",
+              "generation": {
+                "max_new_tokens": 2,
+                "selection": "greedy-lowest-id-tie",
+                "stopping": "turn-end-or-budget"
+              }
+            }
+          },
+          {
+            "request_id": "r3",
+            "arrival_us": 0,
+            "request": {
+              "text": "the ball",
+              "generation": {
+                "max_new_tokens": 2,
+                "selection": "greedy-lowest-id-tie",
+                "stopping": "turn-end-or-budget"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "lookups": [
+      "miss",
+      "miss",
+      "miss"
+    ]
+  },
+  {
+    "id": "concurrent",
+    "spec": {
+      "system": {
+        "backend": "reference",
+        "device_kv_bytes": 16384,
+        "host_kv_bytes": 32768,
+        "max_active_requests": 2,
+        "compute_flops_per_us": 1000,
+        "memory_bytes_per_us": 1000,
+        "link_bytes_per_us": 100,
+        "link_latency_us": 10,
+        "retention_policy": "whole-prefix-lru",
+        "max_requests": 8,
+        "max_new_tokens_cap": 8
+      },
+      "workload": {
+        "kind": "fixed-arrivals",
+        "requests": [
+          {
+            "request_id": "r1",
+            "arrival_us": 0,
+            "request": {
+              "text": "the ball",
+              "generation": {
+                "max_new_tokens": 2,
+                "selection": "greedy-lowest-id-tie",
+                "stopping": "turn-end-or-budget"
+              }
+            }
+          },
+          {
+            "request_id": "r2",
+            "arrival_us": 0,
+            "request": {
+              "text": "the ball",
+              "generation": {
+                "max_new_tokens": 2,
+                "selection": "greedy-lowest-id-tie",
+                "stopping": "turn-end-or-budget"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "lookups": [
+      "miss",
+      "miss"
+    ]
+  }
+]

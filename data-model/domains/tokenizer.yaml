@@ -1,0 +1,120 @@
+$defs:
+  Token:
+    type: object
+    x-owner: Token
+    properties:
+      id:
+        type: integer
+        minimum: 0
+        maximum: 383
+      kind:
+        type: string
+      piece:
+        type: string
+      group:
+        type: string
+    required:
+    - id
+    - kind
+    - piece
+    - group
+    additionalProperties: false
+  Span:
+    type: object
+    x-owner: Span
+    properties:
+      kind:
+        type: string
+      reason:
+        type: string
+      byte_start:
+        type:
+        - integer
+        - 'null'
+      byte_end:
+        type:
+        - integer
+        - 'null'
+      token_start:
+        type: integer
+      token_end:
+        type: integer
+      raw_bytes:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+          maximum: 255
+      ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+          maximum: 383
+      turn:
+        type:
+        - integer
+        - 'null'
+        default: null
+    required:
+    - kind
+    - reason
+    - byte_start
+    - byte_end
+    - token_start
+    - token_end
+    - raw_bytes
+    - ids
+    - turn
+    additionalProperties: false
+  Encoding:
+    type: object
+    x-owner: Encoding
+    properties:
+      ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+          maximum: 383
+      spans:
+        type: array
+        items:
+          $ref: '#/$defs/Span'
+      input_sha256:
+        type: string
+      input_kind:
+        type: string
+      manifest_sha256:
+        type: string
+      context_limit:
+        type:
+        - integer
+        - 'null'
+        default: null
+      codec_version:
+        type: string
+      unicode_version:
+        type: string
+    required:
+    - ids
+    - spans
+    - input_sha256
+    - input_kind
+    - manifest_sha256
+    - context_limit
+    - codec_version
+    - unicode_version
+    additionalProperties: false
+  Turn:
+    type: object
+    x-owner: Turn
+    properties:
+      role:
+        type: string
+      text:
+        type: string
+    required:
+    - role
+    - text
+    additionalProperties: false

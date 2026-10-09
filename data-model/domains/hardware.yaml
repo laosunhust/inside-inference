@@ -1,0 +1,22 @@
+$defs:
+  CacheBackend:
+    type: object
+    x-owner: CacheBackend
+    additionalProperties: false
+    required:
+    - compute_device
+    - device_state_storage
+    - host_state_storage
+    - library
+    - precision
+    properties:
+      compute_device:
+        type: string
+      device_state_storage:
+        type: string
+      host_state_storage:
+        type: string
+      library:
+        type: string
+      precision:
+        type: string

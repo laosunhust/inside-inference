@@ -50,10 +50,12 @@ Current capability ledger:
 | KDA recurrence lab | Existing optional side lab with hand-selected vectors; not integrated attention or a milestone prerequisite. |
 | Vocabulary-budget audit | Implemented counting study; not a tokenizer or language model. |
 | 384-entry manifest and reversible tokenizer | Implemented candidate; independent codec checks pass, everyday coverage gaps remain. T1 is not complete. |
-| Bounded task corpus | Implemented recipe and audit; template-based, untrained, and limited in lexical coverage. |
-| GPT forward execution | Implemented untrained single-block/head baseline with independent numerical checks and replay. |
+| Bounded task corpus | Implemented recipe and audit; template-based and limited in lexical coverage. |
+| GPT forward execution | Implemented single-block/head baseline with independent numerical checks and replay; untrained defaults and explicit compatible checkpoint loading. |
+| Checkpoint preparation | [First trained pilot](../research/checkpoint-pilot-2026-10-09.md) exported and numerically verified; provisional development behavior gate failed. L1 test gates remain unevaluated. |
 | Learned conversation | Not established; checkpoint preparation is supporting work. |
 | Tensor inspection in all three views | Implemented for the naïve baseline; offline replay and local live execution. |
+| KV reuse, misses, residency, and admission | Implemented with real cached computation, bounded logical resources, and optional CUDA/pinned-DRAM execution. [M2 evidence](../research/kv-residency-2026-10-09.md) passes for the fixed model; service rates remain hypothetical. |
 | Attention mechanism switching | Planned; no optimized attention options exposed. |
 | Validated hardware, serving, or language-quality claims | Not established. |
 
@@ -138,7 +140,9 @@ and hand-calculated fixtures cover its binary64 arithmetic; browser checks cover
 live/offline navigation and changed-input execution. See the
 [lab evidence](../labs/naive-gpt.md). This supports the implemented computation and inspection requirements; it does
 not establish completion of every milestone gate. T1's reviewed coverage gate and L1's learned-behavior gate remain
-unmet; no trained checkpoint, cache, or production timing claim is implied.
+unmet. A separate [trained pilot](../research/checkpoint-pilot-2026-10-09.md) exists;
+Cached execution now has [separate M2 evidence](../research/kv-residency-2026-10-09.md);
+production timing remains unvalidated.
 
 ## M2 — reuse state without changing the answer
 
@@ -152,6 +156,15 @@ calculation; verify masks, absolute positions, cache reset, and context boundari
 Record retained bytes and the operations actually avoided. Compare logits rather
 than only sampled text, which can differ near probability or rounding boundaries.
 Do not claim that a cache is faster merely because the count of operations falls.
+
+Current assessment: **passed for the fixed one-block/head, width-8, binary64
+instrument**, using seeded and compatible trained weights. The
+[KV residency lab](../labs/kv-residency.md) links actual K/V and reduced numerical
+work to cache hits, misses, transfers, reservations, and queued requests. Its
+[evidence record](../research/kv-residency-2026-10-09.md) covers numerical checks,
+replay, browser parity, and local DRAM/VRAM measurements. This does not establish
+G1's layout-conversion/endpoint protocol, E1's complete performance gates, or
+calibrated accelerator predictions.
 
 ## G1 — inspect a state handoff
 
@@ -271,7 +284,8 @@ training speed is not an inference-research success metric.
 ## Review outcome format
 
 Report each milestone as **passed**, **failed**, or **not evaluated**, with exact
-configuration/evidence links. For this bootstrap: T1, M1–M4, G1, L1, and E1 are not yet
-evaluated as complete milestones. Existing unit tests support only their stated
+configuration/evidence links. M2 passes for the fixed configuration above. T1, M1,
+M3–M4, G1, L1, and E1 are not yet evaluated as complete milestones.
+Existing unit tests support only their stated
 implemented subcomponents. Review the next milestone using new evidence; do not
 use the current hardware's capacity or a polished page as a proxy for completion.

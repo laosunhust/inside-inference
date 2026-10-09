@@ -49,7 +49,7 @@ These are intended capabilities, not completed milestones. Existing profiling,
 simulation, and search tools should support this work where their assumptions fit.
 The tiny model's host timings and language behavior do not automatically transfer
 to a production model. Procurement and deployment decisions need follow-up evidence
-on the actual workload and hardware. The [experiment ontology](../ontology/experiment.md#candidate-screening)
+on the actual workload and hardware. The [experiment ontology](../labs/README.md#candidate-screening)
 owns what evidence supports candidate screening; the existing baseline and handoff
 milestones remain the immediate implementation plan.
 
@@ -269,7 +269,7 @@ can orient a reader, but it is not experimental evidence.
 
 The [ontology](../ontology/README.md) defines the shared entities and experiment
 contracts used to put this principle into practice. Its
-[abstraction contract](../ontology/experiment.md#abstraction-contract) separates
+[abstraction contract](../labs/README.md#abstraction-contract) separates
 the evidence for representativeness from the measured cost of execution.
 
 ## Use the right instrument

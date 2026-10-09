@@ -1,0 +1,8 @@
+purpose: Own the meaning, lifetime, and allowed dependencies of inference declarations.
+modules:
+- model.yaml
+- inference-system.yaml
+- experiment.yaml
+- interface.yaml
+- hardware.yaml
+- tokenizer.yaml

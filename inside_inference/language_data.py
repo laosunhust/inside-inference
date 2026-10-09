@@ -56,7 +56,7 @@ def prepare_language_seed(codec, task_cases):
                     raise ValueError('Excluded source changed; semantic review must be repeated')
                 applied_exclusions.append(exclusion)
                 continue
-            turns = tuple(Turn('user' if i % 2 == 0 else 'assistant', text)
+            turns = tuple(Turn(role='user' if i % 2 == 0 else 'assistant', text=text)
                           for i, text in enumerate(row['turns']))
             full = codec.encode_dialogue(turns)
             prompt = codec.encode_prompt(turns[:-1])
