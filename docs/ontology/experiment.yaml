@@ -1,212 +1,127 @@
 terms:
-  RunOutcome:
-    meaning: Observed selection and delivery counts, unused budget, and termination reason.
-    lifetime: Immutable evidence derived from execution, not requested values.
+  ExperimentSpec:
+    meaning: The declared inputs, configuration, and assumptions for an experiment.
+    lifetime: Editable before execution; the consumed specification is frozen in the execution record.
     owns:
-    - Observed selection and delivery counts, unused budget, and termination reason.
+    - Submitted experiment input, and resolved bindings identifying the model, inference system, and request
+      or workload actually consumed.
     excludes:
-    - requested settings
-    - playback position
-    schema: RunOutcome
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  RequestBinding:
-    meaning: The model, system, and request consumed by a single numerical trace.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - The model, system, and request consumed by a single numerical trace.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: RequestBinding
+    - Observed outcomes and execution identity
+    - Causal events and numerical measurements
     depends_on:
     - InferenceRequest
-    - InferenceSystem
-    - ModelArtifact
-    capability_reads: []
-    projections: {}
-  RunBinding:
-    meaning: The exact model, system, and workload consumed by one execution.
-    lifetime: Immutable evidence, including after a later workload draft is edited.
-    owns:
-    - The exact model, system, and workload consumed by one execution.
-    excludes:
-    - independent copies of their individual settings
-    - presentation state
-    schema: RunBinding
-    depends_on:
     - InferenceSystem
     - ModelArtifact
     - Workload
     capability_reads: []
     projections: {}
-  EventClock:
-    meaning: The declared time interpretation for an ordered execution event.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - The declared time interpretation for an ordered execution event.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: EventClock
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  RequestArrived:
-    meaning: Evidence that a request reached the modeled input boundary.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - Evidence that a request reached the modeled input boundary.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: RequestArrived
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  InputEncoded:
-    meaning: Evidence identifying the input and resulting token count after encoding.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - Evidence identifying the input and resulting token count after encoding.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: InputEncoded
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  WorkCompleted:
-    meaning: Evidence linking completed numerical work to its sequence positions.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - Evidence linking completed numerical work to its sequence positions.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: WorkCompleted
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  TokenSelected:
-    meaning: Evidence linking a selected token to the numerical work that selected it.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - Evidence linking a selected token to the numerical work that selected it.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: TokenSelected
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  TokenCommitted:
-    meaning: Evidence that selected token IDs became committed continuation state.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - Evidence that selected token IDs became committed continuation state.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: TokenCommitted
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  TokenDelivered:
-    meaning: Evidence that committed token IDs were published to the modeled output collector.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - Evidence that committed token IDs were published to the modeled output collector.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: TokenDelivered
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  RequestFinished:
-    meaning: Evidence of the outcome that ended one request.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - Evidence of the outcome that ended one request.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: RequestFinished
-    depends_on:
-    - RunOutcome
-    capability_reads: []
-    projections: {}
-  RunEvent:
-    meaning: An identified ordered occurrence with explicit earlier causes and a typed payload.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - An identified ordered occurrence with explicit earlier causes and a typed payload.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: RunEvent
-    depends_on:
-    - InputEncoded
-    - RequestArrived
-    - RequestFinished
-    - TokenCommitted
-    - TokenDelivered
-    - TokenSelected
-    - WorkCompleted
-    capability_reads: []
-    projections:
-      Event:
-        meaning: A modeled occurrence or transition at a simulation time, linked to causes and affected
-          entities. Equal-time events require explicit ordering semantics.
-        fields:
-          RunEvent:
-          - event_id
-          - causes
-          - payload
-  NumericalTrace:
-    meaning: Actual single-request tensors, token selections, model binding, and replay evidence.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - Actual single-request tensors, token selections, model binding, and replay evidence.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: NumericalTrace
-    depends_on:
-    - CodeIdentity
-    - DecodingContract
-    - Encoding
-    - ModelCheckpoint
-    - NumericalPass
-    - NumericalPrecision
+    schemas:
     - RequestBinding
-    - RunOutcome
-    - Token
+    - RunBinding
+    - KVExperimentInput
+    - KVRunBinding
+  ExperimentExecution:
+    meaning: One identified execution of an experiment specification, retaining its events and observations
+      for inspection and replay.
+    lifetime: Evidence accumulates during execution; the completed record is immutable.
+    owns:
+    - Execution records joining the consumed specification, events, observations, and request outcomes.
+    - Numerical traces and shared execution provenance identifying source bytes, Python/Git version, and
+      the actual backend; provenance is distinct from requested system settings.
+    excludes:
+    - Editable experiment drafts
+    - Inspection cursor or playback position
+    - Claims that a local run predicts production performance
+    depends_on:
+    - ExperimentSpec
+    - ExperimentEvent
+    - ExperimentObservation
+    - GenerationPolicy
+    - Tokenizer
+    - ModelArtifact
+    - InferenceResponse
+    - ExecutionBackend
+    - KVState
     capability_reads: []
     projections:
       Detokenizer:
-        meaning: Converts output token IDs back to text or bytes using the tokenizer configuration. A
-          streamed token may not complete a printable character; buffering can be required.
+        meaning: The recorded output IDs and their diagnostic display under the identified tokenizer.
+          This view renders word pieces and labeled control/byte/hex IDs; it does not establish valid
+          decoded text or a streaming UTF-8 decoder.
         fields:
           NumericalTrace:
           - output_ids
           - output_display
           - tokenizer
-  RunRecord:
-    meaning: The bound workload and its ordered events and linked numerical traces.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - The bound workload and its ordered events and linked numerical traces.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: RunRecord
-    depends_on:
-    - EventClock
+    schemas:
+    - RunRecord
+    - CacheRun
     - NumericalTrace
-    - RunBinding
-    - RunEvent
-    capability_reads: []
-    projections: {}
-  TensorObservation:
-    meaning: Actual intermediate tensor values with shape, position, operation, and run identity.
-    lifetime: Immutable in an identified execution record.
+    - ExecutionProvenance
+  ExperimentEvent:
+    meaning: An occurrence within an execution, with explicit order, causal links, and the applicable
+      clock interpretation.
+    lifetime: Recorded when an occurrence happens; earlier events are not rewritten.
     owns:
-    - Actual intermediate tensor values with shape, position, operation, and run identity.
+    - Event envelopes and actual transitions for request arrival, input encoding, model forward completion,
+      and token selection.
+    - KV residency and scheduling transitions, and the declared interpretation of event time.
     excludes:
-    - Unrecorded behavior and presentation state
-    schema: TensorObservation
-    depends_on: []
+    - A global sequential step shared by concurrent requests
+    - Inferring causality from adjacency or equal timestamps
+    - Treating virtual time or execution order as measured wall time
+    - Response publication and completion payloads, owned by InferenceResponse
+    depends_on:
+    - InferenceResponse
+    capability_reads: []
+    projections:
+      Event:
+        meaning: An occurrence linked to its causes and affected entities. The execution declares whether
+          order alone or virtual time is available; neither establishes measured duration.
+        fields:
+          RunEvent:
+          - event_id
+          - causes
+          - payload
+      Residency:
+        meaning: A copy of a state artifact at a location, with allocated size, readiness, and lifetime.
+          A remote or in-flight copy is not automatically ready for local computation.
+        fields:
+          CacheEvent:
+          - state_id
+          - kind
+          - device_reserved_bytes
+          - host_retained_bytes
+      Queue:
+        meaning: Work or requests waiting for eligibility or resources. Being queued is different from
+          actively consuming service.
+        fields:
+          CacheEvent:
+          - request_id
+          - kind
+          - time_us
+          - causes
+    schemas:
+    - RunEvent
+    - CacheEvent
+    - EventClock
+    - RequestArrived
+    - InputEncoded
+    - ModelForwardCompleted
+    - TokenSelected
+  ExperimentObservation:
+    meaning: Recorded numerical values or measurements from an execution, associated with the work or
+      event they describe.
+    lifetime: Captured during execution and retained unchanged with its evidence.
+    owns:
+    - Intermediate tensors, numerical passes, logits and token selections, and actual KV computations.
+    - Declared numerical precision and local wall-time measurements with their measurement boundaries.
+    excludes:
+    - Requested settings and hypothetical service rates
+    - Equating selected tokens with published response tokens
+    - Treating a host measurement as target-accelerator performance
+    depends_on:
+    - KVState
     capability_reads: []
     projections:
       Embedding:
@@ -240,89 +155,19 @@ terms:
           - shape
           - values
           - formula
-  TokenSelection:
-    meaning: Raw logits, probabilities, selection rule, and the selected vocabulary ID.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - Raw logits, probabilities, selection rule, and the selected vocabulary ID.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: TokenSelection
-    depends_on: []
-    capability_reads: []
-    projections:
       Token selection:
-        meaning: Chooses a next token from logits under a specified decoding rule, stopping conditions,
-          and any randomness. The selected token can feed the next model step.
+        meaning: The executed selection from raw logits, with its selected vocabulary ID and recorded
+          rule. Current execution uses greedy selection; selecting an ID does not itself mean that it
+          was published as output.
         fields:
           TokenSelection:
           - raw_logits
           - selected_id
           - rule
-  CacheExperiment:
-    meaning: A fixed-arrival workload bound to the declared KV execution system.
-    lifetime: Immutable within an identified experiment or recorded run.
-    owns:
-    - A fixed-arrival workload bound to the declared KV execution system.
-    excludes:
-    - Undeclared behavior
-    - Presentation state
-    schema: CacheExperiment
-    depends_on:
-    - CacheSystem
-    - Workload
-    capability_reads: []
-    projections: {}
-  CacheEvent:
-    meaning: An ordered causal cache or scheduling transition with resource accounting and virtual time.
-    lifetime: Immutable within an identified experiment or recorded run.
-    owns:
-    - An ordered causal cache or scheduling transition with resource accounting and virtual time.
-    excludes:
-    - Undeclared behavior
-    - Presentation state
-    schema: CacheEvent
-    depends_on: []
-    capability_reads: []
-    projections:
-      Residency:
-        meaning: A copy of a state artifact at a location, with allocated size, readiness, and lifetime.
-          A remote or in-flight copy is not automatically ready for local computation.
-        fields:
-          CacheEvent:
-          - state_id
-          - kind
-          - device_reserved_bytes
-          - host_retained_bytes
-      Queue:
-        meaning: Work or requests waiting for eligibility or resources. Being queued is different from
-          actively consuming service.
-        fields:
-          CacheEvent:
-          - request_id
-          - kind
-          - time_us
-          - causes
-  CacheComputation:
-    meaning: Actual numerical work linking its input and output KV states, tensors, selection, and operation
-      counts.
-    lifetime: Immutable within an identified experiment or recorded run.
-    owns:
-    - Actual numerical work linking its input and output KV states, tensors, selection, and operation
-      counts.
-    excludes:
-    - Undeclared behavior
-    - Presentation state
-    schema: CacheComputation
-    depends_on:
-    - KVState
-    - TensorObservation
-    - TokenSelection
-    capability_reads: []
-    projections:
       Work item:
-        meaning: A unit of modeled computation or data movement, with prerequisites, inputs, outputs,
-          and resource demands. Its granularity is an abstraction choice.
+        meaning: An executed KV model computation, identified by work ID and linked to input IDs, tensors,
+          and before/after KV states. Transfers are separate events, not instances of this computation
+          record.
         fields:
           CacheComputation:
           - work_id
@@ -330,85 +175,10 @@ terms:
           - nodes
           - state_before
           - state_after
-  CacheMeasurement:
-    meaning: One local wall-time observation linked to its event and measurement boundary.
-    lifetime: Immutable within an identified experiment or recorded run.
-    owns:
-    - One local wall-time observation linked to its event and measurement boundary.
-    excludes:
-    - Undeclared behavior
-    - Presentation state
-    schema: CacheMeasurement
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  CacheRun:
-    meaning: The complete KV experiment binding, computations, events, outcomes, states, and measurements.
-    lifetime: Immutable within an identified experiment or recorded run.
-    owns:
-    - The complete KV experiment binding, computations, events, outcomes, states, and measurements.
-    excludes:
-    - Undeclared behavior
-    - Presentation state
-    schema: CacheRun
-    depends_on:
-    - CacheBackend
-    - CacheComputation
-    - CacheEvent
-    - CacheExperiment
-    - CacheMeasurement
-    - KVState
-    - ModelCheckpoint
-    - RunOutcome
-    capability_reads: []
-    projections: {}
-  CodeIdentity:
-    meaning: Runtime and source identities needed to reproduce a numerical execution.
-    lifetime: Immutable within its identified artifact or recorded execution.
-    owns:
-    - Runtime and source identities needed to reproduce a numerical execution.
-    excludes:
-    - Unrecorded behavior
-    - Presentation state
-    schema: CodeIdentity
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  DecodingContract:
-    meaning: Recorded explanation and identifier of the executed token-selection policy.
-    lifetime: Immutable within its identified artifact or recorded execution.
-    owns:
-    - Recorded explanation and identifier of the executed token-selection policy.
-    excludes:
-    - Unrecorded behavior
-    - Presentation state
-    schema: DecodingContract
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  NumericalPrecision:
-    meaning: Declared storage, compute, and accumulation precision of a numerical trace.
-    lifetime: Immutable within its identified artifact or recorded execution.
-    owns:
-    - Declared storage, compute, and accumulation precision of a numerical trace.
-    excludes:
-    - Unrecorded behavior
-    - Presentation state
-    schema: NumericalPrecision
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  NumericalPass:
-    meaning: One actual prediction step with its inputs, positions, tensors, selection, and output progress.
-    lifetime: Immutable within its identified artifact or recorded execution.
-    owns:
-    - One actual prediction step with its inputs, positions, tensors, selection, and output progress.
-    excludes:
-    - Unrecorded behavior
-    - Presentation state
-    schema: NumericalPass
-    depends_on:
+    schemas:
     - TensorObservation
+    - NumericalPass
     - TokenSelection
-    capability_reads: []
-    projections: {}
+    - CacheComputation
+    - CacheMeasurement
+    - NumericalPrecision

@@ -1,40 +1,29 @@
 version: 1
-work_item: enforce-four-pillars
-question: Can declarations and implementation evolve without bypassing semantic ownership
-  or repository structure?
-necessity: Existing JSON ontology permits multiple schemas per owner and handwritten
-  boundary records; documented policy alone does not prevent drift.
+work_item: normalize-tokenizer-backend-and-execution-provenance
+question: Can both inference paths expose consistent resolved model bindings and execution provenance
+  while preserving their numerical results and submission APIs?
+necessity: Tokenizer nouns mirror records, CacheBackend leaks a lab name, and KV records omit a resolved
+  model reference and detailed source inventory.
 reuse:
-- source: CNCRover/scripts/build-enforce/docs/check-ontology-docs.mjs
-  decision: Adapt registered-file and structured-ontology admission to this Python/JSON-Schema
-    toolchain.
-- source: CNCRover/scripts/build-enforce/api/schema-semantic-owners.mjs
-  decision: Adapt duplicate rejection and explicit naming grants; require one entity
-    per declaration instead of suffix families.
-- source: CNCRover/scripts/build-enforce/api/check-schema-semantics.mjs
-  decision: Adapt rejection of stale grants, unowned schemas, and inline exports.
-- source: Existing scripts/build/generate_data_models.py
-  decision: Extend the existing generator and preserve its strict consumers rather
-    than introducing a second generator.
+- source: Existing model reference, run bindings, source hashing, runtime descriptions, and replay functions
+  decision: Reuse the current records and hashing mechanism; share provenance construction and validation
+    without adding external dependencies.
 criteria:
-- YAML ontology and authored contracts admit exactly one declaration per entity, with
-  no exceptions.
-- Public record types and transport schemas come from admitted declarations; handwritten
-  alternatives fail checks.
-- File and folder limit violations fail normal build entry points, including untracked
-  source files.
-- Missing evaluation criteria and reuse assessment block governance admission.
-- Negative fixtures still fail after the repository is green.
-- Existing numerical results and interactive/headless parity pass the full harness.
+- One Tokenizer owner governs Token, Span, Encoding, and Turn; ExecutionBackend replaces CacheBackend.
+- Submitted input stays distinct from resolved model/system/workload declarations on both paths.
+- Shared ExecutionProvenance contains source inventory, aggregate hash, Python/Git identity, and observed
+  backend; obsolete parallel fields are removed.
+- Replay rejects mismatched model, source inventory, runtime version, or backend; Git revision alone is
+  informational.
+- Reference and KV numerical outputs match captured baseline; CPU and available CUDA paths pass full integration.
 checks:
 - make check
 - make test
 - make test-integration
-baseline: The recorded red build in out/experiments/governance-red.log; existing numerical
-  and browser integration fixtures.
+baseline: Current passing ontology review harness and actual baseline runs saved in /tmp/normalization-baseline.json.
 counterexamples:
-- Missing or duplicated ontology/schema ownership
-- Inline HTTP response and aliased handwritten data record
-- Untracked sixteenth file and a file one byte above its budget
-- Stale generated content disguised by a generated filename
-- Missing success criteria or reuse assessment
+- A changed model payload or bound model hash
+- A changed source entry with an unchanged aggregate hash
+- A forged Python version or backend
+- A KV input pretending to include a resolved model
+- Different logits, token choices, outcomes, or missing browser parity

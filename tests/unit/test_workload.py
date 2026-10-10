@@ -26,7 +26,7 @@ class WorkloadTests(unittest.TestCase):
         kinds=[event['payload']['kind'] for event in result['events']]
         count=result['declaration']['workload']['requests'][0]['request']['generation']['max_new_tokens']
         self.assertEqual(kinds,['request-arrived','input-encoded']+
-            ['work-completed','token-selected','token-committed','token-delivered']*count+['request-finished'])
+            ['model-forward-completed','token-selected','token-delivered']*count+['request-finished'])
         self.assertEqual(result['clock'],{'kind':'execution-order'})
         output=deliveries(result,'r1')
         self.assertEqual([e['payload']['output_start'] for e in output],list(range(count)))
@@ -35,18 +35,18 @@ class WorkloadTests(unittest.TestCase):
 
     def test_causal_links_do_not_confuse_delivery_with_compute(self):
         run=run_workload();events=run['events']
-        # arrival(0), encoding(1), work(2), selection(3), commit(4), delivery(5), work(6)
-        self.assertEqual(events[5]['causes'],[events[4]['event_id']])
-        self.assertEqual(events[6]['causes'],[events[4]['event_id']])
-        self.assertNotIn(events[5]['event_id'],events[6]['causes'])
-        self.assertEqual(events[-1]['causes'],[events[-4]['event_id'],events[-2]['event_id']])
+        # arrival(0), encoding(1), forward(2), selection(3), delivery(4), forward(5)
+        self.assertEqual(events[4]['causes'],[events[3]['event_id']])
+        self.assertEqual(events[5]['causes'],[events[3]['event_id']])
+        self.assertNotIn(events[4]['event_id'],events[5]['causes'])
+        self.assertEqual(events[-1]['causes'],[events[-3]['event_id'],events[-2]['event_id']])
 
     def test_tampered_causality_delivery_and_boundaries_fail(self):
         run=run_workload()
         mutations=[lambda r:r['events'][2].update(causes=[]),
                    lambda r:r['events'][0].update(request_id='r2'),
-                   lambda r:r['events'][5]['payload'].update(display_delta='wrong'),
-                   lambda r:r['events'][5]['payload'].update(output_start=3),
+                   lambda r:r['events'][4]['payload'].update(display_delta='wrong'),
+                   lambda r:r['events'][4]['payload'].update(output_start=3),
                    lambda r:r['events'].pop(4),
                    lambda r:r['clock'].update(kind='simulated'),
                    lambda r:r['traces'][0]['declaration']['request'].update(text='other')]
@@ -54,6 +54,8 @@ class WorkloadTests(unittest.TestCase):
             bad=copy.deepcopy(run);mutate(bad)
             with self.assertRaises(ValueError):validate_run(bad)
 
-    def test_schema_has_no_stub_speculative_event(self):
-        bad=run_workload();bad['events'][3]['payload']['kind']='token-proposed'
-        with self.assertRaises(ValueError): validate_run(bad)
+    def test_schema_has_no_duplicate_commitment_or_stub_speculative_event(self):
+        run = run_workload()
+        for kind in ('token-proposed', 'token-committed'):
+            bad = copy.deepcopy(run); bad['events'][3]['payload']['kind'] = kind
+            with self.assertRaises(ValueError): validate_run(bad)

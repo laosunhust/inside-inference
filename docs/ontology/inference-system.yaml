@@ -1,105 +1,25 @@
 terms:
   InferenceSystem:
-    meaning: Capabilities and execution strategy of the uncached reference implementation.
+    meaning: The configured execution boundary that accepts inference requests and produces their outputs.
     lifetime: Fixed for an identified system configuration.
     owns:
-    - Capabilities and execution strategy of the uncached reference implementation.
+    - Supported execution strategy, request admission limits, and resource assumptions.
+    - Reference and KV residency experiment configurations.
     excludes:
-    - weights
-    - requested generation limit
-    - actual prediction count
-    schema: InferenceSystem
+    - Model weights
+    - Per-request generation settings
+    - Observed execution results
     depends_on: []
     capability_reads: []
     projections:
       Inference system:
-        meaning: The configured boundary that accepts requests and produces responses, including input
-          preparation, model execution, serving policies, state storage, and execution resources. Execution
-          locations within this boundary are workers.
+        meaning: The configured inference boundary. Current declarations cover an uncached reference engine
+          and a KV residency experiment; neither represents a general serving fleet.
         fields:
           InferenceSystem:
           - execution
           - max_requests
-  GenerationPolicy:
-    meaning: Requested selection budget and the permitted selection and termination rules.
-    lifetime: Editable before submission; immutable in a run binding.
-    owns:
-    - Requested selection budget and the permitted selection and termination rules.
-    excludes:
-    - model initialization
-    - system capacity
-    - observed outcomes
-    schema: GenerationPolicy
-    depends_on: []
-    capability_reads:
-    - system.max_new_tokens_cap
-    projections: {}
-  InferenceRequest:
-    meaning: Input text and generation policy for one invocation.
-    lifetime: Editable before submission; immutable in a run binding.
-    owns:
-    - Input text and generation policy for one invocation.
-    excludes:
-    - model initialization
-    - system capacity
-    - observed outcomes
-    schema: InferenceRequest
-    depends_on:
-    - GenerationPolicy
-    capability_reads: []
-    projections:
-      Request:
-        meaning: One invocation seeking output from an identified model/configuration, with input and
-          completion/cancellation conditions. An agent turn may produce multiple requests.
-        fields:
-          InferenceRequest:
-          - text
-          - generation
-  ScheduledRequest:
-    meaning: One identified inference request with its declared arrival time.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - One identified inference request with its declared arrival time.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: ScheduledRequest
-    depends_on:
-    - InferenceRequest
-    capability_reads: []
-    projections: {}
-  Workload:
-    meaning: An ordered collection of scheduled requests; array order breaks equal-time ties.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - An ordered collection of scheduled requests; array order breaks equal-time ties.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: Workload
-    depends_on:
-    - ScheduledRequest
-    capability_reads: []
-    projections: {}
-  CacheSystem:
-    meaning: KV execution backend, reservation and retention policy, workload limits, and hypothetical
-      service rates.
-    lifetime: Fixed for an identified system configuration.
-    owns:
-    - KV execution backend, reservation and retention policy, workload limits, and hypothetical service
-      rates.
-    excludes:
-    - weights
-    - requested generation limit
-    - actual prediction count
-    schema: CacheSystem
-    depends_on: []
-    capability_reads: []
-    projections:
-      Cache system:
-        meaning: The configured boundary that accepts requests and produces responses, including input
-          preparation, model execution, serving policies, state storage, and execution resources. Execution
-          locations within this boundary are workers.
-        fields:
-          CacheSystem:
+          KVResidencySystemConfig:
           - backend
           - max_active_requests
           - retention_policy
@@ -107,15 +27,110 @@ terms:
         meaning: A bounded capability or capacity consumed by work or retained state. Compute rate, storage
           capacity, and data-transfer bandwidth have different units and constraints.
         fields:
-          CacheSystem:
+          KVResidencySystemConfig:
           - device_kv_bytes
           - host_kv_bytes
           - compute_flops_per_us
           - memory_bytes_per_us
       Link:
-        meaning: A modeled transfer path between locations, with declared delay, bandwidth, and sharing
-          behavior. Links may share a bottleneck; independent-link assumptions must be explicit.
+        meaning: Hypothetical transfer bandwidth and startup delay for the KV residency experiment. Compute
+          and transfers serialize in this model; the declaration does not describe a multi-link fabric
+          or configurable contention.
         fields:
-          CacheSystem:
+          KVResidencySystemConfig:
           - link_bytes_per_us
           - link_latency_us
+    schemas:
+    - InferenceSystem
+    - KVResidencySystemConfig
+  GenerationPolicy:
+    meaning: Per-request output-token budget and supported selection and termination rules.
+    lifetime: Editable per request before submission; immutable in that request’s run binding.
+    owns:
+    - Per-request output-token budget and selection and termination settings.
+    - Recorded identity and explanation of the policy used by an execution.
+    excludes:
+    - model initialization
+    - system capacity
+    - observed outcomes
+    depends_on: []
+    capability_reads:
+    - system.max_new_tokens_cap
+    projections: {}
+    schemas:
+    - GenerationPolicy
+    - DecodingContract
+  InferenceRequest:
+    meaning: One invocation with input and per-request generation settings, identified at its declared
+      arrival.
+    lifetime: Editable before submission; immutable in a run binding.
+    owns:
+    - Request input and per-request generation settings.
+    - Request identity and declared arrival time; arrival does not imply admission or execution.
+    excludes:
+    - model initialization
+    - system capacity
+    - observed outcomes
+    depends_on:
+    - GenerationPolicy
+    capability_reads: []
+    projections:
+      Request:
+        meaning: One invocation carrying input and per-request generation settings, with identity and
+          declared arrival. An agent turn may issue multiple invocations; cancellation is not represented
+          by the current declaration.
+        fields:
+          InferenceRequest:
+          - text
+          - generation
+          RequestArrival:
+          - request_id
+          - arrival_us
+    schemas:
+    - InferenceRequest
+    - RequestArrival
+  Workload:
+    meaning: An ordered collection of request arrivals; array order breaks equal-time ties.
+    lifetime: Immutable in an identified execution record.
+    owns:
+    - An ordered collection of request arrivals; array order breaks equal-time ties.
+    excludes:
+    - Actual admission or execution order chosen by the scheduler
+    - Generated outputs and measured completion times
+    depends_on:
+    - InferenceRequest
+    capability_reads: []
+    projections: {}
+    schemas:
+    - Workload
+  InferenceResponse:
+    meaning: The output published for one request and its observed completion outcome.
+    lifetime: Immutable execution evidence, accumulated as output is published and the request finishes.
+    owns:
+    - Selected token IDs published to the modeled output collector and their diagnostic display contribution.
+    - Request completion, selection and delivery counts, unused budget, and termination reason.
+    excludes:
+    - Undelivered selections, including TURN_END, and any future speculative candidates
+    - Internal tensors and KV state
+    - Network receipt or acknowledgment; current delivery is in-process publication.
+    depends_on: []
+    capability_reads: []
+    projections:
+      Response:
+        meaning: Published output and the request outcome. The existing event envelope supplies request/run
+          identity and order; publication is not proof of network receipt.
+        fields:
+          TokenDelivered:
+          - token_ids
+          - output_start
+          - display_delta
+          RequestFinished:
+          - outcome
+          RunOutcome:
+          - delivered_tokens
+          - stop_reason
+          - complete
+    schemas:
+    - TokenDelivered
+    - RequestFinished
+    - RunOutcome

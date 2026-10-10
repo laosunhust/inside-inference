@@ -9,22 +9,23 @@ unregistered files, nested authorities, symlinks, malformed modules, and ownersh
 | --- | --- |
 | [Manifest](declarations.yaml) | Exact module inventory. |
 | [Model](model.yaml) | Parameter identity and numerical sequence-state snapshots. |
-| [Inference system](inference-system.yaml) | Execution configuration, request policy, workloads, and current logical resource limits. |
+| [Inference system](inference-system.yaml) | Execution configuration, requests, responses, workloads, and current logical resource limits. |
 | [Hardware](hardware.yaml) | Observed compute and storage backend identity. |
-| [Experiment](experiment.yaml) | Resolved bindings, outcomes, events, and numerical/resource evidence. |
-| [Interface](interface.yaml) | Inspection cursors and service capability/error boundaries. |
-| [Tokenizer](tokenizer.yaml) | Vocabulary entries, turns, encoding spans, and encoding results. |
+| [Experiment](experiment.yaml) | Experiment specifications, executions, causal events, and numerical/measurement observations. |
+| [Interface](interface.yaml) | Inspection cursors, advertised execution capabilities, and service errors. |
+| [Tokenizer](tokenizer.yaml) | One tokenizer concept owning vocabulary entries, framing inputs, encoding spans, and results. |
 | [Data model](../../data-model/README.md) | Concrete field shapes and generated consumers. |
 
 ## Enforced mapping
 
-Each admitted entity names exactly one same-named schema using `schema`. Every
-schema has exactly that entity as its `x-owner`. There are no mapping exceptions. Unused grants, unowned schemas, duplicate
+Each concept grants an explicit, nonempty list of declaration names using `schemas`.
+Every declaration has exactly one concept as its `x-owner`; supporting records may
+share that owner. Unused grants, unowned schemas, duplicate
 owners, and forbidden dependencies fail admission. Owners cannot introduce fields;
 field shapes remain in the data model.
 
 Each visual projection belongs to one owner and names existing fields in that
-owner's schema. Unknown labels, missing fields, and cross-owner bindings fail
+owner's schemas. Unknown labels, missing fields, and cross-owner bindings fail
 checks. The site derives meanings and declaration links from these projections;
 there is no parallel Markdown glossary. A projection labels a view of a declaration,
 not a new independently configurable entity. Structural mapping does not prove
@@ -49,8 +50,8 @@ with the first executable placement experiment, and account for shared resources
 without duplicating their capacity.
 
 Reusable hardware profiles, multi-node topology, deployment controllers, and
-optimization objectives are also pending. Current `CacheSystem` limits and rates
-are hypothetical system assumptions; `CacheBackend` identifies actual execution.
+optimization objectives are also pending. Current `KVResidencySystemConfig` limits and rates
+are hypothetical system assumptions; `ExecutionBackend` identifies actual execution.
 Neither is a calibrated hardware model. The [KV lab](../labs/kv-residency.md) owns
 the implemented boundary and evidence.
 

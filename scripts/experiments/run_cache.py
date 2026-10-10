@@ -9,7 +9,7 @@ from scripts import ROOT
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--spec',type=Path,help='CacheExperiment JSON; default is the embedded three-request example')
+    parser.add_argument('--spec',type=Path,help='KVExperimentInput JSON; default is the embedded three-request example')
     parser.add_argument('--checkpoint',type=Path)
     parser.add_argument('--backend',choices=['reference','cuda'],help='Explicitly override the declared backend before creating a new run')
     parser.add_argument('--replay',type=Path)

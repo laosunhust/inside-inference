@@ -187,7 +187,7 @@ The landing page executes an inspectable GPT with identified checkpoint provenan
     declarations = '<h1>What governs this run?</h1><p>Meanings from the declaration ontology; fields from the executable contract. Generated views are not authorities.</p>'
     for name, term in declaration_ontology['terms'].items():
         declarations += f'<section id="{name}"><h2>{name}</h2><p>{esc(term["meaning"])}</p><p>{esc(term["lifetime"])}</p><p>Owns: {esc(", ".join(term["owns"]))}. Excludes: {esc(", ".join(term["excludes"]))}.</p>'
-        for schema_name in [term['schema']]:
+        for schema_name in term['schemas']:
             declarations += f'<h3>{schema_name}</h3><dl>'
             for field, definition in declaration_schemas[schema_name]['properties'].items():
                 declarations += f'<dt>{esc(field)}</dt><dd>{esc(definition.get("description", definition.get("$ref")))}</dd>'

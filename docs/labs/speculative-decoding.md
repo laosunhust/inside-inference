@@ -17,8 +17,8 @@ matching a few decoded strings or sharing a random seed does not establish the
 same output distribution. The canonical reference is
 [Leviathan, Kalman, and Matias, ICML 2023](https://proceedings.mlr.press/v202/leviathan23a.html).
 
-The [workload/event boundary](../architecture/workloads.md) separates model work,
-commitment, and delivery. Add explicit proposal and verification events, draft and
+The [workload/event boundary](../architecture/workloads.md) separates model computation, selection,
+and delivery. Add explicit proposal, verification, and acceptance events, draft and
 target identities, and state reuse/rollback when implementing this lab. Neither
 proposed nor rejected tokens count as delivered output. Rejected work still counts
 as operations and bytes. Preserve one accepted prefix shared by the computation

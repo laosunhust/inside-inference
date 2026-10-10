@@ -39,23 +39,24 @@
     validateTrace(trace);
     if (arrival.arrival_us !== 0 || trace.id !== run.id || trace.request_id !== arrival.request_id ||
         !equal(trace.declaration,{model:run.declaration.model,system:run.declaration.system,request:arrival.request})) throw new Error('Trace differs from workload binding');
-    const committed = [], delivered = [];
+    const selected = [], delivered = [];
     run.events.forEach((event,i) => {
       if (event.sequence !== i || event.run_id !== run.id || event.request_id !== arrival.request_id ||
           event.event_id !== `${run.id}/event-${i}` || event.causes.some(id=>!run.events.slice(0,i).some(prior=>prior.event_id===id))) throw new Error('Invalid event identity or order');
       const p = event.payload;
-      if (p.kind === 'token-committed') {
-        if (p.output_start !== committed.length) throw new Error('Invalid commitment offset');
-        committed.push(...p.token_ids);
+      if (p.kind === 'token-selected') {
+        const pass = trace.passes[selected.length];
+        if (!pass || p.token_id !== pass.selection.selected_id || p.work_id !== pass.id || p.output_position !== selected.length) throw new Error('Selection event differs from computation');
+        selected.push(p.token_id);
       }
       if (p.kind === 'token-delivered') {
-        if (p.output_start !== delivered.length || !equal(p.token_ids,committed.slice(delivered.length,delivered.length+p.token_ids.length))) throw new Error('Delivery without commitment');
+        if (p.output_start !== delivered.length || !equal(p.token_ids,selected.slice(delivered.length,delivered.length+p.token_ids.length))) throw new Error('Delivered IDs differ from selected output');
         delivered.push(...p.token_ids);
       }
     });
     const terminal=trace.vocabulary.find(t=>t.kind==='control' && t.piece==='TURN_END').id;
     const output=trace.output_ids.filter(id=>id!==terminal);
-    if (!equal(committed,output) || !equal(delivered,output)) throw new Error('Delivered IDs differ from selected output');
+    if (!equal(selected,trace.output_ids) || !equal(delivered,output)) throw new Error('Delivered IDs differ from selected output');
     if (delivered.length !== trace.outcome.delivered_tokens || deliveryText(run) !== trace.output_display) throw new Error('Delivered output differs');
   }
   const deliveryText = (run,prediction=Infinity) => {

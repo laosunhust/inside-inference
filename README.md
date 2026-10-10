@@ -53,7 +53,7 @@ they are not capabilities already implemented here.
 | Find an innovation and its lab | [Lab catalog](catalog/README.md) |
 | Inspect the tiny model's mechanics | [Implementation](docs/implementation/README.md) |
 | Assess progress and acceptance criteria | [Milestones](docs/purpose/milestones.md) |
-| Inspect build limits and evaluation criteria | [Limits](governance/limits.yaml) · [Evaluation](governance/evaluations.yaml) |
+| Inspect build limits and evaluation criteria | [Limits](governance/limits.yaml) · [Approval locks](governance/approval-lock.yaml) · [Evaluation](governance/evaluations.yaml) |
 | Contribute code or documentation | [Contributor guidance](AGENTS.md) |
 
 Workflow code follows the same boundaries: [build generators](scripts/build/),

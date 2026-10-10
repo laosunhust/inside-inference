@@ -1,13 +1,13 @@
 """Resolve generated declarations and validate causal relations, not tensor arithmetic."""
 from inside_inference.declarations_generated import (
-    CONTRACT_SHA256, InferenceRequest, InferenceSystem, ModelArtifact, RequestBinding, RunOutcome,
+    CONTRACT_SHA256, InferenceRequest, InferenceSystem, ModelArtifactReference, RequestBinding, RunOutcome,
 )
 
 
 def bind(model, tokenizer, request, system=None):
     request = request if isinstance(request, InferenceRequest) else InferenceRequest.from_dict(request)
     system = InferenceSystem() if system is None else system
-    artifact = ModelArtifact(checkpoint_sha256=model.sha256, tokenizer_sha256=tokenizer.manifest_sha256,
+    artifact = ModelArtifactReference(checkpoint_sha256=model.sha256, tokenizer_sha256=tokenizer.manifest_sha256,
                              architecture=model.config)
     binding = RequestBinding(model=artifact, system=system, request=request)
     binding.validate_bound(binding.to_dict())
@@ -23,6 +23,11 @@ def validate_result(record):
         raise ValueError('Checkpoint and bound architecture disagree')
     if record['checkpoint']['manifest_sha256'] != binding.model.tokenizer_sha256:
         raise ValueError('Checkpoint and bound tokenizer disagree')
+    from inside_inference.model import identity
+    from inside_inference.provenance import validate_provenance
+    if identity(record['checkpoint']) != binding.model.checkpoint_sha256:
+        raise ValueError('Checkpoint identity differs from resolved model')
+    validate_provenance(record['provenance'])
     outcome = RunOutcome.from_dict(record['outcome'])
     passes = record['passes']
     selected = record['output_ids']

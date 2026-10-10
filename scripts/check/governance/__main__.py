@@ -1,19 +1,27 @@
-"""Block normal workflows on missing four-pillar governance."""
+"""Block normal workflows on governance drift."""
 from scripts import ROOT
+from scripts.check.make_interface import check_governance_workflows
+from scripts.check.governance.locks import audit_locks
 from scripts.build.generate_data_models import outputs
 from scripts.check.governance.structure import load_limits, inventory, audit_structure
 from scripts.check.governance.interfaces import audit_interfaces
 from scripts.check.governance.evaluation import audit_evaluation
 
 
-def audit(root=ROOT):
-    failures = []
+def audit(root=ROOT, *, warnings=None):
+    failures = audit_locks(root)
+    if failures:
+        return failures
+    try:
+        check_governance_workflows((root/'Makefile').read_text())
+    except (ValueError, FileNotFoundError) as exc:
+        failures.append(str(exc))
     try:
         generated = outputs(root)
     except (ValueError,FileNotFoundError) as exc:
         failures.append(str(exc)); generated = {}
     policy = load_limits(root)
-    failures.extend(audit_structure(root, policy, generated))
+    failures.extend(audit_structure(root, policy, generated, warnings=warnings))
     paths = inventory(root, policy)
     try: failures.extend(audit_interfaces(root, paths, generated))
     except (ValueError,FileNotFoundError) as exc: failures.append(str(exc))
@@ -23,9 +31,12 @@ def audit(root=ROOT):
 
 
 def main():
-    failures = audit()
+    warnings = []
+    failures = audit(warnings=warnings)
+    for warning in warnings:
+        print("Warning: " + warning)
     if failures: raise SystemExit('Governance blocked:\n'+'\n'.join('- '+f for f in failures))
-    print('Ontology, generated interfaces, repository limits, and evaluation admission checked.')
+    print('Ontology, generated interfaces, repository limits, approval locks, and evaluation admission checked.')
 
 
 if __name__ == '__main__': main()

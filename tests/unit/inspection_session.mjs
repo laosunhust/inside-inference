@@ -35,6 +35,6 @@ console.log('Generated browser validation and request/run transitions passed.');
 
 const forged=structuredClone(run);
 for(const event of forged.events) {
- if(['token-committed','token-delivered'].includes(event.payload.kind)) event.payload.token_ids[0]=0;
+ if(event.payload.kind==='token-delivered') event.payload.token_ids[0]=0;
 }
 assert.throws(()=>InspectionSession.create(forged),/Delivered IDs differ/);

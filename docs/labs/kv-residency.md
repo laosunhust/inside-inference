@@ -45,7 +45,9 @@ on other hardware remains a hypothesis, not a conclusion from these tests.
 
 ## Executable boundaries
 
-`CacheExperiment` binds `CacheSystem` to the existing chronological `Workload`.
+`KVExperimentInput` submits `KVResidencySystemConfig` and the chronological `Workload`.
+The completed run records `KVRunBinding`, adding the host-selected model identity,
+and shared `ExecutionProvenance` with the source inventory and observed backend.
 The generated contracts govern direct, CLI, HTTP, and browser execution. Each
 experiment starts with an empty retained cache. The uncached landing page remains
 an explicit reference; `kv-cache.html` is the connected cache/resource lab.

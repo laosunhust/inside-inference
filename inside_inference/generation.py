@@ -1,17 +1,13 @@
 """Unmasked greedy selection and reproducible request execution over the forward engine."""
 from dataclasses import asdict
-from pathlib import Path
-import hashlib
 import math
-import platform
-import subprocess
 
 from inside_inference.model import ModelArchitecture, Model, identity, initialize, softmax
 from inside_inference.tokenizer import Tokenizer, Turn
 from inside_inference.declarations_generated import CONTRACT_SHA256, InferenceRequest, RunOutcome
 from inside_inference.declarations import bind, validate_result
+from inside_inference.provenance import execution_provenance, stable_provenance, validate_provenance, reference_backend
 
-ROOT = Path(__file__).resolve().parents[1]
 DECODING_CONTRACT = {
     'rule': 'unmasked-greedy-v1',
     'explanation': 'All vocabulary IDs compete using the actual raw logits. No output grammar, '
@@ -19,15 +15,6 @@ DECODING_CONTRACT = {
     'choice': 'greedy; ties choose smallest ID',
 }
 DEFAULT_REQUEST = InferenceRequest().to_dict()
-
-
-def code_identity():
-    paths = ['inside_inference/model.py', 'inside_inference/generation.py', 'inside_inference/tokenizer.py',
-             'inside_inference/declarations.py', 'inside_inference/declarations_generated.py',
-             'inside_inference/contract_runtime.py', 'inside_inference/workload.py']
-    files = {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in paths}
-    return {'revision': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
-            'sources': files, 'source_sha256': identity(files), 'python': platform.python_version()}
 
 
 def select_greedy(logits):
@@ -64,8 +51,8 @@ def run_request(request=None, *, checkpoint=None, capture=True, run_id=None, req
     required = len(encoding.ids) + request.generation.max_new_tokens - 1
     if required > model.config.context:
         raise ValueError(f'Prompt plus token budget requires {required} positions; capacity is {model.config.context}. Reduce the prompt or token budget.')
-    source = code_identity()
-    run_id = run_id or identity({'declaration': declaration.to_dict(), 'contract': CONTRACT_SHA256, 'code': source['source_sha256']})
+    source = execution_provenance()
+    run_id = run_id or identity({'declaration': declaration.to_dict(), 'contract': CONTRACT_SHA256, 'provenance': stable_provenance(source)})
     request_id = request_id or 'request-' + encoding.input_sha256[:16]
     def emit(kind, **payload):
         if observe is not None: observe({'kind':kind, **payload})
@@ -76,7 +63,7 @@ def run_request(request=None, *, checkpoint=None, capture=True, run_id=None, req
     for number in range(request.generation.max_new_tokens):
         result = model.forward(prefix, capture=capture, request_id=request_id, run_id=run_id, step=number)
         work_id = f'{run_id}/step-{number}'
-        emit('work-completed', work_id=work_id, phase='prefill' if number == 0 else 'decode')
+        emit('model-forward-completed', work_id=work_id, phase='prefill' if number == 0 else 'decode')
         selection = select_greedy(result['logits'][-1])
         selected = selection['selected_id']
         item = {'id': f'{run_id}/step-{number}', 'request_id': request_id, 'run_id': run_id,
@@ -87,7 +74,6 @@ def run_request(request=None, *, checkpoint=None, capture=True, run_id=None, req
                 'selection': selection}
         emit('token-selected', work_id=work_id, token_id=selected, output_position=len(emitted))
         if selected != end:
-            emit('token-committed', work_id=work_id, token_ids=[selected], output_start=len(emitted))
             emit('token-delivered', work_id=work_id, token_ids=[selected], output_start=len(emitted),
                  display_delta=token_display(tokenizer,selected))
         emitted.append(selected)
@@ -104,7 +90,7 @@ def run_request(request=None, *, checkpoint=None, capture=True, run_id=None, req
     record = {'format': 'naive-gpt-run-v2', 'id': run_id, 'request_id': request_id,
             'evidence': 'actual forward computation; checkpoint preparation is recorded in provenance; no hardware cost model',
             'declaration': declaration.to_dict(), 'contract_sha256': CONTRACT_SHA256,
-            'code': source, 'decoding_contract': DECODING_CONTRACT,
+            'provenance': source, 'decoding_contract': DECODING_CONTRACT,
             'precision': {'storage': 'binary64', 'compute': 'binary64', 'accumulation': 'binary64'},
             'checkpoint': model.checkpoint, 'tokenizer': encoding.to_dict(),
             'vocabulary': [asdict(t) for t in tokenizer.tokens], 'passes': passes,
@@ -120,12 +106,12 @@ def replay(record):
         raise ValueError('Unsupported run format')
     if identity(record['checkpoint']) != record['declaration']['model']['checkpoint_sha256']:
         raise ValueError('Checkpoint identity mismatch')
-    if record['code']['source_sha256'] != code_identity()['source_sha256']:
-        raise ValueError('Replay requires the recorded execution source version')
+    validate_provenance(record['provenance'], replay=True, backend=reference_backend())
     result = run_request(record['declaration']['request'], checkpoint=record['checkpoint'])
     if set(record) != set(result):
         raise ValueError('Run record fields differ')
-    for key in result.keys() - {'code'}:
+    result['provenance']['revision'] = record['provenance']['revision']
+    for key in result:
         # JSON normalization makes tuple/list representation irrelevant.
         if identity(result[key]) != identity(record[key]):
             raise ValueError(f'Replay differs at {key}')

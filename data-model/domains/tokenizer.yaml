@@ -1,7 +1,7 @@
 $defs:
   Token:
     type: object
-    x-owner: Token
+    x-owner: Tokenizer
     properties:
       id:
         type: integer
@@ -21,7 +21,7 @@ $defs:
     additionalProperties: false
   Span:
     type: object
-    x-owner: Span
+    x-owner: Tokenizer
     properties:
       kind:
         type: string
@@ -69,7 +69,7 @@ $defs:
     additionalProperties: false
   Encoding:
     type: object
-    x-owner: Encoding
+    x-owner: Tokenizer
     properties:
       ids:
         type: array
@@ -108,7 +108,7 @@ $defs:
     additionalProperties: false
   Turn:
     type: object
-    x-owner: Turn
+    x-owner: Tokenizer
     properties:
       role:
         type: string

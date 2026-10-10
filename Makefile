@@ -113,6 +113,8 @@ _measure-cache-hardware: _data-models-check
 
 .PHONY: _measure-cache-hardware
 
+# Governance lock updates require explicit owner authorization; checks never refresh hashes.
+# Review governance/approval-lock.yaml, then use sha256sum on approved changed paths.
 _governance-check:
 	@$(PYTHON) -m scripts.check.governance
 

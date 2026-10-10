@@ -109,7 +109,7 @@ then-default prompt; it is historical feasibility evidence, not a current latenc
 measurement or an acceptance threshold.
 
 The exported record now wraps numerical traces in a workload run. Arrival, encoding,
-work, selection, commitment, delivery, and completion events are recorded during
+forward completion, selection, delivery, and request completion events are recorded during
 execution. Client output derives from delivery events. This first adapter accepts
 only one arrival at zero and records execution order without claiming latency.
 See the [input/output contract](../architecture/workloads.md).

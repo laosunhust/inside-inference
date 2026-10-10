@@ -23,17 +23,41 @@ prior results. Do not preassign their actual arrival times or silently convert
 feedback-driven traffic into fixed traffic. That behavior is not implemented here.
 
 The [KV residency adapter](../labs/kv-residency.md) reuses this workload shape,
-with its own generated `CacheSystem` and `CacheRun` contracts. It admits multiple
+with its own generated `KVResidencySystemConfig` and `CacheRun` contracts. It admits multiple
 fixed arrivals through bounded reservations and records virtual service times,
 causal events, actual numerical work, and separate local measurements. It does not
 change the uncached adapter's execution-order-only clock.
 
+## Submitted input, resolved specification, and provenance
+
+The reference endpoint accepts a `Workload`; the KV endpoint accepts
+`KVExperimentInput` containing a system configuration and workload. The host selects
+the model artifact. These submissions are not complete identities of the computation.
+Both execution paths record a resolved `declaration` with `model`, `system`, and
+`workload`: `RunBinding` for the reference path and `KVRunBinding` for the KV path.
+The model reference must match the retained artifact and tokenizer identity.
+
+Standalone request traces and KV run records use the same `ExecutionProvenance`
+shape: source-file hashes and their aggregate identity, Python version, Git revision,
+and the observed `ExecutionBackend`. A workload record contains its request traces;
+their provenance remains with each trace rather than being copied onto the envelope.
+Backend evidence describes what ran; it does not replace the requested system configuration.
+
+Replay validates source-inventory integrity, executing source bytes, runtime identity,
+and the resolved model. Backend differences are rejected as well. Git revision is
+informational: a new commit with identical executing source bytes may replay the record.
+Local wall-time measurements remain separate and may vary across replay.
+
 ## Output: ordered evidence, with causal links
+
+`InferenceResponse` owns the existing publication, completion, and outcome records.
+The run supplies their request identity and ordering through its event envelope;
+no separate response token array is maintained.
 
 The output owns an append-only event sequence. Every event identifies its run,
 request, sequence number, event ID, causes, and a typed payload. Causes must refer
 to earlier events in that same run. Chronological order alone is not causality. In the current baseline,
-next-token computation depends on the committed prefix, not on delivery. Completion
+next-token computation depends on the previous selection, not on delivery. Completion
 joins the final selection and output publication; array adjacency is not a cause.
 
 The current clock is **execution order only**: no duration or latency can be
@@ -41,8 +65,9 @@ calculated from its sequence numbers. Future measured and simulated clock varian
 must declare their units, origin, and ordering rules. Host time, virtual time, and
 animation time must not be substituted for one another.
 
-The implemented path records arrival, input encoding, completed model work,
-token selection, token commitment, output publication, and request completion.
+The implemented path records request arrival, input encoding, model forward
+completion, token selection, output publication, and request completion. The greedy
+baseline accepts each selection immediately; it has no separate commitment event.
 The `token-delivered` event means publication to the in-process output collector,
 not receipt across a network. HTTP returns the completed record in one response;
 network streaming and client acknowledgments are not implemented. A
@@ -55,7 +80,7 @@ tensors remain actual computation evidence linked from the corresponding work ev
 There is no general invariant that one model pass produces one delivered token.
 The current naïve adapter selects one ID per pass; its terminal control ID
 produces no delivered token. That behavior is specific to this adapter. Delivery
-must follow a committed decision; proposed or rejected tokens are not client output.
+must follow selection in this baseline; proposed or rejected tokens are not client output.
 
 ## Speculative decoding boundary
 
@@ -79,7 +104,7 @@ Domain records use JSON Schema 2020-12. OpenAPI 3.1 describes the HTTP boundary 
 referencing those records. Python uses a maintained JSON Schema validator; browser
 validators are compiled from the same schemas with Ajv. Ontology ownership checks
 and behavioral invariants remain repository code because shape validation cannot
-prove chronology, valid commitment, or computational fidelity.
+prove chronology, valid output publication, or computational fidelity.
 
 Kubernetes is not required to simulate request scheduling. A future deployment
 controller may map experiment resources to CRDs, while token/tensor evidence stays

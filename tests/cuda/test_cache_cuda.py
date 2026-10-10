@@ -42,5 +42,5 @@ class CudaCacheTests(unittest.TestCase):
         self.assertIn('remote-hit',[e['kind'] for e in run['events']])
         self.assertTrue(all(c['reference_max_abs_error']<1e-10 for c in run['computations']))
         self.assertTrue(any(m['kind']=='host-to-device' and m['bytes']>0 for m in run['measurements']))
-        self.assertEqual(torch.cuda.get_device_name(),run['backend']['compute_device'])
+        self.assertEqual(torch.cuda.get_device_name(),run['provenance']['backend']['compute_device'])
         replay_cache(run)

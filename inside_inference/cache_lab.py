@@ -1,16 +1,15 @@
 """A bounded, replayable KV lab: actual computation, explicit virtual resource service."""
 from collections import OrderedDict, deque
-from pathlib import Path
 from functools import lru_cache
-import hashlib
 import math
 from time import perf_counter_ns
 
-from inside_inference.declarations_generated import CacheExperiment, CacheRun, RunOutcome
+from inside_inference.declarations_generated import KVExperimentInput, KVRunBinding, ModelArtifactReference, CacheRun, RunOutcome
 from inside_inference.generation import select_greedy
 from inside_inference.kv_runtime import ReferenceRuntime, state_bytes
 from inside_inference.model import Model, ModelArchitecture, identity, initialize, parameter_shapes
 from inside_inference.tokenizer import Tokenizer, Turn
+from inside_inference.provenance import execution_provenance, stable_provenance, validate_provenance
 
 
 @lru_cache(maxsize=1)
@@ -23,22 +22,14 @@ def available_backends():
     return backends
 
 
-def source_identity():
-    root = Path(__file__).resolve().parent
-    names = ('cache_lab.py','kv_runtime.py','model.py','tokenizer.py','generation.py',
-             'declarations_generated.py','contract_runtime.py')
-    if (root/'cuda_runtime.py').exists(): names += ('cuda_runtime.py', 'tensor_model.py')
-    return identity({name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in names})
-
-
 def default_experiment():
-    from inside_inference.declarations_generated import CacheSystem
+    from inside_inference.declarations_generated import KVResidencySystemConfig
     from inside_inference.workload import default_workload
     workload = default_workload().to_dict()
     first = workload['requests'][0]
     workload['requests'] = [dict(first, request_id=f'r{i+1}', arrival_us=t)
                             for i,t in enumerate((0, 0, 10000))]
-    return {'system':CacheSystem().to_dict(), 'workload':workload}
+    return {'system':KVResidencySystemConfig().to_dict(), 'workload':workload}
 
 
 def logical_record(record):
@@ -48,16 +39,23 @@ def logical_record(record):
 
 def replay_cache(record):
     CacheRun.from_dict(record)
-    if record['source_sha256'] != source_identity():
-        raise ValueError('Replay requires the recorded cache execution sources')
-    result = run_cache_experiment(record['spec'], checkpoint=record['checkpoint'])
+    validate_provenance(record['provenance'], replay=True)
+    binding = KVRunBinding.from_dict(record['declaration'])
+    checkpoint = record['checkpoint']
+    if (binding.model.checkpoint_sha256 != identity(checkpoint)
+            or binding.model.tokenizer_sha256 != checkpoint['manifest_sha256']
+            or binding.model.architecture.to_dict() != checkpoint['config']):
+        raise ValueError('Checkpoint differs from resolved model binding')
+    submitted = KVExperimentInput(system=binding.system, workload=binding.workload).to_dict()
+    result = run_cache_experiment(submitted, checkpoint=checkpoint)
+    result['provenance']['revision'] = record['provenance']['revision']
     if identity(logical_record(result)) != identity(logical_record(record)):
         raise ValueError('Cache logical replay differs')
     return result
 
 
 def run_cache_experiment(spec=None, *, checkpoint=None):
-    spec = CacheExperiment.from_dict(default_experiment() if spec is None else spec)
+    spec = KVExperimentInput.from_dict(default_experiment() if spec is None else spec)
     codec = Tokenizer()
     checkpoint = initialize(ModelArchitecture(), codec.manifest_sha256) if checkpoint is None else checkpoint
     model = Model(checkpoint)
@@ -87,14 +85,16 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
         waiting_inputs.append(dict(id=item.request_id, arrival=item.arrival_us, ids=ids,
             prefix_ids=ids[:-1], request=request, reservation=reservation, emitted=[],
             stage='lookup', state=None, step=0))
-    source = source_identity()
     if cfg.backend == 'reference':
         runtime = ReferenceRuntime(checkpoint)
     else:
         from inside_inference.cuda_runtime import CudaRuntime
         runtime = CudaRuntime(checkpoint)
     backend = runtime.describe()
-    run_id = identity({'spec':spec.to_dict(),'checkpoint':model.sha256,'source':source,'backend':backend})
+    binding = KVRunBinding(model=ModelArtifactReference(checkpoint_sha256=model.sha256,
+        tokenizer_sha256=codec.manifest_sha256, architecture=model.config), system=cfg, workload=spec.workload)
+    source = execution_provenance(backend)
+    run_id = identity({'declaration':binding.to_dict(),'provenance':stable_provenance(source)})
     events, computations, measurements, outcomes, states = [], [], [], {}, {}
     pending, active, incoming = deque(), deque(), deque(waiting_inputs)
     retained = OrderedDict()
@@ -273,8 +273,8 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
             else:
                 current['stage']='decode';current['step']+=1;active.append(current)
             current=None;collect()
-        record=dict(id=run_id,spec=spec.to_dict(),checkpoint=model.checkpoint,source_sha256=source,
-            events=events,computations=computations,measurements=measurements,outcomes=outcomes,states=states,backend=backend,
+        record=dict(id=run_id,declaration=binding.to_dict(),checkpoint=model.checkpoint,provenance=source,
+            events=events,computations=computations,measurements=measurements,outcomes=outcomes,states=states,
             evidence='Actual cached numerics with uncached verification. Virtual rates are hypothetical; logical KV budgets exclude weights and workspace. Local wall times include backend inspection overhead, not target accelerator predictions.')
         CacheRun.from_dict(record)
         return record

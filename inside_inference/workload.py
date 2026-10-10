@@ -1,15 +1,16 @@
 """Admit fixed arrivals and record causal events from the numerical engine."""
 from inside_inference.declarations_generated import (
-    CONTRACT_SHA256, Workload, ScheduledRequest, InferenceRequest, RunBinding,
-    InferenceSystem, ModelArtifact, RunRecord,
+    CONTRACT_SHA256, Workload, RequestArrival, InferenceRequest, RunBinding,
+    InferenceSystem, ModelArtifactReference, RunRecord,
 )
-from inside_inference.generation import run_request, code_identity, token_display
+from inside_inference.generation import run_request, token_display
 from inside_inference.model import Model, ModelArchitecture, initialize, identity
 from inside_inference.tokenizer import Tokenizer
+from inside_inference.provenance import execution_provenance, stable_provenance, validate_provenance, reference_backend
 
 
 def default_workload(request=None):
-    return Workload(requests=(ScheduledRequest(request_id='r1', arrival_us=0,
+    return Workload(requests=(RequestArrival(request_id='r1', arrival_us=0,
         request=InferenceRequest() if request is None else InferenceRequest.from_dict(request)),))
 
 
@@ -32,11 +33,11 @@ def event_causes(events, payload):
         return next((e['event_id'] for e in reversed(events) if e['payload']['kind']==kind),None)
     kind=payload['kind']
     if kind=='request-arrived': return []
-    if kind=='work-completed': return [last('token-committed') or last('input-encoded')]
+    if kind=='model-forward-completed': return [last('token-selected') or last('input-encoded')]
     if kind=='request-finished':
         return [value for value in (last('token-selected'),last('token-delivered')) if value is not None]
-    prerequisite={'input-encoded':'request-arrived','token-selected':'work-completed',
-                  'token-committed':'token-selected','token-delivered':'token-committed'}[kind]
+    prerequisite={'input-encoded':'request-arrived','token-selected':'model-forward-completed',
+                  'token-delivered':'token-selected'}[kind]
     return [last(prerequisite)]
 
 
@@ -47,12 +48,12 @@ def run_workload(workload=None, *, checkpoint=None):
     tokenizer = Tokenizer()
     checkpoint = initialize(ModelArchitecture(), tokenizer.manifest_sha256) if checkpoint is None else checkpoint
     model = Model(checkpoint)
-    binding = RunBinding(model=ModelArtifact(checkpoint_sha256=model.sha256,
+    binding = RunBinding(model=ModelArtifactReference(checkpoint_sha256=model.sha256,
                          tokenizer_sha256=tokenizer.manifest_sha256, architecture=model.config),
                          system=system, workload=workload)
     binding.validate_bound(binding.to_dict())
     run_id = identity({'declaration':binding.to_dict(), 'contract':CONTRACT_SHA256,
-                       'code':code_identity()['source_sha256']})
+                       'provenance':stable_provenance(execution_provenance())})
     events, traces = [], []
     for arrival in workload.requests:
         def record(payload):
@@ -91,7 +92,7 @@ def validate_run(run):
                                     'request':arrival.request.to_dict()}:
             raise ValueError('Numerical evidence differs from workload binding')
         # These relations govern the current naive engine only; a speculative engine
-        # needs its own verification/commit rules, not this one-selection-per-work rule.
+        # needs its own acceptance rules; this baseline accepts each greedy selection.
         expected = [{'kind':'request-arrived','arrival_us':arrival.arrival_us},
                     {'kind':'input-encoded','input_sha256':trace['tokenizer']['input_sha256'],
                      'token_count':len(trace['tokenizer']['ids'])}]
@@ -100,11 +101,10 @@ def validate_run(run):
         end = tokenizer.token_id('control','TURN_END')
         for step in trace['passes']:
             token = step['selection']['selected_id']
-            expected += [{'kind':'work-completed','work_id':step['id'],'phase':step['phase']},
+            expected += [{'kind':'model-forward-completed','work_id':step['id'],'phase':step['phase']},
                          {'kind':'token-selected','work_id':step['id'],'token_id':token,'output_position':step['step']}]
             if token != end:
-                expected += [{'kind':'token-committed','work_id':step['id'],'token_ids':[token],'output_start':visible},
-                             {'kind':'token-delivered','work_id':step['id'],'token_ids':[token],'output_start':visible,
+                expected += [{'kind':'token-delivered','work_id':step['id'],'token_ids':[token],'output_start':visible,
                               'display_delta':token_display(tokenizer,token)}]
                 visible += 1
         expected.append({'kind':'request-finished','outcome':trace['outcome']})
@@ -123,11 +123,10 @@ def validate_run(run):
 def replay_workload(record):
     validate_run(record)
     trace = record['traces'][0]
-    if trace['code']['source_sha256'] != code_identity()['source_sha256']:
-        raise ValueError('Replay requires recorded execution source version')
+    validate_provenance(trace['provenance'], replay=True, backend=reference_backend())
     result = run_workload(record['declaration']['workload'], checkpoint=trace['checkpoint'])
     # Git revision is provenance; exact source hashes permit replay across a commit.
     for a,b in zip(result['traces'],record['traces']):
-        a['code']['revision'] = b['code']['revision']
+        a['provenance']['revision'] = b['provenance']['revision']
     if identity(result) != identity(record): raise ValueError('Replayed workload differs')
     return result

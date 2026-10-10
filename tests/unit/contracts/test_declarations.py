@@ -49,10 +49,10 @@ class DeclarationTests(unittest.TestCase):
         schema = read(ROOT/'data-model/inference.schema.json')
         empty = copy.deepcopy(ontology)
         empty['terms']['Worker'] = copy.deepcopy(empty['terms']['InferenceSystem'])
-        empty['terms']['Worker']['schema'] = ''
-        with self.assertRaisesRegex(ValueError, 'one-to-one'):
+        empty['terms']['Worker']['schemas'] = []
+        with self.assertRaisesRegex(ValueError, 'nonempty unique'):
             admit(empty, schema)
-        for fields in ({}, {'InferenceRequest':['nonexistent']}, {'CacheSystem':['backend']}):
+        for fields in ({}, {'InferenceRequest':['nonexistent']}, {'KVResidencySystemConfig':['backend']}):
             with self.subTest(fields=fields):
                 bad = copy.deepcopy(ontology)
                 bad['terms']['InferenceRequest']['projections']['Request']['fields'] = fields
@@ -94,13 +94,13 @@ class DeclarationTests(unittest.TestCase):
         schema = read(ROOT / 'data-model/inference.schema.json')
         admit(ontology, schema)
         bad = copy.deepcopy(ontology)
-        bad['terms']['InferenceRequest']['schema'] = 'ModelArchitecture'
-        with self.assertRaisesRegex(ValueError, 'one-to-one'): admit(bad, schema)
+        bad['terms']['InferenceRequest']['schemas'] = ['ModelArchitecture']
+        with self.assertRaisesRegex(ValueError, 'competing'): admit(bad, schema)
         bad = copy.deepcopy(schema)
         bad['$defs']['JunkDrawer'] = copy.deepcopy(bad['$defs']['InferenceRequest'])
         with self.assertRaisesRegex(ValueError, 'Unowned'): admit(ontology, bad)
         bad = copy.deepcopy(schema)
-        bad['$defs']['ModelArtifact']['properties']['architecture'] = {'$ref':'#/$defs/InferenceRequest'}
+        bad['$defs']['ModelArtifactReference']['properties']['architecture'] = {'$ref':'#/$defs/InferenceRequest'}
         with self.assertRaisesRegex(ValueError, 'cannot depend'): admit(ontology, bad)
         bad = copy.deepcopy(schema)
         bad['$defs']['GenerationPolicy']['properties']['max_new_tokens']['x-maximum-from'] = 'system.missing'
@@ -108,6 +108,108 @@ class DeclarationTests(unittest.TestCase):
         bad = copy.deepcopy(schema)
         bad['$defs']['InferenceRequest']['properties']['text']['unknownKeyword'] = 1
         with self.assertRaisesRegex(ValueError, 'unsupported'): admit(ontology, bad)
+
+    def test_multiple_declarations_share_one_owner_without_losing_boundaries(self):
+        ontology = load_declarations()
+        spec = read(ROOT/'data-model/inference.schema.json')
+        artifact = ontology['terms']['ModelArtifact']
+        self.assertEqual(set(artifact['schemas']), {
+            'ModelArtifact', 'ModelArtifactReference', 'InitializationProvenance', 'TrainingProvenance'})
+        self.assertNotIn('TrainingProvenance', ontology['terms'])
+        artifact['projections']['Artifact'] = {'meaning':'Full payload and its reference',
+            'fields':{'ModelArtifact':['parameters'], 'ModelArtifactReference':['checkpoint_sha256']}}
+        admit(ontology, spec)
+        for names, error in [([], 'nonempty unique'), (['ModelArtifact']*2, 'nonempty unique'),
+                             (artifact['schemas']+['MissingRecord'], 'stale')]:
+            bad = copy.deepcopy(ontology)
+            bad['terms']['ModelArtifact']['schemas'] = names
+            with self.assertRaisesRegex(ValueError, error): admit(bad, spec)
+        bad = copy.deepcopy(spec)
+        bad['$defs']['TrainingProvenance']['x-owner'] = 'ModelWeights'
+        with self.assertRaisesRegex(ValueError, 'owner'): admit(ontology, bad)
+        bad = copy.deepcopy(ontology)
+        bad['terms']['ModelArtifact']['depends_on'].remove('ModelWeights')
+        with self.assertRaisesRegex(ValueError, 'cannot depend'): admit(bad, spec)
+
+    def test_request_arrivals_and_system_variants_have_shared_owners(self):
+        from inside_inference.declarations_generated import RequestArrival, Workload
+        ontology = load_declarations()
+        owners = ontology['terms']
+        self.assertEqual(owners['InferenceRequest']['schemas'], ['InferenceRequest', 'RequestArrival'])
+        self.assertEqual(owners['InferenceSystem']['schemas'], ['InferenceSystem', 'KVResidencySystemConfig'])
+        self.assertNotIn('ScheduledRequest', owners)
+        self.assertNotIn('CacheSystem', owners)
+        self.assertEqual(owners['Workload']['depends_on'], ['InferenceRequest'])
+        system_fields = owners['InferenceSystem']['projections']['Inference system']['fields']
+        self.assertEqual(set(system_fields), {'InferenceSystem', 'KVResidencySystemConfig'})
+        requests = tuple(RequestArrival(request_id=f'r{budget}', arrival_us=0,
+            request=InferenceRequest(generation=GenerationPolicy(max_new_tokens=budget)))
+            for budget in (1, 3))
+        workload = Workload.from_dict(Workload(requests=requests).to_dict())
+        self.assertEqual([r.request.generation.max_new_tokens for r in workload.requests], [1, 3])
+        spec = read(ROOT/'data-model/inference.schema.json')
+        for name, wrong_owner in [('RequestArrival', 'Workload'),
+                                  ('KVResidencySystemConfig', 'GenerationPolicy')]:
+            bad = copy.deepcopy(spec)
+            bad['$defs'][name]['x-owner'] = wrong_owner
+            with self.assertRaisesRegex(ValueError, 'owner'): admit(ontology, bad)
+
+    def test_response_owns_publication_completion_and_outcome(self):
+        ontology = load_declarations()
+        owners = ontology['terms']
+        response = owners['InferenceResponse']
+        names = {'TokenDelivered', 'RequestFinished', 'RunOutcome'}
+        self.assertEqual(set(response['schemas']), names)
+        self.assertTrue(names.isdisjoint(owners))
+        spec = read(ROOT/'data-model/inference.schema.json')
+        for name in names:
+            self.assertEqual(spec['$defs'][name]['x-owner'], 'InferenceResponse')
+        self.assertIn('InferenceResponse', owners['ExperimentEvent']['depends_on'])
+        self.assertIn('InferenceResponse', owners['ExperimentExecution']['depends_on'])
+        admit(ontology, spec)
+        bad = copy.deepcopy(ontology)
+        bad['terms']['ExperimentEvent']['depends_on'].remove('InferenceResponse')
+        with self.assertRaisesRegex(ValueError, 'cannot depend'): admit(bad, spec)
+        bad = copy.deepcopy(ontology)
+        bad['terms']['InferenceResponse']['projections']['Response']['fields']['TokenSelected'] = ['token_id']
+        with self.assertRaisesRegex(ValueError, 'projection'): admit(bad, spec)
+
+    def test_experiment_concepts_separate_specs_events_and_observations(self):
+        module = read(ROOT/'docs/ontology/experiment.yaml')
+        self.assertEqual(set(module['terms']), {'ExperimentSpec', 'ExperimentExecution',
+            'ExperimentEvent', 'ExperimentObservation'})
+        ontology = load_declarations()
+        spec = read(ROOT/'data-model/inference.schema.json')
+        self.assertEqual(spec['$defs']['DecodingContract']['x-owner'], 'GenerationPolicy')
+        self.assertNotIn('DecodingContract', ontology['terms'])
+        for name, owner in [('RunBinding','ExperimentSpec'), ('CacheRun','ExperimentExecution'),
+                            ('RunEvent','ExperimentEvent'), ('CacheMeasurement','ExperimentObservation')]:
+            self.assertEqual(spec['$defs'][name]['x-owner'], owner)
+        self.assertEqual(spec['$defs']['EventClock']['properties']['kind']['const'], 'execution-order')
+        self.assertIn('time_us', spec['$defs']['CacheEvent']['properties'])
+        self.assertIn('elapsed_us', spec['$defs']['CacheMeasurement']['properties'])
+        bad = copy.deepcopy(spec)
+        bad['$defs']['RequestBinding']['properties']['request'] = {'$ref':'#/$defs/CacheMeasurement'}
+        with self.assertRaisesRegex(ValueError, 'cannot depend'): admit(ontology, bad)
+        bad = copy.deepcopy(ontology)
+        bad['terms']['ExperimentEvent']['projections']['Event']['fields']['TensorObservation'] = ['values']
+        with self.assertRaisesRegex(ValueError, 'projection'): admit(bad, spec)
+
+    def test_execution_capabilities_own_both_service_payloads(self):
+        ontology = load_declarations()
+        terms = ontology['terms']
+        names = {'Capabilities', 'CacheCapabilities'}
+        self.assertEqual(set(terms['ExecutionCapabilities']['schemas']), names)
+        self.assertTrue(names.isdisjoint(terms))
+        spec = read(ROOT/'data-model/inference.schema.json')
+        for name in names:
+            self.assertEqual(spec['$defs'][name]['x-owner'], 'ExecutionCapabilities')
+            bad = copy.deepcopy(spec)
+            bad['$defs'][name]['x-owner'] = 'InferenceSystem'
+            with self.assertRaisesRegex(ValueError, 'owner'): admit(ontology, bad)
+        bad = copy.deepcopy(ontology)
+        bad['terms']['InferenceSystem']['schemas'].append('CacheCapabilities')
+        with self.assertRaisesRegex(ValueError, 'competing'): admit(bad, spec)
 
     def test_generation_detects_stale_consumers_without_repair(self):
         with tempfile.TemporaryDirectory() as directory:

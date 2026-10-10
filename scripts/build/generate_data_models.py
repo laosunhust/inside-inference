@@ -27,7 +27,7 @@ def admit(ontology, spec):
     owners = {}
     terms, definitions = ontology['terms'], spec['$defs']
     for term, entry in terms.items():
-        if set(entry) != {'meaning', 'lifetime', 'owns', 'excludes', 'schema', 'depends_on', 'capability_reads', 'projections'}:
+        if set(entry) != {'meaning', 'lifetime', 'owns', 'excludes', 'schemas', 'depends_on', 'capability_reads', 'projections'}:
             raise ValueError(f'{term}: malformed semantic owner')
         if not re.fullmatch('[A-Z][A-Za-z0-9]*', term):
             raise ValueError(f'{term}: invalid semantic owner name')
@@ -41,9 +41,13 @@ def admit(ontology, spec):
                 raise ValueError(f'{term}: {key} cannot be empty; no declaration-free ontology owners')
         if not set(entry['depends_on']) <= set(terms):
             raise ValueError(f'{term}: unknown dependency owner')
-        if entry['schema'] != term:
-            raise ValueError(f'{term}: ontology/declaration mapping must be one-to-one with identical names')
-        owners[term] = term
+        names = entry['schemas']
+        if not isinstance(names, list) or not names or not all(isinstance(n, str) and re.fullmatch('[A-Z][A-Za-z0-9]*', n) for n in names) or len(set(names)) != len(names):
+            raise ValueError(f'{term}: schemas must be a nonempty unique list of declaration names')
+        for name in names:
+            if name in owners:
+                raise ValueError(f'{name}: competing semantic owners')
+            owners[name] = term
     if set(owners) != set(definitions):
         raise ValueError('Unowned schemas or stale semantic grants')
     projections = set()

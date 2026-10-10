@@ -78,9 +78,9 @@ $defs:
         default: the ball is in
       generation:
         $ref: '#/$defs/GenerationPolicy'
-  ScheduledRequest:
+  RequestArrival:
     type: object
-    x-owner: ScheduledRequest
+    x-owner: InferenceRequest
     additionalProperties: false
     required:
     - request_id
@@ -119,11 +119,11 @@ $defs:
         title: Ordered requests
         description: Ordered requests
         items:
-          $ref: '#/$defs/ScheduledRequest'
+          $ref: '#/$defs/RequestArrival'
         minItems: 1
-  CacheSystem:
+  KVResidencySystemConfig:
     type: object
-    x-owner: CacheSystem
+    x-owner: InferenceSystem
     additionalProperties: false
     required:
     - backend
@@ -195,3 +195,114 @@ $defs:
         type: integer
         const: 8
         default: 8
+  TokenDelivered:
+    type: object
+    x-owner: InferenceResponse
+    additionalProperties: false
+    required:
+    - kind
+    - work_id
+    - token_ids
+    - output_start
+    - display_delta
+    properties:
+      kind:
+        type: string
+        title: Event kind
+        description: Event kind
+        const: token-delivered
+        default: token-delivered
+      work_id:
+        type: string
+        title: Producing computation
+        description: Producing computation
+      token_ids:
+        type: array
+        title: Delivered token IDs
+        description: Delivered token IDs
+        items:
+          type: integer
+          title: Delivered token ID
+          description: Delivered token ID
+          minimum: 0
+          maximum: 9007199254740991
+        minItems: 1
+      output_start:
+        type: integer
+        title: Client token offset
+        description: Client token offset
+        minimum: 0
+        maximum: 9007199254740991
+      display_delta:
+        type: string
+        title: Decoded text delivered to the client
+        description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
+          as labeled markers.
+  RequestFinished:
+    type: object
+    x-owner: InferenceResponse
+    additionalProperties: false
+    required:
+    - kind
+    - outcome
+    properties:
+      kind:
+        type: string
+        title: Event kind
+        description: Event kind
+        const: request-finished
+        default: request-finished
+      outcome:
+        $ref: '#/$defs/RunOutcome'
+  RunOutcome:
+    type: object
+    x-owner: InferenceResponse
+    additionalProperties: false
+    required:
+    - selected_tokens
+    - delivered_tokens
+    - unused_budget
+    - stop_reason
+    - complete
+    properties:
+      selected_tokens:
+        type: integer
+        title: Selected IDs
+        description: Includes terminal controls.
+        minimum: 1
+      delivered_tokens:
+        type: integer
+        title: Delivered IDs
+        description: Every selected ID except TURN_END, including diagnostic control/byte/hex tokens.
+        minimum: 0
+      unused_budget:
+        type: integer
+        title: Unused allowance
+        description: Requested ceiling minus actual selected ID count.
+        minimum: 0
+      stop_reason:
+        type: string
+        title: Termination condition
+        description: Recorded by the execution loop.
+        enum:
+        - turn_end
+        - output_budget
+      complete:
+        type: boolean
+        title: Turn complete
+        description: True only if TURN_END was selected.
+  DecodingContract:
+    type: object
+    properties:
+      choice:
+        type: string
+      explanation:
+        type: string
+      rule:
+        type: string
+    required:
+    - choice
+    - explanation
+    - rule
+    additionalProperties: false
+    x-owner: GenerationPolicy

@@ -25,7 +25,7 @@ $defs:
         minimum: 0
   Capabilities:
     type: object
-    x-owner: Capabilities
+    x-owner: ExecutionCapabilities
     additionalProperties: false
     required:
     - engine
@@ -55,7 +55,7 @@ $defs:
         description: Explicit rejection reason
   CacheCapabilities:
     type: object
-    x-owner: CacheCapabilities
+    x-owner: ExecutionCapabilities
     additionalProperties: false
     required:
     - contract_sha256

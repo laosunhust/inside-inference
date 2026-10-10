@@ -6,10 +6,10 @@
 <div class="inference-workbench"><div class="inference-scene"><div class="token-journey" aria-label="Zoom 1: customer journey">
 <button id="inspect-request" data-entity="request" data-term="Request"><small>01 · CHAT REQUEST</small><strong id="request-preview"></strong><span>Inspect input + framing</span></button><span class="flow-arrow" aria-hidden="true">→</span>
 <button id="inspect-system" data-entity="system" data-term="Inference system"><small>02 · INFERENCE SYSTEM</small><strong>One causal GPT block</strong><span id="system-summary"></span></button><span class="flow-arrow" aria-hidden="true">→</span>
-<button id="inspect-response" data-entity="response" data-term="Detokenizer"><small>03 · BACK TO THE CLIENT</small><strong id="response-preview"></strong><span id="response-status"></span></button>
+<button id="inspect-response" data-entity="response" data-term="Response"><small>03 · BACK TO THE CLIENT</small><strong id="response-preview"></strong><span id="response-status"></span></button>
 </div>
 <section class="pass-panel"><div class="panel-heading"><h2>Zoom 2 · Follow the sequence</h2><button id="next-pass">Next prediction →</button></div><p id="run-outcome" class="run-outcome"></p><p id="submitted-request"></p><p id="workload-summary"></p>
-<details><summary>Recorded events: arrival → computation → commitment → delivery</summary><ol id="event-stream"></ol></details>
+<details><summary>Recorded events: arrival → computation → selection → delivery</summary><ol id="event-stream"></ol></details>
 <div id="pass-tabs" class="pass-tabs" aria-label="Executed model passes"></div><p id="pass-caption"></p><div id="sequence-strip" class="token-strip" aria-label="Input positions for selected pass"></div><div class="prediction-arrow">↓ final input position predicts ↓</div><div id="selected-token" class="selected-token"></div><p class="control-hint">Every chip is an actual token ID. Selecting a chip inspects that sequence position. All earlier positions are recomputed on every pass; there is no KV cache.</p></section>
 </div><form id="inference-form" class="inference-form">
 <p class="eyebrow">REQUEST · EDITABLE BEFORE EXECUTION</p>

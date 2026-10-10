@@ -3,7 +3,7 @@
 'use strict';
 const $=id=>document.getElementById(id), make=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 if(!$('cache-data'))return;
-let serialized=$('cache-data').textContent,run=JSON.parse(serialized),draft=structuredClone(run.spec),cursor=0,live=false,busy=false;
+let serialized=$('cache-data').textContent,run=JSON.parse(serialized),draft=structuredClone({system:run.declaration.system,workload:run.declaration.workload}),cursor=0,live=false,busy=false;
 const tokens=JSON.parse($('cache-tokens').textContent),ontology=JSON.parse($('cache-ontology').textContent);
 Declarations.assertShape('CacheRun',run);
 const number=x=>Number(x).toLocaleString(undefined,{maximumFractionDigits:3});
@@ -18,7 +18,7 @@ function input(parent,key,value,field,onChange){
 }
 function controls(){
  $('cache-system-fields').replaceChildren();$('cache-rate-fields').replaceChildren();
- for(const [key,field] of Object.entries(Declarations.schemas.CacheSystem.properties)){
+ for(const [key,field] of Object.entries(Declarations.schemas.KVResidencySystemConfig.properties)){
   if(field.const!==undefined)continue;
   const parent=$(key.includes('_per_us')||key==='link_latency_us'?'cache-rate-fields':'cache-system-fields');
   input(parent,key,draft.system[key],field,value=>draft.system[key]=value);
@@ -46,7 +46,7 @@ function matrix(value,labels){
 function inspect(){
  const event=run.events[cursor];$('cache-event-caption').textContent=`${cursor+1}/${run.events.length} · ${event.request_id} · ${event.kind} · ${number(event.time_us)} µs`;
  for(const [tier,key,cap] of [['device','device_reserved_bytes','device_kv_bytes'],['host','host_retained_bytes','host_kv_bytes']]){
-  $(tier+'-meter').max=run.spec.system[cap];$(tier+'-meter').value=event[key];$(tier+'-count').textContent=`${event[key]} / ${run.spec.system[cap]} bytes`;
+  $(tier+'-meter').max=run.declaration.system[cap];$(tier+'-meter').value=event[key];$(tier+'-count').textContent=`${event[key]} / ${run.declaration.system[cap]} bytes`;
  }
  $('cache-prev').disabled=cursor===0;$('cache-next').disabled=cursor===run.events.length-1;
  $('cache-events').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('active',i===cursor));
@@ -72,7 +72,7 @@ function tensor(){
  $('cache-raw').textContent=JSON.stringify(node,null,2);
 }
 function timeline(){
- const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),req=run.spec.workload.requests,total=Math.max(1,...run.events.map(e=>e.time_us));
+ const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),req=run.declaration.workload.requests,total=Math.max(1,...run.events.map(e=>e.time_us));
  svg.setAttribute('viewBox',`0 0 700 ${req.length*56+24}`);svg.setAttribute('role','img');svg.setAttribute('aria-label','Recorded virtual request timelines');
  const element=(tag,attrs,text)=>{const e=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text)e.textContent=text;svg.append(e);return e;};
  req.forEach((r,i)=>{
@@ -86,17 +86,17 @@ function timeline(){
 function render(){
  timeline();$('cache-events').replaceChildren();run.events.forEach((e,i)=>{const b=make('button',`${e.request_id} ${e.kind}`);b.dataset.kind=e.kind;b.onclick=()=>{cursor=i;inspect();};$('cache-events').append(b);});
  $('cache-work-choice').replaceChildren();run.computations.forEach((c,i)=>{const o=make('option',`${c.request_id} · ${c.phase} · ${c.input_ids.length} new positions`);o.value=i;$('cache-work-choice').append(o);});
- const rows=run.spec.workload.requests.map(r=>{const ids=run.computations.filter(c=>c.request_id===r.request_id&&c.selection).map(c=>c.selection.selected_id);return `${r.request_id}: ${ids.map(id=>`#${id} ${tokens[id]}`).join(' · ')} — ${run.outcomes[r.request_id].stop_reason}`;});$('cache-results').replaceChildren(...rows.map(t=>make('p',t)));
- $('cache-evidence').textContent=run.evidence;$('cache-backend-info').textContent=JSON.stringify(run.backend,null,2);
+ const rows=run.declaration.workload.requests.map(r=>{const ids=run.computations.filter(c=>c.request_id===r.request_id&&c.selection).map(c=>c.selection.selected_id);return `${r.request_id}: ${ids.map(id=>`#${id} ${tokens[id]}`).join(' · ')} — ${run.outcomes[r.request_id].stop_reason}`;});$('cache-results').replaceChildren(...rows.map(t=>make('p',t)));
+ $('cache-evidence').textContent=run.evidence;$('cache-backend-info').textContent=JSON.stringify(run.provenance.backend,null,2);
  $('cache-measurements').replaceChildren(...run.measurements.map(m=>make('p',`${m.kind}: ${number(m.elapsed_us)} measured µs${m.bytes?' · '+m.bytes+' bytes':''}`)));
  if(!run.measurements.length)$('cache-measurements').append(make('p','Wall-clock samples are omitted from the reproducible embedded example. Execute a live run to measure this host.'));
- $('cache-run-identity').textContent=JSON.stringify({id:run.id,source_sha256:run.source_sha256,spec:run.spec},null,2);cursor=0;tensorChoices();inspect();
+ $('cache-run-identity').textContent=JSON.stringify({id:run.id,provenance:run.provenance,declaration:run.declaration},null,2);cursor=0;tensorChoices();inspect();
 }
 $('cache-prev').onclick=()=>{cursor--;inspect();};$('cache-next').onclick=()=>{cursor++;inspect();};$('cache-work-choice').onchange=tensorChoices;$('cache-tensor-choice').onchange=tensor;
 $('cache-add').onclick=()=>{if(draft.workload.requests.length>=draft.system.max_requests)return;const next=structuredClone(draft.workload.requests.at(-1));let id=1;while(draft.workload.requests.some(r=>r.request_id==='r'+id))id++;next.request_id='r'+id;draft.workload.requests.push(next);requests();dirty();};
 $('cache-form').onsubmit=async event=>{
  event.preventDefault();if(!live||busy)return;
- try{Declarations.assertShape('CacheExperiment',draft);busy=true;lock();$('cache-error').hidden=true;status('running','Executing the submitted experiment…');
+ try{Declarations.assertShape('KVExperimentInput',draft);busy=true;lock();$('cache-error').hidden=true;status('running','Executing the submitted experiment…');
  const response=await fetch(Declarations.routes.cacheRun,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(draft)}),raw=await response.text(),value=JSON.parse(raw);
  if(!response.ok)throw Error(value.error||response.statusText);Declarations.assertShape('CacheRun',value);
  serialized=raw;run=value;render();status('ready','Accepted run. Every view reads this computation and schedule.');

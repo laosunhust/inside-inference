@@ -20,24 +20,28 @@ def inventory(root, policy):
 
 def load_limits(root):
     policy = read_yaml(root/'governance/limits.yaml')
-    keys = {'version','files_per_folder','authored_file_bytes','generated_file_bytes','fixture_file_bytes','fixture_roots','excluded_directories','excluded_file_suffixes','fixture_extensions'}
+    keys = {'version','files_per_folder_warning','files_per_folder','authored_file_bytes','generated_file_bytes','fixture_file_bytes','fixture_roots','excluded_directories','excluded_file_suffixes','fixture_extensions'}
     if not isinstance(policy,dict) or set(policy) != keys or policy['version'] != 1:
         raise ValueError('Malformed repository limits')
     for name in keys-{'version','fixture_roots','excluded_directories','excluded_file_suffixes','fixture_extensions'}:
         if type(policy[name]) is not int or policy[name] <= 0:
             raise ValueError(f'{name}: positive integer limit required')
+    if policy['files_per_folder_warning'] >= policy['files_per_folder']:
+        raise ValueError('Folder warning threshold must be below the hard limit')
     for key in ('fixture_roots','excluded_directories','excluded_file_suffixes','fixture_extensions'):
         if not isinstance(policy[key],list) or not all(isinstance(v,str) and v for v in policy[key]) or len(set(policy[key])) != len(policy[key]):
             raise ValueError(f'{key}: unique path list required')
     return policy
 
 
-def audit_structure(root, policy, generated):
+def audit_structure(root, policy, generated, *, warnings=None):
     failures = []
     paths = inventory(root, policy)
     for folder,count in Counter(str(p.parent) for p in paths).items():
         if count > policy['files_per_folder']:
             failures.append(f'{folder}: {count} files exceeds {policy["files_per_folder"]}')
+        elif count >= policy['files_per_folder_warning'] and warnings is not None:
+            warnings.append(f'{folder}: {count} files reaches warning threshold {policy["files_per_folder_warning"]}; hard limit {policy["files_per_folder"]}. Plan a cohesive split before adding more files.')
     for path in paths:
         absolute = root/path
         if absolute.is_symlink():

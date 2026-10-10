@@ -85,7 +85,7 @@ $defs:
         description: Supported baseline value.
         const: binary64
         default: binary64
-  ModelArtifact:
+  ModelArtifactReference:
     type: object
     x-owner: ModelArtifact
     additionalProperties: false
@@ -123,7 +123,7 @@ $defs:
     - kind
     - seed
     additionalProperties: false
-    x-owner: InitializationProvenance
+    x-owner: ModelArtifact
   TrainingProvenance:
     type: object
     properties:
@@ -164,7 +164,7 @@ $defs:
     - data_sha256
     - source_sha256
     additionalProperties: false
-    x-owner: TrainingProvenance
+    x-owner: ModelArtifact
   KVState:
     type: object
     x-owner: KVState
@@ -212,7 +212,7 @@ $defs:
           maxItems: 32
           items:
             type: number
-  ModelCheckpoint:
+  ModelArtifact:
     type: object
     properties:
       config:
@@ -222,7 +222,7 @@ $defs:
       manifest_sha256:
         type: string
       parameters:
-        $ref: '#/$defs/ModelParameters'
+        $ref: '#/$defs/ModelWeights'
       provenance:
         oneOf:
         - $ref: '#/$defs/InitializationProvenance'
@@ -234,8 +234,8 @@ $defs:
     - parameters
     - provenance
     additionalProperties: false
-    x-owner: ModelCheckpoint
-  ModelParameters:
+    x-owner: ModelArtifact
+  ModelWeights:
     type: object
     properties:
       attention_output:
@@ -368,4 +368,4 @@ $defs:
     - value
     - value_bias
     additionalProperties: false
-    x-owner: ModelParameters
+    x-owner: ModelWeights

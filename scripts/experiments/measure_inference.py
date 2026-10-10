@@ -5,7 +5,8 @@ import platform
 import resource
 import time
 
-from inside_inference.generation import code_identity, run_request
+from inside_inference.generation import run_request
+from inside_inference.provenance import execution_provenance
 from inside_inference.model import ModelArchitecture, Model, canonical, initialize
 from inside_inference.tokenizer import Tokenizer
 
@@ -37,7 +38,7 @@ def main():
                     'serialization_seconds': time.perf_counter() - start,
                     'json_bytes': len(payload), 'checkpoint_sha256': model.sha256})
     report = {'platform': platform.platform(), 'machine': platform.machine(), 'python': platform.python_version(),
-              'code': code_identity(), 'records': records,
+              'provenance': execution_provenance(), 'records': records,
               'process_peak_rss_kib_linux': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
               'scope': 'one local sample each; process peak includes both records and JSON; not GPU or serving latency'}
     path = Path('out/experiments/naive-gpt/execution-cost.json')

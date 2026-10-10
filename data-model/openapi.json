@@ -77,7 +77,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "./inference.schema.json#/$defs/CacheExperiment"
+                "$ref": "./inference.schema.json#/$defs/KVExperimentInput"
               }
             }
           }

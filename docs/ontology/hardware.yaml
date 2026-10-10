@@ -1,5 +1,5 @@
 terms:
-  CacheBackend:
+  ExecutionBackend:
     meaning: Actual compute device, state-storage implementation, library, and precision observed for
       execution.
     lifetime: Fixed in the recorded run; a different backend requires a new run binding.
@@ -9,7 +9,6 @@ terms:
     - hypothetical service rates
     - logical capacity budgets
     - worker placement policy
-    schema: CacheBackend
     depends_on: []
     capability_reads: []
     projections:
@@ -17,9 +16,11 @@ terms:
         meaning: The actual compute and memory backend recorded by execution; it does not establish a
           target-accelerator performance model.
         fields:
-          CacheBackend:
+          ExecutionBackend:
           - compute_device
           - device_state_storage
           - host_state_storage
           - library
           - precision
+    schemas:
+    - ExecutionBackend

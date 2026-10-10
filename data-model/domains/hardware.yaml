@@ -1,7 +1,7 @@
 $defs:
-  CacheBackend:
+  ExecutionBackend:
     type: object
-    x-owner: CacheBackend
+    x-owner: ExecutionBackend
     additionalProperties: false
     required:
     - compute_device

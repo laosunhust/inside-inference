@@ -75,6 +75,24 @@ class GovernanceTests(unittest.TestCase):
             (root/'untracked.py').write_text('')
             self.assertTrue(audit_structure(root,policy,{}))
 
+    def test_folder_warnings_precede_hard_failure(self):
+        policy = load_limits(ROOT)
+        self.assertEqual((policy['files_per_folder_warning'], policy['files_per_folder']), (12, 18))
+        for count in (11, 12, 18, 19):
+            with self.subTest(count=count), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                for i in range(count): (root/f'{i}.py').write_text('')
+                warnings = []
+                failures = audit_structure(root, policy, {}, warnings=warnings)
+                self.assertEqual(bool(failures), count > 18)
+                self.assertEqual(bool(warnings), 12 <= count <= 18)
+        for warning in (18, 19, 0, True):
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory); (root/'governance').mkdir()
+                bad = dict(policy, files_per_folder_warning=warning)
+                (root/'governance/limits.yaml').write_text(yaml.safe_dump(bad))
+                with self.assertRaises(ValueError): load_limits(root)
+
     def test_evaluation_without_criteria_or_reuse_is_blocked(self):
         original=read_yaml(ROOT/'governance/evaluations.yaml')
         for key in ('question','baseline','criteria','counterexamples','reuse'):

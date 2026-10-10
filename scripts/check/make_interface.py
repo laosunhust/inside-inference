@@ -38,6 +38,30 @@ def inventory(text):
     return public
 
 
+def check_governance_workflows(text):
+    """Require literal workflow paths to governance, without locking the Makefile."""
+    rules, recipes, active = {}, {}, None
+    for line in text.splitlines():
+        match = re.match(r'^(_?[a-z][a-z0-9-]*):(.*)$', line)
+        if match:
+            active, tail = match.groups()
+            rules[active] = tail.split('#', 1)[0].split()
+            recipes[active] = []
+        elif line.startswith('\t') and active:
+            recipes[active].append(line.strip())
+        elif line.strip() and not line.startswith('#'):
+            active = None
+    if recipes.get('_governance-check') != ['@$(PYTHON) -m scripts.check.governance']:
+        raise ValueError('Governance workflow must invoke the canonical checker')
+    def reaches_gate(name, seen):
+        if name == '_governance-check': return True
+        if name in seen: return False
+        return any(reaches_gate(dep, seen | {name}) for dep in rules.get(name, []))
+    for name in ('check', 'test', 'test-integration', 'intro-page', 'serve-intro'):
+        if not reaches_gate(name, set()):
+            raise ValueError(f'{name}: workflow must depend on _governance-check')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
@@ -50,7 +74,8 @@ def main():
         for name, description in public.items():
             print(f'  {name:<{width}}  {description}')
     else:
-        print('Makefile visibility checked.')
+        check_governance_workflows((ROOT / 'Makefile').read_text())
+        print('Makefile visibility and governance dependencies checked.')
 
 
 if __name__ == '__main__':

@@ -15,11 +15,11 @@ from it. Generated files are checked in and are never edited by hand. `make _dat
 
 ## Declared layers
 
-ModelArtifact → fixed parameter/tokenizer identity and architecture.
+ModelArtifactReference → fixed parameter/tokenizer identity and architecture.
 InferenceSystem → execution strategy and supported limits.
 InferenceRequest → text and a nested generation policy.
 Workload → chronologically ordered, identified request arrivals.
-RunBinding → the model, system, and workload bound together for execution.
+RunBinding / KVRunBinding → the resolved model, system, and workload consumed by execution.
 RequestBinding → the resolved request context within a numerical trace.
 RunRecord → the bound workload, typed events, and linked numerical traces.
 RunOutcome → observed counts and termination; it is not a requested configuration.

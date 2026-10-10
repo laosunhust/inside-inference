@@ -16,13 +16,17 @@ owns durable obligations, not implementation instructions.
 
 ## 2. Ontology and data model
 
-Ontology is the backbone of the system. Meaning, boundaries, relationships, and
-invariants precede implementation. Authority must be readable by humans and
-consumable by machines; prefer YAML for authored ontology and declarations.
+Ontology is the backbone of the system. “All models are wrong, some are useful.”
+Its concepts are purposeful abstractions, not claims of completeness. Judge them
+by the questions they help investigate; make their assumptions and limits explicit.
+Meaning, boundaries, relationships, and invariants precede implementation.
+Authority must be readable by humans and consumable by machines; prefer YAML for
+authored ontology and declarations.
 
-Every admitted ontology entity maps one-to-one to a data-model declaration, with
-mechanically checked references in both directions. No exceptions are authorized.
-Any future exception requires explicit authorization and a traceable record.
+Each ontology concept explicitly owns one or more data-model declarations. Every
+declaration has exactly one semantic owner, with mechanically checked references
+in both directions. A serialization record does not by itself justify a new ontology
+concept. Unowned declarations and competing ownership are forbidden.
 
 Each concept has one owner. Implementation and presentation derive from that
 owner. Prose alone cannot establish executable ontology authority; the ontology
@@ -36,8 +40,19 @@ from its owning data model must block the build. Duplicate authorities, unowned
 declarations, and stale generated consumers must also block it.
 
 Folder structure has declared upper bounds on files per folder and size per file,
-with one machine-readable authority for scope, units, and limits. Violations block
-the build. Checks cannot silently repair drift, grant exceptions, or relax limits.
+with one machine-readable authority for scope, units, and limits. Warning thresholds
+signal when to plan a cohesive split; exceeding a hard limit blocks the build. Checks cannot silently repair drift, grant exceptions, or relax limits.
+
+The constitution, governance limits, and enforcement are approval-locked in
+[governance/approval-lock.yaml](governance/approval-lock.yaml). Changes to protected
+files, lock scope, or recorded hashes require explicit project-owner authorization
+covering that change. An ordinary feature request or a failing check is not such
+authorization. Record the approval source and scope; never refresh hashes merely
+to make checks pass. Existing explicit authorization remains valid for its scope.
+Makefile and ontology/data-model manifests remain editable subject to their
+structural checks. Ontology content is not approval-locked during consolidation;
+locking it later requires a separate owner decision.
+Local integrity checks do not independently authenticate human approval.
 
 Missing enforcement is a governance gap, not compliance. Establish the applicable
 gate before extending an affected boundary. Demonstrate rejection of violations;
@@ -57,3 +72,26 @@ with uncertainty and applicability made explicit.
 Success criteria cannot be weakened after observing failure to manufacture a pass.
 Unsupported claims must be narrowed or rejected. Missing evidence and failed
 evaluations remain visible; presentation cannot substitute for either.
+
+## 5. Development
+
+Commit only when asked. Preserve the user's work and keep changes within the
+agreed scope. Each change must be explainable and reviewable on its own.
+
+Prefer cohesive modules and simple interfaces. Correctness takes precedence over
+backward compatibility; retire superseded paths and update their consumers together.
+Invalid or unsupported input must fail explicitly. Defaults initialize valid
+configurations; they must not repair failures or conceal alternate execution paths.
+
+The root Makefile owns development workflows. Shared procedures and command details
+belong there; documents link to their authority instead of maintaining parallel
+instructions. Keep documentation focused and progressively disclosed.
+
+`make test` is the light contract and correctness harness. Changes to contracts,
+execution, transport, or interactive behavior require `make test-integration`, the
+full harness. Each supported interactive experiment must be reproducible headlessly
+from the same declarations. Divergence or missing prerequisites is a failure, not a
+reason to skip verification. Report checks performed and any remaining limits.
+
+Disposable outputs belong under `out/`. Required fixtures, datasets, and
+irreplaceable state must have a durable home outside disposable output directories.

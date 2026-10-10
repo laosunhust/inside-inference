@@ -1,5 +1,6 @@
 version: 1
-files_per_folder: 15
+files_per_folder_warning: 12
+files_per_folder: 18
 authored_file_bytes: 24576
 generated_file_bytes: 2097152
 fixture_file_bytes: 131072

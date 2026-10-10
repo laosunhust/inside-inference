@@ -75,7 +75,7 @@ class GenerationTests(unittest.TestCase):
         broken['passes'][0]['nodes'][-1]['values'][0][0] += 1
         with self.assertRaises(ValueError): replay(broken)
         broken = copy.deepcopy(a)
-        broken['code']['source_sha256'] = 'wrong'
+        broken['provenance']['source_sha256'] = 'wrong'
         with self.assertRaises(ValueError): replay(broken)
 
 

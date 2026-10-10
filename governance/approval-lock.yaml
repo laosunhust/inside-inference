@@ -1,0 +1,30 @@
+# Approval-controlled baseline. Do not refresh without explicit owner authorization.
+# Hash consistency is checked locally; this file is not proof of approval authenticity.
+version: 1
+approval:
+  source: 'Project-owner instruction in this conversation: "once we are in better shape, we need to lock
+    ontology. but not yet. let''s update accordingly." Follows approval of 12-file warnings and an 18-file
+    maximum.'
+  scope: Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile
+    and ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content
+    remains unlocked. Retain approved folder and file-size limits. This approval does not authorize future
+    policy changes.
+files:
+  AGENTS.md: 2a341b19e0ea19970c50485aa296eaeae27af674c320e5a3c2401bace64d98ed
+  governance/limits.yaml: 7e35453df318019575da77207072cc3155b2636c54fc81297c9144b84ec735f5
+  scripts/__init__.py: 07cf2de9025005ac8dbafe1162d8cd39cf4f99dab454bd0388b597a5585db2ea
+  scripts/build/compile_validators.mjs: 417bc2773e4b140ea07ff5c0e384a441d4c50dcbb0be1e5ebfad6f14fcbbf0b0
+  scripts/build/contracts.py: bdc4e0d7ac517097ac1a3fa0bdbaeb06dacbbee567619355e66b7f99ece7fc81
+  scripts/build/generate_data_models.py: bccf9525d4f43a7f8f81bd31b130cdc8ac93e48e29e82f1a4f1019292e6273a3
+  scripts/build/ontology.py: 9f5271f975a3c877906abad76fba1eb58496bf4399691e77c3bfa4bba7e35454
+  scripts/build/structured.py: 1daf5604e0d49dcf6633ad9c7bd106415328897b7d104d455992bece6d74c28d
+  scripts/check/governance/__init__.py: f90f2f4c5a46fe4fa0deb54d71f7a463cc6368400b54fee101c89aab7e6aba50
+  scripts/check/governance/__main__.py: 45ab2513ee1a8503178a1f105ac91f7e2058701f6b1f7fb5864a708b211e04cd
+  scripts/check/governance/evaluation.py: b1699246f73a51d330525a4a67c4bd814cd8e2821ad6eb8923cb60a6b430616a
+  scripts/check/governance/interfaces.py: c77bd3ba3350912007ca86f0f2d7ba7efc66d0519a6f7916254a4f4c26c2f0bc
+  scripts/check/governance/locks.py: b8185904f40be45677a972c4f9713a40105d9f3dac8c6e866ef81c49fa0177e1
+  scripts/check/governance/structure.py: 6e945da8ccc22ff454a936e6c770739e815594fb513ea5102bd6b9bd87aa72b3
+  scripts/check/layout.py: 54e53c43a5ce571375c049e9ebf740631ab24c14acdd1efaafca5eb2f63679e2
+  scripts/check/make_interface.py: 8d74b9d44315bea92199fb7f1984d451abb6f6886d362864e4bfc6b71034d38d
+  tests/unit/contracts/test_governance.py: 2c71ea35517958251df04aed70e4aae954b9f831cc2797a5076fc207108b6a4c
+  tests/unit/contracts/test_governance_locks.py: e6bdc75ad527fccda62ebc1fc9afdf7ce3a2c50c08389dbd2c5ec41dd53ed873

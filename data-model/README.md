@@ -1,7 +1,8 @@
 # Data model
 
-[Ontology modules](../docs/ontology/README.md) map one-to-one to named schemas and grant
-allowed cross-entity references and capability reads. The
+[Ontology modules](../docs/ontology/README.md) explicitly grant one or more named schemas per concept.
+Each schema has exactly one owner; dependencies and capability reads are granted
+between owners. Supporting records do not require separate ontology concepts. The
 [authored YAML manifest](declarations.yaml) composes field contracts from domain
 modules. [inference.schema.json](inference.schema.json) is a generated bundle,
 not an editing authority.
@@ -46,7 +47,7 @@ no second hand-maintained transport schema exists.
 
 Behavioral admission enforces chronological unique arrivals and the current
 single-arrival-at-zero capability. Run validation checks binding, causal order,
-commitment, delivery, and numerical trace relationships. Numerical traces have a
+selection, delivery, and numerical trace relationships. Numerical traces have a
 structural schema too; shape validation cannot establish correct tensor arithmetic.
 Replay and independent calculations provide separate evidence for that claim.
 

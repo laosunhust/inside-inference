@@ -1,44 +1,7 @@
 $defs:
-  RunOutcome:
-    type: object
-    x-owner: RunOutcome
-    additionalProperties: false
-    required:
-    - selected_tokens
-    - delivered_tokens
-    - unused_budget
-    - stop_reason
-    - complete
-    properties:
-      selected_tokens:
-        type: integer
-        title: Selected IDs
-        description: Includes terminal controls.
-        minimum: 1
-      delivered_tokens:
-        type: integer
-        title: Delivered IDs
-        description: Every selected ID except TURN_END, including diagnostic control/byte/hex tokens.
-        minimum: 0
-      unused_budget:
-        type: integer
-        title: Unused allowance
-        description: Requested ceiling minus actual selected ID count.
-        minimum: 0
-      stop_reason:
-        type: string
-        title: Termination condition
-        description: Recorded by the execution loop.
-        enum:
-        - turn_end
-        - output_budget
-      complete:
-        type: boolean
-        title: Turn complete
-        description: True only if TURN_END was selected.
   RequestBinding:
     type: object
-    x-owner: RequestBinding
+    x-owner: ExperimentSpec
     additionalProperties: false
     required:
     - model
@@ -46,14 +9,14 @@ $defs:
     - request
     properties:
       model:
-        $ref: '#/$defs/ModelArtifact'
+        $ref: '#/$defs/ModelArtifactReference'
       system:
         $ref: '#/$defs/InferenceSystem'
       request:
         $ref: '#/$defs/InferenceRequest'
   RunBinding:
     type: object
-    x-owner: RunBinding
+    x-owner: ExperimentSpec
     additionalProperties: false
     required:
     - model
@@ -61,14 +24,14 @@ $defs:
     - workload
     properties:
       model:
-        $ref: '#/$defs/ModelArtifact'
+        $ref: '#/$defs/ModelArtifactReference'
       system:
         $ref: '#/$defs/InferenceSystem'
       workload:
         $ref: '#/$defs/Workload'
   EventClock:
     type: object
-    x-owner: EventClock
+    x-owner: ExperimentEvent
     additionalProperties: false
     required:
     - kind
@@ -81,7 +44,7 @@ $defs:
         default: execution-order
   RequestArrived:
     type: object
-    x-owner: RequestArrived
+    x-owner: ExperimentEvent
     additionalProperties: false
     required:
     - kind
@@ -101,7 +64,7 @@ $defs:
         maximum: 9007199254740991
   InputEncoded:
     type: object
-    x-owner: InputEncoded
+    x-owner: ExperimentEvent
     additionalProperties: false
     required:
     - kind
@@ -125,35 +88,9 @@ $defs:
         description: Encoded positions
         minimum: 0
         maximum: 9007199254740991
-  WorkCompleted:
-    type: object
-    x-owner: WorkCompleted
-    additionalProperties: false
-    required:
-    - kind
-    - work_id
-    - phase
-    properties:
-      kind:
-        type: string
-        title: Event kind
-        description: Event kind
-        const: work-completed
-        default: work-completed
-      work_id:
-        type: string
-        title: Numerical observation identity
-        description: Numerical observation identity
-      phase:
-        type: string
-        title: Execution phase
-        description: Execution phase
-        enum:
-        - prefill
-        - decode
   TokenSelected:
     type: object
-    x-owner: TokenSelected
+    x-owner: ExperimentEvent
     additionalProperties: false
     required:
     - kind
@@ -183,105 +120,9 @@ $defs:
         description: Absolute sequence position
         minimum: 0
         maximum: 9007199254740991
-  TokenCommitted:
-    type: object
-    x-owner: TokenCommitted
-    additionalProperties: false
-    required:
-    - kind
-    - work_id
-    - token_ids
-    - output_start
-    properties:
-      kind:
-        type: string
-        title: Event kind
-        description: Event kind
-        const: token-committed
-        default: token-committed
-      work_id:
-        type: string
-        title: Producing computation
-        description: Producing computation
-      token_ids:
-        type: array
-        title: Accepted continuation
-        description: Accepted continuation
-        items:
-          type: integer
-          title: Committed token ID
-          description: Committed token ID
-          minimum: 0
-          maximum: 9007199254740991
-        minItems: 1
-      output_start:
-        type: integer
-        title: Client token offset
-        description: Client token offset
-        minimum: 0
-        maximum: 9007199254740991
-  TokenDelivered:
-    type: object
-    x-owner: TokenDelivered
-    additionalProperties: false
-    required:
-    - kind
-    - work_id
-    - token_ids
-    - output_start
-    - display_delta
-    properties:
-      kind:
-        type: string
-        title: Event kind
-        description: Event kind
-        const: token-delivered
-        default: token-delivered
-      work_id:
-        type: string
-        title: Producing computation
-        description: Producing computation
-      token_ids:
-        type: array
-        title: Delivered token IDs
-        description: Delivered token IDs
-        items:
-          type: integer
-          title: Delivered token ID
-          description: Delivered token ID
-          minimum: 0
-          maximum: 9007199254740991
-        minItems: 1
-      output_start:
-        type: integer
-        title: Client token offset
-        description: Client token offset
-        minimum: 0
-        maximum: 9007199254740991
-      display_delta:
-        type: string
-        title: Decoded text delivered to the client
-        description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
-          as labeled markers.
-  RequestFinished:
-    type: object
-    x-owner: RequestFinished
-    additionalProperties: false
-    required:
-    - kind
-    - outcome
-    properties:
-      kind:
-        type: string
-        title: Event kind
-        description: Event kind
-        const: request-finished
-        default: request-finished
-      outcome:
-        $ref: '#/$defs/RunOutcome'
   RunEvent:
     type: object
-    x-owner: RunEvent
+    x-owner: ExperimentEvent
     additionalProperties: false
     required:
     - event_id
@@ -323,18 +164,17 @@ $defs:
         oneOf:
         - $ref: '#/$defs/RequestArrived'
         - $ref: '#/$defs/InputEncoded'
-        - $ref: '#/$defs/WorkCompleted'
+        - $ref: '#/$defs/ModelForwardCompleted'
         - $ref: '#/$defs/TokenSelected'
-        - $ref: '#/$defs/TokenCommitted'
         - $ref: '#/$defs/TokenDelivered'
         - $ref: '#/$defs/RequestFinished'
   NumericalTrace:
     type: object
     properties:
       checkpoint:
-        $ref: '#/$defs/ModelCheckpoint'
-      code:
-        $ref: '#/$defs/CodeIdentity'
+        $ref: '#/$defs/ModelArtifact'
+      provenance:
+        $ref: '#/$defs/ExecutionProvenance'
       contract_sha256:
         type: string
       declaration:
@@ -378,7 +218,7 @@ $defs:
           $ref: '#/$defs/Token'
     required:
     - checkpoint
-    - code
+    - provenance
     - contract_sha256
     - declaration
     - decoding_contract
@@ -395,10 +235,10 @@ $defs:
     - tokenizer
     - vocabulary
     additionalProperties: false
-    x-owner: NumericalTrace
+    x-owner: ExperimentExecution
   RunRecord:
     type: object
-    x-owner: RunRecord
+    x-owner: ExperimentExecution
     additionalProperties: false
     required:
     - format
@@ -509,7 +349,7 @@ $defs:
     - term
     - values
     additionalProperties: false
-    x-owner: TensorObservation
+    x-owner: ExperimentObservation
   TokenSelection:
     type: object
     properties:
@@ -538,22 +378,22 @@ $defs:
     - rule
     - selected_id
     additionalProperties: false
-    x-owner: TokenSelection
-  CacheExperiment:
+    x-owner: ExperimentObservation
+  KVExperimentInput:
     type: object
-    x-owner: CacheExperiment
+    x-owner: ExperimentSpec
     additionalProperties: false
     required:
     - system
     - workload
     properties:
       system:
-        $ref: '#/$defs/CacheSystem'
+        $ref: '#/$defs/KVResidencySystemConfig'
       workload:
         $ref: '#/$defs/Workload'
   CacheEvent:
     type: object
-    x-owner: CacheEvent
+    x-owner: ExperimentEvent
     additionalProperties: false
     required:
     - event_id
@@ -616,7 +456,7 @@ $defs:
           type: string
   CacheComputation:
     type: object
-    x-owner: CacheComputation
+    x-owner: ExperimentObservation
     additionalProperties: false
     required:
     - work_id
@@ -681,7 +521,7 @@ $defs:
         minimum: 0
   CacheMeasurement:
     type: object
-    x-owner: CacheMeasurement
+    x-owner: ExperimentObservation
     additionalProperties: false
     required:
     - event_id
@@ -708,29 +548,28 @@ $defs:
         maximum: 9007199254740991
   CacheRun:
     type: object
-    x-owner: CacheRun
+    x-owner: ExperimentExecution
     additionalProperties: false
     required:
     - id
-    - spec
+    - declaration
     - checkpoint
-    - source_sha256
+    - provenance
     - events
     - computations
     - measurements
     - outcomes
     - states
     - evidence
-    - backend
     properties:
       id:
         type: string
-      spec:
-        $ref: '#/$defs/CacheExperiment'
+      declaration:
+        $ref: '#/$defs/KVRunBinding'
       checkpoint:
-        $ref: '#/$defs/ModelCheckpoint'
-      source_sha256:
-        type: string
+        $ref: '#/$defs/ModelArtifact'
+      provenance:
+        $ref: '#/$defs/ExecutionProvenance'
       events:
         type: array
         items:
@@ -753,9 +592,7 @@ $defs:
           $ref: '#/$defs/KVState'
       evidence:
         type: string
-      backend:
-        $ref: '#/$defs/CacheBackend'
-  CodeIdentity:
+  ExecutionProvenance:
     type: object
     properties:
       python:
@@ -769,28 +606,16 @@ $defs:
         additionalProperties:
           type: string
           pattern: ^[0-9a-f]{64}$
+      backend:
+        $ref: '#/$defs/ExecutionBackend'
     required:
     - python
     - revision
     - source_sha256
     - sources
+    - backend
     additionalProperties: false
-    x-owner: CodeIdentity
-  DecodingContract:
-    type: object
-    properties:
-      choice:
-        type: string
-      explanation:
-        type: string
-      rule:
-        type: string
-    required:
-    - choice
-    - explanation
-    - rule
-    additionalProperties: false
-    x-owner: DecodingContract
+    x-owner: ExperimentExecution
   NumericalPrecision:
     type: object
     properties:
@@ -805,7 +630,7 @@ $defs:
     - compute
     - storage
     additionalProperties: false
-    x-owner: NumericalPrecision
+    x-owner: ExperimentObservation
   NumericalPass:
     type: object
     properties:
@@ -858,4 +683,45 @@ $defs:
     - selection_position
     - step
     additionalProperties: false
-    x-owner: NumericalPass
+    x-owner: ExperimentObservation
+  ModelForwardCompleted:
+    type: object
+    x-owner: ExperimentEvent
+    additionalProperties: false
+    required:
+    - kind
+    - work_id
+    - phase
+    properties:
+      kind:
+        type: string
+        title: Event kind
+        description: Event kind
+        const: model-forward-completed
+        default: model-forward-completed
+      work_id:
+        type: string
+        title: Numerical observation identity
+        description: Numerical observation identity
+      phase:
+        type: string
+        title: Execution phase
+        description: Execution phase
+        enum:
+        - prefill
+        - decode
+  KVRunBinding:
+    type: object
+    x-owner: ExperimentSpec
+    additionalProperties: false
+    required:
+    - model
+    - system
+    - workload
+    properties:
+      model:
+        $ref: '#/$defs/ModelArtifactReference'
+      system:
+        $ref: '#/$defs/KVResidencySystemConfig'
+      workload:
+        $ref: '#/$defs/Workload'

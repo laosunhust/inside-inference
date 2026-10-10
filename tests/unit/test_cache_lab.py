@@ -64,7 +64,7 @@ class CacheLabTests(unittest.TestCase):
                 self.assertTrue(any(e['detail']=='host-to-device' for e in transfers))
                 for start in transfers:
                     finish=next(e for e in r['events'][r['events'].index(start)+1:] if e['kind']=='transfer-end')
-                    expected_us=r['spec']['system']['link_latency_us']+start['bytes']/r['spec']['system']['link_bytes_per_us']
+                    expected_us=r['declaration']['system']['link_latency_us']+start['bytes']/r['declaration']['system']['link_bytes_per_us']
                     self.assertAlmostEqual(finish['time_us']-start['time_us'],expected_us)
 
     def test_admission_backpressure_and_shared_compute(self):

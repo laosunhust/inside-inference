@@ -99,7 +99,7 @@ as CLI export and site generation. Browser JavaScript reads its results and the
 canonical ontology definitions, without reimplementing tokenizer or GPT math.
 
 The numerical trace binds its model, system, and request through `RequestBinding`.
-The outer workload run binds `ModelArtifact`, `InferenceSystem`, and `Workload`.
+The outer workload run binds `ModelArtifactReference`, `InferenceSystem`, and `Workload`.
 `GenerationPolicy` owns selection and stopping; `RunOutcome` records selected and
 delivered counts, unused allowance, and the observed stop condition. Checkpoint
 preparation seed remains artifact provenance, not an inference request control.

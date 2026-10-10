@@ -103,7 +103,7 @@
         }
       }
     },
-    "ModelArtifact": {
+    "ModelArtifactReference": {
       "type": "object",
       "x-owner": "ModelArtifact",
       "additionalProperties": false,
@@ -152,7 +152,7 @@
         "seed"
       ],
       "additionalProperties": false,
-      "x-owner": "InitializationProvenance"
+      "x-owner": "ModelArtifact"
     },
     "TrainingProvenance": {
       "type": "object",
@@ -205,7 +205,7 @@
         "source_sha256"
       ],
       "additionalProperties": false,
-      "x-owner": "TrainingProvenance"
+      "x-owner": "ModelArtifact"
     },
     "KVState": {
       "type": "object",
@@ -268,7 +268,7 @@
         }
       }
     },
-    "ModelCheckpoint": {
+    "ModelArtifact": {
       "type": "object",
       "properties": {
         "config": {
@@ -281,7 +281,7 @@
           "type": "string"
         },
         "parameters": {
-          "$ref": "#/$defs/ModelParameters"
+          "$ref": "#/$defs/ModelWeights"
         },
         "provenance": {
           "oneOf": [
@@ -302,9 +302,9 @@
         "provenance"
       ],
       "additionalProperties": false,
-      "x-owner": "ModelCheckpoint"
+      "x-owner": "ModelArtifact"
     },
-    "ModelParameters": {
+    "ModelWeights": {
       "type": "object",
       "properties": {
         "attention_output": {
@@ -492,7 +492,7 @@
         "value_bias"
       ],
       "additionalProperties": false,
-      "x-owner": "ModelParameters"
+      "x-owner": "ModelWeights"
     },
     "InferenceSystem": {
       "type": "object",
@@ -591,9 +591,9 @@
         }
       }
     },
-    "ScheduledRequest": {
+    "RequestArrival": {
       "type": "object",
-      "x-owner": "ScheduledRequest",
+      "x-owner": "InferenceRequest",
       "additionalProperties": false,
       "required": [
         "request_id",
@@ -640,15 +640,15 @@
           "title": "Ordered requests",
           "description": "Ordered requests",
           "items": {
-            "$ref": "#/$defs/ScheduledRequest"
+            "$ref": "#/$defs/RequestArrival"
           },
           "minItems": 1
         }
       }
     },
-    "CacheSystem": {
+    "KVResidencySystemConfig": {
       "type": "object",
-      "x-owner": "CacheSystem",
+      "x-owner": "InferenceSystem",
       "additionalProperties": false,
       "required": [
         "backend",
@@ -735,288 +735,9 @@
         }
       }
     },
-    "RunOutcome": {
-      "type": "object",
-      "x-owner": "RunOutcome",
-      "additionalProperties": false,
-      "required": [
-        "selected_tokens",
-        "delivered_tokens",
-        "unused_budget",
-        "stop_reason",
-        "complete"
-      ],
-      "properties": {
-        "selected_tokens": {
-          "type": "integer",
-          "title": "Selected IDs",
-          "description": "Includes terminal controls.",
-          "minimum": 1
-        },
-        "delivered_tokens": {
-          "type": "integer",
-          "title": "Delivered IDs",
-          "description": "Every selected ID except TURN_END, including diagnostic control/byte/hex tokens.",
-          "minimum": 0
-        },
-        "unused_budget": {
-          "type": "integer",
-          "title": "Unused allowance",
-          "description": "Requested ceiling minus actual selected ID count.",
-          "minimum": 0
-        },
-        "stop_reason": {
-          "type": "string",
-          "title": "Termination condition",
-          "description": "Recorded by the execution loop.",
-          "enum": [
-            "turn_end",
-            "output_budget"
-          ]
-        },
-        "complete": {
-          "type": "boolean",
-          "title": "Turn complete",
-          "description": "True only if TURN_END was selected."
-        }
-      }
-    },
-    "RequestBinding": {
-      "type": "object",
-      "x-owner": "RequestBinding",
-      "additionalProperties": false,
-      "required": [
-        "model",
-        "system",
-        "request"
-      ],
-      "properties": {
-        "model": {
-          "$ref": "#/$defs/ModelArtifact"
-        },
-        "system": {
-          "$ref": "#/$defs/InferenceSystem"
-        },
-        "request": {
-          "$ref": "#/$defs/InferenceRequest"
-        }
-      }
-    },
-    "RunBinding": {
-      "type": "object",
-      "x-owner": "RunBinding",
-      "additionalProperties": false,
-      "required": [
-        "model",
-        "system",
-        "workload"
-      ],
-      "properties": {
-        "model": {
-          "$ref": "#/$defs/ModelArtifact"
-        },
-        "system": {
-          "$ref": "#/$defs/InferenceSystem"
-        },
-        "workload": {
-          "$ref": "#/$defs/Workload"
-        }
-      }
-    },
-    "EventClock": {
-      "type": "object",
-      "x-owner": "EventClock",
-      "additionalProperties": false,
-      "required": [
-        "kind"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "title": "Clock domain",
-          "description": "Clock domain",
-          "const": "execution-order",
-          "default": "execution-order"
-        }
-      }
-    },
-    "RequestArrived": {
-      "type": "object",
-      "x-owner": "RequestArrived",
-      "additionalProperties": false,
-      "required": [
-        "kind",
-        "arrival_us"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "title": "Event kind",
-          "description": "Event kind",
-          "const": "request-arrived",
-          "default": "request-arrived"
-        },
-        "arrival_us": {
-          "type": "integer",
-          "title": "Declared virtual arrival; not service latency",
-          "description": "Declared virtual arrival; not service latency",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        }
-      }
-    },
-    "InputEncoded": {
-      "type": "object",
-      "x-owner": "InputEncoded",
-      "additionalProperties": false,
-      "required": [
-        "kind",
-        "input_sha256",
-        "token_count"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "title": "Event kind",
-          "description": "Event kind",
-          "const": "input-encoded",
-          "default": "input-encoded"
-        },
-        "input_sha256": {
-          "type": "string",
-          "title": "Framed input identity",
-          "description": "Framed input identity",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "token_count": {
-          "type": "integer",
-          "title": "Encoded positions",
-          "description": "Encoded positions",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        }
-      }
-    },
-    "WorkCompleted": {
-      "type": "object",
-      "x-owner": "WorkCompleted",
-      "additionalProperties": false,
-      "required": [
-        "kind",
-        "work_id",
-        "phase"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "title": "Event kind",
-          "description": "Event kind",
-          "const": "work-completed",
-          "default": "work-completed"
-        },
-        "work_id": {
-          "type": "string",
-          "title": "Numerical observation identity",
-          "description": "Numerical observation identity"
-        },
-        "phase": {
-          "type": "string",
-          "title": "Execution phase",
-          "description": "Execution phase",
-          "enum": [
-            "prefill",
-            "decode"
-          ]
-        }
-      }
-    },
-    "TokenSelected": {
-      "type": "object",
-      "x-owner": "TokenSelected",
-      "additionalProperties": false,
-      "required": [
-        "kind",
-        "work_id",
-        "token_id",
-        "output_position"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "title": "Event kind",
-          "description": "Event kind",
-          "const": "token-selected",
-          "default": "token-selected"
-        },
-        "work_id": {
-          "type": "string",
-          "title": "Producing computation",
-          "description": "Producing computation"
-        },
-        "token_id": {
-          "type": "integer",
-          "title": "Selected vocabulary ID",
-          "description": "Selected vocabulary ID",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "output_position": {
-          "type": "integer",
-          "title": "Absolute sequence position",
-          "description": "Absolute sequence position",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        }
-      }
-    },
-    "TokenCommitted": {
-      "type": "object",
-      "x-owner": "TokenCommitted",
-      "additionalProperties": false,
-      "required": [
-        "kind",
-        "work_id",
-        "token_ids",
-        "output_start"
-      ],
-      "properties": {
-        "kind": {
-          "type": "string",
-          "title": "Event kind",
-          "description": "Event kind",
-          "const": "token-committed",
-          "default": "token-committed"
-        },
-        "work_id": {
-          "type": "string",
-          "title": "Producing computation",
-          "description": "Producing computation"
-        },
-        "token_ids": {
-          "type": "array",
-          "title": "Accepted continuation",
-          "description": "Accepted continuation",
-          "items": {
-            "type": "integer",
-            "title": "Committed token ID",
-            "description": "Committed token ID",
-            "minimum": 0,
-            "maximum": 9007199254740991
-          },
-          "minItems": 1
-        },
-        "output_start": {
-          "type": "integer",
-          "title": "Client token offset",
-          "description": "Client token offset",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        }
-      }
-    },
     "TokenDelivered": {
       "type": "object",
-      "x-owner": "TokenDelivered",
+      "x-owner": "InferenceResponse",
       "additionalProperties": false,
       "required": [
         "kind",
@@ -1067,7 +788,7 @@
     },
     "RequestFinished": {
       "type": "object",
-      "x-owner": "RequestFinished",
+      "x-owner": "InferenceResponse",
       "additionalProperties": false,
       "required": [
         "kind",
@@ -1086,9 +807,231 @@
         }
       }
     },
+    "RunOutcome": {
+      "type": "object",
+      "x-owner": "InferenceResponse",
+      "additionalProperties": false,
+      "required": [
+        "selected_tokens",
+        "delivered_tokens",
+        "unused_budget",
+        "stop_reason",
+        "complete"
+      ],
+      "properties": {
+        "selected_tokens": {
+          "type": "integer",
+          "title": "Selected IDs",
+          "description": "Includes terminal controls.",
+          "minimum": 1
+        },
+        "delivered_tokens": {
+          "type": "integer",
+          "title": "Delivered IDs",
+          "description": "Every selected ID except TURN_END, including diagnostic control/byte/hex tokens.",
+          "minimum": 0
+        },
+        "unused_budget": {
+          "type": "integer",
+          "title": "Unused allowance",
+          "description": "Requested ceiling minus actual selected ID count.",
+          "minimum": 0
+        },
+        "stop_reason": {
+          "type": "string",
+          "title": "Termination condition",
+          "description": "Recorded by the execution loop.",
+          "enum": [
+            "turn_end",
+            "output_budget"
+          ]
+        },
+        "complete": {
+          "type": "boolean",
+          "title": "Turn complete",
+          "description": "True only if TURN_END was selected."
+        }
+      }
+    },
+    "DecodingContract": {
+      "type": "object",
+      "properties": {
+        "choice": {
+          "type": "string"
+        },
+        "explanation": {
+          "type": "string"
+        },
+        "rule": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "choice",
+        "explanation",
+        "rule"
+      ],
+      "additionalProperties": false,
+      "x-owner": "GenerationPolicy"
+    },
+    "RequestBinding": {
+      "type": "object",
+      "x-owner": "ExperimentSpec",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "system",
+        "request"
+      ],
+      "properties": {
+        "model": {
+          "$ref": "#/$defs/ModelArtifactReference"
+        },
+        "system": {
+          "$ref": "#/$defs/InferenceSystem"
+        },
+        "request": {
+          "$ref": "#/$defs/InferenceRequest"
+        }
+      }
+    },
+    "RunBinding": {
+      "type": "object",
+      "x-owner": "ExperimentSpec",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "system",
+        "workload"
+      ],
+      "properties": {
+        "model": {
+          "$ref": "#/$defs/ModelArtifactReference"
+        },
+        "system": {
+          "$ref": "#/$defs/InferenceSystem"
+        },
+        "workload": {
+          "$ref": "#/$defs/Workload"
+        }
+      }
+    },
+    "EventClock": {
+      "type": "object",
+      "x-owner": "ExperimentEvent",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "title": "Clock domain",
+          "description": "Clock domain",
+          "const": "execution-order",
+          "default": "execution-order"
+        }
+      }
+    },
+    "RequestArrived": {
+      "type": "object",
+      "x-owner": "ExperimentEvent",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "arrival_us"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "title": "Event kind",
+          "description": "Event kind",
+          "const": "request-arrived",
+          "default": "request-arrived"
+        },
+        "arrival_us": {
+          "type": "integer",
+          "title": "Declared virtual arrival; not service latency",
+          "description": "Declared virtual arrival; not service latency",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "InputEncoded": {
+      "type": "object",
+      "x-owner": "ExperimentEvent",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "input_sha256",
+        "token_count"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "title": "Event kind",
+          "description": "Event kind",
+          "const": "input-encoded",
+          "default": "input-encoded"
+        },
+        "input_sha256": {
+          "type": "string",
+          "title": "Framed input identity",
+          "description": "Framed input identity",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "token_count": {
+          "type": "integer",
+          "title": "Encoded positions",
+          "description": "Encoded positions",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "TokenSelected": {
+      "type": "object",
+      "x-owner": "ExperimentEvent",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "work_id",
+        "token_id",
+        "output_position"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "title": "Event kind",
+          "description": "Event kind",
+          "const": "token-selected",
+          "default": "token-selected"
+        },
+        "work_id": {
+          "type": "string",
+          "title": "Producing computation",
+          "description": "Producing computation"
+        },
+        "token_id": {
+          "type": "integer",
+          "title": "Selected vocabulary ID",
+          "description": "Selected vocabulary ID",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "output_position": {
+          "type": "integer",
+          "title": "Absolute sequence position",
+          "description": "Absolute sequence position",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
     "RunEvent": {
       "type": "object",
-      "x-owner": "RunEvent",
+      "x-owner": "ExperimentEvent",
       "additionalProperties": false,
       "required": [
         "event_id",
@@ -1142,13 +1085,10 @@
               "$ref": "#/$defs/InputEncoded"
             },
             {
-              "$ref": "#/$defs/WorkCompleted"
+              "$ref": "#/$defs/ModelForwardCompleted"
             },
             {
               "$ref": "#/$defs/TokenSelected"
-            },
-            {
-              "$ref": "#/$defs/TokenCommitted"
             },
             {
               "$ref": "#/$defs/TokenDelivered"
@@ -1164,10 +1104,10 @@
       "type": "object",
       "properties": {
         "checkpoint": {
-          "$ref": "#/$defs/ModelCheckpoint"
+          "$ref": "#/$defs/ModelArtifact"
         },
-        "code": {
-          "$ref": "#/$defs/CodeIdentity"
+        "provenance": {
+          "$ref": "#/$defs/ExecutionProvenance"
         },
         "contract_sha256": {
           "type": "string"
@@ -1231,7 +1171,7 @@
       },
       "required": [
         "checkpoint",
-        "code",
+        "provenance",
         "contract_sha256",
         "declaration",
         "decoding_contract",
@@ -1249,11 +1189,11 @@
         "vocabulary"
       ],
       "additionalProperties": false,
-      "x-owner": "NumericalTrace"
+      "x-owner": "ExperimentExecution"
     },
     "RunRecord": {
       "type": "object",
-      "x-owner": "RunRecord",
+      "x-owner": "ExperimentExecution",
       "additionalProperties": false,
       "required": [
         "format",
@@ -1407,7 +1347,7 @@
         "values"
       ],
       "additionalProperties": false,
-      "x-owner": "TensorObservation"
+      "x-owner": "ExperimentObservation"
     },
     "TokenSelection": {
       "type": "object",
@@ -1447,11 +1387,11 @@
         "selected_id"
       ],
       "additionalProperties": false,
-      "x-owner": "TokenSelection"
+      "x-owner": "ExperimentObservation"
     },
-    "CacheExperiment": {
+    "KVExperimentInput": {
       "type": "object",
-      "x-owner": "CacheExperiment",
+      "x-owner": "ExperimentSpec",
       "additionalProperties": false,
       "required": [
         "system",
@@ -1459,7 +1399,7 @@
       ],
       "properties": {
         "system": {
-          "$ref": "#/$defs/CacheSystem"
+          "$ref": "#/$defs/KVResidencySystemConfig"
         },
         "workload": {
           "$ref": "#/$defs/Workload"
@@ -1468,7 +1408,7 @@
     },
     "CacheEvent": {
       "type": "object",
-      "x-owner": "CacheEvent",
+      "x-owner": "ExperimentEvent",
       "additionalProperties": false,
       "required": [
         "event_id",
@@ -1547,7 +1487,7 @@
     },
     "CacheComputation": {
       "type": "object",
-      "x-owner": "CacheComputation",
+      "x-owner": "ExperimentObservation",
       "additionalProperties": false,
       "required": [
         "work_id",
@@ -1636,7 +1576,7 @@
     },
     "CacheMeasurement": {
       "type": "object",
-      "x-owner": "CacheMeasurement",
+      "x-owner": "ExperimentObservation",
       "additionalProperties": false,
       "required": [
         "event_id",
@@ -1671,33 +1611,32 @@
     },
     "CacheRun": {
       "type": "object",
-      "x-owner": "CacheRun",
+      "x-owner": "ExperimentExecution",
       "additionalProperties": false,
       "required": [
         "id",
-        "spec",
+        "declaration",
         "checkpoint",
-        "source_sha256",
+        "provenance",
         "events",
         "computations",
         "measurements",
         "outcomes",
         "states",
-        "evidence",
-        "backend"
+        "evidence"
       ],
       "properties": {
         "id": {
           "type": "string"
         },
-        "spec": {
-          "$ref": "#/$defs/CacheExperiment"
+        "declaration": {
+          "$ref": "#/$defs/KVRunBinding"
         },
         "checkpoint": {
-          "$ref": "#/$defs/ModelCheckpoint"
+          "$ref": "#/$defs/ModelArtifact"
         },
-        "source_sha256": {
-          "type": "string"
+        "provenance": {
+          "$ref": "#/$defs/ExecutionProvenance"
         },
         "events": {
           "type": "array",
@@ -1731,13 +1670,10 @@
         },
         "evidence": {
           "type": "string"
-        },
-        "backend": {
-          "$ref": "#/$defs/CacheBackend"
         }
       }
     },
-    "CodeIdentity": {
+    "ExecutionProvenance": {
       "type": "object",
       "properties": {
         "python": {
@@ -1755,37 +1691,20 @@
             "type": "string",
             "pattern": "^[0-9a-f]{64}$"
           }
+        },
+        "backend": {
+          "$ref": "#/$defs/ExecutionBackend"
         }
       },
       "required": [
         "python",
         "revision",
         "source_sha256",
-        "sources"
+        "sources",
+        "backend"
       ],
       "additionalProperties": false,
-      "x-owner": "CodeIdentity"
-    },
-    "DecodingContract": {
-      "type": "object",
-      "properties": {
-        "choice": {
-          "type": "string"
-        },
-        "explanation": {
-          "type": "string"
-        },
-        "rule": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "choice",
-        "explanation",
-        "rule"
-      ],
-      "additionalProperties": false,
-      "x-owner": "DecodingContract"
+      "x-owner": "ExperimentExecution"
     },
     "NumericalPrecision": {
       "type": "object",
@@ -1806,7 +1725,7 @@
         "storage"
       ],
       "additionalProperties": false,
-      "x-owner": "NumericalPrecision"
+      "x-owner": "ExperimentObservation"
     },
     "NumericalPass": {
       "type": "object",
@@ -1877,7 +1796,61 @@
         "step"
       ],
       "additionalProperties": false,
-      "x-owner": "NumericalPass"
+      "x-owner": "ExperimentObservation"
+    },
+    "ModelForwardCompleted": {
+      "type": "object",
+      "x-owner": "ExperimentEvent",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "work_id",
+        "phase"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "title": "Event kind",
+          "description": "Event kind",
+          "const": "model-forward-completed",
+          "default": "model-forward-completed"
+        },
+        "work_id": {
+          "type": "string",
+          "title": "Numerical observation identity",
+          "description": "Numerical observation identity"
+        },
+        "phase": {
+          "type": "string",
+          "title": "Execution phase",
+          "description": "Execution phase",
+          "enum": [
+            "prefill",
+            "decode"
+          ]
+        }
+      }
+    },
+    "KVRunBinding": {
+      "type": "object",
+      "x-owner": "ExperimentSpec",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "system",
+        "workload"
+      ],
+      "properties": {
+        "model": {
+          "$ref": "#/$defs/ModelArtifactReference"
+        },
+        "system": {
+          "$ref": "#/$defs/KVResidencySystemConfig"
+        },
+        "workload": {
+          "$ref": "#/$defs/Workload"
+        }
+      }
     },
     "InspectionState": {
       "type": "object",
@@ -1911,7 +1884,7 @@
     },
     "Capabilities": {
       "type": "object",
-      "x-owner": "Capabilities",
+      "x-owner": "ExecutionCapabilities",
       "additionalProperties": false,
       "required": [
         "engine",
@@ -1950,7 +1923,7 @@
     },
     "CacheCapabilities": {
       "type": "object",
-      "x-owner": "CacheCapabilities",
+      "x-owner": "ExecutionCapabilities",
       "additionalProperties": false,
       "required": [
         "contract_sha256",
@@ -1974,9 +1947,9 @@
         }
       }
     },
-    "CacheBackend": {
+    "ExecutionBackend": {
       "type": "object",
-      "x-owner": "CacheBackend",
+      "x-owner": "ExecutionBackend",
       "additionalProperties": false,
       "required": [
         "compute_device",
@@ -2005,7 +1978,7 @@
     },
     "Token": {
       "type": "object",
-      "x-owner": "Token",
+      "x-owner": "Tokenizer",
       "properties": {
         "id": {
           "type": "integer",
@@ -2032,7 +2005,7 @@
     },
     "Span": {
       "type": "object",
-      "x-owner": "Span",
+      "x-owner": "Tokenizer",
       "properties": {
         "kind": {
           "type": "string"
@@ -2097,7 +2070,7 @@
     },
     "Encoding": {
       "type": "object",
-      "x-owner": "Encoding",
+      "x-owner": "Tokenizer",
       "properties": {
         "ids": {
           "type": "array",
@@ -2150,7 +2123,7 @@
     },
     "Turn": {
       "type": "object",
-      "x-owner": "Turn",
+      "x-owner": "Tokenizer",
       "properties": {
         "role": {
           "type": "string"

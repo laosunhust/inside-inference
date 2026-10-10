@@ -7,40 +7,39 @@ terms:
     excludes:
     - input text
     - model or generation configuration
-    schema: InspectionState
     depends_on: []
     capability_reads: []
     projections: {}
-  Capabilities:
-    meaning: The reference HTTP service contract identity and supported execution capabilities.
-    lifetime: Immutable in an identified execution record.
-    owns:
-    - The reference HTTP service contract identity and supported execution capabilities.
-    excludes:
-    - Unrecorded behavior and presentation state
-    schema: Capabilities
-    depends_on: []
-    capability_reads: []
-    projections: {}
+    schemas:
+    - InspectionState
   ApiError:
     meaning: An explicit transport admission or execution failure message.
-    lifetime: Immutable in an identified execution record.
+    lifetime: Produced for a rejected or failed service operation; a completed execution record need not
+      exist.
     owns:
     - An explicit transport admission or execution failure message.
     excludes:
-    - Unrecorded behavior and presentation state
-    schema: ApiError
+    - Successful inference output
+    - A structured recovery or retry policy
+    - Evidence that an experiment completed
     depends_on: []
     capability_reads: []
     projections: {}
-  CacheCapabilities:
-    meaning: The KV service contract identity and available numerical backends.
-    lifetime: Immutable in an identified execution record.
+    schemas:
+    - ApiError
+  ExecutionCapabilities:
+    meaning: The running service’s advertised execution support and contract compatibility information.
+    lifetime: A service-discovery snapshot; refresh when connecting to or reconnecting with a service.
     owns:
-    - The KV service contract identity and available numerical backends.
+    - Engine and contract identity used to check client/service compatibility.
+    - Numerical backends advertised as available by the service.
     excludes:
-    - Unrecorded behavior and presentation state
-    schema: CacheCapabilities
+    - The configuration selected for an experiment
+    - Measured performance or calibrated hardware capacity
+    - Evidence of the backend or implementation that actually executed a run
     depends_on: []
     capability_reads: []
     projections: {}
+    schemas:
+    - Capabilities
+    - CacheCapabilities

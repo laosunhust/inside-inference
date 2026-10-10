@@ -4,7 +4,7 @@ from typing import Any
 from inside_inference.contract_runtime import Declaration
 
 API_PATHS = {'capabilities': '/api/capabilities', 'run': '/api/runs', 'cacheRun': '/api/cache-runs', 'cacheCapabilities': '/api/cache-capabilities'}
-CONTRACT_SHA256 = 'db240dfefe426b37a21eecc5df2787b7f04f4237d1bf478467ce187db8a01bae'
+CONTRACT_SHA256 = 'fff50d28723a183cba6d403b664ec2935d216ee000010117ef701741bffc2f1e'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -103,39 +103,41 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                    'value.',
                                                     'const': 'binary64',
                                                     'default': 'binary64'}}},
- 'ModelArtifact': {'type': 'object',
-                   'x-owner': 'ModelArtifact',
-                   'additionalProperties': False,
-                   'required': ['checkpoint_sha256',
-                                'tokenizer_sha256',
-                                'architecture'],
-                   'properties': {'checkpoint_sha256': {'type': 'string',
-                                                        'title': 'Checkpoint '
-                                                                 'identity',
-                                                        'description': 'SHA-256 '
-                                                                       'identity '
-                                                                       'of the '
-                                                                       'exact '
-                                                                       'artifact '
-                                                                       'bytes '
-                                                                       'or '
-                                                                       'canonical '
-                                                                       'checkpoint.',
-                                                        'pattern': '^[0-9a-f]{64}$'},
-                                  'tokenizer_sha256': {'type': 'string',
-                                                       'title': 'Tokenizer '
-                                                                'identity',
-                                                       'description': 'SHA-256 '
-                                                                      'identity '
-                                                                      'of the '
-                                                                      'exact '
-                                                                      'artifact '
-                                                                      'bytes '
-                                                                      'or '
-                                                                      'canonical '
-                                                                      'checkpoint.',
-                                                       'pattern': '^[0-9a-f]{64}$'},
-                                  'architecture': {'$ref': '#/$defs/ModelArchitecture'}}},
+ 'ModelArtifactReference': {'type': 'object',
+                            'x-owner': 'ModelArtifact',
+                            'additionalProperties': False,
+                            'required': ['checkpoint_sha256',
+                                         'tokenizer_sha256',
+                                         'architecture'],
+                            'properties': {'checkpoint_sha256': {'type': 'string',
+                                                                 'title': 'Checkpoint '
+                                                                          'identity',
+                                                                 'description': 'SHA-256 '
+                                                                                'identity '
+                                                                                'of '
+                                                                                'the '
+                                                                                'exact '
+                                                                                'artifact '
+                                                                                'bytes '
+                                                                                'or '
+                                                                                'canonical '
+                                                                                'checkpoint.',
+                                                                 'pattern': '^[0-9a-f]{64}$'},
+                                           'tokenizer_sha256': {'type': 'string',
+                                                                'title': 'Tokenizer '
+                                                                         'identity',
+                                                                'description': 'SHA-256 '
+                                                                               'identity '
+                                                                               'of '
+                                                                               'the '
+                                                                               'exact '
+                                                                               'artifact '
+                                                                               'bytes '
+                                                                               'or '
+                                                                               'canonical '
+                                                                               'checkpoint.',
+                                                                'pattern': '^[0-9a-f]{64}$'},
+                                           'architecture': {'$ref': '#/$defs/ModelArchitecture'}}},
  'InitializationProvenance': {'type': 'object',
                               'properties': {'initializer': {'type': 'string'},
                                              'kind': {'type': 'string',
@@ -145,7 +147,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                       'maximum': 4294967295}},
                               'required': ['initializer', 'kind', 'seed'],
                               'additionalProperties': False,
-                              'x-owner': 'InitializationProvenance'},
+                              'x-owner': 'ModelArtifact'},
  'TrainingProvenance': {'type': 'object',
                         'properties': {'kind': {'type': 'string',
                                                 'const': 'trained'},
@@ -174,7 +176,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                      'data_sha256',
                                      'source_sha256'],
                         'additionalProperties': False,
-                        'x-owner': 'TrainingProvenance'},
+                        'x-owner': 'ModelArtifact'},
  'KVState': {'type': 'object',
              'x-owner': 'KVState',
              'additionalProperties': False,
@@ -208,98 +210,98 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                  'minItems': 2,
                                                  'maxItems': 32,
                                                  'items': {'type': 'number'}}}}},
- 'ModelCheckpoint': {'type': 'object',
-                     'properties': {'config': {'$ref': '#/$defs/ModelArchitecture'},
-                                    'format': {'type': 'string'},
-                                    'manifest_sha256': {'type': 'string'},
-                                    'parameters': {'$ref': '#/$defs/ModelParameters'},
-                                    'provenance': {'oneOf': [{'$ref': '#/$defs/InitializationProvenance'},
-                                                             {'$ref': '#/$defs/TrainingProvenance'}]}},
-                     'required': ['config',
-                                  'format',
-                                  'manifest_sha256',
-                                  'parameters',
-                                  'provenance'],
-                     'additionalProperties': False,
-                     'x-owner': 'ModelCheckpoint'},
- 'ModelParameters': {'type': 'object',
-                     'properties': {'attention_output': {'type': 'array',
-                                                         'items': {'type': 'array',
-                                                                   'items': {'type': 'number'}}},
-                                    'attention_output_bias': {'type': 'array',
-                                                              'items': {'type': 'number'}},
-                                    'ff_down': {'type': 'array',
-                                                'items': {'type': 'array',
-                                                          'items': {'type': 'number'}}},
-                                    'ff_down_bias': {'type': 'array',
-                                                     'items': {'type': 'number'}},
-                                    'ff_up': {'type': 'array',
-                                              'items': {'type': 'array',
-                                                        'items': {'type': 'number'}}},
-                                    'ff_up_bias': {'type': 'array',
-                                                   'items': {'type': 'number'}},
-                                    'key': {'type': 'array',
-                                            'items': {'type': 'array',
-                                                      'items': {'type': 'number'}}},
-                                    'key_bias': {'type': 'array',
-                                                 'items': {'type': 'number'}},
-                                    'lm_bias': {'type': 'array',
+ 'ModelArtifact': {'type': 'object',
+                   'properties': {'config': {'$ref': '#/$defs/ModelArchitecture'},
+                                  'format': {'type': 'string'},
+                                  'manifest_sha256': {'type': 'string'},
+                                  'parameters': {'$ref': '#/$defs/ModelWeights'},
+                                  'provenance': {'oneOf': [{'$ref': '#/$defs/InitializationProvenance'},
+                                                           {'$ref': '#/$defs/TrainingProvenance'}]}},
+                   'required': ['config',
+                                'format',
+                                'manifest_sha256',
+                                'parameters',
+                                'provenance'],
+                   'additionalProperties': False,
+                   'x-owner': 'ModelArtifact'},
+ 'ModelWeights': {'type': 'object',
+                  'properties': {'attention_output': {'type': 'array',
+                                                      'items': {'type': 'array',
+                                                                'items': {'type': 'number'}}},
+                                 'attention_output_bias': {'type': 'array',
+                                                           'items': {'type': 'number'}},
+                                 'ff_down': {'type': 'array',
+                                             'items': {'type': 'array',
+                                                       'items': {'type': 'number'}}},
+                                 'ff_down_bias': {'type': 'array',
+                                                  'items': {'type': 'number'}},
+                                 'ff_up': {'type': 'array',
+                                           'items': {'type': 'array',
+                                                     'items': {'type': 'number'}}},
+                                 'ff_up_bias': {'type': 'array',
                                                 'items': {'type': 'number'}},
-                                    'lm_head': {'type': 'array',
-                                                'items': {'type': 'array',
-                                                          'items': {'type': 'number'}}},
-                                    'ln1_bias': {'type': 'array',
-                                                 'items': {'type': 'number'}},
-                                    'ln1_scale': {'type': 'array',
-                                                  'items': {'type': 'number'}},
-                                    'ln2_bias': {'type': 'array',
-                                                 'items': {'type': 'number'}},
-                                    'ln2_scale': {'type': 'array',
-                                                  'items': {'type': 'number'}},
-                                    'ln_final_bias': {'type': 'array',
-                                                      'items': {'type': 'number'}},
-                                    'ln_final_scale': {'type': 'array',
-                                                       'items': {'type': 'number'}},
-                                    'position_embedding': {'type': 'array',
-                                                           'items': {'type': 'array',
-                                                                     'items': {'type': 'number'}}},
-                                    'query': {'type': 'array',
-                                              'items': {'type': 'array',
-                                                        'items': {'type': 'number'}}},
-                                    'query_bias': {'type': 'array',
+                                 'key': {'type': 'array',
+                                         'items': {'type': 'array',
+                                                   'items': {'type': 'number'}}},
+                                 'key_bias': {'type': 'array',
+                                              'items': {'type': 'number'}},
+                                 'lm_bias': {'type': 'array',
+                                             'items': {'type': 'number'}},
+                                 'lm_head': {'type': 'array',
+                                             'items': {'type': 'array',
+                                                       'items': {'type': 'number'}}},
+                                 'ln1_bias': {'type': 'array',
+                                              'items': {'type': 'number'}},
+                                 'ln1_scale': {'type': 'array',
+                                               'items': {'type': 'number'}},
+                                 'ln2_bias': {'type': 'array',
+                                              'items': {'type': 'number'}},
+                                 'ln2_scale': {'type': 'array',
+                                               'items': {'type': 'number'}},
+                                 'ln_final_bias': {'type': 'array',
                                                    'items': {'type': 'number'}},
-                                    'token_embedding': {'type': 'array',
+                                 'ln_final_scale': {'type': 'array',
+                                                    'items': {'type': 'number'}},
+                                 'position_embedding': {'type': 'array',
                                                         'items': {'type': 'array',
                                                                   'items': {'type': 'number'}}},
-                                    'value': {'type': 'array',
-                                              'items': {'type': 'array',
-                                                        'items': {'type': 'number'}}},
-                                    'value_bias': {'type': 'array',
-                                                   'items': {'type': 'number'}}},
-                     'required': ['attention_output',
-                                  'attention_output_bias',
-                                  'ff_down',
-                                  'ff_down_bias',
-                                  'ff_up',
-                                  'ff_up_bias',
-                                  'key',
-                                  'key_bias',
-                                  'lm_bias',
-                                  'lm_head',
-                                  'ln1_bias',
-                                  'ln1_scale',
-                                  'ln2_bias',
-                                  'ln2_scale',
-                                  'ln_final_bias',
-                                  'ln_final_scale',
-                                  'position_embedding',
-                                  'query',
-                                  'query_bias',
-                                  'token_embedding',
-                                  'value',
-                                  'value_bias'],
-                     'additionalProperties': False,
-                     'x-owner': 'ModelParameters'},
+                                 'query': {'type': 'array',
+                                           'items': {'type': 'array',
+                                                     'items': {'type': 'number'}}},
+                                 'query_bias': {'type': 'array',
+                                                'items': {'type': 'number'}},
+                                 'token_embedding': {'type': 'array',
+                                                     'items': {'type': 'array',
+                                                               'items': {'type': 'number'}}},
+                                 'value': {'type': 'array',
+                                           'items': {'type': 'array',
+                                                     'items': {'type': 'number'}}},
+                                 'value_bias': {'type': 'array',
+                                                'items': {'type': 'number'}}},
+                  'required': ['attention_output',
+                               'attention_output_bias',
+                               'ff_down',
+                               'ff_down_bias',
+                               'ff_up',
+                               'ff_up_bias',
+                               'key',
+                               'key_bias',
+                               'lm_bias',
+                               'lm_head',
+                               'ln1_bias',
+                               'ln1_scale',
+                               'ln2_bias',
+                               'ln2_scale',
+                               'ln_final_bias',
+                               'ln_final_scale',
+                               'position_embedding',
+                               'query',
+                               'query_bias',
+                               'token_embedding',
+                               'value',
+                               'value_bias'],
+                  'additionalProperties': False,
+                  'x-owner': 'ModelWeights'},
  'InferenceSystem': {'type': 'object',
                      'x-owner': 'InferenceSystem',
                      'additionalProperties': False,
@@ -387,26 +389,26 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                              'or truncation.',
                                               'default': 'the ball is in'},
                                      'generation': {'$ref': '#/$defs/GenerationPolicy'}}},
- 'ScheduledRequest': {'type': 'object',
-                      'x-owner': 'ScheduledRequest',
-                      'additionalProperties': False,
-                      'required': ['request_id', 'arrival_us', 'request'],
-                      'properties': {'request_id': {'type': 'string',
-                                                    'title': 'Request identity',
-                                                    'description': 'Request '
-                                                                   'identity',
-                                                    'pattern': '^[a-z][a-z0-9-]*$'},
-                                     'arrival_us': {'type': 'integer',
-                                                    'title': 'Declared virtual '
-                                                             'arrival in '
-                                                             'microseconds',
-                                                    'description': 'Declared '
-                                                                   'virtual '
-                                                                   'arrival in '
-                                                                   'microseconds',
-                                                    'minimum': 0,
-                                                    'maximum': 9007199254740991},
-                                     'request': {'$ref': '#/$defs/InferenceRequest'}}},
+ 'RequestArrival': {'type': 'object',
+                    'x-owner': 'InferenceRequest',
+                    'additionalProperties': False,
+                    'required': ['request_id', 'arrival_us', 'request'],
+                    'properties': {'request_id': {'type': 'string',
+                                                  'title': 'Request identity',
+                                                  'description': 'Request '
+                                                                 'identity',
+                                                  'pattern': '^[a-z][a-z0-9-]*$'},
+                                   'arrival_us': {'type': 'integer',
+                                                  'title': 'Declared virtual '
+                                                           'arrival in '
+                                                           'microseconds',
+                                                  'description': 'Declared '
+                                                                 'virtual '
+                                                                 'arrival in '
+                                                                 'microseconds',
+                                                  'minimum': 0,
+                                                  'maximum': 9007199254740991},
+                                   'request': {'$ref': '#/$defs/InferenceRequest'}}},
  'Workload': {'type': 'object',
               'x-owner': 'Workload',
               'additionalProperties': False,
@@ -419,277 +421,98 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                              'requests': {'type': 'array',
                                           'title': 'Ordered requests',
                                           'description': 'Ordered requests',
-                                          'items': {'$ref': '#/$defs/ScheduledRequest'},
+                                          'items': {'$ref': '#/$defs/RequestArrival'},
                                           'minItems': 1}}},
- 'CacheSystem': {'type': 'object',
-                 'x-owner': 'CacheSystem',
-                 'additionalProperties': False,
-                 'required': ['backend',
-                              'device_kv_bytes',
-                              'host_kv_bytes',
-                              'max_active_requests',
-                              'compute_flops_per_us',
-                              'memory_bytes_per_us',
-                              'link_bytes_per_us',
-                              'link_latency_us',
-                              'retention_policy',
-                              'max_requests',
-                              'max_new_tokens_cap'],
-                 'properties': {'backend': {'type': 'string',
-                                            'enum': ['reference', 'cuda'],
-                                            'default': 'reference',
-                                            'title': 'Numerical backend'},
-                                'device_kv_bytes': {'type': 'integer',
-                                                    'minimum': 1,
-                                                    'maximum': 1048576,
-                                                    'default': 16384,
-                                                    'title': 'Device KV budget '
-                                                             '· bytes'},
-                                'host_kv_bytes': {'type': 'integer',
-                                                  'minimum': 0,
-                                                  'maximum': 1048576,
-                                                  'default': 32768,
-                                                  'title': 'Host KV budget · '
-                                                           'bytes'},
-                                'max_active_requests': {'type': 'integer',
-                                                        'minimum': 1,
-                                                        'maximum': 8,
-                                                        'default': 2,
-                                                        'title': 'Active '
-                                                                 'request '
-                                                                 'slots'},
-                                'compute_flops_per_us': {'type': 'number',
-                                                         'minimum': 0.001,
-                                                         'default': 1000,
-                                                         'title': 'Effective '
-                                                                  'matmul '
-                                                                  'FLOPs / '
-                                                                  'virtual µs'},
-                                'memory_bytes_per_us': {'type': 'number',
-                                                        'minimum': 0.001,
-                                                        'default': 1000,
-                                                        'title': 'Logical '
-                                                                 'memory bytes '
-                                                                 '/ virtual '
-                                                                 'µs'},
-                                'link_bytes_per_us': {'type': 'number',
-                                                      'minimum': 0.001,
-                                                      'default': 100,
-                                                      'title': 'Transfer bytes '
-                                                               '/ virtual µs'},
-                                'link_latency_us': {'type': 'number',
-                                                    'minimum': 0,
-                                                    'default': 10,
-                                                    'title': 'Transfer startup '
-                                                             '· virtual µs'},
-                                'retention_policy': {'type': 'string',
-                                                     'const': 'whole-prefix-lru',
-                                                     'default': 'whole-prefix-lru'},
-                                'max_requests': {'type': 'integer',
-                                                 'const': 8,
-                                                 'default': 8},
-                                'max_new_tokens_cap': {'type': 'integer',
-                                                       'const': 8,
-                                                       'default': 8}}},
- 'RunOutcome': {'type': 'object',
-                'x-owner': 'RunOutcome',
-                'additionalProperties': False,
-                'required': ['selected_tokens',
-                             'delivered_tokens',
-                             'unused_budget',
-                             'stop_reason',
-                             'complete'],
-                'properties': {'selected_tokens': {'type': 'integer',
-                                                   'title': 'Selected IDs',
-                                                   'description': 'Includes '
-                                                                  'terminal '
-                                                                  'controls.',
-                                                   'minimum': 1},
-                               'delivered_tokens': {'type': 'integer',
-                                                    'title': 'Delivered IDs',
-                                                    'description': 'Every '
-                                                                   'selected '
-                                                                   'ID except '
-                                                                   'TURN_END, '
-                                                                   'including '
-                                                                   'diagnostic '
-                                                                   'control/byte/hex '
-                                                                   'tokens.',
-                                                    'minimum': 0},
-                               'unused_budget': {'type': 'integer',
-                                                 'title': 'Unused allowance',
-                                                 'description': 'Requested '
-                                                                'ceiling minus '
-                                                                'actual '
-                                                                'selected ID '
-                                                                'count.',
-                                                 'minimum': 0},
-                               'stop_reason': {'type': 'string',
-                                               'title': 'Termination condition',
-                                               'description': 'Recorded by the '
-                                                              'execution loop.',
-                                               'enum': ['turn_end',
-                                                        'output_budget']},
-                               'complete': {'type': 'boolean',
-                                            'title': 'Turn complete',
-                                            'description': 'True only if '
-                                                           'TURN_END was '
-                                                           'selected.'}}},
- 'RequestBinding': {'type': 'object',
-                    'x-owner': 'RequestBinding',
-                    'additionalProperties': False,
-                    'required': ['model', 'system', 'request'],
-                    'properties': {'model': {'$ref': '#/$defs/ModelArtifact'},
-                                   'system': {'$ref': '#/$defs/InferenceSystem'},
-                                   'request': {'$ref': '#/$defs/InferenceRequest'}}},
- 'RunBinding': {'type': 'object',
-                'x-owner': 'RunBinding',
-                'additionalProperties': False,
-                'required': ['model', 'system', 'workload'],
-                'properties': {'model': {'$ref': '#/$defs/ModelArtifact'},
-                               'system': {'$ref': '#/$defs/InferenceSystem'},
-                               'workload': {'$ref': '#/$defs/Workload'}}},
- 'EventClock': {'type': 'object',
-                'x-owner': 'EventClock',
-                'additionalProperties': False,
-                'required': ['kind'],
-                'properties': {'kind': {'type': 'string',
-                                        'title': 'Clock domain',
-                                        'description': 'Clock domain',
-                                        'const': 'execution-order',
-                                        'default': 'execution-order'}}},
- 'RequestArrived': {'type': 'object',
-                    'x-owner': 'RequestArrived',
-                    'additionalProperties': False,
-                    'required': ['kind', 'arrival_us'],
-                    'properties': {'kind': {'type': 'string',
-                                            'title': 'Event kind',
-                                            'description': 'Event kind',
-                                            'const': 'request-arrived',
-                                            'default': 'request-arrived'},
-                                   'arrival_us': {'type': 'integer',
-                                                  'title': 'Declared virtual '
-                                                           'arrival; not '
-                                                           'service latency',
-                                                  'description': 'Declared '
-                                                                 'virtual '
-                                                                 'arrival; not '
-                                                                 'service '
-                                                                 'latency',
-                                                  'minimum': 0,
-                                                  'maximum': 9007199254740991}}},
- 'InputEncoded': {'type': 'object',
-                  'x-owner': 'InputEncoded',
-                  'additionalProperties': False,
-                  'required': ['kind', 'input_sha256', 'token_count'],
-                  'properties': {'kind': {'type': 'string',
-                                          'title': 'Event kind',
-                                          'description': 'Event kind',
-                                          'const': 'input-encoded',
-                                          'default': 'input-encoded'},
-                                 'input_sha256': {'type': 'string',
-                                                  'title': 'Framed input '
-                                                           'identity',
-                                                  'description': 'Framed input '
-                                                                 'identity',
-                                                  'pattern': '^[0-9a-f]{64}$'},
-                                 'token_count': {'type': 'integer',
-                                                 'title': 'Encoded positions',
-                                                 'description': 'Encoded '
-                                                                'positions',
-                                                 'minimum': 0,
-                                                 'maximum': 9007199254740991}}},
- 'WorkCompleted': {'type': 'object',
-                   'x-owner': 'WorkCompleted',
-                   'additionalProperties': False,
-                   'required': ['kind', 'work_id', 'phase'],
-                   'properties': {'kind': {'type': 'string',
-                                           'title': 'Event kind',
-                                           'description': 'Event kind',
-                                           'const': 'work-completed',
-                                           'default': 'work-completed'},
-                                  'work_id': {'type': 'string',
-                                              'title': 'Numerical observation '
-                                                       'identity',
-                                              'description': 'Numerical '
-                                                             'observation '
-                                                             'identity'},
-                                  'phase': {'type': 'string',
-                                            'title': 'Execution phase',
-                                            'description': 'Execution phase',
-                                            'enum': ['prefill', 'decode']}}},
- 'TokenSelected': {'type': 'object',
-                   'x-owner': 'TokenSelected',
-                   'additionalProperties': False,
-                   'required': ['kind',
-                                'work_id',
-                                'token_id',
-                                'output_position'],
-                   'properties': {'kind': {'type': 'string',
-                                           'title': 'Event kind',
-                                           'description': 'Event kind',
-                                           'const': 'token-selected',
-                                           'default': 'token-selected'},
-                                  'work_id': {'type': 'string',
-                                              'title': 'Producing computation',
-                                              'description': 'Producing '
-                                                             'computation'},
-                                  'token_id': {'type': 'integer',
-                                               'title': 'Selected vocabulary '
-                                                        'ID',
-                                               'description': 'Selected '
-                                                              'vocabulary ID',
-                                               'minimum': 0,
-                                               'maximum': 9007199254740991},
-                                  'output_position': {'type': 'integer',
-                                                      'title': 'Absolute '
-                                                               'sequence '
-                                                               'position',
-                                                      'description': 'Absolute '
-                                                                     'sequence '
-                                                                     'position',
-                                                      'minimum': 0,
-                                                      'maximum': 9007199254740991}}},
- 'TokenCommitted': {'type': 'object',
-                    'x-owner': 'TokenCommitted',
-                    'additionalProperties': False,
-                    'required': ['kind',
-                                 'work_id',
-                                 'token_ids',
-                                 'output_start'],
-                    'properties': {'kind': {'type': 'string',
-                                            'title': 'Event kind',
-                                            'description': 'Event kind',
-                                            'const': 'token-committed',
-                                            'default': 'token-committed'},
-                                   'work_id': {'type': 'string',
-                                               'title': 'Producing computation',
-                                               'description': 'Producing '
-                                                              'computation'},
-                                   'token_ids': {'type': 'array',
-                                                 'title': 'Accepted '
-                                                          'continuation',
-                                                 'description': 'Accepted '
-                                                                'continuation',
-                                                 'items': {'type': 'integer',
-                                                           'title': 'Committed '
-                                                                    'token ID',
-                                                           'description': 'Committed '
-                                                                          'token '
-                                                                          'ID',
-                                                           'minimum': 0,
-                                                           'maximum': 9007199254740991},
-                                                 'minItems': 1},
-                                   'output_start': {'type': 'integer',
-                                                    'title': 'Client token '
-                                                             'offset',
-                                                    'description': 'Client '
-                                                                   'token '
-                                                                   'offset',
-                                                    'minimum': 0,
-                                                    'maximum': 9007199254740991}}},
+ 'KVResidencySystemConfig': {'type': 'object',
+                             'x-owner': 'InferenceSystem',
+                             'additionalProperties': False,
+                             'required': ['backend',
+                                          'device_kv_bytes',
+                                          'host_kv_bytes',
+                                          'max_active_requests',
+                                          'compute_flops_per_us',
+                                          'memory_bytes_per_us',
+                                          'link_bytes_per_us',
+                                          'link_latency_us',
+                                          'retention_policy',
+                                          'max_requests',
+                                          'max_new_tokens_cap'],
+                             'properties': {'backend': {'type': 'string',
+                                                        'enum': ['reference',
+                                                                 'cuda'],
+                                                        'default': 'reference',
+                                                        'title': 'Numerical '
+                                                                 'backend'},
+                                            'device_kv_bytes': {'type': 'integer',
+                                                                'minimum': 1,
+                                                                'maximum': 1048576,
+                                                                'default': 16384,
+                                                                'title': 'Device '
+                                                                         'KV '
+                                                                         'budget '
+                                                                         '· '
+                                                                         'bytes'},
+                                            'host_kv_bytes': {'type': 'integer',
+                                                              'minimum': 0,
+                                                              'maximum': 1048576,
+                                                              'default': 32768,
+                                                              'title': 'Host '
+                                                                       'KV '
+                                                                       'budget '
+                                                                       '· '
+                                                                       'bytes'},
+                                            'max_active_requests': {'type': 'integer',
+                                                                    'minimum': 1,
+                                                                    'maximum': 8,
+                                                                    'default': 2,
+                                                                    'title': 'Active '
+                                                                             'request '
+                                                                             'slots'},
+                                            'compute_flops_per_us': {'type': 'number',
+                                                                     'minimum': 0.001,
+                                                                     'default': 1000,
+                                                                     'title': 'Effective '
+                                                                              'matmul '
+                                                                              'FLOPs '
+                                                                              '/ '
+                                                                              'virtual '
+                                                                              'µs'},
+                                            'memory_bytes_per_us': {'type': 'number',
+                                                                    'minimum': 0.001,
+                                                                    'default': 1000,
+                                                                    'title': 'Logical '
+                                                                             'memory '
+                                                                             'bytes '
+                                                                             '/ '
+                                                                             'virtual '
+                                                                             'µs'},
+                                            'link_bytes_per_us': {'type': 'number',
+                                                                  'minimum': 0.001,
+                                                                  'default': 100,
+                                                                  'title': 'Transfer '
+                                                                           'bytes '
+                                                                           '/ '
+                                                                           'virtual '
+                                                                           'µs'},
+                                            'link_latency_us': {'type': 'number',
+                                                                'minimum': 0,
+                                                                'default': 10,
+                                                                'title': 'Transfer '
+                                                                         'startup '
+                                                                         '· '
+                                                                         'virtual '
+                                                                         'µs'},
+                                            'retention_policy': {'type': 'string',
+                                                                 'const': 'whole-prefix-lru',
+                                                                 'default': 'whole-prefix-lru'},
+                                            'max_requests': {'type': 'integer',
+                                                             'const': 8,
+                                                             'default': 8},
+                                            'max_new_tokens_cap': {'type': 'integer',
+                                                                   'const': 8,
+                                                                   'default': 8}}},
  'TokenDelivered': {'type': 'object',
-                    'x-owner': 'TokenDelivered',
+                    'x-owner': 'InferenceResponse',
                     'additionalProperties': False,
                     'required': ['kind',
                                  'work_id',
@@ -743,7 +566,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                     'labeled '
                                                                     'markers.'}}},
  'RequestFinished': {'type': 'object',
-                     'x-owner': 'RequestFinished',
+                     'x-owner': 'InferenceResponse',
                      'additionalProperties': False,
                      'required': ['kind', 'outcome'],
                      'properties': {'kind': {'type': 'string',
@@ -752,8 +575,155 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                              'const': 'request-finished',
                                              'default': 'request-finished'},
                                     'outcome': {'$ref': '#/$defs/RunOutcome'}}},
+ 'RunOutcome': {'type': 'object',
+                'x-owner': 'InferenceResponse',
+                'additionalProperties': False,
+                'required': ['selected_tokens',
+                             'delivered_tokens',
+                             'unused_budget',
+                             'stop_reason',
+                             'complete'],
+                'properties': {'selected_tokens': {'type': 'integer',
+                                                   'title': 'Selected IDs',
+                                                   'description': 'Includes '
+                                                                  'terminal '
+                                                                  'controls.',
+                                                   'minimum': 1},
+                               'delivered_tokens': {'type': 'integer',
+                                                    'title': 'Delivered IDs',
+                                                    'description': 'Every '
+                                                                   'selected '
+                                                                   'ID except '
+                                                                   'TURN_END, '
+                                                                   'including '
+                                                                   'diagnostic '
+                                                                   'control/byte/hex '
+                                                                   'tokens.',
+                                                    'minimum': 0},
+                               'unused_budget': {'type': 'integer',
+                                                 'title': 'Unused allowance',
+                                                 'description': 'Requested '
+                                                                'ceiling minus '
+                                                                'actual '
+                                                                'selected ID '
+                                                                'count.',
+                                                 'minimum': 0},
+                               'stop_reason': {'type': 'string',
+                                               'title': 'Termination condition',
+                                               'description': 'Recorded by the '
+                                                              'execution loop.',
+                                               'enum': ['turn_end',
+                                                        'output_budget']},
+                               'complete': {'type': 'boolean',
+                                            'title': 'Turn complete',
+                                            'description': 'True only if '
+                                                           'TURN_END was '
+                                                           'selected.'}}},
+ 'DecodingContract': {'type': 'object',
+                      'properties': {'choice': {'type': 'string'},
+                                     'explanation': {'type': 'string'},
+                                     'rule': {'type': 'string'}},
+                      'required': ['choice', 'explanation', 'rule'],
+                      'additionalProperties': False,
+                      'x-owner': 'GenerationPolicy'},
+ 'RequestBinding': {'type': 'object',
+                    'x-owner': 'ExperimentSpec',
+                    'additionalProperties': False,
+                    'required': ['model', 'system', 'request'],
+                    'properties': {'model': {'$ref': '#/$defs/ModelArtifactReference'},
+                                   'system': {'$ref': '#/$defs/InferenceSystem'},
+                                   'request': {'$ref': '#/$defs/InferenceRequest'}}},
+ 'RunBinding': {'type': 'object',
+                'x-owner': 'ExperimentSpec',
+                'additionalProperties': False,
+                'required': ['model', 'system', 'workload'],
+                'properties': {'model': {'$ref': '#/$defs/ModelArtifactReference'},
+                               'system': {'$ref': '#/$defs/InferenceSystem'},
+                               'workload': {'$ref': '#/$defs/Workload'}}},
+ 'EventClock': {'type': 'object',
+                'x-owner': 'ExperimentEvent',
+                'additionalProperties': False,
+                'required': ['kind'],
+                'properties': {'kind': {'type': 'string',
+                                        'title': 'Clock domain',
+                                        'description': 'Clock domain',
+                                        'const': 'execution-order',
+                                        'default': 'execution-order'}}},
+ 'RequestArrived': {'type': 'object',
+                    'x-owner': 'ExperimentEvent',
+                    'additionalProperties': False,
+                    'required': ['kind', 'arrival_us'],
+                    'properties': {'kind': {'type': 'string',
+                                            'title': 'Event kind',
+                                            'description': 'Event kind',
+                                            'const': 'request-arrived',
+                                            'default': 'request-arrived'},
+                                   'arrival_us': {'type': 'integer',
+                                                  'title': 'Declared virtual '
+                                                           'arrival; not '
+                                                           'service latency',
+                                                  'description': 'Declared '
+                                                                 'virtual '
+                                                                 'arrival; not '
+                                                                 'service '
+                                                                 'latency',
+                                                  'minimum': 0,
+                                                  'maximum': 9007199254740991}}},
+ 'InputEncoded': {'type': 'object',
+                  'x-owner': 'ExperimentEvent',
+                  'additionalProperties': False,
+                  'required': ['kind', 'input_sha256', 'token_count'],
+                  'properties': {'kind': {'type': 'string',
+                                          'title': 'Event kind',
+                                          'description': 'Event kind',
+                                          'const': 'input-encoded',
+                                          'default': 'input-encoded'},
+                                 'input_sha256': {'type': 'string',
+                                                  'title': 'Framed input '
+                                                           'identity',
+                                                  'description': 'Framed input '
+                                                                 'identity',
+                                                  'pattern': '^[0-9a-f]{64}$'},
+                                 'token_count': {'type': 'integer',
+                                                 'title': 'Encoded positions',
+                                                 'description': 'Encoded '
+                                                                'positions',
+                                                 'minimum': 0,
+                                                 'maximum': 9007199254740991}}},
+ 'TokenSelected': {'type': 'object',
+                   'x-owner': 'ExperimentEvent',
+                   'additionalProperties': False,
+                   'required': ['kind',
+                                'work_id',
+                                'token_id',
+                                'output_position'],
+                   'properties': {'kind': {'type': 'string',
+                                           'title': 'Event kind',
+                                           'description': 'Event kind',
+                                           'const': 'token-selected',
+                                           'default': 'token-selected'},
+                                  'work_id': {'type': 'string',
+                                              'title': 'Producing computation',
+                                              'description': 'Producing '
+                                                             'computation'},
+                                  'token_id': {'type': 'integer',
+                                               'title': 'Selected vocabulary '
+                                                        'ID',
+                                               'description': 'Selected '
+                                                              'vocabulary ID',
+                                               'minimum': 0,
+                                               'maximum': 9007199254740991},
+                                  'output_position': {'type': 'integer',
+                                                      'title': 'Absolute '
+                                                               'sequence '
+                                                               'position',
+                                                      'description': 'Absolute '
+                                                                     'sequence '
+                                                                     'position',
+                                                      'minimum': 0,
+                                                      'maximum': 9007199254740991}}},
  'RunEvent': {'type': 'object',
-              'x-owner': 'RunEvent',
+              'x-owner': 'ExperimentEvent',
               'additionalProperties': False,
               'required': ['event_id',
                            'run_id',
@@ -788,14 +758,13 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                         'uniqueItems': True},
                              'payload': {'oneOf': [{'$ref': '#/$defs/RequestArrived'},
                                                    {'$ref': '#/$defs/InputEncoded'},
-                                                   {'$ref': '#/$defs/WorkCompleted'},
+                                                   {'$ref': '#/$defs/ModelForwardCompleted'},
                                                    {'$ref': '#/$defs/TokenSelected'},
-                                                   {'$ref': '#/$defs/TokenCommitted'},
                                                    {'$ref': '#/$defs/TokenDelivered'},
                                                    {'$ref': '#/$defs/RequestFinished'}]}}},
  'NumericalTrace': {'type': 'object',
-                    'properties': {'checkpoint': {'$ref': '#/$defs/ModelCheckpoint'},
-                                   'code': {'$ref': '#/$defs/CodeIdentity'},
+                    'properties': {'checkpoint': {'$ref': '#/$defs/ModelArtifact'},
+                                   'provenance': {'$ref': '#/$defs/ExecutionProvenance'},
                                    'contract_sha256': {'type': 'string'},
                                    'declaration': {'$ref': '#/$defs/RequestBinding'},
                                    'decoding_contract': {'$ref': '#/$defs/DecodingContract'},
@@ -831,7 +800,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                    'vocabulary': {'type': 'array',
                                                   'items': {'$ref': '#/$defs/Token'}}},
                     'required': ['checkpoint',
-                                 'code',
+                                 'provenance',
                                  'contract_sha256',
                                  'declaration',
                                  'decoding_contract',
@@ -848,9 +817,9 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                  'tokenizer',
                                  'vocabulary'],
                     'additionalProperties': False,
-                    'x-owner': 'NumericalTrace'},
+                    'x-owner': 'ExperimentExecution'},
  'RunRecord': {'type': 'object',
-               'x-owner': 'RunRecord',
+               'x-owner': 'ExperimentExecution',
                'additionalProperties': False,
                'required': ['format',
                             'id',
@@ -927,7 +896,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                     'term',
                                     'values'],
                        'additionalProperties': False,
-                       'x-owner': 'TensorObservation'},
+                       'x-owner': 'ExperimentObservation'},
  'TokenSelection': {'type': 'object',
                     'properties': {'decoding': {'type': 'string'},
                                    'probabilities': {'type': 'array',
@@ -945,15 +914,15 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                  'rule',
                                  'selected_id'],
                     'additionalProperties': False,
-                    'x-owner': 'TokenSelection'},
- 'CacheExperiment': {'type': 'object',
-                     'x-owner': 'CacheExperiment',
-                     'additionalProperties': False,
-                     'required': ['system', 'workload'],
-                     'properties': {'system': {'$ref': '#/$defs/CacheSystem'},
-                                    'workload': {'$ref': '#/$defs/Workload'}}},
+                    'x-owner': 'ExperimentObservation'},
+ 'KVExperimentInput': {'type': 'object',
+                       'x-owner': 'ExperimentSpec',
+                       'additionalProperties': False,
+                       'required': ['system', 'workload'],
+                       'properties': {'system': {'$ref': '#/$defs/KVResidencySystemConfig'},
+                                      'workload': {'$ref': '#/$defs/Workload'}}},
  'CacheEvent': {'type': 'object',
-                'x-owner': 'CacheEvent',
+                'x-owner': 'ExperimentEvent',
                 'additionalProperties': False,
                 'required': ['event_id',
                              'request_id',
@@ -998,7 +967,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                'causes': {'type': 'array',
                                           'items': {'type': 'string'}}}},
  'CacheComputation': {'type': 'object',
-                      'x-owner': 'CacheComputation',
+                      'x-owner': 'ExperimentObservation',
                       'additionalProperties': False,
                       'required': ['work_id',
                                    'request_id',
@@ -1043,7 +1012,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                      'reference_matmul_flops': {'type': 'integer',
                                                                 'minimum': 0}}},
  'CacheMeasurement': {'type': 'object',
-                      'x-owner': 'CacheMeasurement',
+                      'x-owner': 'ExperimentObservation',
                       'additionalProperties': False,
                       'required': ['event_id', 'kind', 'elapsed_us', 'bytes'],
                       'properties': {'event_id': {'type': 'string'},
@@ -1059,23 +1028,22 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                'minimum': 0,
                                                'maximum': 9007199254740991}}},
  'CacheRun': {'type': 'object',
-              'x-owner': 'CacheRun',
+              'x-owner': 'ExperimentExecution',
               'additionalProperties': False,
               'required': ['id',
-                           'spec',
+                           'declaration',
                            'checkpoint',
-                           'source_sha256',
+                           'provenance',
                            'events',
                            'computations',
                            'measurements',
                            'outcomes',
                            'states',
-                           'evidence',
-                           'backend'],
+                           'evidence'],
               'properties': {'id': {'type': 'string'},
-                             'spec': {'$ref': '#/$defs/CacheExperiment'},
-                             'checkpoint': {'$ref': '#/$defs/ModelCheckpoint'},
-                             'source_sha256': {'type': 'string'},
+                             'declaration': {'$ref': '#/$defs/KVRunBinding'},
+                             'checkpoint': {'$ref': '#/$defs/ModelArtifact'},
+                             'provenance': {'$ref': '#/$defs/ExecutionProvenance'},
                              'events': {'type': 'array',
                                         'items': {'$ref': '#/$defs/CacheEvent'}},
                              'computations': {'type': 'array',
@@ -1086,35 +1054,29 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                           'additionalProperties': {'$ref': '#/$defs/RunOutcome'}},
                              'states': {'type': 'object',
                                         'additionalProperties': {'$ref': '#/$defs/KVState'}},
-                             'evidence': {'type': 'string'},
-                             'backend': {'$ref': '#/$defs/CacheBackend'}}},
- 'CodeIdentity': {'type': 'object',
-                  'properties': {'python': {'type': 'string'},
-                                 'revision': {'type': 'string'},
-                                 'source_sha256': {'type': 'string'},
-                                 'sources': {'type': 'object',
-                                             'additionalProperties': {'type': 'string',
-                                                                      'pattern': '^[0-9a-f]{64}$'}}},
-                  'required': ['python',
-                               'revision',
-                               'source_sha256',
-                               'sources'],
-                  'additionalProperties': False,
-                  'x-owner': 'CodeIdentity'},
- 'DecodingContract': {'type': 'object',
-                      'properties': {'choice': {'type': 'string'},
-                                     'explanation': {'type': 'string'},
-                                     'rule': {'type': 'string'}},
-                      'required': ['choice', 'explanation', 'rule'],
-                      'additionalProperties': False,
-                      'x-owner': 'DecodingContract'},
+                             'evidence': {'type': 'string'}}},
+ 'ExecutionProvenance': {'type': 'object',
+                         'properties': {'python': {'type': 'string'},
+                                        'revision': {'type': 'string'},
+                                        'source_sha256': {'type': 'string'},
+                                        'sources': {'type': 'object',
+                                                    'additionalProperties': {'type': 'string',
+                                                                             'pattern': '^[0-9a-f]{64}$'}},
+                                        'backend': {'$ref': '#/$defs/ExecutionBackend'}},
+                         'required': ['python',
+                                      'revision',
+                                      'source_sha256',
+                                      'sources',
+                                      'backend'],
+                         'additionalProperties': False,
+                         'x-owner': 'ExperimentExecution'},
  'NumericalPrecision': {'type': 'object',
                         'properties': {'accumulation': {'type': 'string'},
                                        'compute': {'type': 'string'},
                                        'storage': {'type': 'string'}},
                         'required': ['accumulation', 'compute', 'storage'],
                         'additionalProperties': False,
-                        'x-owner': 'NumericalPrecision'},
+                        'x-owner': 'ExperimentObservation'},
  'NumericalPass': {'type': 'object',
                    'properties': {'display_so_far': {'type': 'string',
                                                      'description': 'Diagnostic '
@@ -1158,7 +1120,36 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                 'selection_position',
                                 'step'],
                    'additionalProperties': False,
-                   'x-owner': 'NumericalPass'},
+                   'x-owner': 'ExperimentObservation'},
+ 'ModelForwardCompleted': {'type': 'object',
+                           'x-owner': 'ExperimentEvent',
+                           'additionalProperties': False,
+                           'required': ['kind', 'work_id', 'phase'],
+                           'properties': {'kind': {'type': 'string',
+                                                   'title': 'Event kind',
+                                                   'description': 'Event kind',
+                                                   'const': 'model-forward-completed',
+                                                   'default': 'model-forward-completed'},
+                                          'work_id': {'type': 'string',
+                                                      'title': 'Numerical '
+                                                               'observation '
+                                                               'identity',
+                                                      'description': 'Numerical '
+                                                                     'observation '
+                                                                     'identity'},
+                                          'phase': {'type': 'string',
+                                                    'title': 'Execution phase',
+                                                    'description': 'Execution '
+                                                                   'phase',
+                                                    'enum': ['prefill',
+                                                             'decode']}}},
+ 'KVRunBinding': {'type': 'object',
+                  'x-owner': 'ExperimentSpec',
+                  'additionalProperties': False,
+                  'required': ['model', 'system', 'workload'],
+                  'properties': {'model': {'$ref': '#/$defs/ModelArtifactReference'},
+                                 'system': {'$ref': '#/$defs/KVResidencySystemConfig'},
+                                 'workload': {'$ref': '#/$defs/Workload'}}},
  'InspectionState': {'type': 'object',
                      'x-owner': 'InspectionState',
                      'additionalProperties': False,
@@ -1188,7 +1179,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                 'pass.',
                                                  'minimum': 0}}},
  'Capabilities': {'type': 'object',
-                  'x-owner': 'Capabilities',
+                  'x-owner': 'ExecutionCapabilities',
                   'additionalProperties': False,
                   'required': ['engine', 'contract_sha256'],
                   'properties': {'engine': {'type': 'string',
@@ -1211,7 +1202,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                        'description': 'Explicit rejection '
                                                       'reason'}}},
  'CacheCapabilities': {'type': 'object',
-                       'x-owner': 'CacheCapabilities',
+                       'x-owner': 'ExecutionCapabilities',
                        'additionalProperties': False,
                        'required': ['contract_sha256', 'backends'],
                        'properties': {'contract_sha256': {'type': 'string'},
@@ -1221,21 +1212,21 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                       'cuda']},
                                                    'minItems': 1,
                                                    'uniqueItems': True}}},
- 'CacheBackend': {'type': 'object',
-                  'x-owner': 'CacheBackend',
-                  'additionalProperties': False,
-                  'required': ['compute_device',
-                               'device_state_storage',
-                               'host_state_storage',
-                               'library',
-                               'precision'],
-                  'properties': {'compute_device': {'type': 'string'},
-                                 'device_state_storage': {'type': 'string'},
-                                 'host_state_storage': {'type': 'string'},
-                                 'library': {'type': 'string'},
-                                 'precision': {'type': 'string'}}},
+ 'ExecutionBackend': {'type': 'object',
+                      'x-owner': 'ExecutionBackend',
+                      'additionalProperties': False,
+                      'required': ['compute_device',
+                                   'device_state_storage',
+                                   'host_state_storage',
+                                   'library',
+                                   'precision'],
+                      'properties': {'compute_device': {'type': 'string'},
+                                     'device_state_storage': {'type': 'string'},
+                                     'host_state_storage': {'type': 'string'},
+                                     'library': {'type': 'string'},
+                                     'precision': {'type': 'string'}}},
  'Token': {'type': 'object',
-           'x-owner': 'Token',
+           'x-owner': 'Tokenizer',
            'properties': {'id': {'type': 'integer',
                                  'minimum': 0,
                                  'maximum': 383},
@@ -1245,7 +1236,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
            'required': ['id', 'kind', 'piece', 'group'],
            'additionalProperties': False},
  'Span': {'type': 'object',
-          'x-owner': 'Span',
+          'x-owner': 'Tokenizer',
           'properties': {'kind': {'type': 'string'},
                          'reason': {'type': 'string'},
                          'byte_start': {'type': ['integer', 'null']},
@@ -1273,7 +1264,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'turn'],
           'additionalProperties': False},
  'Encoding': {'type': 'object',
-              'x-owner': 'Encoding',
+              'x-owner': 'Tokenizer',
               'properties': {'ids': {'type': 'array',
                                      'items': {'type': 'integer',
                                                'minimum': 0,
@@ -1297,7 +1288,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                            'unicode_version'],
               'additionalProperties': False},
  'Turn': {'type': 'object',
-          'x-owner': 'Turn',
+          'x-owner': 'Tokenizer',
           'properties': {'role': {'type': 'string'},
                          'text': {'type': 'string'}},
           'required': ['role', 'text'],
@@ -1319,7 +1310,7 @@ class ModelArchitecture(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
-class ModelArtifact(Declaration):
+class ModelArtifactReference(Declaration):
     checkpoint_sha256: str
     tokenizer_sha256: str
     architecture: ModelArchitecture = field(default_factory=ModelArchitecture)
@@ -1355,7 +1346,7 @@ class KVState(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
-class ModelParameters(Declaration):
+class ModelWeights(Declaration):
     attention_output: tuple[tuple[float, ...], ...]
     attention_output_bias: tuple[float, ...]
     ff_down: tuple[tuple[float, ...], ...]
@@ -1381,11 +1372,11 @@ class ModelParameters(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
-class ModelCheckpoint(Declaration):
+class ModelArtifact(Declaration):
     config: ModelArchitecture = field(default_factory=ModelArchitecture)
     format: str
     manifest_sha256: str
-    parameters: ModelParameters
+    parameters: ModelWeights
     provenance: InitializationProvenance | TrainingProvenance
 
 
@@ -1411,7 +1402,7 @@ class InferenceRequest(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
-class ScheduledRequest(Declaration):
+class RequestArrival(Declaration):
     request_id: str
     arrival_us: int
     request: InferenceRequest = field(default_factory=InferenceRequest)
@@ -1420,11 +1411,11 @@ class ScheduledRequest(Declaration):
 @dataclass(frozen=True, kw_only=True)
 class Workload(Declaration):
     kind: str = 'fixed-arrivals'
-    requests: tuple[ScheduledRequest, ...]
+    requests: tuple[RequestArrival, ...]
 
 
 @dataclass(frozen=True, kw_only=True)
-class CacheSystem(Declaration):
+class KVResidencySystemConfig(Declaration):
     backend: str = 'reference'
     device_kv_bytes: int = 16384
     host_kv_bytes: int = 32768
@@ -1439,6 +1430,15 @@ class CacheSystem(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class TokenDelivered(Declaration):
+    kind: str = 'token-delivered'
+    work_id: str
+    token_ids: tuple[int, ...]
+    output_start: int
+    display_delta: str
+
+
+@dataclass(frozen=True, kw_only=True)
 class RunOutcome(Declaration):
     selected_tokens: int
     delivered_tokens: int
@@ -1448,15 +1448,28 @@ class RunOutcome(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class RequestFinished(Declaration):
+    kind: str = 'request-finished'
+    outcome: RunOutcome
+
+
+@dataclass(frozen=True, kw_only=True)
+class DecodingContract(Declaration):
+    choice: str
+    explanation: str
+    rule: str
+
+
+@dataclass(frozen=True, kw_only=True)
 class RequestBinding(Declaration):
-    model: ModelArtifact
+    model: ModelArtifactReference
     system: InferenceSystem = field(default_factory=InferenceSystem)
     request: InferenceRequest = field(default_factory=InferenceRequest)
 
 
 @dataclass(frozen=True, kw_only=True)
 class RunBinding(Declaration):
-    model: ModelArtifact
+    model: ModelArtifactReference
     system: InferenceSystem = field(default_factory=InferenceSystem)
     workload: Workload
 
@@ -1480,13 +1493,6 @@ class InputEncoded(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
-class WorkCompleted(Declaration):
-    kind: str = 'work-completed'
-    work_id: str
-    phase: str
-
-
-@dataclass(frozen=True, kw_only=True)
 class TokenSelected(Declaration):
     kind: str = 'token-selected'
     work_id: str
@@ -1495,26 +1501,10 @@ class TokenSelected(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
-class TokenCommitted(Declaration):
-    kind: str = 'token-committed'
+class ModelForwardCompleted(Declaration):
+    kind: str = 'model-forward-completed'
     work_id: str
-    token_ids: tuple[int, ...]
-    output_start: int
-
-
-@dataclass(frozen=True, kw_only=True)
-class TokenDelivered(Declaration):
-    kind: str = 'token-delivered'
-    work_id: str
-    token_ids: tuple[int, ...]
-    output_start: int
-    display_delta: str
-
-
-@dataclass(frozen=True, kw_only=True)
-class RequestFinished(Declaration):
-    kind: str = 'request-finished'
-    outcome: RunOutcome
+    phase: str
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -1524,22 +1514,7 @@ class RunEvent(Declaration):
     request_id: str
     sequence: int
     causes: tuple[str, ...]
-    payload: RequestArrived | InputEncoded | WorkCompleted | TokenSelected | TokenCommitted | TokenDelivered | RequestFinished
-
-
-@dataclass(frozen=True, kw_only=True)
-class CodeIdentity(Declaration):
-    python: str
-    revision: str
-    source_sha256: str
-    sources: dict[str, Any]
-
-
-@dataclass(frozen=True, kw_only=True)
-class DecodingContract(Declaration):
-    choice: str
-    explanation: str
-    rule: str
+    payload: RequestArrived | InputEncoded | ModelForwardCompleted | TokenSelected | TokenDelivered | RequestFinished
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -1565,6 +1540,24 @@ class Encoding(Declaration):
     context_limit: int | None = None
     codec_version: str
     unicode_version: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class ExecutionBackend(Declaration):
+    compute_device: str
+    device_state_storage: str
+    host_state_storage: str
+    library: str
+    precision: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class ExecutionProvenance(Declaration):
+    python: str
+    revision: str
+    source_sha256: str
+    sources: dict[str, Any]
+    backend: ExecutionBackend
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -1629,8 +1622,8 @@ class Token(Declaration):
 
 @dataclass(frozen=True, kw_only=True)
 class NumericalTrace(Declaration):
-    checkpoint: ModelCheckpoint
-    code: CodeIdentity
+    checkpoint: ModelArtifact
+    provenance: ExecutionProvenance
     contract_sha256: str
     declaration: RequestBinding
     decoding_contract: DecodingContract
@@ -1660,8 +1653,8 @@ class RunRecord(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
-class CacheExperiment(Declaration):
-    system: CacheSystem = field(default_factory=CacheSystem)
+class KVExperimentInput(Declaration):
+    system: KVResidencySystemConfig = field(default_factory=KVResidencySystemConfig)
     workload: Workload
 
 
@@ -1705,27 +1698,24 @@ class CacheMeasurement(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
-class CacheBackend(Declaration):
-    compute_device: str
-    device_state_storage: str
-    host_state_storage: str
-    library: str
-    precision: str
+class KVRunBinding(Declaration):
+    model: ModelArtifactReference
+    system: KVResidencySystemConfig = field(default_factory=KVResidencySystemConfig)
+    workload: Workload
 
 
 @dataclass(frozen=True, kw_only=True)
 class CacheRun(Declaration):
     id: str
-    spec: CacheExperiment
-    checkpoint: ModelCheckpoint
-    source_sha256: str
+    declaration: KVRunBinding
+    checkpoint: ModelArtifact
+    provenance: ExecutionProvenance
     events: tuple[CacheEvent, ...]
     computations: tuple[CacheComputation, ...]
     measurements: tuple[CacheMeasurement, ...]
     outcomes: dict[str, Any]
     states: dict[str, Any]
     evidence: str
-    backend: CacheBackend
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -1758,7 +1748,7 @@ class Turn(Declaration):
     text: str
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifact': ModelArtifact, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelParameters': ModelParameters, 'ModelCheckpoint': ModelCheckpoint, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'ScheduledRequest': ScheduledRequest, 'Workload': Workload, 'CacheSystem': CacheSystem, 'RunOutcome': RunOutcome, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'WorkCompleted': WorkCompleted, 'TokenSelected': TokenSelected, 'TokenCommitted': TokenCommitted, 'TokenDelivered': TokenDelivered, 'RequestFinished': RequestFinished, 'RunEvent': RunEvent, 'CodeIdentity': CodeIdentity, 'DecodingContract': DecodingContract, 'Span': Span, 'Encoding': Encoding, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'CacheExperiment': CacheExperiment, 'CacheEvent': CacheEvent, 'CacheComputation': CacheComputation, 'CacheMeasurement': CacheMeasurement, 'CacheBackend': CacheBackend, 'CacheRun': CacheRun, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'Turn': Turn}
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'KVResidencySystemConfig': KVResidencySystemConfig, 'TokenDelivered': TokenDelivered, 'RunOutcome': RunOutcome, 'RequestFinished': RequestFinished, 'DecodingContract': DecodingContract, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'TokenSelected': TokenSelected, 'ModelForwardCompleted': ModelForwardCompleted, 'RunEvent': RunEvent, 'Span': Span, 'Encoding': Encoding, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheComputation': CacheComputation, 'CacheMeasurement': CacheMeasurement, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'Turn': Turn}
 for model in MODELS.values():
     model._definitions = SCHEMAS
     model._registry = MODELS

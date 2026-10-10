@@ -11,7 +11,7 @@ import torch
 from inside_inference.cuda_runtime import CudaRuntime
 from inside_inference.model import initialize,ModelArchitecture,identity,canonical
 from inside_inference.tokenizer import Tokenizer
-from inside_inference.cache_lab import source_identity
+from inside_inference.provenance import source_identity
 from scripts import ROOT
 
 

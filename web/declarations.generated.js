@@ -101,7 +101,7 @@ globalThis.Declarations = (() => {
       }
     }
   },
-  "ModelArtifact": {
+  "ModelArtifactReference": {
     "type": "object",
     "x-owner": "ModelArtifact",
     "additionalProperties": false,
@@ -150,7 +150,7 @@ globalThis.Declarations = (() => {
       "seed"
     ],
     "additionalProperties": false,
-    "x-owner": "InitializationProvenance"
+    "x-owner": "ModelArtifact"
   },
   "TrainingProvenance": {
     "type": "object",
@@ -203,7 +203,7 @@ globalThis.Declarations = (() => {
       "source_sha256"
     ],
     "additionalProperties": false,
-    "x-owner": "TrainingProvenance"
+    "x-owner": "ModelArtifact"
   },
   "KVState": {
     "type": "object",
@@ -266,7 +266,7 @@ globalThis.Declarations = (() => {
       }
     }
   },
-  "ModelCheckpoint": {
+  "ModelArtifact": {
     "type": "object",
     "properties": {
       "config": {
@@ -279,7 +279,7 @@ globalThis.Declarations = (() => {
         "type": "string"
       },
       "parameters": {
-        "$ref": "#/$defs/ModelParameters"
+        "$ref": "#/$defs/ModelWeights"
       },
       "provenance": {
         "oneOf": [
@@ -300,9 +300,9 @@ globalThis.Declarations = (() => {
       "provenance"
     ],
     "additionalProperties": false,
-    "x-owner": "ModelCheckpoint"
+    "x-owner": "ModelArtifact"
   },
-  "ModelParameters": {
+  "ModelWeights": {
     "type": "object",
     "properties": {
       "attention_output": {
@@ -490,7 +490,7 @@ globalThis.Declarations = (() => {
       "value_bias"
     ],
     "additionalProperties": false,
-    "x-owner": "ModelParameters"
+    "x-owner": "ModelWeights"
   },
   "InferenceSystem": {
     "type": "object",
@@ -589,9 +589,9 @@ globalThis.Declarations = (() => {
       }
     }
   },
-  "ScheduledRequest": {
+  "RequestArrival": {
     "type": "object",
-    "x-owner": "ScheduledRequest",
+    "x-owner": "InferenceRequest",
     "additionalProperties": false,
     "required": [
       "request_id",
@@ -638,15 +638,15 @@ globalThis.Declarations = (() => {
         "title": "Ordered requests",
         "description": "Ordered requests",
         "items": {
-          "$ref": "#/$defs/ScheduledRequest"
+          "$ref": "#/$defs/RequestArrival"
         },
         "minItems": 1
       }
     }
   },
-  "CacheSystem": {
+  "KVResidencySystemConfig": {
     "type": "object",
-    "x-owner": "CacheSystem",
+    "x-owner": "InferenceSystem",
     "additionalProperties": false,
     "required": [
       "backend",
@@ -733,288 +733,9 @@ globalThis.Declarations = (() => {
       }
     }
   },
-  "RunOutcome": {
-    "type": "object",
-    "x-owner": "RunOutcome",
-    "additionalProperties": false,
-    "required": [
-      "selected_tokens",
-      "delivered_tokens",
-      "unused_budget",
-      "stop_reason",
-      "complete"
-    ],
-    "properties": {
-      "selected_tokens": {
-        "type": "integer",
-        "title": "Selected IDs",
-        "description": "Includes terminal controls.",
-        "minimum": 1
-      },
-      "delivered_tokens": {
-        "type": "integer",
-        "title": "Delivered IDs",
-        "description": "Every selected ID except TURN_END, including diagnostic control/byte/hex tokens.",
-        "minimum": 0
-      },
-      "unused_budget": {
-        "type": "integer",
-        "title": "Unused allowance",
-        "description": "Requested ceiling minus actual selected ID count.",
-        "minimum": 0
-      },
-      "stop_reason": {
-        "type": "string",
-        "title": "Termination condition",
-        "description": "Recorded by the execution loop.",
-        "enum": [
-          "turn_end",
-          "output_budget"
-        ]
-      },
-      "complete": {
-        "type": "boolean",
-        "title": "Turn complete",
-        "description": "True only if TURN_END was selected."
-      }
-    }
-  },
-  "RequestBinding": {
-    "type": "object",
-    "x-owner": "RequestBinding",
-    "additionalProperties": false,
-    "required": [
-      "model",
-      "system",
-      "request"
-    ],
-    "properties": {
-      "model": {
-        "$ref": "#/$defs/ModelArtifact"
-      },
-      "system": {
-        "$ref": "#/$defs/InferenceSystem"
-      },
-      "request": {
-        "$ref": "#/$defs/InferenceRequest"
-      }
-    }
-  },
-  "RunBinding": {
-    "type": "object",
-    "x-owner": "RunBinding",
-    "additionalProperties": false,
-    "required": [
-      "model",
-      "system",
-      "workload"
-    ],
-    "properties": {
-      "model": {
-        "$ref": "#/$defs/ModelArtifact"
-      },
-      "system": {
-        "$ref": "#/$defs/InferenceSystem"
-      },
-      "workload": {
-        "$ref": "#/$defs/Workload"
-      }
-    }
-  },
-  "EventClock": {
-    "type": "object",
-    "x-owner": "EventClock",
-    "additionalProperties": false,
-    "required": [
-      "kind"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Clock domain",
-        "description": "Clock domain",
-        "const": "execution-order",
-        "default": "execution-order"
-      }
-    }
-  },
-  "RequestArrived": {
-    "type": "object",
-    "x-owner": "RequestArrived",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "arrival_us"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "request-arrived",
-        "default": "request-arrived"
-      },
-      "arrival_us": {
-        "type": "integer",
-        "title": "Declared virtual arrival; not service latency",
-        "description": "Declared virtual arrival; not service latency",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      }
-    }
-  },
-  "InputEncoded": {
-    "type": "object",
-    "x-owner": "InputEncoded",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "input_sha256",
-      "token_count"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "input-encoded",
-        "default": "input-encoded"
-      },
-      "input_sha256": {
-        "type": "string",
-        "title": "Framed input identity",
-        "description": "Framed input identity",
-        "pattern": "^[0-9a-f]{64}$"
-      },
-      "token_count": {
-        "type": "integer",
-        "title": "Encoded positions",
-        "description": "Encoded positions",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      }
-    }
-  },
-  "WorkCompleted": {
-    "type": "object",
-    "x-owner": "WorkCompleted",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "work_id",
-      "phase"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "work-completed",
-        "default": "work-completed"
-      },
-      "work_id": {
-        "type": "string",
-        "title": "Numerical observation identity",
-        "description": "Numerical observation identity"
-      },
-      "phase": {
-        "type": "string",
-        "title": "Execution phase",
-        "description": "Execution phase",
-        "enum": [
-          "prefill",
-          "decode"
-        ]
-      }
-    }
-  },
-  "TokenSelected": {
-    "type": "object",
-    "x-owner": "TokenSelected",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "work_id",
-      "token_id",
-      "output_position"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "token-selected",
-        "default": "token-selected"
-      },
-      "work_id": {
-        "type": "string",
-        "title": "Producing computation",
-        "description": "Producing computation"
-      },
-      "token_id": {
-        "type": "integer",
-        "title": "Selected vocabulary ID",
-        "description": "Selected vocabulary ID",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      },
-      "output_position": {
-        "type": "integer",
-        "title": "Absolute sequence position",
-        "description": "Absolute sequence position",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      }
-    }
-  },
-  "TokenCommitted": {
-    "type": "object",
-    "x-owner": "TokenCommitted",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "work_id",
-      "token_ids",
-      "output_start"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "token-committed",
-        "default": "token-committed"
-      },
-      "work_id": {
-        "type": "string",
-        "title": "Producing computation",
-        "description": "Producing computation"
-      },
-      "token_ids": {
-        "type": "array",
-        "title": "Accepted continuation",
-        "description": "Accepted continuation",
-        "items": {
-          "type": "integer",
-          "title": "Committed token ID",
-          "description": "Committed token ID",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "minItems": 1
-      },
-      "output_start": {
-        "type": "integer",
-        "title": "Client token offset",
-        "description": "Client token offset",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      }
-    }
-  },
   "TokenDelivered": {
     "type": "object",
-    "x-owner": "TokenDelivered",
+    "x-owner": "InferenceResponse",
     "additionalProperties": false,
     "required": [
       "kind",
@@ -1065,7 +786,7 @@ globalThis.Declarations = (() => {
   },
   "RequestFinished": {
     "type": "object",
-    "x-owner": "RequestFinished",
+    "x-owner": "InferenceResponse",
     "additionalProperties": false,
     "required": [
       "kind",
@@ -1084,9 +805,231 @@ globalThis.Declarations = (() => {
       }
     }
   },
+  "RunOutcome": {
+    "type": "object",
+    "x-owner": "InferenceResponse",
+    "additionalProperties": false,
+    "required": [
+      "selected_tokens",
+      "delivered_tokens",
+      "unused_budget",
+      "stop_reason",
+      "complete"
+    ],
+    "properties": {
+      "selected_tokens": {
+        "type": "integer",
+        "title": "Selected IDs",
+        "description": "Includes terminal controls.",
+        "minimum": 1
+      },
+      "delivered_tokens": {
+        "type": "integer",
+        "title": "Delivered IDs",
+        "description": "Every selected ID except TURN_END, including diagnostic control/byte/hex tokens.",
+        "minimum": 0
+      },
+      "unused_budget": {
+        "type": "integer",
+        "title": "Unused allowance",
+        "description": "Requested ceiling minus actual selected ID count.",
+        "minimum": 0
+      },
+      "stop_reason": {
+        "type": "string",
+        "title": "Termination condition",
+        "description": "Recorded by the execution loop.",
+        "enum": [
+          "turn_end",
+          "output_budget"
+        ]
+      },
+      "complete": {
+        "type": "boolean",
+        "title": "Turn complete",
+        "description": "True only if TURN_END was selected."
+      }
+    }
+  },
+  "DecodingContract": {
+    "type": "object",
+    "properties": {
+      "choice": {
+        "type": "string"
+      },
+      "explanation": {
+        "type": "string"
+      },
+      "rule": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "choice",
+      "explanation",
+      "rule"
+    ],
+    "additionalProperties": false,
+    "x-owner": "GenerationPolicy"
+  },
+  "RequestBinding": {
+    "type": "object",
+    "x-owner": "ExperimentSpec",
+    "additionalProperties": false,
+    "required": [
+      "model",
+      "system",
+      "request"
+    ],
+    "properties": {
+      "model": {
+        "$ref": "#/$defs/ModelArtifactReference"
+      },
+      "system": {
+        "$ref": "#/$defs/InferenceSystem"
+      },
+      "request": {
+        "$ref": "#/$defs/InferenceRequest"
+      }
+    }
+  },
+  "RunBinding": {
+    "type": "object",
+    "x-owner": "ExperimentSpec",
+    "additionalProperties": false,
+    "required": [
+      "model",
+      "system",
+      "workload"
+    ],
+    "properties": {
+      "model": {
+        "$ref": "#/$defs/ModelArtifactReference"
+      },
+      "system": {
+        "$ref": "#/$defs/InferenceSystem"
+      },
+      "workload": {
+        "$ref": "#/$defs/Workload"
+      }
+    }
+  },
+  "EventClock": {
+    "type": "object",
+    "x-owner": "ExperimentEvent",
+    "additionalProperties": false,
+    "required": [
+      "kind"
+    ],
+    "properties": {
+      "kind": {
+        "type": "string",
+        "title": "Clock domain",
+        "description": "Clock domain",
+        "const": "execution-order",
+        "default": "execution-order"
+      }
+    }
+  },
+  "RequestArrived": {
+    "type": "object",
+    "x-owner": "ExperimentEvent",
+    "additionalProperties": false,
+    "required": [
+      "kind",
+      "arrival_us"
+    ],
+    "properties": {
+      "kind": {
+        "type": "string",
+        "title": "Event kind",
+        "description": "Event kind",
+        "const": "request-arrived",
+        "default": "request-arrived"
+      },
+      "arrival_us": {
+        "type": "integer",
+        "title": "Declared virtual arrival; not service latency",
+        "description": "Declared virtual arrival; not service latency",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      }
+    }
+  },
+  "InputEncoded": {
+    "type": "object",
+    "x-owner": "ExperimentEvent",
+    "additionalProperties": false,
+    "required": [
+      "kind",
+      "input_sha256",
+      "token_count"
+    ],
+    "properties": {
+      "kind": {
+        "type": "string",
+        "title": "Event kind",
+        "description": "Event kind",
+        "const": "input-encoded",
+        "default": "input-encoded"
+      },
+      "input_sha256": {
+        "type": "string",
+        "title": "Framed input identity",
+        "description": "Framed input identity",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "token_count": {
+        "type": "integer",
+        "title": "Encoded positions",
+        "description": "Encoded positions",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      }
+    }
+  },
+  "TokenSelected": {
+    "type": "object",
+    "x-owner": "ExperimentEvent",
+    "additionalProperties": false,
+    "required": [
+      "kind",
+      "work_id",
+      "token_id",
+      "output_position"
+    ],
+    "properties": {
+      "kind": {
+        "type": "string",
+        "title": "Event kind",
+        "description": "Event kind",
+        "const": "token-selected",
+        "default": "token-selected"
+      },
+      "work_id": {
+        "type": "string",
+        "title": "Producing computation",
+        "description": "Producing computation"
+      },
+      "token_id": {
+        "type": "integer",
+        "title": "Selected vocabulary ID",
+        "description": "Selected vocabulary ID",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "output_position": {
+        "type": "integer",
+        "title": "Absolute sequence position",
+        "description": "Absolute sequence position",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      }
+    }
+  },
   "RunEvent": {
     "type": "object",
-    "x-owner": "RunEvent",
+    "x-owner": "ExperimentEvent",
     "additionalProperties": false,
     "required": [
       "event_id",
@@ -1140,13 +1083,10 @@ globalThis.Declarations = (() => {
             "$ref": "#/$defs/InputEncoded"
           },
           {
-            "$ref": "#/$defs/WorkCompleted"
+            "$ref": "#/$defs/ModelForwardCompleted"
           },
           {
             "$ref": "#/$defs/TokenSelected"
-          },
-          {
-            "$ref": "#/$defs/TokenCommitted"
           },
           {
             "$ref": "#/$defs/TokenDelivered"
@@ -1162,10 +1102,10 @@ globalThis.Declarations = (() => {
     "type": "object",
     "properties": {
       "checkpoint": {
-        "$ref": "#/$defs/ModelCheckpoint"
+        "$ref": "#/$defs/ModelArtifact"
       },
-      "code": {
-        "$ref": "#/$defs/CodeIdentity"
+      "provenance": {
+        "$ref": "#/$defs/ExecutionProvenance"
       },
       "contract_sha256": {
         "type": "string"
@@ -1229,7 +1169,7 @@ globalThis.Declarations = (() => {
     },
     "required": [
       "checkpoint",
-      "code",
+      "provenance",
       "contract_sha256",
       "declaration",
       "decoding_contract",
@@ -1247,11 +1187,11 @@ globalThis.Declarations = (() => {
       "vocabulary"
     ],
     "additionalProperties": false,
-    "x-owner": "NumericalTrace"
+    "x-owner": "ExperimentExecution"
   },
   "RunRecord": {
     "type": "object",
-    "x-owner": "RunRecord",
+    "x-owner": "ExperimentExecution",
     "additionalProperties": false,
     "required": [
       "format",
@@ -1405,7 +1345,7 @@ globalThis.Declarations = (() => {
       "values"
     ],
     "additionalProperties": false,
-    "x-owner": "TensorObservation"
+    "x-owner": "ExperimentObservation"
   },
   "TokenSelection": {
     "type": "object",
@@ -1445,11 +1385,11 @@ globalThis.Declarations = (() => {
       "selected_id"
     ],
     "additionalProperties": false,
-    "x-owner": "TokenSelection"
+    "x-owner": "ExperimentObservation"
   },
-  "CacheExperiment": {
+  "KVExperimentInput": {
     "type": "object",
-    "x-owner": "CacheExperiment",
+    "x-owner": "ExperimentSpec",
     "additionalProperties": false,
     "required": [
       "system",
@@ -1457,7 +1397,7 @@ globalThis.Declarations = (() => {
     ],
     "properties": {
       "system": {
-        "$ref": "#/$defs/CacheSystem"
+        "$ref": "#/$defs/KVResidencySystemConfig"
       },
       "workload": {
         "$ref": "#/$defs/Workload"
@@ -1466,7 +1406,7 @@ globalThis.Declarations = (() => {
   },
   "CacheEvent": {
     "type": "object",
-    "x-owner": "CacheEvent",
+    "x-owner": "ExperimentEvent",
     "additionalProperties": false,
     "required": [
       "event_id",
@@ -1545,7 +1485,7 @@ globalThis.Declarations = (() => {
   },
   "CacheComputation": {
     "type": "object",
-    "x-owner": "CacheComputation",
+    "x-owner": "ExperimentObservation",
     "additionalProperties": false,
     "required": [
       "work_id",
@@ -1634,7 +1574,7 @@ globalThis.Declarations = (() => {
   },
   "CacheMeasurement": {
     "type": "object",
-    "x-owner": "CacheMeasurement",
+    "x-owner": "ExperimentObservation",
     "additionalProperties": false,
     "required": [
       "event_id",
@@ -1669,33 +1609,32 @@ globalThis.Declarations = (() => {
   },
   "CacheRun": {
     "type": "object",
-    "x-owner": "CacheRun",
+    "x-owner": "ExperimentExecution",
     "additionalProperties": false,
     "required": [
       "id",
-      "spec",
+      "declaration",
       "checkpoint",
-      "source_sha256",
+      "provenance",
       "events",
       "computations",
       "measurements",
       "outcomes",
       "states",
-      "evidence",
-      "backend"
+      "evidence"
     ],
     "properties": {
       "id": {
         "type": "string"
       },
-      "spec": {
-        "$ref": "#/$defs/CacheExperiment"
+      "declaration": {
+        "$ref": "#/$defs/KVRunBinding"
       },
       "checkpoint": {
-        "$ref": "#/$defs/ModelCheckpoint"
+        "$ref": "#/$defs/ModelArtifact"
       },
-      "source_sha256": {
-        "type": "string"
+      "provenance": {
+        "$ref": "#/$defs/ExecutionProvenance"
       },
       "events": {
         "type": "array",
@@ -1729,13 +1668,10 @@ globalThis.Declarations = (() => {
       },
       "evidence": {
         "type": "string"
-      },
-      "backend": {
-        "$ref": "#/$defs/CacheBackend"
       }
     }
   },
-  "CodeIdentity": {
+  "ExecutionProvenance": {
     "type": "object",
     "properties": {
       "python": {
@@ -1753,37 +1689,20 @@ globalThis.Declarations = (() => {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$"
         }
+      },
+      "backend": {
+        "$ref": "#/$defs/ExecutionBackend"
       }
     },
     "required": [
       "python",
       "revision",
       "source_sha256",
-      "sources"
+      "sources",
+      "backend"
     ],
     "additionalProperties": false,
-    "x-owner": "CodeIdentity"
-  },
-  "DecodingContract": {
-    "type": "object",
-    "properties": {
-      "choice": {
-        "type": "string"
-      },
-      "explanation": {
-        "type": "string"
-      },
-      "rule": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "choice",
-      "explanation",
-      "rule"
-    ],
-    "additionalProperties": false,
-    "x-owner": "DecodingContract"
+    "x-owner": "ExperimentExecution"
   },
   "NumericalPrecision": {
     "type": "object",
@@ -1804,7 +1723,7 @@ globalThis.Declarations = (() => {
       "storage"
     ],
     "additionalProperties": false,
-    "x-owner": "NumericalPrecision"
+    "x-owner": "ExperimentObservation"
   },
   "NumericalPass": {
     "type": "object",
@@ -1875,7 +1794,61 @@ globalThis.Declarations = (() => {
       "step"
     ],
     "additionalProperties": false,
-    "x-owner": "NumericalPass"
+    "x-owner": "ExperimentObservation"
+  },
+  "ModelForwardCompleted": {
+    "type": "object",
+    "x-owner": "ExperimentEvent",
+    "additionalProperties": false,
+    "required": [
+      "kind",
+      "work_id",
+      "phase"
+    ],
+    "properties": {
+      "kind": {
+        "type": "string",
+        "title": "Event kind",
+        "description": "Event kind",
+        "const": "model-forward-completed",
+        "default": "model-forward-completed"
+      },
+      "work_id": {
+        "type": "string",
+        "title": "Numerical observation identity",
+        "description": "Numerical observation identity"
+      },
+      "phase": {
+        "type": "string",
+        "title": "Execution phase",
+        "description": "Execution phase",
+        "enum": [
+          "prefill",
+          "decode"
+        ]
+      }
+    }
+  },
+  "KVRunBinding": {
+    "type": "object",
+    "x-owner": "ExperimentSpec",
+    "additionalProperties": false,
+    "required": [
+      "model",
+      "system",
+      "workload"
+    ],
+    "properties": {
+      "model": {
+        "$ref": "#/$defs/ModelArtifactReference"
+      },
+      "system": {
+        "$ref": "#/$defs/KVResidencySystemConfig"
+      },
+      "workload": {
+        "$ref": "#/$defs/Workload"
+      }
+    }
   },
   "InspectionState": {
     "type": "object",
@@ -1909,7 +1882,7 @@ globalThis.Declarations = (() => {
   },
   "Capabilities": {
     "type": "object",
-    "x-owner": "Capabilities",
+    "x-owner": "ExecutionCapabilities",
     "additionalProperties": false,
     "required": [
       "engine",
@@ -1948,7 +1921,7 @@ globalThis.Declarations = (() => {
   },
   "CacheCapabilities": {
     "type": "object",
-    "x-owner": "CacheCapabilities",
+    "x-owner": "ExecutionCapabilities",
     "additionalProperties": false,
     "required": [
       "contract_sha256",
@@ -1972,9 +1945,9 @@ globalThis.Declarations = (() => {
       }
     }
   },
-  "CacheBackend": {
+  "ExecutionBackend": {
     "type": "object",
-    "x-owner": "CacheBackend",
+    "x-owner": "ExecutionBackend",
     "additionalProperties": false,
     "required": [
       "compute_device",
@@ -2003,7 +1976,7 @@ globalThis.Declarations = (() => {
   },
   "Token": {
     "type": "object",
-    "x-owner": "Token",
+    "x-owner": "Tokenizer",
     "properties": {
       "id": {
         "type": "integer",
@@ -2030,7 +2003,7 @@ globalThis.Declarations = (() => {
   },
   "Span": {
     "type": "object",
-    "x-owner": "Span",
+    "x-owner": "Tokenizer",
     "properties": {
       "kind": {
         "type": "string"
@@ -2095,7 +2068,7 @@ globalThis.Declarations = (() => {
   },
   "Encoding": {
     "type": "object",
-    "x-owner": "Encoding",
+    "x-owner": "Tokenizer",
     "properties": {
       "ids": {
         "type": "array",
@@ -2148,7 +2121,7 @@ globalThis.Declarations = (() => {
   },
   "Turn": {
     "type": "object",
-    "x-owner": "Turn",
+    "x-owner": "Tokenizer",
     "properties": {
       "role": {
         "type": "string"
@@ -2167,7 +2140,7 @@ globalThis.Declarations = (() => {
   const meanings = {
   "ModelArchitecture": {
     "meaning": "Dimensions and numerical conventions that define the supported GPT computation.",
-    "lifetime": "Immutable for an artifact identity. Preparation seed is provenance, never a request control.",
+    "lifetime": "Fixed within an identified model artifact.",
     "owns": [
       "Dimensions and numerical conventions that define the supported GPT computation."
     ],
@@ -2176,60 +2149,12 @@ globalThis.Declarations = (() => {
       "generation limits",
       "inspection position"
     ],
-    "schema": "ModelArchitecture",
     "depends_on": [],
     "capability_reads": [],
-    "projections": {}
-  },
-  "ModelArtifact": {
-    "meaning": "An immutable descriptor identifying a checkpoint, architecture, tokenizer, and preparation provenance.",
-    "lifetime": "Immutable for an artifact identity. Preparation seed is provenance, never a request control.",
-    "owns": [
-      "An immutable descriptor identifying a checkpoint, architecture, tokenizer, and preparation provenance."
-    ],
-    "excludes": [
-      "request text",
-      "generation limits",
-      "inspection position"
-    ],
-    "schema": "ModelArtifact",
-    "depends_on": [
+    "projections": {},
+    "schemas": [
       "ModelArchitecture"
-    ],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "InitializationProvenance": {
-    "meaning": "The declared initializer and seed that produced untrained parameter values.",
-    "lifetime": "Immutable for an artifact identity. Preparation seed is provenance, never a request control.",
-    "owns": [
-      "The declared initializer and seed that produced untrained parameter values."
-    ],
-    "excludes": [
-      "request text",
-      "generation limits",
-      "inspection position"
-    ],
-    "schema": "InitializationProvenance",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "TrainingProvenance": {
-    "meaning": "The identified preparation run and selection evidence that produced trained parameters.",
-    "lifetime": "Immutable for an artifact identity. Preparation seed is provenance, never a request control.",
-    "owns": [
-      "The identified preparation run and selection evidence that produced trained parameters."
-    ],
-    "excludes": [
-      "request text",
-      "generation limits",
-      "inspection position"
-    ],
-    "schema": "TrainingProvenance",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
+    ]
   },
   "KVState": {
     "meaning": "Immutable actual keys and values for a prefix, bound to checkpoint, tokenizer, positions, and precision.",
@@ -2242,12 +2167,11 @@ globalThis.Declarations = (() => {
       "cached answers",
       "service timing"
     ],
-    "schema": "KVState",
     "depends_on": [],
     "capability_reads": [],
     "projections": {
       "Sequence state": {
-        "meaning": "Intermediate state used to continue an inference sequence, such as retained keys/values or a recurrent state. It is distinct from trained parameters, input text, and a cached final answer.",
+        "meaning": "Actual attention keys and values retained for a token prefix and its positions. This declaration represents KV state, not arbitrary recurrent state; weights and cached final answers are separate.",
         "fields": {
           "KVState": [
             "token_ids",
@@ -2269,167 +2193,77 @@ globalThis.Declarations = (() => {
           ]
         }
       }
-    }
+    },
+    "schemas": [
+      "KVState"
+    ]
   },
-  "ModelCheckpoint": {
-    "meaning": "The actual parameter arrays with their architecture, tokenizer identity, and preparation provenance.",
+  "ModelArtifact": {
+    "meaning": "An immutable inference artifact binding numerical weights to architecture, tokenizer identity, and preparation provenance.",
     "lifetime": "Immutable for an artifact identity. Preparation seed is provenance, never a request control.",
     "owns": [
-      "The actual parameter arrays with their architecture, tokenizer identity, and preparation provenance."
+      "The full inference payload and its lightweight identity reference.",
+      "Preparation provenance attached to the artifact."
     ],
     "excludes": [
       "request text",
       "generation limits",
       "inspection position"
     ],
-    "schema": "ModelCheckpoint",
     "depends_on": [
-      "InitializationProvenance",
       "ModelArchitecture",
-      "ModelParameters",
-      "TrainingProvenance"
+      "ModelWeights"
     ],
     "capability_reads": [],
-    "projections": {}
+    "projections": {},
+    "schemas": [
+      "ModelArtifact",
+      "ModelArtifactReference",
+      "InitializationProvenance",
+      "TrainingProvenance"
+    ]
   },
-  "ModelParameters": {
-    "meaning": "Actual parameter arrays indexed by their declared operation names.",
+  "ModelWeights": {
+    "meaning": "Numerical tensors consumed by the model: embeddings, projection weights, biases, and normalization scales.",
     "lifetime": "Immutable within its identified artifact or recorded execution.",
     "owns": [
-      "Actual parameter arrays indexed by their declared operation names."
+      "Numerical tensor values indexed by model operation."
     ],
     "excludes": [
-      "Unrecorded behavior",
-      "Presentation state"
+      "Architecture dimensions and execution conventions",
+      "Request and generation configuration",
+      "Per-request KV state"
     ],
-    "schema": "ModelParameters",
     "depends_on": [],
     "capability_reads": [],
-    "projections": {}
+    "projections": {},
+    "schemas": [
+      "ModelWeights"
+    ]
   },
   "InferenceSystem": {
-    "meaning": "Capabilities and execution strategy of the uncached reference implementation.",
+    "meaning": "The configured execution boundary that accepts inference requests and produces their outputs.",
     "lifetime": "Fixed for an identified system configuration.",
     "owns": [
-      "Capabilities and execution strategy of the uncached reference implementation."
+      "Supported execution strategy, request admission limits, and resource assumptions.",
+      "Reference and KV residency experiment configurations."
     ],
     "excludes": [
-      "weights",
-      "requested generation limit",
-      "actual prediction count"
+      "Model weights",
+      "Per-request generation settings",
+      "Observed execution results"
     ],
-    "schema": "InferenceSystem",
     "depends_on": [],
     "capability_reads": [],
     "projections": {
       "Inference system": {
-        "meaning": "The configured boundary that accepts requests and produces responses, including input preparation, model execution, serving policies, state storage, and execution resources. Execution locations within this boundary are workers.",
+        "meaning": "The configured inference boundary. Current declarations cover an uncached reference engine and a KV residency experiment; neither represents a general serving fleet.",
         "fields": {
           "InferenceSystem": [
             "execution",
             "max_requests"
-          ]
-        }
-      }
-    }
-  },
-  "GenerationPolicy": {
-    "meaning": "Requested selection budget and the permitted selection and termination rules.",
-    "lifetime": "Editable before submission; immutable in a run binding.",
-    "owns": [
-      "Requested selection budget and the permitted selection and termination rules."
-    ],
-    "excludes": [
-      "model initialization",
-      "system capacity",
-      "observed outcomes"
-    ],
-    "schema": "GenerationPolicy",
-    "depends_on": [],
-    "capability_reads": [
-      "system.max_new_tokens_cap"
-    ],
-    "projections": {}
-  },
-  "InferenceRequest": {
-    "meaning": "Input text and generation policy for one invocation.",
-    "lifetime": "Editable before submission; immutable in a run binding.",
-    "owns": [
-      "Input text and generation policy for one invocation."
-    ],
-    "excludes": [
-      "model initialization",
-      "system capacity",
-      "observed outcomes"
-    ],
-    "schema": "InferenceRequest",
-    "depends_on": [
-      "GenerationPolicy"
-    ],
-    "capability_reads": [],
-    "projections": {
-      "Request": {
-        "meaning": "One invocation seeking output from an identified model/configuration, with input and completion/cancellation conditions. An agent turn may produce multiple requests.",
-        "fields": {
-          "InferenceRequest": [
-            "text",
-            "generation"
-          ]
-        }
-      }
-    }
-  },
-  "ScheduledRequest": {
-    "meaning": "One identified inference request with its declared arrival time.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "One identified inference request with its declared arrival time."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "ScheduledRequest",
-    "depends_on": [
-      "InferenceRequest"
-    ],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "Workload": {
-    "meaning": "An ordered collection of scheduled requests; array order breaks equal-time ties.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "An ordered collection of scheduled requests; array order breaks equal-time ties."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "Workload",
-    "depends_on": [
-      "ScheduledRequest"
-    ],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "CacheSystem": {
-    "meaning": "KV execution backend, reservation and retention policy, workload limits, and hypothetical service rates.",
-    "lifetime": "Fixed for an identified system configuration.",
-    "owns": [
-      "KV execution backend, reservation and retention policy, workload limits, and hypothetical service rates."
-    ],
-    "excludes": [
-      "weights",
-      "requested generation limit",
-      "actual prediction count"
-    ],
-    "schema": "CacheSystem",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {
-      "Cache system": {
-        "meaning": "The configured boundary that accepts requests and produces responses, including input preparation, model execution, serving policies, state storage, and execution resources. Execution locations within this boundary are workers.",
-        "fields": {
-          "CacheSystem": [
+          ],
+          "KVResidencySystemConfig": [
             "backend",
             "max_active_requests",
             "retention_policy"
@@ -2439,7 +2273,7 @@ globalThis.Declarations = (() => {
       "Resource": {
         "meaning": "A bounded capability or capacity consumed by work or retained state. Compute rate, storage capacity, and data-transfer bandwidth have different units and constraints.",
         "fields": {
-          "CacheSystem": [
+          "KVResidencySystemConfig": [
             "device_kv_bytes",
             "host_kv_bytes",
             "compute_flops_per_us",
@@ -2448,240 +2282,189 @@ globalThis.Declarations = (() => {
         }
       },
       "Link": {
-        "meaning": "A modeled transfer path between locations, with declared delay, bandwidth, and sharing behavior. Links may share a bottleneck; independent-link assumptions must be explicit.",
+        "meaning": "Hypothetical transfer bandwidth and startup delay for the KV residency experiment. Compute and transfers serialize in this model; the declaration does not describe a multi-link fabric or configurable contention.",
         "fields": {
-          "CacheSystem": [
+          "KVResidencySystemConfig": [
             "link_bytes_per_us",
             "link_latency_us"
           ]
         }
       }
-    }
+    },
+    "schemas": [
+      "InferenceSystem",
+      "KVResidencySystemConfig"
+    ]
   },
-  "RunOutcome": {
-    "meaning": "Observed selection and delivery counts, unused budget, and termination reason.",
-    "lifetime": "Immutable evidence derived from execution, not requested values.",
+  "GenerationPolicy": {
+    "meaning": "Per-request output-token budget and supported selection and termination rules.",
+    "lifetime": "Editable per request before submission; immutable in that request\u2019s run binding.",
     "owns": [
-      "Observed selection and delivery counts, unused budget, and termination reason."
+      "Per-request output-token budget and selection and termination settings.",
+      "Recorded identity and explanation of the policy used by an execution."
     ],
     "excludes": [
-      "requested settings",
-      "playback position"
+      "model initialization",
+      "system capacity",
+      "observed outcomes"
     ],
-    "schema": "RunOutcome",
     "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
+    "capability_reads": [
+      "system.max_new_tokens_cap"
+    ],
+    "projections": {},
+    "schemas": [
+      "GenerationPolicy",
+      "DecodingContract"
+    ]
   },
-  "RequestBinding": {
-    "meaning": "The model, system, and request consumed by a single numerical trace.",
+  "InferenceRequest": {
+    "meaning": "One invocation with input and per-request generation settings, identified at its declared arrival.",
+    "lifetime": "Editable before submission; immutable in a run binding.",
+    "owns": [
+      "Request input and per-request generation settings.",
+      "Request identity and declared arrival time; arrival does not imply admission or execution."
+    ],
+    "excludes": [
+      "model initialization",
+      "system capacity",
+      "observed outcomes"
+    ],
+    "depends_on": [
+      "GenerationPolicy"
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Request": {
+        "meaning": "One invocation carrying input and per-request generation settings, with identity and declared arrival. An agent turn may issue multiple invocations; cancellation is not represented by the current declaration.",
+        "fields": {
+          "InferenceRequest": [
+            "text",
+            "generation"
+          ],
+          "RequestArrival": [
+            "request_id",
+            "arrival_us"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "InferenceRequest",
+      "RequestArrival"
+    ]
+  },
+  "Workload": {
+    "meaning": "An ordered collection of request arrivals; array order breaks equal-time ties.",
     "lifetime": "Immutable in an identified execution record.",
     "owns": [
-      "The model, system, and request consumed by a single numerical trace."
+      "An ordered collection of request arrivals; array order breaks equal-time ties."
     ],
     "excludes": [
-      "Unrecorded behavior and presentation state"
+      "Actual admission or execution order chosen by the scheduler",
+      "Generated outputs and measured completion times"
     ],
-    "schema": "RequestBinding",
     "depends_on": [
-      "InferenceRequest",
-      "InferenceSystem",
-      "ModelArtifact"
+      "InferenceRequest"
     ],
     "capability_reads": [],
-    "projections": {}
+    "projections": {},
+    "schemas": [
+      "Workload"
+    ]
   },
-  "RunBinding": {
-    "meaning": "The exact model, system, and workload consumed by one execution.",
-    "lifetime": "Immutable evidence, including after a later workload draft is edited.",
+  "InferenceResponse": {
+    "meaning": "The output published for one request and its observed completion outcome.",
+    "lifetime": "Immutable execution evidence, accumulated as output is published and the request finishes.",
     "owns": [
-      "The exact model, system, and workload consumed by one execution."
+      "Selected token IDs published to the modeled output collector and their diagnostic display contribution.",
+      "Request completion, selection and delivery counts, unused budget, and termination reason."
     ],
     "excludes": [
-      "independent copies of their individual settings",
-      "presentation state"
+      "Undelivered selections, including TURN_END, and any future speculative candidates",
+      "Internal tensors and KV state",
+      "Network receipt or acknowledgment; current delivery is in-process publication."
     ],
-    "schema": "RunBinding",
+    "depends_on": [],
+    "capability_reads": [],
+    "projections": {
+      "Response": {
+        "meaning": "Published output and the request outcome. The existing event envelope supplies request/run identity and order; publication is not proof of network receipt.",
+        "fields": {
+          "TokenDelivered": [
+            "token_ids",
+            "output_start",
+            "display_delta"
+          ],
+          "RequestFinished": [
+            "outcome"
+          ],
+          "RunOutcome": [
+            "delivered_tokens",
+            "stop_reason",
+            "complete"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "TokenDelivered",
+      "RequestFinished",
+      "RunOutcome"
+    ]
+  },
+  "ExperimentSpec": {
+    "meaning": "The declared inputs, configuration, and assumptions for an experiment.",
+    "lifetime": "Editable before execution; the consumed specification is frozen in the execution record.",
+    "owns": [
+      "Submitted experiment input, and resolved bindings identifying the model, inference system, and request or workload actually consumed."
+    ],
+    "excludes": [
+      "Observed outcomes and execution identity",
+      "Causal events and numerical measurements"
+    ],
     "depends_on": [
+      "InferenceRequest",
       "InferenceSystem",
       "ModelArtifact",
       "Workload"
     ],
     "capability_reads": [],
-    "projections": {}
-  },
-  "EventClock": {
-    "meaning": "The declared time interpretation for an ordered execution event.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "The declared time interpretation for an ordered execution event."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "EventClock",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "RequestArrived": {
-    "meaning": "Evidence that a request reached the modeled input boundary.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "Evidence that a request reached the modeled input boundary."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "RequestArrived",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "InputEncoded": {
-    "meaning": "Evidence identifying the input and resulting token count after encoding.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "Evidence identifying the input and resulting token count after encoding."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "InputEncoded",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "WorkCompleted": {
-    "meaning": "Evidence linking completed numerical work to its sequence positions.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "Evidence linking completed numerical work to its sequence positions."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "WorkCompleted",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "TokenSelected": {
-    "meaning": "Evidence linking a selected token to the numerical work that selected it.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "Evidence linking a selected token to the numerical work that selected it."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "TokenSelected",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "TokenCommitted": {
-    "meaning": "Evidence that selected token IDs became committed continuation state.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "Evidence that selected token IDs became committed continuation state."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "TokenCommitted",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "TokenDelivered": {
-    "meaning": "Evidence that committed token IDs were published to the modeled output collector.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "Evidence that committed token IDs were published to the modeled output collector."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "TokenDelivered",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "RequestFinished": {
-    "meaning": "Evidence of the outcome that ended one request.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "Evidence of the outcome that ended one request."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "RequestFinished",
-    "depends_on": [
-      "RunOutcome"
-    ],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "RunEvent": {
-    "meaning": "An identified ordered occurrence with explicit earlier causes and a typed payload.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "An identified ordered occurrence with explicit earlier causes and a typed payload."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "RunEvent",
-    "depends_on": [
-      "InputEncoded",
-      "RequestArrived",
-      "RequestFinished",
-      "TokenCommitted",
-      "TokenDelivered",
-      "TokenSelected",
-      "WorkCompleted"
-    ],
-    "capability_reads": [],
-    "projections": {
-      "Event": {
-        "meaning": "A modeled occurrence or transition at a simulation time, linked to causes and affected entities. Equal-time events require explicit ordering semantics.",
-        "fields": {
-          "RunEvent": [
-            "event_id",
-            "causes",
-            "payload"
-          ]
-        }
-      }
-    }
-  },
-  "NumericalTrace": {
-    "meaning": "Actual single-request tensors, token selections, model binding, and replay evidence.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "Actual single-request tensors, token selections, model binding, and replay evidence."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "NumericalTrace",
-    "depends_on": [
-      "CodeIdentity",
-      "DecodingContract",
-      "Encoding",
-      "ModelCheckpoint",
-      "NumericalPass",
-      "NumericalPrecision",
+    "projections": {},
+    "schemas": [
       "RequestBinding",
-      "RunOutcome",
-      "Token"
+      "RunBinding",
+      "KVExperimentInput",
+      "KVRunBinding"
+    ]
+  },
+  "ExperimentExecution": {
+    "meaning": "One identified execution of an experiment specification, retaining its events and observations for inspection and replay.",
+    "lifetime": "Evidence accumulates during execution; the completed record is immutable.",
+    "owns": [
+      "Execution records joining the consumed specification, events, observations, and request outcomes.",
+      "Numerical traces and shared execution provenance identifying source bytes, Python/Git version, and the actual backend; provenance is distinct from requested system settings."
+    ],
+    "excludes": [
+      "Editable experiment drafts",
+      "Inspection cursor or playback position",
+      "Claims that a local run predicts production performance"
+    ],
+    "depends_on": [
+      "ExperimentSpec",
+      "ExperimentEvent",
+      "ExperimentObservation",
+      "GenerationPolicy",
+      "Tokenizer",
+      "ModelArtifact",
+      "InferenceResponse",
+      "ExecutionBackend",
+      "KVState"
     ],
     "capability_reads": [],
     "projections": {
       "Detokenizer": {
-        "meaning": "Converts output token IDs back to text or bytes using the tokenizer configuration. A streamed token may not complete a printable character; buffering can be required.",
+        "meaning": "The recorded output IDs and their diagnostic display under the identified tokenizer. This view renders word pieces and labeled control/byte/hex IDs; it does not establish valid decoded text or a streaming UTF-8 decoder.",
         "fields": {
           "NumericalTrace": [
             "output_ids",
@@ -2690,38 +2473,90 @@ globalThis.Declarations = (() => {
           ]
         }
       }
-    }
+    },
+    "schemas": [
+      "RunRecord",
+      "CacheRun",
+      "NumericalTrace",
+      "ExecutionProvenance"
+    ]
   },
-  "RunRecord": {
-    "meaning": "The bound workload and its ordered events and linked numerical traces.",
-    "lifetime": "Immutable in an identified execution record.",
+  "ExperimentEvent": {
+    "meaning": "An occurrence within an execution, with explicit order, causal links, and the applicable clock interpretation.",
+    "lifetime": "Recorded when an occurrence happens; earlier events are not rewritten.",
     "owns": [
-      "The bound workload and its ordered events and linked numerical traces."
+      "Event envelopes and actual transitions for request arrival, input encoding, model forward completion, and token selection.",
+      "KV residency and scheduling transitions, and the declared interpretation of event time."
     ],
     "excludes": [
-      "Unrecorded behavior and presentation state"
+      "A global sequential step shared by concurrent requests",
+      "Inferring causality from adjacency or equal timestamps",
+      "Treating virtual time or execution order as measured wall time",
+      "Response publication and completion payloads, owned by InferenceResponse"
     ],
-    "schema": "RunRecord",
     "depends_on": [
-      "EventClock",
-      "NumericalTrace",
-      "RunBinding",
-      "RunEvent"
+      "InferenceResponse"
     ],
     "capability_reads": [],
-    "projections": {}
+    "projections": {
+      "Event": {
+        "meaning": "An occurrence linked to its causes and affected entities. The execution declares whether order alone or virtual time is available; neither establishes measured duration.",
+        "fields": {
+          "RunEvent": [
+            "event_id",
+            "causes",
+            "payload"
+          ]
+        }
+      },
+      "Residency": {
+        "meaning": "A copy of a state artifact at a location, with allocated size, readiness, and lifetime. A remote or in-flight copy is not automatically ready for local computation.",
+        "fields": {
+          "CacheEvent": [
+            "state_id",
+            "kind",
+            "device_reserved_bytes",
+            "host_retained_bytes"
+          ]
+        }
+      },
+      "Queue": {
+        "meaning": "Work or requests waiting for eligibility or resources. Being queued is different from actively consuming service.",
+        "fields": {
+          "CacheEvent": [
+            "request_id",
+            "kind",
+            "time_us",
+            "causes"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "RunEvent",
+      "CacheEvent",
+      "EventClock",
+      "RequestArrived",
+      "InputEncoded",
+      "ModelForwardCompleted",
+      "TokenSelected"
+    ]
   },
-  "TensorObservation": {
-    "meaning": "Actual intermediate tensor values with shape, position, operation, and run identity.",
-    "lifetime": "Immutable in an identified execution record.",
+  "ExperimentObservation": {
+    "meaning": "Recorded numerical values or measurements from an execution, associated with the work or event they describe.",
+    "lifetime": "Captured during execution and retained unchanged with its evidence.",
     "owns": [
-      "Actual intermediate tensor values with shape, position, operation, and run identity."
+      "Intermediate tensors, numerical passes, logits and token selections, and actual KV computations.",
+      "Declared numerical precision and local wall-time measurements with their measurement boundaries."
     ],
     "excludes": [
-      "Unrecorded behavior and presentation state"
+      "Requested settings and hypothetical service rates",
+      "Equating selected tokens with published response tokens",
+      "Treating a host measurement as target-accelerator performance"
     ],
-    "schema": "TensorObservation",
-    "depends_on": [],
+    "depends_on": [
+      "KVState"
+    ],
     "capability_reads": [],
     "projections": {
       "Embedding": {
@@ -2759,24 +2594,9 @@ globalThis.Declarations = (() => {
             "formula"
           ]
         }
-      }
-    }
-  },
-  "TokenSelection": {
-    "meaning": "Raw logits, probabilities, selection rule, and the selected vocabulary ID.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "Raw logits, probabilities, selection rule, and the selected vocabulary ID."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "TokenSelection",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {
+      },
       "Token selection": {
-        "meaning": "Chooses a next token from logits under a specified decoding rule, stopping conditions, and any randomness. The selected token can feed the next model step.",
+        "meaning": "The executed selection from raw logits, with its selected vocabulary ID and recorded rule. Current execution uses greedy selection; selecting an ID does not itself mean that it was published as output.",
         "fields": {
           "TokenSelection": [
             "raw_logits",
@@ -2784,85 +2604,9 @@ globalThis.Declarations = (() => {
             "rule"
           ]
         }
-      }
-    }
-  },
-  "CacheExperiment": {
-    "meaning": "A fixed-arrival workload bound to the declared KV execution system.",
-    "lifetime": "Immutable within an identified experiment or recorded run.",
-    "owns": [
-      "A fixed-arrival workload bound to the declared KV execution system."
-    ],
-    "excludes": [
-      "Undeclared behavior",
-      "Presentation state"
-    ],
-    "schema": "CacheExperiment",
-    "depends_on": [
-      "CacheSystem",
-      "Workload"
-    ],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "CacheEvent": {
-    "meaning": "An ordered causal cache or scheduling transition with resource accounting and virtual time.",
-    "lifetime": "Immutable within an identified experiment or recorded run.",
-    "owns": [
-      "An ordered causal cache or scheduling transition with resource accounting and virtual time."
-    ],
-    "excludes": [
-      "Undeclared behavior",
-      "Presentation state"
-    ],
-    "schema": "CacheEvent",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {
-      "Residency": {
-        "meaning": "A copy of a state artifact at a location, with allocated size, readiness, and lifetime. A remote or in-flight copy is not automatically ready for local computation.",
-        "fields": {
-          "CacheEvent": [
-            "state_id",
-            "kind",
-            "device_reserved_bytes",
-            "host_retained_bytes"
-          ]
-        }
       },
-      "Queue": {
-        "meaning": "Work or requests waiting for eligibility or resources. Being queued is different from actively consuming service.",
-        "fields": {
-          "CacheEvent": [
-            "request_id",
-            "kind",
-            "time_us",
-            "causes"
-          ]
-        }
-      }
-    }
-  },
-  "CacheComputation": {
-    "meaning": "Actual numerical work linking its input and output KV states, tensors, selection, and operation counts.",
-    "lifetime": "Immutable within an identified experiment or recorded run.",
-    "owns": [
-      "Actual numerical work linking its input and output KV states, tensors, selection, and operation counts."
-    ],
-    "excludes": [
-      "Undeclared behavior",
-      "Presentation state"
-    ],
-    "schema": "CacheComputation",
-    "depends_on": [
-      "KVState",
-      "TensorObservation",
-      "TokenSelection"
-    ],
-    "capability_reads": [],
-    "projections": {
       "Work item": {
-        "meaning": "A unit of modeled computation or data movement, with prerequisites, inputs, outputs, and resource demands. Its granularity is an abstraction choice.",
+        "meaning": "An executed KV model computation, identified by work ID and linked to input IDs, tensors, and before/after KV states. Transfers are separate events, not instances of this computation record.",
         "fields": {
           "CacheComputation": [
             "work_id",
@@ -2873,109 +2617,15 @@ globalThis.Declarations = (() => {
           ]
         }
       }
-    }
-  },
-  "CacheMeasurement": {
-    "meaning": "One local wall-time observation linked to its event and measurement boundary.",
-    "lifetime": "Immutable within an identified experiment or recorded run.",
-    "owns": [
-      "One local wall-time observation linked to its event and measurement boundary."
-    ],
-    "excludes": [
-      "Undeclared behavior",
-      "Presentation state"
-    ],
-    "schema": "CacheMeasurement",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "CacheRun": {
-    "meaning": "The complete KV experiment binding, computations, events, outcomes, states, and measurements.",
-    "lifetime": "Immutable within an identified experiment or recorded run.",
-    "owns": [
-      "The complete KV experiment binding, computations, events, outcomes, states, and measurements."
-    ],
-    "excludes": [
-      "Undeclared behavior",
-      "Presentation state"
-    ],
-    "schema": "CacheRun",
-    "depends_on": [
-      "CacheBackend",
-      "CacheComputation",
-      "CacheEvent",
-      "CacheExperiment",
-      "CacheMeasurement",
-      "KVState",
-      "ModelCheckpoint",
-      "RunOutcome"
-    ],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "CodeIdentity": {
-    "meaning": "Runtime and source identities needed to reproduce a numerical execution.",
-    "lifetime": "Immutable within its identified artifact or recorded execution.",
-    "owns": [
-      "Runtime and source identities needed to reproduce a numerical execution."
-    ],
-    "excludes": [
-      "Unrecorded behavior",
-      "Presentation state"
-    ],
-    "schema": "CodeIdentity",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "DecodingContract": {
-    "meaning": "Recorded explanation and identifier of the executed token-selection policy.",
-    "lifetime": "Immutable within its identified artifact or recorded execution.",
-    "owns": [
-      "Recorded explanation and identifier of the executed token-selection policy."
-    ],
-    "excludes": [
-      "Unrecorded behavior",
-      "Presentation state"
-    ],
-    "schema": "DecodingContract",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "NumericalPrecision": {
-    "meaning": "Declared storage, compute, and accumulation precision of a numerical trace.",
-    "lifetime": "Immutable within its identified artifact or recorded execution.",
-    "owns": [
-      "Declared storage, compute, and accumulation precision of a numerical trace."
-    ],
-    "excludes": [
-      "Unrecorded behavior",
-      "Presentation state"
-    ],
-    "schema": "NumericalPrecision",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "NumericalPass": {
-    "meaning": "One actual prediction step with its inputs, positions, tensors, selection, and output progress.",
-    "lifetime": "Immutable within its identified artifact or recorded execution.",
-    "owns": [
-      "One actual prediction step with its inputs, positions, tensors, selection, and output progress."
-    ],
-    "excludes": [
-      "Unrecorded behavior",
-      "Presentation state"
-    ],
-    "schema": "NumericalPass",
-    "depends_on": [
+    },
+    "schemas": [
       "TensorObservation",
-      "TokenSelection"
-    ],
-    "capability_reads": [],
-    "projections": {}
+      "NumericalPass",
+      "TokenSelection",
+      "CacheComputation",
+      "CacheMeasurement",
+      "NumericalPrecision"
+    ]
   },
   "InspectionState": {
     "meaning": "A cursor into an identified recorded run; moving it never executes inference.",
@@ -2987,54 +2637,52 @@ globalThis.Declarations = (() => {
       "input text",
       "model or generation configuration"
     ],
-    "schema": "InspectionState",
     "depends_on": [],
     "capability_reads": [],
-    "projections": {}
-  },
-  "Capabilities": {
-    "meaning": "The reference HTTP service contract identity and supported execution capabilities.",
-    "lifetime": "Immutable in an identified execution record.",
-    "owns": [
-      "The reference HTTP service contract identity and supported execution capabilities."
-    ],
-    "excludes": [
-      "Unrecorded behavior and presentation state"
-    ],
-    "schema": "Capabilities",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
+    "projections": {},
+    "schemas": [
+      "InspectionState"
+    ]
   },
   "ApiError": {
     "meaning": "An explicit transport admission or execution failure message.",
-    "lifetime": "Immutable in an identified execution record.",
+    "lifetime": "Produced for a rejected or failed service operation; a completed execution record need not exist.",
     "owns": [
       "An explicit transport admission or execution failure message."
     ],
     "excludes": [
-      "Unrecorded behavior and presentation state"
+      "Successful inference output",
+      "A structured recovery or retry policy",
+      "Evidence that an experiment completed"
     ],
-    "schema": "ApiError",
     "depends_on": [],
     "capability_reads": [],
-    "projections": {}
+    "projections": {},
+    "schemas": [
+      "ApiError"
+    ]
   },
-  "CacheCapabilities": {
-    "meaning": "The KV service contract identity and available numerical backends.",
-    "lifetime": "Immutable in an identified execution record.",
+  "ExecutionCapabilities": {
+    "meaning": "The running service\u2019s advertised execution support and contract compatibility information.",
+    "lifetime": "A service-discovery snapshot; refresh when connecting to or reconnecting with a service.",
     "owns": [
-      "The KV service contract identity and available numerical backends."
+      "Engine and contract identity used to check client/service compatibility.",
+      "Numerical backends advertised as available by the service."
     ],
     "excludes": [
-      "Unrecorded behavior and presentation state"
+      "The configuration selected for an experiment",
+      "Measured performance or calibrated hardware capacity",
+      "Evidence of the backend or implementation that actually executed a run"
     ],
-    "schema": "CacheCapabilities",
     "depends_on": [],
     "capability_reads": [],
-    "projections": {}
+    "projections": {},
+    "schemas": [
+      "Capabilities",
+      "CacheCapabilities"
+    ]
   },
-  "CacheBackend": {
+  "ExecutionBackend": {
     "meaning": "Actual compute device, state-storage implementation, library, and precision observed for execution.",
     "lifetime": "Fixed in the recorded run; a different backend requires a new run binding.",
     "owns": [
@@ -3045,14 +2693,13 @@ globalThis.Declarations = (() => {
       "logical capacity budgets",
       "worker placement policy"
     ],
-    "schema": "CacheBackend",
     "depends_on": [],
     "capability_reads": [],
     "projections": {
       "Hardware backend": {
         "meaning": "The actual compute and memory backend recorded by execution; it does not establish a target-accelerator performance model.",
         "fields": {
-          "CacheBackend": [
+          "ExecutionBackend": [
             "compute_device",
             "device_state_storage",
             "host_state_storage",
@@ -3061,55 +2708,24 @@ globalThis.Declarations = (() => {
           ]
         }
       }
-    }
+    },
+    "schemas": [
+      "ExecutionBackend"
+    ]
   },
-  "Token": {
-    "meaning": "One vocabulary entry with its stable ID, encoding role, spelling, and lexical group.",
-    "lifetime": "Immutable value within its identified tokenizer input or encoding result.",
+  "Tokenizer": {
+    "meaning": "The identified vocabulary and codec that frame conversation input and map source bytes to inspectable token IDs.",
+    "lifetime": "Vocabulary and codec identity are fixed for an encoding; turns are inputs and spans/results are recorded evidence.",
     "owns": [
-      "One vocabulary entry with its stable ID, encoding role, spelling, and lexical group."
+      "Vocabulary entries, role-tagged framing inputs, and the resulting token sequence.",
+      "Source-byte/token spans and identities required to explain and reproduce encoding."
     ],
     "excludes": [
-      "model computation",
-      "serving policy",
-      "presentation state"
+      "Embedding vectors and model computation",
+      "Generation policy and serving decisions",
+      "Diagnostic output display is not a guarantee that arbitrary generated IDs form valid text."
     ],
-    "schema": "Token",
     "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "Span": {
-    "meaning": "One encoding observation linking source byte offsets to emitted token IDs and an optional conversation turn.",
-    "lifetime": "Immutable value within its identified tokenizer input or encoding result.",
-    "owns": [
-      "One encoding observation linking source byte offsets to emitted token IDs and an optional conversation turn."
-    ],
-    "excludes": [
-      "model computation",
-      "serving policy",
-      "presentation state"
-    ],
-    "schema": "Span",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
-  },
-  "Encoding": {
-    "meaning": "An actual tokenizer result, including token IDs, span evidence, input identity, and codec versions.",
-    "lifetime": "Immutable value within its identified tokenizer input or encoding result.",
-    "owns": [
-      "An actual tokenizer result, including token IDs, span evidence, input identity, and codec versions."
-    ],
-    "excludes": [
-      "model computation",
-      "serving policy",
-      "presentation state"
-    ],
-    "schema": "Encoding",
-    "depends_on": [
-      "Span"
-    ],
     "capability_reads": [],
     "projections": {
       "Tokenizer": {
@@ -3124,27 +2740,17 @@ globalThis.Declarations = (() => {
           ]
         }
       }
-    }
-  },
-  "Turn": {
-    "meaning": "One role-tagged text turn supplied to conversation framing.",
-    "lifetime": "Immutable value within its identified tokenizer input or encoding result.",
-    "owns": [
-      "One role-tagged text turn supplied to conversation framing."
-    ],
-    "excludes": [
-      "model computation",
-      "serving policy",
-      "presentation state"
-    ],
-    "schema": "Turn",
-    "depends_on": [],
-    "capability_reads": [],
-    "projections": {}
+    },
+    "schemas": [
+      "Token",
+      "Turn",
+      "Span",
+      "Encoding"
+    ]
   }
 };
   const routes = {"capabilities": "/api/capabilities", "run": "/api/runs", "cacheRun": "/api/cache-runs", "cacheCapabilities": "/api/cache-capabilities"};
-  const hash = "db240dfefe426b37a21eecc5df2787b7f04f4237d1bf478467ce187db8a01bae";
+  const hash = "fff50d28723a183cba6d403b664ec2935d216ee000010117ef701741bffc2f1e";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

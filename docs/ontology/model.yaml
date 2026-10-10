@@ -1,58 +1,18 @@
 terms:
   ModelArchitecture:
     meaning: Dimensions and numerical conventions that define the supported GPT computation.
-    lifetime: Immutable for an artifact identity. Preparation seed is provenance, never a request control.
+    lifetime: Fixed within an identified model artifact.
     owns:
     - Dimensions and numerical conventions that define the supported GPT computation.
     excludes:
     - request text
     - generation limits
     - inspection position
-    schema: ModelArchitecture
     depends_on: []
     capability_reads: []
     projections: {}
-  ModelArtifact:
-    meaning: An immutable descriptor identifying a checkpoint, architecture, tokenizer, and preparation
-      provenance.
-    lifetime: Immutable for an artifact identity. Preparation seed is provenance, never a request control.
-    owns:
-    - An immutable descriptor identifying a checkpoint, architecture, tokenizer, and preparation provenance.
-    excludes:
-    - request text
-    - generation limits
-    - inspection position
-    schema: ModelArtifact
-    depends_on:
+    schemas:
     - ModelArchitecture
-    capability_reads: []
-    projections: {}
-  InitializationProvenance:
-    meaning: The declared initializer and seed that produced untrained parameter values.
-    lifetime: Immutable for an artifact identity. Preparation seed is provenance, never a request control.
-    owns:
-    - The declared initializer and seed that produced untrained parameter values.
-    excludes:
-    - request text
-    - generation limits
-    - inspection position
-    schema: InitializationProvenance
-    depends_on: []
-    capability_reads: []
-    projections: {}
-  TrainingProvenance:
-    meaning: The identified preparation run and selection evidence that produced trained parameters.
-    lifetime: Immutable for an artifact identity. Preparation seed is provenance, never a request control.
-    owns:
-    - The identified preparation run and selection evidence that produced trained parameters.
-    excludes:
-    - request text
-    - generation limits
-    - inspection position
-    schema: TrainingProvenance
-    depends_on: []
-    capability_reads: []
-    projections: {}
   KVState:
     meaning: Immutable actual keys and values for a prefix, bound to checkpoint, tokenizer, positions,
       and precision.
@@ -63,14 +23,13 @@ terms:
     - resource placement
     - cached answers
     - service timing
-    schema: KVState
     depends_on: []
     capability_reads: []
     projections:
       Sequence state:
-        meaning: Intermediate state used to continue an inference sequence, such as retained keys/values
-          or a recurrent state. It is distinct from trained parameters, input text, and a cached final
-          answer.
+        meaning: Actual attention keys and values retained for a token prefix and its positions. This
+          declaration represents KV state, not arbitrary recurrent state; weights and cached final answers
+          are separate.
         fields:
           KVState:
           - token_ids
@@ -87,33 +46,41 @@ terms:
           - token_ids
           - keys
           - values
-  ModelCheckpoint:
-    meaning: The actual parameter arrays with their architecture, tokenizer identity, and preparation
-      provenance.
+    schemas:
+    - KVState
+  ModelArtifact:
+    meaning: An immutable inference artifact binding numerical weights to architecture, tokenizer identity,
+      and preparation provenance.
     lifetime: Immutable for an artifact identity. Preparation seed is provenance, never a request control.
     owns:
-    - The actual parameter arrays with their architecture, tokenizer identity, and preparation provenance.
+    - The full inference payload and its lightweight identity reference.
+    - Preparation provenance attached to the artifact.
     excludes:
     - request text
     - generation limits
     - inspection position
-    schema: ModelCheckpoint
     depends_on:
-    - InitializationProvenance
     - ModelArchitecture
-    - ModelParameters
-    - TrainingProvenance
+    - ModelWeights
     capability_reads: []
     projections: {}
-  ModelParameters:
-    meaning: Actual parameter arrays indexed by their declared operation names.
+    schemas:
+    - ModelArtifact
+    - ModelArtifactReference
+    - InitializationProvenance
+    - TrainingProvenance
+  ModelWeights:
+    meaning: 'Numerical tensors consumed by the model: embeddings, projection weights, biases, and normalization
+      scales.'
     lifetime: Immutable within its identified artifact or recorded execution.
     owns:
-    - Actual parameter arrays indexed by their declared operation names.
+    - Numerical tensor values indexed by model operation.
     excludes:
-    - Unrecorded behavior
-    - Presentation state
-    schema: ModelParameters
+    - Architecture dimensions and execution conventions
+    - Request and generation configuration
+    - Per-request KV state
     depends_on: []
     capability_reads: []
     projections: {}
+    schemas:
+    - ModelWeights
