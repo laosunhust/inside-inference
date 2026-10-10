@@ -1,30 +1,64 @@
-# Approval-controlled baseline. Do not refresh without explicit owner authorization.
-# Hash consistency is checked locally; this file is not proof of approval authenticity.
 version: 1
 approval:
-  source: 'Project-owner instruction in this conversation: "once we are in better shape, we need to lock
-    ontology. but not yet. let''s update accordingly." Follows approval of 12-file warnings and an 18-file
-    maximum.'
-  scope: Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile
-    and ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content
-    remains unlocked. Retain approved folder and file-size limits. This approval does not authorize future
-    policy changes.
+  source: 'Project-owner instruction in this conversation: "once we are in better shape, we need to lock ontology.
+    but not yet. let''s update accordingly." Follows approval of 12-file warnings and an 18-file maximum. Additional
+    owner response on 2026-10-10: "Approve references/ exclusion". Project-owner instruction on 2026-10-10: "let''s
+    go ahead. we should also ensure governance ; that is, we need to check the ontology_binding and enforce those
+    rules and provide useful feedback when some binding is invented without actual ontology". Project-owner instruction
+    on 2026-10-10: "please also try to audit other frontend pages to see how to enforce SSOT and add governance
+    if necessary"; requests shared authority for lab setup and ontology owners. Project-owner instruction on 2026-10-10:
+    "let''s remove depends_on . I don''t think it''s valuable." Project-owner instruction on 2026-10-10: "intro-page
+    , help, check should all be hidden" and "freeze the public interface of make help as governance boundary ...
+    I don''t want ad hoc public targets". Project-owner instruction in this conversation: "efficient harness is
+    also essential governance boundary ; we need tests, but tests need to be scoped properly"; requests another
+    test audit and consolidation of integration setup. Project-owner instruction in this conversation: "Declarations
+    and ontology -> absolutely needed, but I doubt if we need 2.6 seconds there. are there wasteful algorithms?"
+    and "Governance, approval locks, harness boundaries ... I still doubt implementation efficiency." Owner instruction
+    in this conversation: "add governance for unit test do not exceed 10 seconds, integ test for 100 seconds and
+    explicitly request agent to check for efficiency, redundancy and ROI issues before asking owner for relaxing
+    this."'
+  scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile and
+    ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content remains unlocked.
+    Retain approved folder and file-size limits. This approval does not authorize future policy changes. Additional
+    authorization on 2026-10-10 allows only references/ to be excluded from the authored inventory. Extend contracts.py,
+    generate_data_models.py, compile_validators.mjs and test_governance.py only to admit ontology bindings and uniquely
+    owned operations, generate shared validators, and test rejection. No additional constitution, limits, or lock-inventory
+    changes. Extend governance frontend-reference admission and its regression tests for this audit; register frontend.py
+    in the protected enforcement inventory and wire it into __main__.py. No limit or constitution changes. Remove
+    only the ontology depends_on field and cross-owner reference allowlist from generate_data_models.py; retain
+    ownership, reference existence, cycle and other admission checks. Freeze public workflow names to setup, serve-intro,
+    test and test-integration in the existing locked make_interface.py; keep help callable but unlisted and rename
+    check/intro-page with underscores. Extend its locked regression tests. Makefile recipes remain editable and
+    internal targets remain extensible. For this harness audit, establish test-scope obligations in AGENTS.md, add
+    the locked harness scope checker and its regression tests, wire scope admission and Makefile enforcement, and
+    relocate the frontend build assertion into integration. No numerical, parity or admission coverage may be removed;
+    file limits and public workflow names remain unchanged. For this efficiency request, optimize repeated schema
+    meta-validation in generate_data_models.py using bounded content-keyed successful validation, preserving standard
+    validation and all semantic admission checks. No policy, limit, lock-inventory or public-workflow changes. The
+    same efficiency request covers structured.py: reuse successful strict YAML parses by exact source content, always
+    reread files and return detached copies; preserve duplicate-key, alias and finite-value rejection. Add whole-workflow
+    wall-time limits, protected budget enforcement, constitution efficiency-review obligation, Makefile routing
+    checks and regression tests. No other limits or public target names change.'
 files:
-  AGENTS.md: 2a341b19e0ea19970c50485aa296eaeae27af674c320e5a3c2401bace64d98ed
-  governance/limits.yaml: 7e35453df318019575da77207072cc3155b2636c54fc81297c9144b84ec735f5
+  AGENTS.md: 0d8ebe24d7cf93746fdc2825774d88980c1f135f7f9955bc9969f1669af7e151
+  governance/limits.yaml: 6be775a37ca614960261a44ae07d13305bafb71195a84f9b3233af25601b784e
   scripts/__init__.py: 07cf2de9025005ac8dbafe1162d8cd39cf4f99dab454bd0388b597a5585db2ea
-  scripts/build/compile_validators.mjs: 417bc2773e4b140ea07ff5c0e384a441d4c50dcbb0be1e5ebfad6f14fcbbf0b0
-  scripts/build/contracts.py: bdc4e0d7ac517097ac1a3fa0bdbaeb06dacbbee567619355e66b7f99ece7fc81
-  scripts/build/generate_data_models.py: bccf9525d4f43a7f8f81bd31b130cdc8ac93e48e29e82f1a4f1019292e6273a3
+  scripts/build/compile_validators.mjs: 8d226d90bad36a219aa69af05a511b665f2b7149b6ba50557b778e51c6a52795
+  scripts/build/contracts.py: fca886ce74f82593a921b318535a6731ddf71124a70f1942f5f43f419742e63e
+  scripts/build/generate_data_models.py: 95c32f165a61ddad8dcb8288fe85ef49357eb6d7b34cf903c38108cf0a61d4de
   scripts/build/ontology.py: 9f5271f975a3c877906abad76fba1eb58496bf4399691e77c3bfa4bba7e35454
-  scripts/build/structured.py: 1daf5604e0d49dcf6633ad9c7bd106415328897b7d104d455992bece6d74c28d
+  scripts/build/structured.py: 5e630f42c1a43bc187bea9dbf4073690615a7c1da2c95f35596a0d50ff42046c
   scripts/check/governance/__init__.py: f90f2f4c5a46fe4fa0deb54d71f7a463cc6368400b54fee101c89aab7e6aba50
-  scripts/check/governance/__main__.py: 45ab2513ee1a8503178a1f105ac91f7e2058701f6b1f7fb5864a708b211e04cd
+  scripts/check/governance/__main__.py: 37dac7abbcf1195eb29f9c995766619948bddc9c8caaa33058aa3e1f62ef208b
   scripts/check/governance/evaluation.py: b1699246f73a51d330525a4a67c4bd814cd8e2821ad6eb8923cb60a6b430616a
   scripts/check/governance/interfaces.py: c77bd3ba3350912007ca86f0f2d7ba7efc66d0519a6f7916254a4f4c26c2f0bc
-  scripts/check/governance/locks.py: b8185904f40be45677a972c4f9713a40105d9f3dac8c6e866ef81c49fa0177e1
-  scripts/check/governance/structure.py: 6e945da8ccc22ff454a936e6c770739e815594fb513ea5102bd6b9bd87aa72b3
+  scripts/check/governance/locks.py: d9484fd7b5c210eba5624b222d75238375a254bf184767223109c204bd13b688
+  scripts/check/governance/structure.py: d1730cf1a43d2c3e1702bf06377fbdf2d8041a3e1365b26f6313d8eb8e8bad90
   scripts/check/layout.py: 54e53c43a5ce571375c049e9ebf740631ab24c14acdd1efaafca5eb2f63679e2
-  scripts/check/make_interface.py: 8d74b9d44315bea92199fb7f1984d451abb6f6886d362864e4bfc6b71034d38d
-  tests/unit/contracts/test_governance.py: 2c71ea35517958251df04aed70e4aae954b9f831cc2797a5076fc207108b6a4c
-  tests/unit/contracts/test_governance_locks.py: e6bdc75ad527fccda62ebc1fc9afdf7ce3a2c50c08389dbd2c5ec41dd53ed873
+  scripts/check/make_interface.py: 298a6bd1e6f90becabbd0d12ba369c5a0d697f0b81f758fabf56423f01cd26b8
+  tests/unit/contracts/test_governance.py: a03e5587506cb07dea6885f5829b55137c6c9991f43ebe4fe7f30d03f6697a27
+  tests/unit/contracts/test_governance_locks.py: acf09b594c79261c3c40a854cfc0dde0848b208e6996946ee6ef65de23348ef7
+  scripts/check/governance/frontend.py: 52215b95b64864ec6a726e28f7ef020d46308bc349615acff086f839abbf93c4
+  scripts/check/governance/harness.py: 31ea6e97f860f971745a04f8188015815697183b83a1ab6382dff2abcca59a79
+  tests/unit/contracts/test_harness.py: 1ba20fd6e4e3a9a0bed83d99d8b1f3e87e50dc97f99deec7b1e30f8c08ae7de2
+  scripts/check/governance/budget.py: d1c09b74ec64a35e5523d23658b1251e65499ed4cba6aeceb1de7e7c257e10ab

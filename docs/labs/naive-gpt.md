@@ -101,7 +101,7 @@ Browser tests verify dirty/applied separation, the bound ceiling displayed besid
 actual steps, in-flight control locking, failed-request preservation, and offline
 read-only controls. Pure state-transition tests reject stale responses and invalid
 inspection cursors. Generator tests reject competing owners, unowned schemas,
-forbidden dependencies, unsupported keywords, and stale generated consumers. This
+dangling references, unsupported keywords, and stale generated consumers. This
 addresses the earlier interaction gap; numerical agreement alone did not prove it.
 
 The execution-cost sample above predates this declaration refactor and uses the
@@ -109,8 +109,8 @@ then-default prompt; it is historical feasibility evidence, not a current latenc
 measurement or an acceptance threshold.
 
 The exported record now wraps numerical traces in a workload run. Arrival, encoding,
-forward completion, selection, delivery, and request completion events are recorded during
-execution. Client output derives from delivery events. This first adapter accepts
+forward completion, selection, publication, and request completion events are recorded during
+execution. Client output derives from publication events. This first adapter accepts
 only one arrival at zero and records execution order without claiming latency.
 See the [input/output contract](../architecture/workloads.md).
 
@@ -121,3 +121,21 @@ Replay verifies source and checkpoint identity as well as the resulting evidence
 Changes to decoding filters, forced tokens or stops, output repair, or other
 inference policies require explicit authorization and a declared contract. The
 raw-logit selection and declared-termination integration oracle must be preserved.
+
+The inspection cursor also binds an observation ID to its selected pass. Selecting
+an input token opens its computed embedding; changing prediction follows the same
+operation in the new pass. Selection links to logits at the actual final input
+position. Operation inputs and consumers are navigable using recorded dependency
+IDs; parameter operands come from the exported checkpoint. Foreign or stale
+observation IDs fail instead of selecting an unrelated tensor. Dependency inspection
+is operation-level, not a scalar multiplication walkthrough or another model run.
+The integration harness walks from logits back through every recorded operation
+and compares the displayed tensors and parameter operands to headless results.
+
+Executed tensor records identify an ontology-owned operation through
+`operation.name`. The former free-text `name`/`term` pair is retired. Inspectors
+resolve its semantic owner from generated declarations and offer both ontology
+and associated-lab links. The fixed baseline's resolved specification retains the
+catalog's `ontology_binding`; changing metadata cannot turn this endpoint into a
+different experiment. Positional alternatives remain planned and are not enabled
+by declaring an association.

@@ -7,11 +7,11 @@ terms:
     owns:
     - Vocabulary entries, role-tagged framing inputs, and the resulting token sequence.
     - Source-byte/token spans and identities required to explain and reproduce encoding.
+    - Identity of the token-ID input supplied to model computation; these IDs are not embedding vectors.
     excludes:
     - Embedding vectors and model computation
     - Generation policy and serving decisions
     - Diagnostic output display is not a guarantee that arbitrary generated IDs form valid text.
-    depends_on: []
     capability_reads: []
     projections:
       Tokenizer:
@@ -24,8 +24,18 @@ terms:
           - input_sha256
           - manifest_sha256
           - codec_version
+      Detokenizer:
+        meaning: The recorded output IDs and their diagnostic display under the identified tokenizer.
+          This view renders word pieces and labeled control/byte/hex IDs; it does not establish valid
+          decoded text or a streaming UTF-8 decoder.
+        fields:
+          Token:
+          - id
+          - piece
+          - kind
     schemas:
     - Token
     - Turn
     - Span
     - Encoding
+    - TokenizerOperation

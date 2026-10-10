@@ -2,24 +2,23 @@
 from copy import deepcopy
 import unittest
 
-from inside_inference.cache_lab import default_experiment, run_cache_experiment, replay_cache
+from inside_inference.cache_lab import run_cache_experiment, replay_cache
 from inside_inference.tokenizer import Tokenizer, Turn
+from tests.fixtures.execution import cache_scenario as scenario
 
 
-def scenario(texts=('the ball','the ball'), *, device=16384, host=32768, active=1):
-    spec=default_experiment();template=spec['workload']['requests'][0]
-    spec['system'].update(device_kv_bytes=device,host_kv_bytes=host,max_active_requests=active)
-    spec['workload']['requests']=[]
-    for i,text in enumerate(texts):
-        item=deepcopy(template);item.update(request_id=f'r{i}',arrival_us=0)
-        item['request']['text']=text;item['request']['generation']['max_new_tokens']=2
-        spec['workload']['requests'].append(item)
-    return spec
 
 
 class CacheLabTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.baseline = run_cache_experiment(scenario())
+
+    def setUp(self):
+        self.record = deepcopy(self.baseline)
+
     def test_hand_calculated_service_and_causal_links(self):
-        run=run_cache_experiment(scenario())
+        run=self.record
         # Width 8, FFN 16, 384 output IDs: 8,168 binary64 parameters.
         # Six prefix positions, final prompt position, then one decode position.
         # Memory-limited service: 66.880 + 66.368 + 66.496 us;
@@ -40,7 +39,7 @@ class CacheLabTests(unittest.TestCase):
         self.assertEqual(len(node_ids),len(set(node_ids)))
 
     def test_exact_hit_avoids_prefix_compute_and_preserves_logits(self):
-        r=run_cache_experiment(scenario())
+        r=self.record
         lookups=[e['kind'] for e in r['events'] if e['kind'] in ('local-hit','remote-hit','miss')]
         self.assertEqual(lookups,['miss','local-hit'])
         first=[c for c in r['computations'] if c['request_id']=='r0' and c['selection']]
@@ -61,10 +60,10 @@ class CacheLabTests(unittest.TestCase):
             self.assertTrue(all(e['device_reserved_bytes']<=capacity and e['host_retained_bytes']<=host for e in r['events']))
             if host:
                 transfers=[e for e in r['events'] if e['kind']=='transfer-start']
-                self.assertTrue(any(e['detail']=='host-to-device' for e in transfers))
+                self.assertTrue(any(e['transfer_direction']=='host-to-device' for e in transfers))
                 for start in transfers:
                     finish=next(e for e in r['events'][r['events'].index(start)+1:] if e['kind']=='transfer-end')
-                    expected_us=r['declaration']['system']['link_latency_us']+start['bytes']/r['declaration']['system']['link_bytes_per_us']
+                    expected_us=r['declaration']['system']['transfer']['link_latency_us']+start['bytes']/r['declaration']['system']['transfer']['link_bytes_per_us']
                     self.assertAlmostEqual(finish['time_us']-start['time_us'],expected_us)
 
     def test_admission_backpressure_and_shared_compute(self):
@@ -89,8 +88,8 @@ class CacheLabTests(unittest.TestCase):
             with self.assertRaises(ValueError):run_cache_experiment(spec)
 
     def test_resource_intervention_changes_time_not_tokens(self):
-        spec=scenario();baseline=run_cache_experiment(spec)
-        spec['system']['compute_flops_per_us']/=10
+        spec=scenario();baseline=self.record
+        spec['system']['compute_service']['compute_flops_per_us']/=10
         slower=run_cache_experiment(spec)
         tokens=lambda r:[c['selection']['selected_id'] for c in r['computations'] if c['selection']]
         self.assertEqual(tokens(baseline),tokens(slower))

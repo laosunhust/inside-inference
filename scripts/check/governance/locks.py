@@ -19,6 +19,7 @@ PROTECTED = (
     'scripts/check/governance/__init__.py', 'scripts/check/governance/__main__.py',
     'scripts/check/governance/structure.py', 'scripts/check/governance/interfaces.py',
     'scripts/check/governance/evaluation.py', 'scripts/check/governance/locks.py',
+    'tests/unit/contracts/test_harness.py',
     'tests/unit/contracts/test_governance.py',
     'tests/unit/contracts/test_governance_locks.py',
 )

@@ -7,6 +7,7 @@ $defs:
     - run_id
     - prediction
     - position
+    - observation_id
     properties:
       run_id:
         type: string
@@ -23,6 +24,13 @@ $defs:
         title: Sequence position
         description: Zero-based position within selected pass.
         minimum: 0
+      observation_id:
+        type:
+        - string
+        - 'null'
+        title: Executed observation
+        description: Exact observation ID within the selected pass, or null for request and output inspection.
+        default: null
   Capabilities:
     type: object
     x-owner: ExecutionCapabilities

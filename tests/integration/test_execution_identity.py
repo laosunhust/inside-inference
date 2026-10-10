@@ -6,14 +6,14 @@ from inside_inference.generation import run_request, replay
 from inside_inference.workload import run_workload, replay_workload, default_workload
 from inside_inference.model import initialize, ModelArchitecture, identity
 from inside_inference.tokenizer import Tokenizer
+from tests.fixtures.execution import small_checkpoint
 from inside_inference.provenance import source_inventory
-from scripts.build.ontology import load_declarations
 
 
 class ExecutionIdentityTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.checkpoint = initialize(ModelArchitecture(), Tokenizer().manifest_sha256, seed=11)
+        cls.checkpoint = small_checkpoint(seed=11)
         cls.request = {'text':'the ball is in', 'generation':{
             'max_new_tokens':2, 'selection':'greedy-lowest-id-tie', 'stopping':'turn-end-or-budget'}}
         cls.trace = run_request(cls.request, checkpoint=cls.checkpoint)
@@ -22,20 +22,14 @@ class ExecutionIdentityTests(unittest.TestCase):
         cls.input['workload'] = cls.workload
         cls.cache = run_cache_experiment(cls.input, checkpoint=cls.checkpoint)
 
-    def test_tokenizer_and_backend_have_domain_owners(self):
-        terms = load_declarations()['terms']
-        self.assertEqual(set(terms['Tokenizer']['schemas']), {'Token','Turn','Span','Encoding'})
-        self.assertTrue({'Token','Turn','Span','Encoding','CacheBackend'}.isdisjoint(terms))
-        self.assertEqual(terms['ExecutionBackend']['schemas'], ['ExecutionBackend'])
-
     def test_both_paths_resolve_the_selected_model_and_keep_submission_separate(self):
         reference = run_workload(self.workload, checkpoint=self.checkpoint)
         for run in (reference, self.cache):
-            self.assertEqual(set(run['declaration']), {'model','system','workload'})
+            self.assertEqual(set(run['declaration']), {'model','system','workload','ontology_binding'})
             self.assertEqual(run['declaration']['model']['checkpoint_sha256'], identity(self.checkpoint))
             self.assertEqual(run['declaration']['workload'], self.workload)
         self.assertEqual(reference['declaration']['model'], self.cache['declaration']['model'])
-        self.assertEqual(set(self.input), {'system','workload'})
+        self.assertEqual(set(self.input), {'system','workload','ontology_binding'})
         with self.assertRaises(ValueError):
             run_cache_experiment(dict(self.input, model=self.cache['declaration']['model']))
         changed = run_cache_experiment(self.input)
@@ -60,13 +54,14 @@ class ExecutionIdentityTests(unittest.TestCase):
                 r['provenance']['sources']['inside_inference/model.py'] = '0'*64
                 r['provenance']['source_sha256'] = identity(r['provenance']['sources'])
             mutations = [
-                lambda r:r['checkpoint']['parameters']['lm_bias'].__setitem__(0, 123.0),
                 lambda r:r['declaration']['model'].update(checkpoint_sha256='0'*64),
                 lambda r:r['provenance']['sources'].update({'inside_inference/model.py':'0'*64}),
                 source_and_hash,
                 lambda r:r['provenance'].update(python='different-runtime'),
                 lambda r:r['provenance']['backend'].update(compute_device='fabricated-device'),
             ]
+            if execute is replay_cache:
+                mutations.append(lambda r:r['checkpoint']['parameters']['lm_bias'].__setitem__(0, 123.0))
             for mutate in mutations:
                 with self.subTest(path=execute.__name__, mutation=mutate):
                     bad = copy.deepcopy(original); mutate(bad)

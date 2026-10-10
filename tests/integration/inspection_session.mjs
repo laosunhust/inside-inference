@@ -35,6 +35,24 @@ console.log('Generated browser validation and request/run transitions passed.');
 
 const forged=structuredClone(run);
 for(const event of forged.events) {
- if(event.payload.kind==='token-delivered') event.payload.token_ids[0]=0;
+ if(event.payload.kind==='token-published') event.payload.token_ids[0]=0;
 }
-assert.throws(()=>InspectionSession.create(forged),/Delivered IDs differ/);
+assert.throws(()=>InspectionSession.create(forged),/Published IDs differ/);
+
+const selected=run.traces[0].passes[1].nodes.find(n=>n.operation.name==='attention');
+state=InspectionSession.transition(state,{type:'INSPECT',view:{observation_id:selected.id}});
+assert.equal(state.view.observation_id,selected.id);
+assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{observation_id:'foreign-observation'}}));
+assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{observation_id:run.traces[0].passes[0].nodes[0].id}}));
+state=InspectionSession.transition(state,{type:'INSPECT',view:{prediction:0,position:0}});
+assert.equal(state.view.observation_id,run.traces[0].passes[0].nodes.find(n=>n.operation.name==='attention').id);
+for(const binding of [
+ {primary:'Invented',related:[]},
+ {primary:'PositionEncoding',related:['Invented']},
+ {primary:'Attention',related:['Attention']},
+ {primary:'Attention',related:['Embedding','Embedding']},
+ {related:[]}
+]) assert.throws(()=>Declarations.assertShape('OntologyBinding',binding));
+Declarations.assertShape('OntologyBinding',{primary:'PositionEncoding',related:['Attention','Embedding']});
+assert.equal(Declarations.operationOwners.position_embedding,'PositionEncoding');
+assert.equal(Declarations.operationOwners.attention,'Attention');

@@ -20,3 +20,72 @@ $defs:
         type: string
       precision:
         type: string
+  ResourceNode:
+    type: object
+    x-owner: ResourceGraph
+    additionalProperties: false
+    required:
+    - id
+    - memory_capacity_bytes
+    - compute_flops_per_us
+    - memory_bytes_per_us
+    properties:
+      id:
+        type: string
+        pattern: ^[a-z][a-z0-9-]*$
+      memory_capacity_bytes:
+        type: integer
+        minimum: 1
+      compute_flops_per_us:
+        type: number
+        minimum: 0.001
+      memory_bytes_per_us:
+        type: number
+        minimum: 0.001
+  ResourceLink:
+    type: object
+    x-owner: ResourceGraph
+    additionalProperties: false
+    required:
+    - id
+    - source
+    - target
+    - bandwidth_bytes_per_us
+    - startup_us
+    properties:
+      id:
+        type: string
+        pattern: ^[a-z][a-z0-9-]*$
+      source:
+        type: string
+        pattern: ^[a-z][a-z0-9-]*$
+      target:
+        type: string
+        pattern: ^[a-z][a-z0-9-]*$
+      bandwidth_bytes_per_us:
+        type: number
+        minimum: 0.001
+      startup_us:
+        type: number
+        minimum: 0
+  ResourceGraph:
+    type: object
+    x-owner: ResourceGraph
+    additionalProperties: false
+    required:
+    - basis
+    - nodes
+    - links
+    properties:
+      basis:
+        type: string
+        const: hypothetical
+      nodes:
+        type: array
+        items:
+          $ref: '#/$defs/ResourceNode'
+        minItems: 1
+      links:
+        type: array
+        items:
+          $ref: '#/$defs/ResourceLink'

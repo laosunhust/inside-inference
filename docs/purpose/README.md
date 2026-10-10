@@ -20,6 +20,12 @@ The reader should be able to understand an innovation in two connected ways:
 
 ## Learning and decision goals
 
+Real-life challenges drive these goals: a customer experiences a stall, a vendor
+claims an improvement, or an operator must place workloads on a heterogeneous
+fleet. The intended outcome is a better investigation and a justified next action.
+Having a lab is not itself the purpose. [Investigations and improvement](investigations.md)
+defines these use cases, the role of ontology, and how to judge useful progress.
+
 | Priority | Question | Intended outcome |
 | --- | --- | --- |
 | P0 · Understand | What changes mechanically, and why does it affect the request journey? | Inspectable computation, state, dependencies, and declared resource effects. |
@@ -346,8 +352,9 @@ Use [Rudrite Research](https://research.rudrite.com/) and
 explanation and approachable exploration. Credit references and retain our own
 explicit evidence boundaries.
 
-The intended public experience has two entrances: follow a request, or look up an
-innovation and jump to its position in that journey. Start with an accessible
+The intended public experience has three entrances: investigate a symptom or
+deployment question, follow a request, or locate an innovation in that journey.
+Start with an accessible
 visual explanation, allow a controlled intervention, and reveal equations, raw
 traces, and implementation details on demand. Link mechanisms across layers.
 

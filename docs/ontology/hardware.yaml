@@ -1,3 +1,5 @@
+# Initial graph: local compute/memory and independent directed links.
+# Expand with shared pools and routing only alongside their executable semantics.
 terms:
   ExecutionBackend:
     meaning: Actual compute device, state-storage implementation, library, and precision observed for
@@ -9,7 +11,6 @@ terms:
     - hypothetical service rates
     - logical capacity budgets
     - worker placement policy
-    depends_on: []
     capability_reads: []
     projections:
       Hardware backend:
@@ -24,3 +25,23 @@ terms:
           - precision
     schemas:
     - ExecutionBackend
+  ResourceGraph:
+    meaning: Hypothetical execution locations with local memory and directed point-to-point transfer links.
+    lifetime: Immutable scenario input; changing it defines a different scenario.
+    owns:
+    - Each node identifies one exclusive compute/local-memory budget; each directed link identifies one
+      exclusive capacity.
+    - Rates use FLOPs or bytes per virtual microsecond; capacity uses bytes. Values are assumptions, not
+      calibrated profiles.
+    - A reverse link is independent capacity. Shared duplex pools or multiple aliases for the same physical
+      resource are outside this initial representation.
+    excludes:
+    - No routing, placement, resource scheduling, contention algorithm or topology execution is implemented.
+    - No model/device compatibility, target-model scaling, weight/workspace allocation or vendor performance
+      claim.
+    capability_reads: []
+    projections: {}
+    schemas:
+    - ResourceNode
+    - ResourceLink
+    - ResourceGraph

@@ -1,29 +1,25 @@
 version: 1
-work_item: normalize-tokenizer-backend-and-execution-provenance
-question: Can both inference paths expose consistent resolved model bindings and execution provenance
-  while preserving their numerical results and submission APIs?
-necessity: Tokenizer nouns mirror records, CacheBackend leaks a lab name, and KV records omit a resolved
-  model reference and detailed source inventory.
+work_item: remove-detached-computation-controls
+question: Can the diagram stand alone without redundant tokenization, selection, publication controls and a loop
+  caption?
+necessity: The audit found complete runs repeated for small metadata assertions and duplicated generic ownership
+  probes.
+baseline: The authored operation-family strip shows combined embeddings before positional input and hides repeated
+  normalization/residual operations.
 reuse:
-- source: Existing model reference, run bindings, source hashing, runtime descriptions, and replay functions
-  decision: Reuse the current records and hashing mechanism; share provenance construction and validation
-    without adding external dependencies.
+- source: out/experiments/unit-audit/audit.txt and existing unittest fixtures and assertions
+  decision: Reuse independent numerical oracles and mutation cases; use smaller real-model fixtures rather than
+    mocking validation or reducing vocabulary.
 criteria:
-- One Tokenizer owner governs Token, Span, Encoding, and Turn; ExecutionBackend replaces CacheBackend.
-- Submitted input stays distinct from resolved model/system/workload declarations on both paths.
-- Shared ExecutionProvenance contains source inventory, aggregate hash, Python/Git identity, and observed
-  backend; obsolete parallel fields are removed.
-- Replay rejects mismatched model, source inventory, runtime version, or backend; Git revision alone is
-  informational.
-- Reference and KV numerical outputs match captured baseline; CPU and available CUDA paths pass full integration.
+- Remove the detached Tokenize, Next-token selection, Output IDs controls and Append ID caption from the computation
+  panel.
+- Preserve tokenization inspection through the request, selection through the existing selected-token chip, and
+  publication through the response.
+- Keep trace-derived diagram nodes, arrows, ontology bindings and numerical inspection unchanged.
+- Headless/browser parity and both test budgets must pass.
 checks:
-- make check
 - make test
 - make test-integration
-baseline: Current passing ontology review harness and actual baseline runs saved in /tmp/normalization-baseline.json.
 counterexamples:
-- A changed model payload or bound model hash
-- A changed source entry with an unchanged aggregate hash
-- A forged Python version or backend
-- A KV input pretending to include a resolved model
-- Different logits, token choices, outcomes, or missing browser parity
+- Removing a control leaves the initial inspector without a valid ontology binding.
+- The selected-token chip or response-to-selection link no longer opens numerical selection evidence.

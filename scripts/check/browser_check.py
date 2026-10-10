@@ -9,6 +9,9 @@ import subprocess
 import tempfile
 import threading
 import time
+import unittest
+
+from scripts.check.governance.harness import run_suite
 
 from scripts.build.intro_page import ROOT, build
 from scripts.dev.serve_intro import Handler
@@ -18,6 +21,7 @@ from scripts.check import cache_parity
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--integration-tests', action='store_true')
     parser.add_argument('--checkpoint', type=Path)
     parser.add_argument('--output', type=Path, default=ROOT/'out/experiments/integration')
     args = parser.parse_args()
@@ -34,6 +38,17 @@ def main():
         raise SystemExit(message)
     site = output / 'site'
     build(site, checkpoint=checkpoint)
+    if args.integration_tests:
+        suite = unittest.defaultTestLoader.discover(str(ROOT/'tests/integration'))
+        # Default-checkpoint site assertions and browser consume the same fresh build.
+        # External checkpoints require a separate default fixture for those assertions.
+        import sys
+        if checkpoint is None:
+            sys.modules['test_site'].AtlasTests.shared_site = site
+            sys.modules['test_inference_server'].ServerTests.shared_site = site
+        if not run_suite(suite, output/'integration-timing.json'):
+            result_path.write_text(json.dumps({'passed':False,'status':'integration tests failed'}))
+            raise SystemExit(1)
     class QuietHandler(Handler):
         def log_message(self, *args): pass
     server = ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=str(site), checkpoint=checkpoint))

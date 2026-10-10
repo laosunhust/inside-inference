@@ -4,17 +4,10 @@ $defs:
     x-owner: InferenceSystem
     additionalProperties: false
     required:
-    - execution
     - max_new_tokens_cap
     - max_requests
-    - arrival_policy
+    - model_execution
     properties:
-      execution:
-        type: string
-        title: Execution strategy
-        description: Supported baseline value.
-        const: full-prefix-recomputation
-        default: full-prefix-recomputation
       max_new_tokens_cap:
         type: integer
         title: Supported new-token limit
@@ -29,12 +22,8 @@ $defs:
         maximum: 9007199254740991
         const: 1
         default: 1
-      arrival_policy:
-        type: string
-        title: Supported arrivals
-        description: Supported arrivals
-        const: single-at-zero
-        default: single-at-zero
+      model_execution:
+        $ref: '#/$defs/FullPrefixExecutionConfig'
   GenerationPolicy:
     type: object
     x-owner: GenerationPolicy
@@ -126,67 +115,14 @@ $defs:
     x-owner: InferenceSystem
     additionalProperties: false
     required:
-    - backend
-    - device_kv_bytes
-    - host_kv_bytes
-    - max_active_requests
-    - compute_flops_per_us
-    - memory_bytes_per_us
-    - link_bytes_per_us
-    - link_latency_us
-    - retention_policy
     - max_requests
     - max_new_tokens_cap
+    - model_execution
+    - scheduling
+    - kv_cache
+    - transfer
+    - compute_service
     properties:
-      backend:
-        type: string
-        enum:
-        - reference
-        - cuda
-        default: reference
-        title: Numerical backend
-      device_kv_bytes:
-        type: integer
-        minimum: 1
-        maximum: 1048576
-        default: 16384
-        title: "Device KV budget \xB7 bytes"
-      host_kv_bytes:
-        type: integer
-        minimum: 0
-        maximum: 1048576
-        default: 32768
-        title: "Host KV budget \xB7 bytes"
-      max_active_requests:
-        type: integer
-        minimum: 1
-        maximum: 8
-        default: 2
-        title: Active request slots
-      compute_flops_per_us:
-        type: number
-        minimum: 0.001
-        default: 1000
-        title: "Effective matmul FLOPs / virtual \xB5s"
-      memory_bytes_per_us:
-        type: number
-        minimum: 0.001
-        default: 1000
-        title: "Logical memory bytes / virtual \xB5s"
-      link_bytes_per_us:
-        type: number
-        minimum: 0.001
-        default: 100
-        title: "Transfer bytes / virtual \xB5s"
-      link_latency_us:
-        type: number
-        minimum: 0
-        default: 10
-        title: "Transfer startup \xB7 virtual \xB5s"
-      retention_policy:
-        type: string
-        const: whole-prefix-lru
-        default: whole-prefix-lru
       max_requests:
         type: integer
         const: 8
@@ -195,7 +131,17 @@ $defs:
         type: integer
         const: 8
         default: 8
-  TokenDelivered:
+      model_execution:
+        $ref: '#/$defs/CachedExecutionConfig'
+      scheduling:
+        $ref: '#/$defs/RequestSchedulingConfig'
+      kv_cache:
+        $ref: '#/$defs/KVCacheConfig'
+      transfer:
+        $ref: '#/$defs/StateTransferConfig'
+      compute_service:
+        $ref: '#/$defs/ComputeServiceConfig'
+  TokenPublished:
     type: object
     x-owner: InferenceResponse
     additionalProperties: false
@@ -210,32 +156,32 @@ $defs:
         type: string
         title: Event kind
         description: Event kind
-        const: token-delivered
-        default: token-delivered
+        const: token-published
+        default: token-published
       work_id:
         type: string
         title: Producing computation
         description: Producing computation
       token_ids:
         type: array
-        title: Delivered token IDs
-        description: Delivered token IDs
+        title: Published token IDs
+        description: Published token IDs
         items:
           type: integer
-          title: Delivered token ID
-          description: Delivered token ID
+          title: Published token ID
+          description: Published token ID
           minimum: 0
           maximum: 9007199254740991
         minItems: 1
       output_start:
         type: integer
-        title: Client token offset
-        description: Client token offset
+        title: Published output token offset
+        description: Published output token offset
         minimum: 0
         maximum: 9007199254740991
       display_delta:
         type: string
-        title: Decoded text delivered to the client
+        title: Diagnostic text published to the output collector
         description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
           as labeled markers.
   RequestFinished:
@@ -260,7 +206,7 @@ $defs:
     additionalProperties: false
     required:
     - selected_tokens
-    - delivered_tokens
+    - published_tokens
     - unused_budget
     - stop_reason
     - complete
@@ -270,9 +216,9 @@ $defs:
         title: Selected IDs
         description: Includes terminal controls.
         minimum: 1
-      delivered_tokens:
+      published_tokens:
         type: integer
-        title: Delivered IDs
+        title: Published IDs
         description: Every selected ID except TURN_END, including diagnostic control/byte/hex tokens.
         minimum: 0
       unused_budget:

@@ -3,6 +3,8 @@
 Adapted from CNCRover's readSemanticYAML admission principle; provenance is in
  governance/reuse.yaml. PyYAML is already a locked build dependency here.
 """
+from copy import deepcopy
+from functools import lru_cache
 import json
 import math
 from pathlib import Path
@@ -30,9 +32,17 @@ def mapping(loader, node):
 StrictLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, mapping)
 
 
+@lru_cache(maxsize=128)
+def _parse_yaml(source):
+    value = yaml.load(source, Loader=StrictLoader)
+    return decode_json(json.dumps(value, allow_nan=False))
+
+
 def read_yaml(path):
-    value = yaml.load(Path(path).read_text(), Loader=StrictLoader)
+    # Read every time: content (not path/mtime) owns cache identity. Callers may
+    # mutate declarations, so never expose the cached object itself.
+    source = Path(path).read_text()
     try:
-        return decode_json(json.dumps(value, allow_nan=False))
+        return deepcopy(_parse_yaml(source))
     except (TypeError, ValueError) as exc:
-        raise ValueError(f'{path}: YAML must represent finite JSON-compatible values') from exc
+        raise ValueError(f'{path}: YAML must represent finite JSON-compatible values: {exc}') from exc

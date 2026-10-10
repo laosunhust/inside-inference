@@ -7,6 +7,7 @@ $defs:
     - model
     - system
     - request
+    - ontology_binding
     properties:
       model:
         $ref: '#/$defs/ModelArtifactReference'
@@ -14,6 +15,8 @@ $defs:
         $ref: '#/$defs/InferenceSystem'
       request:
         $ref: '#/$defs/InferenceRequest'
+      ontology_binding:
+        $ref: '#/$defs/OntologyBinding'
   RunBinding:
     type: object
     x-owner: ExperimentSpec
@@ -22,6 +25,7 @@ $defs:
     - model
     - system
     - workload
+    - ontology_binding
     properties:
       model:
         $ref: '#/$defs/ModelArtifactReference'
@@ -29,6 +33,8 @@ $defs:
         $ref: '#/$defs/InferenceSystem'
       workload:
         $ref: '#/$defs/Workload'
+      ontology_binding:
+        $ref: '#/$defs/OntologyBinding'
   EventClock:
     type: object
     x-owner: ExperimentEvent
@@ -88,38 +94,6 @@ $defs:
         description: Encoded positions
         minimum: 0
         maximum: 9007199254740991
-  TokenSelected:
-    type: object
-    x-owner: ExperimentEvent
-    additionalProperties: false
-    required:
-    - kind
-    - work_id
-    - token_id
-    - output_position
-    properties:
-      kind:
-        type: string
-        title: Event kind
-        description: Event kind
-        const: token-selected
-        default: token-selected
-      work_id:
-        type: string
-        title: Producing computation
-        description: Producing computation
-      token_id:
-        type: integer
-        title: Selected vocabulary ID
-        description: Selected vocabulary ID
-        minimum: 0
-        maximum: 9007199254740991
-      output_position:
-        type: integer
-        title: Absolute sequence position
-        description: Absolute sequence position
-        minimum: 0
-        maximum: 9007199254740991
   RunEvent:
     type: object
     x-owner: ExperimentEvent
@@ -166,7 +140,7 @@ $defs:
         - $ref: '#/$defs/InputEncoded'
         - $ref: '#/$defs/ModelForwardCompleted'
         - $ref: '#/$defs/TokenSelected'
-        - $ref: '#/$defs/TokenDelivered'
+        - $ref: '#/$defs/TokenPublished'
         - $ref: '#/$defs/RequestFinished'
   NumericalTrace:
     type: object
@@ -304,8 +278,6 @@ $defs:
         type:
         - integer
         - 'null'
-      name:
-        type: string
       positions:
         type: array
         items:
@@ -320,8 +292,6 @@ $defs:
           type: integer
       step:
         type: integer
-      term:
-        type: string
       values:
         type: array
         items:
@@ -333,6 +303,17 @@ $defs:
               type:
               - number
               - boolean
+      operation:
+        anyOf:
+        - $ref: '#/$defs/EmbeddingOperation'
+        - $ref: '#/$defs/PositionEncodingOperation'
+        - $ref: '#/$defs/NormalizationOperation'
+        - $ref: '#/$defs/AttentionOperation'
+        - $ref: '#/$defs/ResidualAdditionOperation'
+        - $ref: '#/$defs/FeedForwardOperation'
+        - $ref: '#/$defs/OutputProjectionOperation'
+        - $ref: '#/$defs/TokenizerOperation'
+        - $ref: '#/$defs/KVStateOperation'
     required:
     - axes
     - dtype
@@ -340,43 +321,13 @@ $defs:
     - id
     - inputs
     - layer
-    - name
     - positions
     - request_id
     - run_id
     - shape
     - step
-    - term
     - values
-    additionalProperties: false
-    x-owner: ExperimentObservation
-  TokenSelection:
-    type: object
-    properties:
-      decoding:
-        type: string
-      probabilities:
-        type: array
-        items:
-          type: number
-      raw_logits:
-        type: array
-        items:
-          type: number
-      rng_state:
-        type: 'null'
-      rule:
-        type: string
-        const: unmasked-greedy-v1
-      selected_id:
-        type: integer
-    required:
-    - decoding
-    - probabilities
-    - raw_logits
-    - rng_state
-    - rule
-    - selected_id
+    - operation
     additionalProperties: false
     x-owner: ExperimentObservation
   KVExperimentInput:
@@ -386,11 +337,14 @@ $defs:
     required:
     - system
     - workload
+    - ontology_binding
     properties:
       system:
         $ref: '#/$defs/KVResidencySystemConfig'
       workload:
         $ref: '#/$defs/Workload'
+      ontology_binding:
+        $ref: '#/$defs/OntologyBinding'
   CacheEvent:
     type: object
     x-owner: ExperimentEvent
@@ -406,6 +360,8 @@ $defs:
     - host_retained_bytes
     - detail
     - causes
+    - phase
+    - transfer_direction
     properties:
       event_id:
         type: string
@@ -454,71 +410,68 @@ $defs:
         type: array
         items:
           type: string
-  CacheComputation:
-    type: object
-    x-owner: ExperimentObservation
-    additionalProperties: false
-    required:
-    - work_id
-    - request_id
-    - step
-    - input_ids
-    - state_before
-    - state_after
-    - nodes
-    - selection
-    - matmul_flops
-    - logical_memory_bytes
-    - reference_max_abs_error
-    - phase
-    - reference_matmul_flops
-    properties:
-      work_id:
-        type: string
-      request_id:
-        type: string
-      step:
-        type: integer
-        minimum: 0
-        maximum: 9007199254740991
-      input_ids:
-        type: array
-        items:
-          type: integer
-          minimum: 0
-          maximum: 383
-      state_before:
-        $ref: '#/$defs/KVState'
-      state_after:
-        $ref: '#/$defs/KVState'
-      nodes:
-        type: array
-        items:
-          $ref: '#/$defs/TensorObservation'
-      selection:
-        oneOf:
-        - $ref: '#/$defs/TokenSelection'
-        - type: 'null'
-      matmul_flops:
-        type: integer
-        minimum: 0
-        maximum: 9007199254740991
-      logical_memory_bytes:
-        type: integer
-        minimum: 0
-        maximum: 9007199254740991
-      reference_max_abs_error:
-        type: number
-        minimum: 0
       phase:
-        type: string
+        type:
+        - string
+        - 'null'
         enum:
-        - cache-build
+        - null
         - prefill
         - decode
-      reference_matmul_flops:
-        type: integer
-        minimum: 0
+        - cache-build
+      transfer_direction:
+        type:
+        - string
+        - 'null'
+        enum:
+        - null
+        - host-to-device
+        - device-to-host
+    allOf:
+    - if:
+        properties:
+          kind:
+            enum:
+            - compute-start
+            - compute-end
+      then:
+        properties:
+          phase:
+            not:
+              type: 'null'
+    - if:
+        not:
+          properties:
+            kind:
+              enum:
+              - compute-start
+              - compute-end
+      then:
+        properties:
+          phase:
+            type: 'null'
+    - if:
+        properties:
+          kind:
+            enum:
+            - transfer-start
+            - transfer-end
+      then:
+        properties:
+          transfer_direction:
+            not:
+              type: 'null'
+    - if:
+        not:
+          properties:
+            kind:
+              enum:
+              - transfer-start
+              - transfer-end
+      then:
+        properties:
+          transfer_direction:
+            type: 'null'
   CacheMeasurement:
     type: object
     x-owner: ExperimentObservation
@@ -616,100 +569,6 @@ $defs:
     - backend
     additionalProperties: false
     x-owner: ExperimentExecution
-  NumericalPrecision:
-    type: object
-    properties:
-      accumulation:
-        type: string
-      compute:
-        type: string
-      storage:
-        type: string
-    required:
-    - accumulation
-    - compute
-    - storage
-    additionalProperties: false
-    x-owner: ExperimentObservation
-  NumericalPass:
-    type: object
-    properties:
-      display_so_far:
-        type: string
-        description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
-          as labeled markers.
-      execution:
-        type: string
-      id:
-        type: string
-      input_ids:
-        type: array
-        items:
-          type: integer
-      nodes:
-        type: array
-        items:
-          $ref: '#/$defs/TensorObservation'
-      output_position:
-        type: integer
-      phase:
-        type: string
-      positions:
-        type: array
-        items:
-          type: integer
-      request_id:
-        type: string
-      run_id:
-        type: string
-      selection:
-        $ref: '#/$defs/TokenSelection'
-      selection_position:
-        type: integer
-      step:
-        type: integer
-    required:
-    - display_so_far
-    - execution
-    - id
-    - input_ids
-    - nodes
-    - output_position
-    - phase
-    - positions
-    - request_id
-    - run_id
-    - selection
-    - selection_position
-    - step
-    additionalProperties: false
-    x-owner: ExperimentObservation
-  ModelForwardCompleted:
-    type: object
-    x-owner: ExperimentEvent
-    additionalProperties: false
-    required:
-    - kind
-    - work_id
-    - phase
-    properties:
-      kind:
-        type: string
-        title: Event kind
-        description: Event kind
-        const: model-forward-completed
-        default: model-forward-completed
-      work_id:
-        type: string
-        title: Numerical observation identity
-        description: Numerical observation identity
-      phase:
-        type: string
-        title: Execution phase
-        description: Execution phase
-        enum:
-        - prefill
-        - decode
   KVRunBinding:
     type: object
     x-owner: ExperimentSpec
@@ -718,6 +577,7 @@ $defs:
     - model
     - system
     - workload
+    - ontology_binding
     properties:
       model:
         $ref: '#/$defs/ModelArtifactReference'
@@ -725,3 +585,25 @@ $defs:
         $ref: '#/$defs/KVResidencySystemConfig'
       workload:
         $ref: '#/$defs/Workload'
+      ontology_binding:
+        $ref: '#/$defs/OntologyBinding'
+  OntologyBinding:
+    type: object
+    x-owner: ExperimentSpec
+    x-ontology-binding: true
+    additionalProperties: false
+    required:
+    - primary
+    - related
+    properties:
+      primary:
+        type: string
+        description: Primary subject; must name an admitted ontology concept.
+        x-ontology-reference: true
+      related:
+        type: array
+        uniqueItems: true
+        description: Other associated concepts; excludes the primary subject.
+        items:
+          type: string
+          x-ontology-reference: true

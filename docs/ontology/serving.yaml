@@ -1,0 +1,90 @@
+terms:
+  RequestScheduling:
+    meaning: Decide which arrived requests may become active and which eligible work runs next under resource
+      constraints.
+    lifetime: Configuration is fixed for a run; observations identify the work that actually executed.
+    owns:
+    - Active-request admission slots; the current KV engine admits FIFO and rotates active requests between
+      serialized service steps.
+    excludes:
+    - Arrival declarations are workload input, not a scheduling decision.
+    - KV allocation and eviction policy, tensor equations, and token selection.
+    - No batching, priority, preemption or fair-sharing guarantee is implemented.
+    capability_reads: []
+    projections:
+      Queue:
+        meaning: Pending requests wait for admission slots and KV reservations. The active queue rotates
+          requests while service remains serialized.
+        fields:
+          RequestSchedulingConfig:
+          - max_active_requests
+    schemas:
+    - RequestSchedulingConfig
+  KVCache:
+    meaning: Manage allocation, residency, retention and valid reuse of KV-state payloads under declared
+      capacities.
+    lifetime: Configuration is fixed for a run; observations identify the work that actually executed.
+    owns:
+    - Logical device and host KV budgets and exact whole-prefix LRU retention.
+    - Cache validity, lookup, allocation and eviction decisions in the current KV lab.
+    excludes:
+    - The numerical keys and values belong to KVState.
+    - Attention equations, transfer service costs and request scheduling.
+    - No partial-prefix paging or model-quality claim.
+    capability_reads: []
+    projections:
+      Residency:
+        meaning: KV residency is managed within logical device and host budgets. A transfer must complete
+          before a remote payload is usable.
+        fields:
+          KVCacheConfig:
+          - device_kv_bytes
+          - host_kv_bytes
+          - retention_policy
+    schemas:
+    - KVCacheConfig
+  StateTransfer:
+    meaning: Move an identified sequence-state payload across an execution or memory boundary before dependent
+      work uses it.
+    lifetime: Configuration is fixed for a run; observations identify the work that actually executed.
+    owns:
+    - Declared payload-transfer bandwidth and startup delay; current modeled duration is startup plus
+      bytes divided by rate.
+    - The handoff boundary for future lossless prefill-to-decode KV movement.
+    excludes:
+    - Endpoint placement, routing and topology selection.
+    - State interpretation or attention math; cache retention and eviction choices.
+    - No vendor conversion, network contention or physical-performance calibration is represented.
+    capability_reads: []
+    projections:
+      Link:
+        meaning: Hypothetical bandwidth and startup delay for serialized KV transfers. This is not a fabric
+          topology or contention model.
+        fields:
+          StateTransferConfig:
+          - link_bytes_per_us
+          - link_latency_us
+    schemas:
+    - StateTransferConfig
+  ComputeService:
+    meaning: Translate declared operation and memory-traffic counts into conditional service time under
+      explicit resource rates.
+    lifetime: Configuration is fixed for a run; observations identify the work that actually executed.
+    owns:
+    - Hypothetical compute and memory rates; the KV lab charges the maximum of operation time and memory-traffic
+      time.
+    excludes:
+    - Numerical model results and actual device identity.
+    - Measured physical performance, transfer service, and request scheduling.
+    - No calibrated accelerator or multi-resource overlap model.
+    capability_reads: []
+    projections:
+      Resource:
+        meaning: Hypothetical compute and memory-service rates, distinct from physical backend measurements
+          and cache capacity.
+        fields:
+          ComputeServiceConfig:
+          - compute_flops_per_us
+          - memory_bytes_per_us
+    schemas:
+    - ComputeServiceConfig

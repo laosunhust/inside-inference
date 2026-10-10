@@ -1,7 +1,7 @@
 # Lab catalog
 
 `stack.json` is the source of truth for classification and lab metadata.
-`make intro-page` validates it and builds a portable site under `out/intro-page/`.
+`make _intro-page` validates it and builds a portable site under `out/intro-page/`.
 Edit sources, never generated HTML. The site's presentation lives in `web/` and
 its generator in `scripts/build/intro_page.py`. The visual landing page inspects actual
 GPT runs from `inside_inference/generation.py`; the catalog is rendered at `atlas.html`.
@@ -43,6 +43,10 @@ Add one entry to `innovations` with:
 - `journey_steps`: nonempty unique phase IDs (`prefill`, `decode`) for current
   step-to-lab navigation. Extend supported steps with their first navigation
   consumer. A link means relevance, not integration into that phase.
+- `ontology_binding`: one primary ontology concept and unique related concepts.
+  Bind the concrete lab question and inspected mechanisms, not every dependency or
+  every topic in its source paper. Related links refer to the same experiment.
+  For example, our KDA recurrence lab does not implement Kimi Linear’s hybrid architecture.
 - `status`: `planned` for a brief, or `mechanical-demo` for a wired executable demo.
 - `summary`, `mechanism`, `benefit`, `cost`, `limit`, and the `question` to investigate.
 - `sources`: primary-source objects with `title` and HTTPS `url`. Cite a paper or
@@ -51,6 +55,11 @@ Add one entry to `innovations` with:
 
 Every entry receives `labs/<id>.html` and appears under its primary and related
 areas. A planned entry remains readable and explicitly says it has no experiment.
+Step-level lab links and ontology-owner lab links require an implemented
+(`mechanical-demo`) entry whose primary ontology binding matches that owner.
+Related-only and planned entries do not count; a step with none shows
+“No primary lab yet” without a link. Catalog browsing retains labeled related
+references and planned entries for discovery.
 For an executable demo, add its computation and page rendering, register its ID
 in the generator's validation, and add independent correctness checks. Do not
 change only the status. More evidence types can be introduced with their actual
@@ -93,6 +102,23 @@ attention comparison needs matched training; framework comparisons need real
 execution traces and representative shapes; topology studies need explicit
 transfer and queueing assumptions.
 
-Run `make check`, `make test`, and `make intro-page` before completing a lab change.
+Run `make _check`, `make test`, and `make _intro-page` before completing a lab change.
 Check browser behavior when changing interactive controls. Preserve existing IDs
 so links from the atlas, other labs, and external discussions remain useful.
+
+The reader-facing concept index includes only subjects bound to a current or
+planned lab. Ontology membership alone does not create a learning topic: experiment
+envelopes, inspection state, and API bookkeeping belong in the declaration
+reference. Bind labs to the inference mechanism or system behavior being studied.
+
+Requested generation behavior and backend execution strategy are different
+boundaries. A token budget or selection rule belongs to GenerationPolicy;
+speculative drafting and verification belong to Decoding and must preserve
+the declared output semantics. Bind the mechanism a lab changes, not a similarly
+named request setting. Related subjects need an actual inspected relationship.
+
+InferenceSystem is composition, not the default owner of a mechanism. A lab about
+forward arithmetic binds to ModelExecution; cache retention and eviction to
+KVCache; a state handoff to StateTransfer. InferenceResponse describes output
+publication/completion, so merely producing output does not justify associating a
+numerical lab with it. A related binding needs a concrete inspected relationship.

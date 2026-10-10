@@ -1,6 +1,6 @@
 """Resolve generated declarations and validate causal relations, not tensor arithmetic."""
 from inside_inference.declarations_generated import (
-    CONTRACT_SHA256, InferenceRequest, InferenceSystem, ModelArtifactReference, RequestBinding, RunOutcome,
+    OntologyBinding, LAB_BINDINGS, CONTRACT_SHA256, InferenceRequest, InferenceSystem, ModelArtifactReference, RequestBinding, RunOutcome,
 )
 
 
@@ -9,7 +9,8 @@ def bind(model, tokenizer, request, system=None):
     system = InferenceSystem() if system is None else system
     artifact = ModelArtifactReference(checkpoint_sha256=model.sha256, tokenizer_sha256=tokenizer.manifest_sha256,
                              architecture=model.config)
-    binding = RequestBinding(model=artifact, system=system, request=request)
+    binding = RequestBinding(model=artifact, system=system, request=request,
+        ontology_binding=OntologyBinding.from_dict(LAB_BINDINGS['naive-gpt']))
     binding.validate_bound(binding.to_dict())
     return binding
 
@@ -19,6 +20,8 @@ def validate_result(record):
         raise ValueError('Run declaration contract version differs')
     binding = RequestBinding.from_dict(record['declaration'])
     binding.validate_bound(binding.to_dict())
+    if binding.ontology_binding.to_dict() != LAB_BINDINGS['naive-gpt']:
+        raise ValueError('Recorded ontology binding differs from the naive-gpt experiment')
     if record['checkpoint']['config'] != binding.model.architecture.to_dict():
         raise ValueError('Checkpoint and bound architecture disagree')
     if record['checkpoint']['manifest_sha256'] != binding.model.tokenizer_sha256:
@@ -36,7 +39,7 @@ def validate_result(record):
         raise ValueError('Observed counts do not match actual passes')
     if outcome.unused_budget != binding.request.generation.max_new_tokens - len(selected):
         raise ValueError('Unused allowance does not match the submitted request')
-    if outcome.delivered_tokens != sum(i != end for i in selected):
+    if outcome.published_tokens != sum(i != end for i in selected):
         raise ValueError('Visible token count differs')
     if outcome.complete != (outcome.stop_reason == 'turn_end'):
         raise ValueError('Completion and stop reason disagree')
@@ -50,7 +53,7 @@ def validate_result(record):
     for index, (step, token) in enumerate(zip(passes, selected)):
         if (step['input_ids'] != prefix or step['step'] != index or step['run_id'] != record['id']
                 or step['selection']['selected_id'] != token
-                or step['execution'] != binding.system.execution):
+                or step['execution'] != binding.system.model_execution.execution):
             raise ValueError('Prediction does not belong to the bound run')
         logits = step['selection']['raw_logits']
         if token != max(range(len(logits)),key=lambda i:(logits[i],-i)):

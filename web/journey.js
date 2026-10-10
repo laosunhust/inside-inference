@@ -6,8 +6,10 @@
   const stepLabs = JSON.parse($('step-labs').textContent);
   const ontology = JSON.parse($('ontology-data').textContent);
   const names = {ingress:'Deliver & reserve', transfer:'Retrieve prefix', prefill:'Prefill input', decode:'Decode output', release:'Release worker state'};
-  const rates = [1,2,4];
-  const baseline = scenarios['0-2-3'];
+  const available = Object.values(scenarios);
+  const rates = [...new Set(available.map(s=>s.compute))].sort((a,b)=>a-b);
+  const bandwidths = [...new Set(available.map(s=>s.bandwidth))].sort((a,b)=>a-b);
+  const baseline = JSON.parse($('journey-baseline').textContent);
   let run=baseline, time=0, playing=false, last=null, selected='request', pinned=null;
   const source = () => document.querySelector('input[name="source"]:checked').value;
   const number = value => Number(value.toFixed(3));
@@ -91,7 +93,7 @@
     $('time').max=run.end;$('compute-value').textContent=`${run.compute} units/tick`;
     $('finish-value').textContent=`${number(run.end)} ticks`;
     const delta=run.end-baseline.end;
-    $('finish-delta').textContent=delta===0?'Same as no-reuse baseline':`${number(Math.abs(delta))} ticks ${delta<0?'earlier':'later'} than no-reuse, rate-2 baseline`;
+    $('finish-delta').textContent=delta===0?'Same as no-reuse baseline':`${number(Math.abs(delta))} ticks ${delta<0?'earlier':'later'} than no-reuse, rate-${baseline.compute} baseline`;
     $('cache-label').textContent=run.reuse?`${run.prefix_tokens} units · warm by assumption`:'Not used in this run';
     $('cache-blocks').replaceChildren(...Array.from({length:run.prefix_tokens},(_,i)=>svg('rect',{x:16+i*31,y:38,width:23,height:13,rx:3,fill:run.reuse?'#b2823e':'#d4ddd2'})));
     $('input-tokens').replaceChildren(...Array.from({length:run.input_tokens},(_,i)=>svg('rect',{x:16+i*20,y:78,width:15,height:13,rx:2,fill:run.reuse&&i<run.prefix_tokens?'#b2823e':'#659c82'})));
@@ -123,5 +125,11 @@
     if(node){selected=entity;if(entity==='system'||node.closest('#system-details'))$('system-details').open=true;render();}
   }
   window.addEventListener('hashchange',inspectHash);
-  $('bandwidth').value='3';change();inspectHash();requestAnimationFrame(frame);
+  $('compute').max=rates.length-1;$('compute').value=rates.indexOf(baseline.compute);
+  $('compute-min').textContent=`${rates[0]} work units/tick`;
+  $('compute-max').textContent=`${rates.at(-1)} work units/tick`;
+  for(const rate of bandwidths){const option=document.createElement('option');option.value=rate;option.textContent=`${rate} state units/tick`;$('bandwidth').append(option);}
+  $('input-count').textContent=`${baseline.input_tokens} input · ${baseline.output_tokens} output steps`;
+  $('prefix-assumption').textContent=`Assume ${baseline.prefix_tokens} compatible input positions`;
+  $('bandwidth').value=baseline.bandwidth;change();inspectHash();requestAnimationFrame(frame);
 })();

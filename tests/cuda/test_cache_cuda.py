@@ -7,7 +7,7 @@ from inside_inference.cache_lab import run_cache_experiment,replay_cache
 from inside_inference.cuda_runtime import CudaRuntime
 from inside_inference.model import ModelArchitecture,initialize,identity
 from inside_inference.tokenizer import Tokenizer
-from tests.unit.test_cache_lab import scenario
+from tests.fixtures.execution import cache_scenario as scenario
 
 
 class CudaCacheTests(unittest.TestCase):
@@ -16,7 +16,7 @@ class CudaCacheTests(unittest.TestCase):
         try:
             result,_=runtime.compute([0,3,42],runtime.empty(),capture=True,request_id='r',run_id='test',step=0)
             state=result['state'];key=identity(state.to_dict())
-            reference={n['name']:n['values'] for n in runtime.model.forward([0,3,42])['nodes']}
+            reference={n['operation']['name']:n['values'] for n in runtime.model.forward([0,3,42])['nodes']}
             for matrix,name in ((state.keys,'key'),(state.values,'value')):
                 for actual,expected in zip(matrix,reference[name]):
                     for x,y in zip(actual,expected):self.assertTrue(math.isclose(x,y,abs_tol=1e-10,rel_tol=1e-9))
@@ -37,7 +37,7 @@ class CudaCacheTests(unittest.TestCase):
 
     def test_real_cuda_miss_retrieval_and_replay(self):
         spec=scenario(('the ball','the cup','the ball'),device=1024,active=1)
-        spec['system']['backend']='cuda'
+        spec['system']['model_execution']['backend']='cuda'
         run=run_cache_experiment(spec)
         self.assertIn('remote-hit',[e['kind'] for e in run['events']])
         self.assertTrue(all(c['reference_max_abs_error']<1e-10 for c in run['computations']))

@@ -1,0 +1,56 @@
+terms:
+  ModelExecution:
+    meaning: Execute model forward computations over input positions and available sequence state, producing
+      logits and intermediate values.
+    lifetime: Configuration is fixed for a run; observations identify the work that actually executed.
+    owns:
+    - Numerical forward work, its precision and completion evidence.
+    - Declared full-prefix or cached execution implementation and numerical backend selection.
+    excludes:
+    - Caller selection and stopping requirements.
+    - Draft acceptance, output publication, request scheduling, and resource-service timing.
+    capability_reads: []
+    projections:
+      Work item:
+        meaning: An executed KV model computation, identified by work ID and linked to input IDs, tensors,
+          and before/after KV states. Transfers are separate events, not instances of this computation
+          record.
+        fields:
+          CacheComputation:
+          - work_id
+          - input_ids
+          - nodes
+          - state_before
+          - state_after
+    schemas:
+    - FullPrefixExecutionConfig
+    - CachedExecutionConfig
+    - CacheComputation
+    - ModelForwardCompleted
+    - NumericalPrecision
+  Decoding:
+    meaning: Use model predictions to advance a generated sequence while honoring the requested generation
+      policy.
+    lifetime: Configuration is fixed for a run; observations identify the work that actually executed.
+    owns:
+    - Prediction-step evidence and the selected token; the implemented algorithm is autoregressive greedy
+      selection.
+    - The algorithmic boundary for future draft proposal, target verification, acceptance and rollback.
+    excludes:
+    - Requested generation policy, owned by GenerationPolicy.
+    - Forward tensor equations, response transport and inter-request scheduling.
+    - Declaring this boundary does not implement speculative decoding or distribution-preserving sampling.
+    capability_reads: []
+    projections:
+      Token selection:
+        meaning: Inspect the executed choice from target logits. The current algorithm is greedy; draft
+          verification is not implemented.
+        fields:
+          TokenSelection:
+          - raw_logits
+          - selected_id
+          - probabilities
+    schemas:
+    - TokenSelection
+    - TokenSelected
+    - NumericalPass

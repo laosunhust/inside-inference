@@ -3,13 +3,14 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 # Host prerequisites: GNU Make, Git, Python 3 with venv, Node and npm.
+# serve-intro also requires lsof; it terminates existing TCP listeners on port 8000.
 # Browser checks additionally require installed Chrome/Chromium and Node WebSocket.
 # Dependency versions belong to requirements.txt and package-lock.json.
 PYTHON ?= .venv/bin/python
 
 # Only common workflows carry ## help. Internal workflows start with _.
-# Help and visibility checks consume the same declarations; no separate command list.
-help: ## Show common workflows; start with make setup, then make serve-intro.
+# Help descriptions come from these rules; governance freezes the public names.
+help:
 	@python3 -m scripts.check.make_interface --help-targets
 
 setup: ## Install locked Python and build-tool dependencies locally.
@@ -17,28 +18,36 @@ setup: ## Install locked Python and build-tool dependencies locally.
 	@.venv/bin/python -m pip install -r requirements.txt
 	@npm ci --ignore-scripts
 
-intro-page: _governance-check _data-models-check ## Build the offline laboratory at out/intro-page/index.html.
+_intro-page: _governance-check _data-models-check
 	@$(PYTHON) -m scripts.build.intro_page
 
-serve-intro: _governance-check _data-models-check ## Build and serve live inference on localhost; restart after code changes.
+serve-intro: _governance-check _data-models-check ## Replace the listener on port 8000 and serve live inference locally.
 	@$(PYTHON) -m scripts.dev.serve_intro $(if $(CHECKPOINT),--checkpoint "$(CHECKPOINT)",)
 
-check: _governance-check _make-check _layout-check _data-models-check ## Reject ontology/declaration drift, prose-only ontology files, invalid catalog entries, and whitespace errors.
+_check: _governance-check _make-check _layout-check _data-models-check
 	@$(PYTHON) -m scripts.build.intro_page --check
 	@git diff --check
 	@git diff --cached --check
 
-test: _governance-check _make-check _layout-check _data-models-check ## Light harness: contract and correctness tests; no browser or HTTP server.
-	@$(PYTHON) -m unittest discover -s tests/unit -v
+test: ## Light harness: contract and correctness tests; no browser or HTTP server.
+	@$(PYTHON) -m scripts.check.governance.budget test
+
+_test: _governance-check _make-check _layout-check _data-models-check
+	@$(PYTHON) -m scripts.check.governance.harness
 
 # Optional CHECKPOINT=path.json binds both embedded and live execution for serve-intro
 # and runs browser parity on that artifact in test-integration (default stays untrained).
-# Full harness includes the light checks, then real transport/browser parity.
+# Full harness runs unit checks once, then composition and real adapter/browser parity.
+# Component invariants belong in unit tests; integration compares complete records
+# against checked references and owns transport, export/replay and rendered wiring.
 # Missing Chrome/Node support is a failure, never a silently skipped test.
 # Evidence: out/experiments/integration/ (workloads, run records, screenshots, result).
-test-integration: check test ## Full harness: reproduce interactive runs through headless, CLI, HTTP, and browser.
-	@$(PYTHON) -m unittest discover -s tests/integration -v
-	@$(PYTHON) -m scripts.check.browser_check $(if $(CHECKPOINT),--checkpoint "$(CHECKPOINT)" --output out/experiments/checkpoint-integration,)
+test-integration: ## Full harness: reproduce interactive runs through headless, CLI, HTTP, and browser.
+	@$(PYTHON) -m scripts.check.governance.budget test-integration
+
+# Private workflows share prerequisites; public wrappers time the complete work.
+_test-integration: _check _test
+	@$(PYTHON) -m scripts.check.browser_check --integration-tests $(if $(CHECKPOINT),--checkpoint "$(CHECKPOINT)" --output out/experiments/checkpoint-integration,)
 
 # Explicit regeneration is separate from validation: checks never repair stale files.
 _data-models:
@@ -73,7 +82,7 @@ _tokenizer-example:
 _dataset-audit:
 	@$(PYTHON) -m scripts.experiments.prepare_corpus
 
-.PHONY: help setup intro-page serve-intro check test test-integration
+.PHONY: help setup _intro-page serve-intro _check test test-integration _test _test-integration
 .PHONY: _data-models _data-models-check _make-check _layout-check
 .PHONY: _inference-example _measure-inference _vocabulary-study _tokenizer-example _dataset-audit
 
@@ -81,6 +90,8 @@ _dataset-audit:
 _preparation-setup:
 	@$(PYTHON) -m pip install -r requirements-preparation.txt
 
+# Dataset generation, vocabulary research, and training checks are preparation work.
+# Run when those inputs or implementations change; inference harnesses exclude them.
 _test-preparation: _data-models-check
 	@$(PYTHON) -m unittest discover -s tests/preparation -v
 
@@ -119,3 +130,12 @@ _governance-check:
 	@$(PYTHON) -m scripts.check.governance
 
 .PHONY: _governance-check
+
+# Optional, gitignored upstream source references; no installs or upstream execution.
+# Pins live here. Existing altered checkouts fail instead of being reset or updated.
+_references:
+	@$(PYTHON) -m scripts.dev.references llm-viz https://github.com/bbycroft/llm-viz.git 9da93742382f1bf36c020c38a1ace454e82c4490
+	@$(PYTHON) -m scripts.dev.references transformer-explainer https://github.com/poloclub/transformer-explainer.git bfe50afba10b9b560b84143ee1107d977defa74f
+	@$(PYTHON) -m scripts.dev.references nano-vllm https://github.com/GeeeekExplorer/nano-vllm.git bb823b3e06983d71485a8e1f23715ebd87d98ef8
+
+.PHONY: _references

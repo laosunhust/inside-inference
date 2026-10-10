@@ -29,7 +29,11 @@ if (traceData) {
     ? '[' + value.map(format).join(Array.isArray(value[0]) ? ',\n ' : ', ') + ']'
     : Number(value.toFixed(5)).toString();
   const update = () => {
-    const event = data[scenario.value][Number(step.value)];
+    const events = data[scenario.value];
+    step.max = events.length - 1;
+    if(Number(step.value) >= events.length) step.value = events.length - 1;
+    document.querySelector('#step-count').textContent = events.length;
+    const event = events[Number(step.value)];
     document.querySelector('#step-number').textContent = Number(step.value) + 1;
     const trace = document.querySelector('#trace');
     trace.replaceChildren();

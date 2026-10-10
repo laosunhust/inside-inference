@@ -1,0 +1,20 @@
+terms:
+  CustomerInteraction:
+    meaning: Declared client submissions, cumulative output consumption and cancellation on one scenario
+      clock.
+    lifetime: Immutable scenario input; changing it defines a different scenario.
+    owns:
+    - Ordered customer actions; equal-time array order breaks ties. Each submission creates one invocation.
+    - Consumption describes client demand; cancellation expresses intent, not acknowledgment or immediate
+      server termination.
+    excludes:
+    - No browser rendering, API protocol, network delivery, retry grouping or agent tool orchestration
+      is implemented.
+    - These inputs are validated scenarios, not accepted by existing inference engines.
+    capability_reads: []
+    projections: {}
+    schemas:
+    - CustomerSubmission
+    - CustomerConsumption
+    - CustomerCancellation
+    - CustomerInteraction

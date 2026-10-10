@@ -20,7 +20,7 @@ def inventory(root, policy):
 
 def load_limits(root):
     policy = read_yaml(root/'governance/limits.yaml')
-    keys = {'version','files_per_folder_warning','files_per_folder','authored_file_bytes','generated_file_bytes','fixture_file_bytes','fixture_roots','excluded_directories','excluded_file_suffixes','fixture_extensions'}
+    keys = {'unit_test_wall_seconds','integration_test_wall_seconds','version','files_per_folder_warning','files_per_folder','authored_file_bytes','generated_file_bytes','fixture_file_bytes','fixture_roots','excluded_directories','excluded_file_suffixes','fixture_extensions'}
     if not isinstance(policy,dict) or set(policy) != keys or policy['version'] != 1:
         raise ValueError('Malformed repository limits')
     for name in keys-{'version','fixture_roots','excluded_directories','excluded_file_suffixes','fixture_extensions'}:

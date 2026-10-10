@@ -4,8 +4,8 @@ import standalone from 'ajv/dist/standalone/index.js';
 import {build} from 'esbuild';
 const schema=JSON.parse(fs.readFileSync(process.argv[2]==='-'?0:process.argv[2],'utf8'));
 // Domain annotations are checked by ontology admission; they do not replace JSON Schema.
-const ajv=new Ajv2020({strict:true,strictNumbers:true,allErrors:true,code:{source:true},allowUnionTypes:true});
-ajv.addVocabulary(['x-owner','x-maximum-from']);
+const ajv=new Ajv2020({strict:true,inlineRefs:false,strictNumbers:true,allErrors:true,code:{source:true},allowUnionTypes:true});
+ajv.addVocabulary(['x-owner','x-maximum-from','x-ontology-reference','x-ontology-binding','x-operation']);
 const root={$id:'urn:inside-inference:contracts', $schema:schema.$schema, $defs:schema.$defs};
 ajv.addSchema(root);
 const names=Object.fromEntries(Object.keys(schema.$defs).map(name=>[name,`${root.$id}#/$defs/${name}`]));

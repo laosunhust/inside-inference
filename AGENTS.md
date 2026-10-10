@@ -93,5 +93,17 @@ full harness. Each supported interactive experiment must be reproducible headles
 from the same declarations. Divergence or missing prerequisites is a failure, not a
 reason to skip verification. Report checks performed and any remaining limits.
 
+Test scope and efficiency are governance boundaries. Unit tests exercise components
+in-process; full builds, external processes, transport and browser checks belong to
+integration. Dataset and training preparation have a separate harness. Preserve
+coverage at the lowest appropriate layer, share unchanged integration setup, and
+measure harness costs; adding coverage does not justify redundant work. The complete
+`make test` and `make test-integration` workflows must stay within the wall-time
+budgets declared in governance/limits.yaml. Before requesting owner approval to
+relax a budget, agents must profile the failure and investigate implementation
+efficiency, redundant coverage, and evaluation return on investment. Present the
+measured bottlenecks, attempted improvements, and justification for any remaining
+cost; a slow passing suite alone does not justify raising its budget.
+
 Disposable outputs belong under `out/`. Required fixtures, datasets, and
 irreplaceable state must have a durable home outside disposable output directories.

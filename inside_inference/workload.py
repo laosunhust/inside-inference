@@ -1,6 +1,6 @@
 """Admit fixed arrivals and record causal events from the numerical engine."""
 from inside_inference.declarations_generated import (
-    CONTRACT_SHA256, Workload, RequestArrival, InferenceRequest, RunBinding,
+    OntologyBinding, LAB_BINDINGS, CONTRACT_SHA256, Workload, RequestArrival, InferenceRequest, RunBinding,
     InferenceSystem, ModelArtifactReference, RunRecord,
 )
 from inside_inference.generation import run_request, token_display
@@ -28,16 +28,16 @@ def admit(workload, system):
 
 
 def event_causes(events, payload):
-    """Prerequisites of the serial baseline; delivery is not a compute dependency."""
+    """Prerequisites of the serial baseline; publication is not a compute dependency."""
     def last(kind):
         return next((e['event_id'] for e in reversed(events) if e['payload']['kind']==kind),None)
     kind=payload['kind']
     if kind=='request-arrived': return []
     if kind=='model-forward-completed': return [last('token-selected') or last('input-encoded')]
     if kind=='request-finished':
-        return [value for value in (last('token-selected'),last('token-delivered')) if value is not None]
+        return [value for value in (last('token-selected'),last('token-published')) if value is not None]
     prerequisite={'input-encoded':'request-arrived','token-selected':'model-forward-completed',
-                  'token-delivered':'token-selected'}[kind]
+                  'token-published':'token-selected'}[kind]
     return [last(prerequisite)]
 
 
@@ -50,7 +50,8 @@ def run_workload(workload=None, *, checkpoint=None):
     model = Model(checkpoint)
     binding = RunBinding(model=ModelArtifactReference(checkpoint_sha256=model.sha256,
                          tokenizer_sha256=tokenizer.manifest_sha256, architecture=model.config),
-                         system=system, workload=workload)
+                         system=system, workload=workload,
+                         ontology_binding=OntologyBinding.from_dict(LAB_BINDINGS['naive-gpt']))
     binding.validate_bound(binding.to_dict())
     run_id = identity({'declaration':binding.to_dict(), 'contract':CONTRACT_SHA256,
                        'provenance':stable_provenance(execution_provenance())})
@@ -71,8 +72,8 @@ def run_workload(workload=None, *, checkpoint=None):
     return result
 
 
-def deliveries(run, request_id):
-    return [e for e in run['events'] if e['request_id']==request_id and e['payload']['kind']=='token-delivered']
+def publications(run, request_id):
+    return [e for e in run['events'] if e['request_id']==request_id and e['payload']['kind']=='token-published']
 
 
 def validate_run(run):
@@ -89,7 +90,7 @@ def validate_run(run):
         if trace['id'] != run['id'] or trace['request_id'] != arrival.request_id:
             raise ValueError('Numerical evidence belongs to another run/request')
         if trace['declaration'] != {'model':run['declaration']['model'], 'system':run['declaration']['system'],
-                                    'request':arrival.request.to_dict()}:
+                                    'request':arrival.request.to_dict(), 'ontology_binding':run['declaration']['ontology_binding']}:
             raise ValueError('Numerical evidence differs from workload binding')
         # These relations govern the current naive engine only; a speculative engine
         # needs its own acceptance rules; this baseline accepts each greedy selection.
@@ -104,14 +105,14 @@ def validate_run(run):
             expected += [{'kind':'model-forward-completed','work_id':step['id'],'phase':step['phase']},
                          {'kind':'token-selected','work_id':step['id'],'token_id':token,'output_position':step['step']}]
             if token != end:
-                expected += [{'kind':'token-delivered','work_id':step['id'],'token_ids':[token],'output_start':visible,
+                expected += [{'kind':'token-published','work_id':step['id'],'token_ids':[token],'output_start':visible,
                               'display_delta':token_display(tokenizer,token)}]
                 visible += 1
         expected.append({'kind':'request-finished','outcome':trace['outcome']})
         actual = [e['payload'] for e in run['events'] if e['request_id']==arrival.request_id]
         if actual != expected: raise ValueError('Events disagree with executed baseline transitions')
-        if ''.join(e['payload']['display_delta'] for e in deliveries(run,arrival.request_id)) != trace['output_display']:
-            raise ValueError('Delivered text differs from numerical evidence')
+        if ''.join(e['payload']['display_delta'] for e in publications(run,arrival.request_id)) != trace['output_display']:
+            raise ValueError('Published text differs from numerical evidence')
     ids = {r.request_id for r in binding.workload.requests}
     for i,event in enumerate(run['events']):
         causes = event_causes(run['events'][:i],event['payload'])

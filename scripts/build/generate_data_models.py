@@ -2,6 +2,7 @@
 import argparse
 import copy
 import hashlib
+from functools import lru_cache
 import json
 from pathlib import Path
 import pprint
@@ -13,12 +14,19 @@ from inside_inference.contract_runtime import validate, decode_json
 
 from scripts import ROOT
 from scripts.build.ontology import load_declarations
-from scripts.build.contracts import load_schema
+from scripts.build.contracts import load_schema, operation_owners, lab_bindings, binding_constraints
 from scripts.build.structured import read_yaml
 
 
 def read(path):
     return decode_json(path.read_text())
+
+
+@lru_cache(maxsize=512)
+def _check_schema_content(serialized):
+    # Memoize only successful standard meta-schema checks, never semantic admission.
+    # Content keys notice in-place edits; bounded storage cannot retain entire runs.
+    Draft202012Validator.check_schema(json.loads(serialized))
 
 
 def admit(ontology, spec):
@@ -27,20 +35,18 @@ def admit(ontology, spec):
     owners = {}
     terms, definitions = ontology['terms'], spec['$defs']
     for term, entry in terms.items():
-        if set(entry) != {'meaning', 'lifetime', 'owns', 'excludes', 'schemas', 'depends_on', 'capability_reads', 'projections'}:
+        if set(entry) != {'meaning', 'lifetime', 'owns', 'excludes', 'schemas', 'capability_reads', 'projections'}:
             raise ValueError(f'{term}: malformed semantic owner')
         if not re.fullmatch('[A-Z][A-Za-z0-9]*', term):
             raise ValueError(f'{term}: invalid semantic owner name')
         if not all(isinstance(entry[k], str) and entry[k].strip() for k in ('meaning', 'lifetime')):
             raise ValueError(f'{term}: incomplete semantic boundary')
-        for key in ('owns', 'excludes', 'depends_on', 'capability_reads'):
+        for key in ('owns', 'excludes', 'capability_reads'):
             value = entry[key]
             if not isinstance(value, list) or not all(isinstance(v, str) and v.strip() for v in value) or len(set(value)) != len(value):
                 raise ValueError(f'{term}: invalid {key}')
             if key in ('owns', 'excludes') and not value:
                 raise ValueError(f'{term}: {key} cannot be empty; no declaration-free ontology owners')
-        if not set(entry['depends_on']) <= set(terms):
-            raise ValueError(f'{term}: unknown dependency owner')
         names = entry['schemas']
         if not isinstance(names, list) or not names or not all(isinstance(n, str) and re.fullmatch('[A-Z][A-Za-z0-9]*', n) for n in names) or len(set(names)) != len(names):
             raise ValueError(f'{term}: schemas must be a nonempty unique list of declaration names')
@@ -68,12 +74,32 @@ def admit(ontology, spec):
                     raise ValueError(f'{label}: projection cannot borrow another semantic owner')
                 if not isinstance(names, list) or not names or not all(isinstance(n, str) for n in names) or len(set(names)) != len(names) or not set(names) <= set(definitions[schema_name]['properties']):
                     raise ValueError(f'{label}: projection references missing or invalid fields')
+    binding = definitions['OntologyBinding']
+    props = binding['properties']
+    if (not binding.get('x-ontology-binding') or set(props) != {'primary','related'}
+            or not props['primary'].get('x-ontology-reference')
+            or not props['related'].get('uniqueItems')
+            or not props['related']['items'].get('x-ontology-reference')
+            or binding.get('allOf') != binding_constraints(terms)):
+        raise ValueError('OntologyBinding must enforce admitted subjects, unique related concepts, and primary exclusion')
+    operation_owners(spec)
+    operation_schemas = {name for name, definition in definitions.items() if definition.get('x-operation')}
+    referenced = definitions['TensorObservation']['properties']['operation'].get('anyOf', [])
+    if {r.get('$ref') for r in referenced} != {'#/$defs/' + name for name in operation_schemas} or len(referenced) != len(operation_schemas):
+        raise ValueError('TensorObservation.operation must reference every admitted operation declaration exactly once')
     dependencies = {name: set() for name in definitions}
-    Draft202012Validator.check_schema(spec)
+    # $defs children are independent schemas under the fixed 2020-12 dialect.
+    # Keep root validation, and avoid rechecking every unchanged declaration when
+    # one declaration changes. References/owners/cycles still run on every call.
+    _check_schema_content(json.dumps({**spec, '$defs': {}}, sort_keys=True, allow_nan=False))
+    for definition in definitions.values():
+        _check_schema_content(json.dumps(definition, sort_keys=True, allow_nan=False))
     keywords = {'type','title','description','const','default','minimum','maximum','enum','pattern',
                 'x-maximum-from','x-owner','properties','required','additionalProperties',
-                '$ref','items','minItems','maxItems','uniqueItems','oneOf','anyOf'}
+                '$ref','items','minItems','maxItems','uniqueItems','oneOf','anyOf','allOf','if','then','not','contains','x-ontology-reference','x-ontology-binding','x-operation'}
     def walk(name, child):
+        if child.get('x-ontology-reference') and child.get('enum') != sorted(terms):
+            raise ValueError(f'{name}: ontology reference choices differ from admitted concepts; regenerate from docs/ontology')
         if set(child) - keywords:
             raise ValueError(f'{name}: unsupported schema vocabulary')
         if child.get('type') == 'object' and child is not definitions[name]:
@@ -84,9 +110,6 @@ def admit(ontology, spec):
                 raise ValueError('Unsupported reference')
             target = child['$ref'].split('/')[-1]
             if target not in definitions: raise ValueError('Dangling schema reference')
-            target_owner = owners[target]
-            if target_owner != owners[name] and target_owner not in terms[owners[name]]['depends_on']:
-                raise ValueError(f'{name} cannot depend on {target_owner}')
             dependencies[name].add(target)
         for key in ('default','const'):
             if key in child: validate(child,child[key],definitions)
@@ -104,8 +127,10 @@ def admit(ontology, spec):
         for value in child.get('properties',{}).values(): walk(name,value)
         for key in ('items','additionalProperties'):
             if isinstance(child.get(key),dict): walk(name,child[key])
-        for key in ('oneOf','anyOf'):
+        for key in ('oneOf','anyOf','allOf'):
             for value in child.get(key,[]): walk(name,value)
+        for key in ('if','then','not','contains'):
+            if key in child: walk(name,child[key])
     for name, schema in definitions.items():
         if not re.fullmatch('[A-Z][A-Za-z0-9]*', name): raise ValueError('Invalid schema name')
         if schema['type'] != 'object' or schema['additionalProperties'] is not False:
@@ -177,7 +202,10 @@ def outputs(root=ROOT):
     unknown_response = (unknown['status'],unknown['schema']['$ref'].split('/')[-1])
     order = admit(ontology, spec)
     definitions = spec['$defs']
-    digest = hashlib.sha256(json.dumps([ontology, spec, api], sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+    bindings = lab_bindings(root, ontology, spec)
+    operations = operation_owners(spec)
+    labs = [{k:e[k] for k in ('id','name','status','ontology_binding')} for e in read(root/'catalog/stack.json')['innovations']]
+    digest = hashlib.sha256(json.dumps([ontology, spec, api, bindings], sort_keys=True, separators=(',', ':')).encode()).hexdigest()
     header = '# Generated by scripts/build/generate_data_models.py; DO NOT EDIT.\n'
     py = header + 'from dataclasses import dataclass, field\nfrom typing import Any\nfrom inside_inference.contract_runtime import Declaration\n\n'
     py += f'API_PATHS = {routes!r}\nCONTRACT_SHA256 = {digest!r}\nSCHEMAS = {pprint.pformat(definitions, sort_dicts=False)}\n\n'
@@ -196,11 +224,22 @@ def outputs(root=ROOT):
             py += f'    {field_name}: {typ}{default}\n'
         py += '\n\n'
     py += 'MODELS = {' + ', '.join(f'{n!r}: {n}' for n in order) + '}\n'
+    py += f'OPERATION_OWNERS = {operations!r}\nLAB_BINDINGS = {bindings!r}\n'
     py += 'for model in MODELS.values():\n    model._definitions = SCHEMAS\n    model._registry = MODELS\n'
+    operation_models = {operation:name for name,d in definitions.items() if d.get('x-operation') for operation in d['properties']['name']['enum']}
+    py += f'OPERATION_MODELS = {operation_models!r}\n'
+    py += '''def operation_for(name):
+    if name not in OPERATION_MODELS:
+        raise ValueError(f'Unknown model operation {name!r}; declare its semantic owner and operation schema first')
+    return MODELS[OPERATION_MODELS[name]](name=name).to_dict()
+
+'''
     js = '// Generated by scripts/build/generate_data_models.py; DO NOT EDIT.\n'
     js += 'globalThis.Declarations = (() => {\n'
     js += '  const schemas = ' + json.dumps(definitions, indent=2) + ';\n'
     js += '  const meanings = ' + json.dumps(ontology['terms'], indent=2) + ';\n'
+    js += '  const operationOwners = ' + json.dumps(operations) + ';\n'
+    js += '  const labs = ' + json.dumps(labs) + ';\n'
     js += '  const routes = ' + json.dumps(routes) + ';\n'
     js += f'  const hash = {json.dumps(digest)};\n'
     js += '''  const assertShape = (name, value) => {
@@ -212,7 +251,7 @@ def outputs(root=ROOT):
     assertShape(name,value);
     ContractRuntime.bounds(schemas[name],value,schemas,context);
   };
-  return {schemas, meanings, routes, hash, assertShape, assertBound};
+  return {schemas, meanings, routes, hash, operationOwners, labs, assertShape, assertBound};
 })();
 '''
     compiled = subprocess.run(['node', str(ROOT/'scripts/build/compile_validators.mjs'),
@@ -238,7 +277,7 @@ from inside_inference.model import canonical
         self.end_headers()
         self.wfile.write(raw)
 '''
-    return {'data-model/inference.schema.json':json.dumps(spec,indent=2)+'\n', 'data-model/openapi.json':json.dumps(api,indent=2)+'\n', 'web/contract-validators.generated.js':compiled, 'inside_inference/declarations_generated.py':py, 'web/declarations.generated.js':js, 'scripts/dev/responses_generated.py':transport}
+    return {'data-model/inference.schema.json':json.dumps(spec,indent=2)+'\n', 'data-model/openapi.json':json.dumps(api,indent=2)+'\n', 'web/contract-validators.generated.js':compiled, 'inside_inference/declarations_generated.py':py.rstrip()+'\n', 'web/declarations.generated.js':js, 'scripts/dev/responses_generated.py':transport}
 
 
 def generate(root=ROOT, *, check=False):

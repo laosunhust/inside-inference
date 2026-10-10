@@ -10,6 +10,7 @@ fixture_roots:
 excluded_directories:
 - .git
 - out
+- references
 - .venv
 - node_modules
 - __pycache__
@@ -24,3 +25,5 @@ fixture_extensions:
 - .csv
 - .txt
 - .bin
+unit_test_wall_seconds: 10
+integration_test_wall_seconds: 100

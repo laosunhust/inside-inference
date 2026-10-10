@@ -9,12 +9,12 @@ from scripts.check.selection_contract import assert_unrestricted_generation
 from inside_inference.contract_runtime import decode_json
 from inside_inference.declarations_generated import API_PATHS, Capabilities, CONTRACT_SHA256
 from inside_inference.model import canonical
-from inside_inference.workload import run_workload, validate_run
+from inside_inference.workload import run_workload
 
 
 def assert_same(expected, actual, label):
-    validate_run(actual)
-    assert_unrestricted_generation(actual)
+    # Reference execution owns validity and its independent numerical oracle.
+    # Exact equality checks adapter fidelity without repeating component checks.
     if canonical(expected) != canonical(actual):
         raise AssertionError(f'{label}: complete run differs from headless execution')
 

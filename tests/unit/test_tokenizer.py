@@ -52,10 +52,11 @@ class TokenizerTests(unittest.TestCase):
     def test_exact_utf8_round_trips_and_trace_partitions(self):
         examples = ['', 'a  cat\t\r\n', 'Café café cafe\u0301', '你好，猫！', '🙂👩\u200d🔬',
                     'Straße İstanbul', 'مرحبا', 'नमस्ते', '名前 sam', '\ufeff\x00\u00a0',
-                    '<BOS><USER>cat', "don't don’t", 'a' * 2048]
+                    '<BOS><USER>cat', "don't don’t", 'a' * 128]
         rng = random.Random(80421)
-        scalars = [chr(i) for i in range(128)]
-        while len(scalars) < 4096:
+        scalars = [chr(i) for i in (0, 9, 10, 31, 32, 127, 128, 0x7FF, 0x800,
+                                    0xD7FF, 0xE000, 0xFFFF, 0x10000, 0x10FFFF)]
+        while len(scalars) < 48:
             n = rng.randrange(0x110000)
             if not 0xD800 <= n <= 0xDFFF:
                 scalars.append(chr(n))

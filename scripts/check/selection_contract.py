@@ -18,7 +18,7 @@ def assert_unrestricted_generation(record):
             # the generation loop, its selector, and its selection trace.
             logits=model.forward(prefix,capture=False)['logits'][-1]
             assert len(logits)==384
-            observed=next(n['values'][-1] for n in step['nodes'] if n['name']=='logits')
+            observed=next(n['values'][-1] for n in step['nodes'] if n['operation']['name']=='logits')
             assert observed==logits, 'Recorded model logits differ from checkpoint computation'
             assert step['selection']['raw_logits']==logits, 'Selection modified the model logits'
             expected=sorted(range(384),key=lambda i:(-logits[i],i))[0]

@@ -5,14 +5,10 @@ terms:
     owns:
     - Submitted experiment input, and resolved bindings identifying the model, inference system, and request
       or workload actually consumed.
+    - Primary and related ontology subjects, resolved against admitted concepts and preserved in execution.
     excludes:
     - Observed outcomes and execution identity
     - Causal events and numerical measurements
-    depends_on:
-    - InferenceRequest
-    - InferenceSystem
-    - ModelArtifact
-    - Workload
     capability_reads: []
     projections: {}
     schemas:
@@ -20,6 +16,7 @@ terms:
     - RunBinding
     - KVExperimentInput
     - KVRunBinding
+    - OntologyBinding
   ExperimentExecution:
     meaning: One identified execution of an experiment specification, retaining its events and observations
       for inspection and replay.
@@ -32,27 +29,8 @@ terms:
     - Editable experiment drafts
     - Inspection cursor or playback position
     - Claims that a local run predicts production performance
-    depends_on:
-    - ExperimentSpec
-    - ExperimentEvent
-    - ExperimentObservation
-    - GenerationPolicy
-    - Tokenizer
-    - ModelArtifact
-    - InferenceResponse
-    - ExecutionBackend
-    - KVState
     capability_reads: []
-    projections:
-      Detokenizer:
-        meaning: The recorded output IDs and their diagnostic display under the identified tokenizer.
-          This view renders word pieces and labeled control/byte/hex IDs; it does not establish valid
-          decoded text or a streaming UTF-8 decoder.
-        fields:
-          NumericalTrace:
-          - output_ids
-          - output_display
-          - tokenizer
+    projections: {}
     schemas:
     - RunRecord
     - CacheRun
@@ -63,16 +41,14 @@ terms:
       clock interpretation.
     lifetime: Recorded when an occurrence happens; earlier events are not rewritten.
     owns:
-    - Event envelopes and actual transitions for request arrival, input encoding, model forward completion,
-      and token selection.
-    - KV residency and scheduling transitions, and the declared interpretation of event time.
+    - Causal event envelopes, request arrival and input-encoding payloads, and the declared event clock.
+    - The current cache event envelope records cross-mechanism scheduling, cache and service transitions;
+      it is not their semantic owner.
     excludes:
     - A global sequential step shared by concurrent requests
     - Inferring causality from adjacency or equal timestamps
     - Treating virtual time or execution order as measured wall time
     - Response publication and completion payloads, owned by InferenceResponse
-    depends_on:
-    - InferenceResponse
     capability_reads: []
     projections:
       Event:
@@ -83,102 +59,25 @@ terms:
           - event_id
           - causes
           - payload
-      Residency:
-        meaning: A copy of a state artifact at a location, with allocated size, readiness, and lifetime.
-          A remote or in-flight copy is not automatically ready for local computation.
-        fields:
-          CacheEvent:
-          - state_id
-          - kind
-          - device_reserved_bytes
-          - host_retained_bytes
-      Queue:
-        meaning: Work or requests waiting for eligibility or resources. Being queued is different from
-          actively consuming service.
-        fields:
-          CacheEvent:
-          - request_id
-          - kind
-          - time_us
-          - causes
     schemas:
     - RunEvent
     - CacheEvent
     - EventClock
     - RequestArrived
     - InputEncoded
-    - ModelForwardCompleted
-    - TokenSelected
   ExperimentObservation:
-    meaning: Recorded numerical values or measurements from an execution, associated with the work or
-      event they describe.
+    meaning: Recorded tensors or local measurements attached to executed work; mechanism-specific decisions
+      and computations have separate owners.
     lifetime: Captured during execution and retained unchanged with its evidence.
     owns:
-    - Intermediate tensors, numerical passes, logits and token selections, and actual KV computations.
-    - Declared numerical precision and local wall-time measurements with their measurement boundaries.
+    - Recorded intermediate tensors and their dependencies.
+    - Local wall-time measurements with their measurement boundaries.
     excludes:
     - Requested settings and hypothetical service rates
     - Equating selected tokens with published response tokens
     - Treating a host measurement as target-accelerator performance
-    depends_on:
-    - KVState
     capability_reads: []
-    projections:
-      Embedding:
-        meaning: Maps token IDs to parameter vectors; position information is applied according to the
-          model configuration. These vectors are model inputs, not sequence-state cache entries.
-        fields:
-          TensorObservation:
-          - term
-          - name
-          - positions
-          - values
-          - formula
-      Transformer layers:
-        meaning: Transform position-aware representations through attention, feed-forward operations,
-          normalization, and residual paths under the model configuration. Causal attention restricts
-          accessible history; execution may read or update sequence state.
-        fields:
-          TensorObservation:
-          - term
-          - layer
-          - inputs
-          - shape
-          - values
-          - formula
-      Output projection:
-        meaning: Maps final hidden representations to vocabulary logits. Logits are scores, not selected
-          tokens or decoded text.
-        fields:
-          TensorObservation:
-          - term
-          - shape
-          - values
-          - formula
-      Token selection:
-        meaning: The executed selection from raw logits, with its selected vocabulary ID and recorded
-          rule. Current execution uses greedy selection; selecting an ID does not itself mean that it
-          was published as output.
-        fields:
-          TokenSelection:
-          - raw_logits
-          - selected_id
-          - rule
-      Work item:
-        meaning: An executed KV model computation, identified by work ID and linked to input IDs, tensors,
-          and before/after KV states. Transfers are separate events, not instances of this computation
-          record.
-        fields:
-          CacheComputation:
-          - work_id
-          - input_ids
-          - nodes
-          - state_before
-          - state_after
+    projections: {}
     schemas:
     - TensorObservation
-    - NumericalPass
-    - TokenSelection
-    - CacheComputation
     - CacheMeasurement
-    - NumericalPrecision

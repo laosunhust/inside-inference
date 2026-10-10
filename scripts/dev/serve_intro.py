@@ -4,6 +4,7 @@ from pathlib import Path
 from functools import partial
 from http.server import ThreadingHTTPServer
 from scripts.dev.responses_generated import DeclaredResponseHandler
+from scripts.dev.port import release_port
 
 from inside_inference.workload import run_workload
 from inside_inference.declarations_generated import CONTRACT_SHA256, API_PATHS, Capabilities, ApiError, CacheRun, RunRecord
@@ -57,6 +58,7 @@ def main():
     directory = ROOT / 'out/intro-page'
     checkpoint = decode_json(args.checkpoint.read_text()) if args.checkpoint else None
     build(directory, checkpoint=checkpoint)
+    release_port(args.port)
     server = ThreadingHTTPServer(('127.0.0.1', args.port), partial(Handler, directory=str(directory), checkpoint=checkpoint))
     print(f'Inside Inference: http://127.0.0.1:{server.server_port}/index.html', flush=True)
     try:

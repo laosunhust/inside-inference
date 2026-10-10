@@ -42,11 +42,25 @@ class ApprovalLockTests(unittest.TestCase):
         source = (ROOT/'Makefile').read_text()
         check_governance_workflows(source + '\n# An ordinary Makefile edit\n')
         for broken in (
-            source.replace('test: _governance-check', 'test:'),
-            source.replace('test-integration: check test', 'test-integration:'),
+            source.replace('_test: _governance-check', '_test:'),
+            source.replace('_test-integration: _check _test', '_test-integration:'),
             source.replace('@$(PYTHON) -m scripts.check.governance', '@true'),
         ):
             with self.assertRaises(ValueError): check_governance_workflows(broken)
+
+    def test_public_workflow_names_are_frozen_but_internal_targets_are_open(self):
+        from scripts.check.make_interface import check_governance_workflows, inventory
+        source = (ROOT/'Makefile').read_text()
+        for broken in (
+            source + '\nsurprise: ## A documented but unapproved command\n.PHONY: surprise\n',
+            source + '\n.surprise:\n\t@true\n',
+            source.replace('setup:', '_setup:').replace('help setup ', 'help _setup '),
+            source.replace('help:', 'help: ## List itself'),
+        ):
+            with self.assertRaises(ValueError): check_governance_workflows(broken)
+        extended = source + '\n_internal:\n.PHONY: _internal\n'
+        check_governance_workflows(extended)
+        self.assertEqual(inventory(source), inventory(extended))
 
     def test_mutating_any_protected_file_blocks_without_repair(self):
         for name in self.manifest['files']:

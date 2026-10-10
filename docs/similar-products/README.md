@@ -85,3 +85,24 @@ Keep new local implementations small and justified by inspectability, missing
 semantics, or the learning exercise. Avoid a general serving engine, visualization
 framework, or copied paper catalog without a concrete need. No runtime adoption
 or end-to-end mechanism-to-serving integration is claimed by these documents.
+
+## Local source references
+
+The root [Makefile](../../Makefile) owns `_references`: fetch or verify pinned
+source checkouts in gitignored `references/`. They are optional reading material,
+not build dependencies; no upstream packages or code are installed or executed.
+Existing modified or differently pinned checkouts fail verification rather than
+being overwritten. Pins are declared only in Makefile. Upstream notices remain
+inside each checkout; inspect file-specific terms before copying code or assets.
+
+Source review for connected inspection (2026-10-10):
+
+| Checkout | Files inspected | Decision |
+| --- | --- | --- |
+| `llm-viz` | `src/llm/Interaction.ts`, `GptModelLayout.ts` | Reuse the dependency-navigation approach: follow an operation to its inputs. Its cell-index mappings and WebGL layout are model-specific; our existing observations already supply operation dependencies. No source copied. MIT code; asset exceptions remain applicable. |
+| `transformer-explainer` | `src/utils/data.ts`, `src/components/Operation.svelte` | ONNX execution supplies intermediate outputs to a Svelte interface. Retain our actual Python trace as the authority rather than introducing another model/runtime. No source copied. MIT. |
+| `nano-vllm` | `nanovllm/layers/attention.py` | Real prefill/decode and KV slot mapping are useful subsequent runtime references. FlashAttention/Triton execution is not an adapter for this scalar baseline. No runtime integration in the inspection repair. MIT. |
+
+This review supports an operation-level connection, not a claim of Bycroft's
+cell-level explanation depth. Scalar operand/index tracing remains additional
+work; clickable operation dependencies alone do not establish it.

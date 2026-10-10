@@ -7,13 +7,15 @@ import re
 import shutil
 
 from inside_inference.labs.kda import demo
-from inside_inference.labs.journey import scenarios
+from inside_inference.labs.journey import scenarios, simulate
 from inside_inference.workload import run_workload
 from inside_inference.cache_lab import run_cache_experiment
 from inside_inference.tokenizer import Tokenizer
 from scripts.build.generate_data_models import admit, generate, read
 from scripts.build.ontology import load_declarations
+from scripts.build.contracts import load_schema, lab_bindings
 
+from scripts.build.presentation import entities, lab_index
 from scripts import ROOT
 CATALOG = ROOT / 'catalog/stack.json'
 STATUS = {'mechanical-demo': 'Mechanical demo', 'planned': 'Lab planned'}
@@ -21,6 +23,7 @@ STATUS = {'mechanical-demo': 'Mechanical demo', 'planned': 'Lab planned'}
 
 def load_catalog(path=CATALOG):
     data = json.loads(path.read_text())
+    lab_bindings(ROOT, load_declarations(), load_schema(), catalog=data)
     ids = set()
     for group in ('layers', 'innovations'):
         if not data[group]:
@@ -46,7 +49,7 @@ def load_catalog(path=CATALOG):
             raise ValueError(f"Unknown layer in {entry['id']}")
         if entry['status'] not in STATUS:
             raise ValueError(f"Unknown status in {entry['id']}")
-        if entry['status'] == 'mechanical-demo' and entry['id'] not in ('kimi-delta-attention','prefix-cache'):
+        if entry['status'] == 'mechanical-demo' and entry['id'] not in ('naive-gpt','kimi-delta-attention','prefix-cache'):
             raise ValueError('A mechanical demo requires a registered implementation')
         for source in entry['sources']:
             if not source['url'].startswith('https://') or not source['title']:
@@ -92,7 +95,7 @@ def build(output, *, checkpoint=None):
     data = load_catalog()
     output.mkdir(parents=True, exist_ok=True)
     (output / 'labs').mkdir(exist_ok=True)
-    for name in ('style.css', 'app.js', 'journey.js', 'inference.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
+    for name in ('style.css', 'app.js', 'journey.js', 'inference.js', 'execution-path.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
         shutil.copyfile(ROOT / 'web' / name, output / name)
     layers = {x['id']: x for x in data['layers']}
     nav = ''.join(f'<a href="#layer-{x["id"]}">{i:02d} {esc(x["name"])}</a>'
@@ -112,6 +115,10 @@ def build(output, *, checkpoint=None):
 <dt>Potential gain</dt><dd>{esc(layer['benefit'])}</dd>
 <dt>What it can cost</dt><dd>{esc(layer['cost'])}</dd>
 <dt>What a tiny lab can tell us</dt><dd>{esc(layer['fit'])}</dd></dl>{links}</div></article>''')
+    featured = next((e for e in data['innovations'] if e['status'] == 'mechanical-demo'), None)
+    feature = (f'<section class="featured"><span class="eyebrow">EXAMPLE MECHANICAL LAB</span>'
+               f'<h2><a href="labs/{featured["id"]}.html">{esc(featured["name"])} ↗</a></h2>'
+               f'<p>{esc(featured["summary"])}</p></section>') if featured else ''
     body = f'''<section class="hero"><p class="eyebrow">LAB CATALOG · ONE STACK, MANY EXPERIMENTS</p>
 <h1>Where does the<br>innovation land?</h1>
 <p class="lead">From a new attention rule to a new accelerator: locate the change,
@@ -124,10 +131,7 @@ for the model; quality, latency, throughput, memory, energy, and cost cut across
 Execution software, placement, and physical resources determine how that path runs.</p>
 <p>“Model framework” can mean a model architecture, an execution framework, or a serving engine.
 Classify the actual changed boundary, and link the others.</p></section>
-<section class="featured"><span class="eyebrow">EXAMPLE MECHANICAL LAB</span>
-<h2><a href="labs/kimi-delta-attention.html">Inside Kimi Delta Attention ↗</a></h2>
-<p>Step through a tiny recurrent memory. Compare channel-wise, uniform, and no decay.
-Inspect every read, correction, and state update. No trained-model or speed claims.</p></section>
+{feature}
 <label class="search" for="search">Find a mechanism, layer, or innovation
 <input id="search" type="search" placeholder="Try Kimi, prompt, framework, topology…"></label>
 <p id="result-count" role="status"></p><div class="atlas"><nav aria-label="Stack layers">{nav}</nav>
@@ -141,27 +145,34 @@ The landing page executes an inspectable GPT with identified checkpoint provenan
     (output / 'atlas.html').write_text(shell('Lab catalog', body))
     terms = ontology_terms()
     visual_source = (ROOT / 'web/inference.html').read_text()
-    visual_terms = dict((term, entity) for entity, term in re.findall(r'data-entity="([^"]+)" data-term="([^"]+)"', visual_source))
+    visual_terms = entities(visual_source, anchors=True)
     cost_source = (ROOT / 'web/journey.html').read_text()
-    cost_terms = dict((term, entity) for entity, term in re.findall(r'data-entity="([^"]+)" data-term="([^"]+)"', cost_source))
+    cost_terms = entities(cost_source)
     cache_source = (ROOT / 'web/cache.html').read_text()
-    cache_terms = dict((term, entity) for entity, term in re.findall(r'data-entity="([^"]+)" data-term="([^"]+)"', cache_source))
+    cache_terms = entities(cache_source)
     if not (set(visual_terms) | set(cost_terms) | set(cache_terms)) <= terms.keys():
         raise ValueError('Visual references an unknown ontology term')
     ontology_body = '<h1>Visuals have meanings.</h1><p>Every visual concept maps to fields admitted by the machine-readable ontology. '
     ontology_body += 'These define the model; they do not prove its real-world validity.</p>'
     for term, entry in terms.items():
-        destination = 'index.html#inspect-' + visual_terms[term] if term in visual_terms else 'index.html'
+        scene_link = f'<a href="index.html#{visual_terms[term]}">Inspect in the request scene ↗</a>' if term in visual_terms else ''
         cost_link = f'<a href="request-cost.html#inspect-{cost_terms[term]}">Inspect in the separate cost simulation ↗</a>' if term in cost_terms else ''
         cache_link = f'<a href="kv-cache.html#{cache_terms[term]}">Inspect in the KV residency lab ↗</a>' if term in cache_terms else ''
         bindings = ', '.join(f'{schema}.{field}' for schema, fields in entry['fields'].items() for field in fields)
-        ontology_body += f'<section id="{entry["anchor"]}"><h2>{esc(term)}</h2><p>{esc(entry["meaning"])}</p><p><a href="declarations.html#{entry["owner"]}">{esc(entry["owner"])}</a>: {esc(bindings)}</p><a href="{destination}">Inspect in the request scene ↗</a> {cost_link} {cache_link}</section>'
+        ontology_body += f'<section id="{entry["anchor"]}"><h2>{esc(term)}</h2><p>{esc(entry["meaning"])}</p><p><a href="declarations.html#{entry["owner"]}">{esc(entry["owner"])}</a>: {esc(bindings)}</p>{scene_link} {cost_link} {cache_link}</section>'
+    labs_body = lab_index(load_declarations(), data, STATUS)
+    subjects = {e['ontology_binding']['primary'] for e in data['innovations'] if e['status'] == 'mechanical-demo'}
+    for owner, definition in load_declarations()['terms'].items():
+        lab_link = f' · <a href="labs-by-concept.html#{owner}">Labs ↗</a>' if owner in subjects else ''
+        ontology_body += f'<section id="{owner}"><h2>{esc(owner)}</h2><p>{esc(definition["meaning"])}</p><p>{esc(definition["lifetime"])}</p><p>Owns: {esc("; ".join(definition["owns"]))}</p><p>Excludes: {esc("; ".join(definition["excludes"]))}</p><a href="declarations.html#{owner}">Owned declarations ↗</a>{lab_link}</section>'
+    (output / 'labs-by-concept.html').write_text(shell('Explore inference concepts', labs_body))
     (output / 'ontology.html').write_text(shell('Inference ontology', ontology_body))
     step_labs = {step: [dict(id=e['id'], name=e['name'], status=STATUS[e['status']])
                         for e in data['innovations'] if step in e['journey_steps']]
                  for step in ('prefill', 'decode')}
     landing = (ROOT / 'web/journey.html').read_text().replace(
         '__JOURNEY_DATA__', json.dumps(scenarios()).replace('<', '\\u003c')).replace(
+        '__JOURNEY_BASELINE__', json.dumps(simulate()).replace('<', '\\u003c')).replace(
         '__ONTOLOGY_DATA__', json.dumps(terms).replace('<', '\\u003c')).replace(
         '__STEP_LABS__', json.dumps(step_labs).replace('<', '\\u003c'))
     (output / 'request-cost.html').write_text(shell('Request cost simulation', landing))
@@ -190,7 +201,14 @@ The landing page executes an inspectable GPT with identified checkpoint provenan
         for schema_name in term['schemas']:
             declarations += f'<h3>{schema_name}</h3><dl>'
             for field, definition in declaration_schemas[schema_name]['properties'].items():
-                declarations += f'<dt>{esc(field)}</dt><dd>{esc(definition.get("description", definition.get("$ref")))}</dd>'
+                reference = definition.get('$ref')
+                if reference:
+                    target = reference.split('/')[-1]
+                    target_owner = declaration_schemas[target]['x-owner']
+                    description = f'<a href="#{target_owner}">{esc(target)}</a> · owned by {esc(target_owner)}'
+                else:
+                    description = esc(definition.get('description', definition.get('type', 'Declared alternatives')))
+                declarations += f'<dt>{esc(field)}</dt><dd>{description}</dd>'
             declarations += '</dl>'
         declarations += '<a href="index.html">Inspect the bound run ↗</a></section>'
     (output / 'declarations.html').write_text(shell('Declaration ownership', declarations))
@@ -212,27 +230,30 @@ The landing page executes an inspectable GPT with identified checkpoint provenan
 <dt>Evidence boundary</dt><dd>{esc(entry['limit'])}</dd>
 <dt>Question to investigate</dt><dd>{esc(entry['question'])}</dd></dl>'''
         if entry['id'] == 'kimi-delta-attention':
-            traces = json.dumps(demo()).replace('<', '\\u003c')
+            trace = demo()
+            traces = json.dumps(trace).replace('<', '\\u003c')
+            first = next(iter(trace.values()))
+            event = first[0]
             content += f'''<section class="experiment"><h2>Read → correct → write</h2>
-<p>Here S has two key channels and two value channels. At each step:</p>
+<p>Here S has {len(event['key'])} key channels and {len(event['value'])} value channels. At each step:</p>
 <pre>D = diag(alpha) S_previous
 prediction = Dᵀ k
 error = v − prediction
 S = D + beta k errorᵀ
 o = Sᵀ q</pre>
 <p>This is an expanded evaluation of equation (1) in the paper. The demo starts at zero,
-uses unit-length keys and beta = 0.75, and changes only the decay gates across scenarios.
+uses unit-length keys and beta = {event['beta']}, and changes only the decay gates across scenarios.
 These updates change sequence state, not trained model weights. Computation uses
 Python floating-point arithmetic; cards round to five decimal places. Raw traces
-below retain the serialized values. This is not the planned FP16 baseline.</p>
+below retain the serialized values.</p>
 <label for="scenario">Decay policy</label> <select id="scenario">
-{''.join(f'<option>{esc(label)}</option>' for label in demo())}</select>
-<label class="step-label" for="step">Input step <output id="step-number">1</output> of 4</label>
-<input id="step" type="range" min="0" max="3" value="0">
-<p id="state-budget">Recurrent state: 4 scalars at every step. A stored history of these keys and values
-would add 4 scalars per step. This is a storage illustration, not an equivalent-quality comparison.</p>
+{''.join(f'<option>{esc(label)}</option>' for label in trace)}</select>
+<label class="step-label" for="step">Input step <output id="step-number">1</output> of <span id="step-count">{len(first)}</span></label>
+<input id="step" type="range" min="0" max="{len(first)-1}" value="0">
+<p id="state-budget">Recurrent state: {len(event['key'])*len(event['value'])} scalars at every step. A stored history of these keys and values
+would add {len(event['key'])+len(event['value'])} scalars per step. This is a storage illustration, not an equivalent-quality comparison.</p>
 <div id="trace" aria-live="polite"></div>
-<details><summary>Raw generated traces</summary><pre>{esc(json.dumps(demo(), indent=2))}</pre></details>
+<details><summary>Raw generated traces</summary><pre>{esc(json.dumps(trace, indent=2))}</pre></details>
 <noscript><p>The controls require JavaScript. All computed states are available in the raw traces above.</p></noscript>
 <script id="trace-data" type="application/json">{traces}</script></section>
 <section class="orientation"><h2>What this does and does not establish</h2>
@@ -240,13 +261,17 @@ would add 4 scalars per step. This is a storage illustration, not an equivalent-
 tradeoff for a learned task is a separate experiment. An untrained substitution into a GPT is not a fair
 quality comparison; a future lab needs matched training and controlled recall workloads.</p>
 <p>KDA is a component. Kimi Linear combines KDA and MLA layers, with additional learned machinery
-and optimized kernels. This four-step example is not the full architecture or a reproduction of its reported results.</p>
+and optimized kernels. This recurrence example is not the full architecture or a reproduction of its reported results.</p>
 <p>Next lab work: controlled associative recall, a trained baseline, a hybrid comparison, and separate
 kernel measurements at representative shapes. No universal winner follows from the current demo.</p></section>'''
+        elif entry['id'] == 'naive-gpt':
+            content += '<p><a href="../index.html">Inspect the actual naïve GPT execution ↗</a></p>'
         elif entry['id'] == 'prefix-cache':
             content += '<p><a href="../kv-cache.html">Run the KV residency experiment: cold, warm, remote hit, and eviction ↗</a></p><p><a href="../kv-contract.html">Read its abstraction and evidence contract ↗</a></p>'
         else:
             content += '<p class="warning"><b>Planned lab:</b> this is a specification only. No experiment or measured result is available.</p>'
+        binding = entry['ontology_binding']
+        content += '<p>Ontology subjects: ' + ' · '.join(f'<a href="../ontology.html#{owner}">{esc(owner)}</a>' for owner in [binding['primary'], *binding['related']]) + ' (primary first).</p>'
         if sources:
             content += f'<h2>Primary sources</h2><ul>{sources}</ul>'
         (output / 'labs' / f"{entry['id']}.html").write_text(shell(entry['name'], content, '../'))

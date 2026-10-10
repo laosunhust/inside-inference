@@ -13,7 +13,8 @@ export async function checkCache({send,evaluate,until,click,base,file,output}) {
    while(document.querySelectorAll('.cache-request').length>spec.workload.requests.length)document.querySelectorAll('.cache-request button')[document.querySelectorAll('.cache-request button').length-1].click();
    while(document.querySelectorAll('.cache-request').length<spec.workload.requests.length)$('cache-add').click();
    const set=(id,value)=>{const e=$(id);e.value=value;e.dispatchEvent(new Event('input'));};
-   for(const [key,value] of Object.entries(spec.system))if($('cache-'+key))set('cache-'+key,value);
+   const configure=value=>{for(const [key,v] of Object.entries(value)){if(v&&typeof v==='object')configure(v);else if($('cache-'+key))set('cache-'+key,v);}};
+   configure(spec.system);
    spec.workload.requests.forEach((r,i)=>{set('cache-text-'+i,r.request.text);set('cache-arrival-'+i,r.arrival_us);set('cache-budget-'+i,r.request.generation.max_new_tokens);});
   })()`);
   assert.equal(await evaluate(`document.getElementById('cache-status').dataset.phase`),'dirty');
@@ -23,14 +24,17 @@ export async function checkCache({send,evaluate,until,click,base,file,output}) {
   assert.equal(await evaluate(`document.getElementById('cache-status').dataset.phase`),'ready',await evaluate(`document.getElementById('cache-error').textContent`));
   const filename=output+'/cache-'+c.record.id.slice(0,12)+'.json';await rm(filename,{force:true});await click('cache-download');
   let raw;
-  for(let i=0;i<100;i++){try{raw=await readFile(filename,'utf8');break;}catch(e){if(e.code!=='ENOENT')throw e;await new Promise(r=>setTimeout(r,50));}}
+  for(let i=0;i<100;i++){
+   try{const candidate=await readFile(filename,'utf8');JSON.parse(candidate);raw=candidate;break;}
+   catch(e){if(e.code!=='ENOENT' && !(e instanceof SyntaxError))throw e;await new Promise(r=>setTimeout(r,50));}
+  }
   assert.ok(raw,'Cache browser download absent');const record=JSON.parse(raw);
   assert.deepEqual(logical(record),logical(c.record),c.id+': cache browser parity');
   await writeFile(output+'/'+c.id+'.cache-browser.json',raw);
   assert.equal(await evaluate(`document.querySelectorAll('#cache-events button').length`),record.events.length);
   const index=record.computations.length-1;
   await evaluate(`document.getElementById('cache-work-choice').value=${index};document.getElementById('cache-work-choice').dispatchEvent(new Event('change'));document.getElementById('cache-tensor-choice').value='attention';document.getElementById('cache-tensor-choice').dispatchEvent(new Event('change'));`);
-  assert.deepEqual(await evaluate(`JSON.parse(document.getElementById('cache-raw').textContent)`),record.computations[index].nodes.find(n=>n.name==='attention'));
+  assert.deepEqual(await evaluate(`JSON.parse(document.getElementById('cache-raw').textContent)`),record.computations[index].nodes.find(n=>n.operation.name==='attention'));
   const hit=record.events.findIndex(e=>e.kind==='remote-hit'||e.kind==='local-hit');
   if(hit>=0){await evaluate(`document.querySelectorAll('#cache-events button')[${hit}].click()`);assert.ok(await evaluate(`document.getElementById('cache-state').textContent.includes('Keys')`));}
   if(c.id.endsWith('-remote')){await evaluate('window.scrollTo(0,0)');const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/'+c.id+'-cache.png',Buffer.from(shot.data,'base64'));}

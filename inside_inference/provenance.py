@@ -28,10 +28,13 @@ def reference_backend():
         library='Python '+platform.python_version(), precision='binary64').to_dict()
 
 
+def revision():
+    return subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+
+
 def execution_provenance(backend=None):
     sources = source_inventory()
-    return ExecutionProvenance(revision=subprocess.check_output(
-        ['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+    return ExecutionProvenance(revision=revision(),
         sources=sources, source_sha256=identity(sources), python=platform.python_version(),
         backend=ExecutionBackend.from_dict(reference_backend() if backend is None else backend)).to_dict()
 

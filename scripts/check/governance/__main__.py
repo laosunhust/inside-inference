@@ -6,6 +6,8 @@ from scripts.build.generate_data_models import outputs
 from scripts.check.governance.structure import load_limits, inventory, audit_structure
 from scripts.check.governance.interfaces import audit_interfaces
 from scripts.check.governance.evaluation import audit_evaluation
+from scripts.check.governance.frontend import audit_frontend
+from scripts.check.governance.harness import audit_scope
 
 
 def audit(root=ROOT, *, warnings=None):
@@ -20,10 +22,13 @@ def audit(root=ROOT, *, warnings=None):
         generated = outputs(root)
     except (ValueError,FileNotFoundError) as exc:
         failures.append(str(exc)); generated = {}
+    failures.extend(audit_scope(root))
     policy = load_limits(root)
     failures.extend(audit_structure(root, policy, generated, warnings=warnings))
     paths = inventory(root, policy)
     try: failures.extend(audit_interfaces(root, paths, generated))
+    except (ValueError,FileNotFoundError) as exc: failures.append(str(exc))
+    try: failures.extend(audit_frontend(root, generated))
     except (ValueError,FileNotFoundError) as exc: failures.append(str(exc))
     try: failures.extend(audit_evaluation(root))
     except (ValueError,FileNotFoundError) as exc: failures.append(str(exc))

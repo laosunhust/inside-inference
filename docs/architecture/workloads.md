@@ -31,11 +31,13 @@ change the uncached adapter's execution-order-only clock.
 ## Submitted input, resolved specification, and provenance
 
 The reference endpoint accepts a `Workload`; the KV endpoint accepts
-`KVExperimentInput` containing a system configuration and workload. The host selects
+`KVExperimentInput` containing a system configuration, workload, and ontology binding. The host selects
 the model artifact. These submissions are not complete identities of the computation.
-Both execution paths record a resolved `declaration` with `model`, `system`, and
-`workload`: `RunBinding` for the reference path and `KVRunBinding` for the KV path.
-The model reference must match the retained artifact and tokenizer identity.
+Both execution paths record a resolved `declaration` with `model`, `system`,
+`workload`, and `ontology_binding`: `RunBinding` for the reference path and `KVRunBinding` for the KV path.
+The model reference must match the retained artifact and tokenizer identity. The
+fixed reference lab resolves its subjects from the catalog; the KV endpoint verifies
+submitted subjects against its declared lab. These bindings are preserved on replay.
 
 Standalone request traces and KV run records use the same `ExecutionProvenance`
 shape: source-file hashes and their aggregate identity, Python version, Git revision,
@@ -57,7 +59,7 @@ no separate response token array is maintained.
 The output owns an append-only event sequence. Every event identifies its run,
 request, sequence number, event ID, causes, and a typed payload. Causes must refer
 to earlier events in that same run. Chronological order alone is not causality. In the current baseline,
-next-token computation depends on the previous selection, not on delivery. Completion
+next-token computation depends on the previous selection, not on publication. Completion
 joins the final selection and output publication; array adjacency is not a cause.
 
 The current clock is **execution order only**: no duration or latency can be
@@ -68,11 +70,11 @@ animation time must not be substituted for one another.
 The implemented path records request arrival, input encoding, model forward
 completion, token selection, output publication, and request completion. The greedy
 baseline accepts each selection immediately; it has no separate commitment event.
-The `token-delivered` event means publication to the in-process output collector,
+The `token-published` event means publication to the in-process output collector,
 not receipt across a network. HTTP returns the completed record in one response;
 network streaming and client acknowledgments are not implemented. A
 control token can stop generation without being delivered as text. Client output
-is a projection of delivery events, not a second maintained token array. The
+is a projection of publication events, not a second maintained token array. The
 current display concatenates text pieces and labels control/byte/hex IDs; it does
 not assert that arbitrary untrained token streams decode to valid text. Numerical
 tensors remain actual computation evidence linked from the corresponding work event.

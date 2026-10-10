@@ -1,0 +1,75 @@
+$defs:
+  RequestSchedulingConfig:
+    type: object
+    x-owner: RequestScheduling
+    additionalProperties: false
+    required:
+    - max_active_requests
+    properties:
+      max_active_requests:
+        type: integer
+        minimum: 1
+        maximum: 8
+        default: 2
+        title: Active request slots
+  KVCacheConfig:
+    type: object
+    x-owner: KVCache
+    additionalProperties: false
+    required:
+    - device_kv_bytes
+    - host_kv_bytes
+    - retention_policy
+    properties:
+      device_kv_bytes:
+        type: integer
+        minimum: 1
+        maximum: 1048576
+        default: 16384
+        title: "Device KV budget \xB7 bytes"
+      host_kv_bytes:
+        type: integer
+        minimum: 0
+        maximum: 1048576
+        default: 32768
+        title: "Host KV budget \xB7 bytes"
+      retention_policy:
+        type: string
+        const: whole-prefix-lru
+        default: whole-prefix-lru
+  StateTransferConfig:
+    type: object
+    x-owner: StateTransfer
+    additionalProperties: false
+    required:
+    - link_bytes_per_us
+    - link_latency_us
+    properties:
+      link_bytes_per_us:
+        type: number
+        minimum: 0.001
+        default: 100
+        title: "Transfer bytes / virtual \xB5s"
+      link_latency_us:
+        type: number
+        minimum: 0
+        default: 10
+        title: "Transfer startup \xB7 virtual \xB5s"
+  ComputeServiceConfig:
+    type: object
+    x-owner: ComputeService
+    additionalProperties: false
+    required:
+    - compute_flops_per_us
+    - memory_bytes_per_us
+    properties:
+      compute_flops_per_us:
+        type: number
+        minimum: 0.001
+        default: 1000
+        title: "Effective matmul FLOPs / virtual \xB5s"
+      memory_bytes_per_us:
+        type: number
+        minimum: 0.001
+        default: 1000
+        title: "Logical memory bytes / virtual \xB5s"

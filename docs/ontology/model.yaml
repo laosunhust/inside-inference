@@ -8,7 +8,6 @@ terms:
     - request text
     - generation limits
     - inspection position
-    depends_on: []
     capability_reads: []
     projections: {}
     schemas:
@@ -23,7 +22,6 @@ terms:
     - resource placement
     - cached answers
     - service timing
-    depends_on: []
     capability_reads: []
     projections:
       Sequence state:
@@ -48,6 +46,7 @@ terms:
           - values
     schemas:
     - KVState
+    - KVStateOperation
   ModelArtifact:
     meaning: An immutable inference artifact binding numerical weights to architecture, tokenizer identity,
       and preparation provenance.
@@ -59,9 +58,6 @@ terms:
     - request text
     - generation limits
     - inspection position
-    depends_on:
-    - ModelArchitecture
-    - ModelWeights
     capability_reads: []
     projections: {}
     schemas:
@@ -79,7 +75,6 @@ terms:
     - Architecture dimensions and execution conventions
     - Request and generation configuration
     - Per-request KV state
-    depends_on: []
     capability_reads: []
     projections: {}
     schemas:

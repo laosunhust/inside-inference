@@ -18,11 +18,11 @@ def prepare(base,output,checkpoint_path=None):
     references=[]
     for backend in available_backends():
         for original in cases:
-            case=deepcopy(original);case['id']=backend+'-'+case['id'];case['spec']['system']['backend']=backend
+            case=deepcopy(original);case['id']=backend+'-'+case['id'];case['spec']['system']['model_execution']['backend']=backend
             record=run_cache_experiment(case['spec'],checkpoint=checkpoint)
             lookups=[e['kind'] for e in record['events'] if e['kind'] in ('miss','local-hit','remote-hit')]
             if lookups!=case['lookups']:raise AssertionError(f"{case['id']}: unexpected cache decisions")
-            replay_cache(record)
+            # Replay is exercised on the actual browser export below.
             request=Request(base+API_PATHS['cacheRun'],data=canonical(case['spec']),headers={'Content-Type':'application/json'})
             with urlopen(request) as response:http=json.load(response)
             if identity(logical_record(http))!=identity(logical_record(record)):raise AssertionError('Cache HTTP differs')

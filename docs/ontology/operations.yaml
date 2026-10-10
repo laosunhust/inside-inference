@@ -1,0 +1,119 @@
+terms:
+  Embedding:
+    meaning: Look up token vectors and combine the declared input representations.
+    lifetime: A model operation identity; observations are captured per execution.
+    owns:
+    - Look up token vectors and combine the declared input representations.
+    excludes:
+    - Positional vectors are supplied by PositionEncoding; later attention mixing is separate.
+    capability_reads: []
+    projections:
+      Embedding:
+        meaning: Look up token vectors and combine the declared input representations.
+        fields:
+          EmbeddingOperation:
+          - name
+    schemas:
+    - EmbeddingOperation
+  PositionEncoding:
+    meaning: Represent sequence position according to the model architecture; the current implementation
+      uses learned absolute vectors.
+    lifetime: A model operation identity; observations are captured per execution.
+    owns:
+    - Represent sequence position according to the model architecture; the current implementation uses
+      learned absolute vectors.
+    excludes:
+    - Does not establish extrapolation or compatibility when a mechanism is replaced.
+    capability_reads: []
+    projections:
+      Positional encoding:
+        meaning: Represent sequence position according to the model architecture; the current implementation
+          uses learned absolute vectors.
+        fields:
+          PositionEncodingOperation:
+          - name
+    schemas:
+    - PositionEncodingOperation
+  Normalization:
+    meaning: Normalize channels using the declared statistics, epsilon, scale, and bias.
+    lifetime: A model operation identity; observations are captured per execution.
+    owns:
+    - Normalize channels using the declared statistics, epsilon, scale, and bias.
+    excludes:
+    - Does not own residual addition or feed-forward projections.
+    capability_reads: []
+    projections:
+      Normalization:
+        meaning: Normalize channels using the declared statistics, epsilon, scale, and bias.
+        fields:
+          NormalizationOperation:
+          - name
+    schemas:
+    - NormalizationOperation
+  Attention:
+    meaning: Query and mix sequence information, using accessible key/value history or a recurrent summary.
+      The GPT baseline implements causal softmax attention.
+    lifetime: A model operation identity; observations are captured per execution.
+    owns:
+    - Query-based sequence mixing and the state-update rule of recurrent attention.
+    excludes:
+    - KVState owns numerical K/V payloads; KVCache owns retention and reuse management.
+    - Position mechanisms are owned by PositionEncoding.
+    capability_reads: []
+    projections:
+      Attention:
+        meaning: Query and mix sequence information. The declared GPT operations implement causal softmax
+          attention; the standalone KDA lab illustrates a recurrent update.
+        fields:
+          AttentionOperation:
+          - name
+    schemas:
+    - AttentionOperation
+  ResidualAddition:
+    meaning: Add a branch output to its preserved residual input.
+    lifetime: A model operation identity; observations are captured per execution.
+    owns:
+    - Add a branch output to its preserved residual input.
+    excludes:
+    - Does not own either branch computation or normalization.
+    capability_reads: []
+    projections:
+      Residual addition:
+        meaning: Add a branch output to its preserved residual input.
+        fields:
+          ResidualAdditionOperation:
+          - name
+    schemas:
+    - ResidualAdditionOperation
+  FeedForward:
+    meaning: Apply per-position channel projections and the declared activation.
+    lifetime: A model operation identity; observations are captured per execution.
+    owns:
+    - Apply per-position channel projections and the declared activation.
+    excludes:
+    - Does not mix token positions or own residual addition.
+    capability_reads: []
+    projections:
+      Feed forward:
+        meaning: Apply per-position channel projections and the declared activation.
+        fields:
+          FeedForwardOperation:
+          - name
+    schemas:
+    - FeedForwardOperation
+  OutputProjection:
+    meaning: Project final hidden vectors to vocabulary scores.
+    lifetime: A model operation identity; observations are captured per execution.
+    owns:
+    - Project final hidden vectors to vocabulary scores.
+    excludes:
+    - Does not select, deliver, or decode output tokens.
+    capability_reads: []
+    projections:
+      Output projection:
+        meaning: Project final hidden vectors to vocabulary scores.
+        fields:
+          OutputProjectionOperation:
+          - name
+    schemas:
+    - OutputProjectionOperation

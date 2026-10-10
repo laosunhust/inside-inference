@@ -41,7 +41,7 @@ def run_request(request=None, *, checkpoint=None, capture=True, run_id=None, req
     if checkpoint['manifest_sha256'] != tokenizer.manifest_sha256:
         raise ValueError('Checkpoint vocabulary identity does not match tokenizer')
     declaration = bind(model, tokenizer, request)
-    if (declaration.system.execution != 'full-prefix-recomputation'
+    if (declaration.system.model_execution.execution != 'full-prefix-recomputation'
             or request.generation.selection != 'greedy-lowest-id-tie'
             or request.generation.stopping != 'turn-end-or-budget'):
         raise ValueError('Declared inference policy has no execution implementation')
@@ -70,11 +70,11 @@ def run_request(request=None, *, checkpoint=None, capture=True, run_id=None, req
                 'step': number, 'phase': 'prefill' if number == 0 else 'decode',
                 'input_ids': prefix[:], 'positions': list(range(len(prefix))),
                 'selection_position': len(prefix) - 1, 'output_position': len(prefix),
-                'execution': declaration.system.execution, 'nodes': result['nodes'],
+                'execution': declaration.system.model_execution.execution, 'nodes': result['nodes'],
                 'selection': selection}
         emit('token-selected', work_id=work_id, token_id=selected, output_position=len(emitted))
         if selected != end:
-            emit('token-delivered', work_id=work_id, token_ids=[selected], output_start=len(emitted),
+            emit('token-published', work_id=work_id, token_ids=[selected], output_start=len(emitted),
                  display_delta=token_display(tokenizer,selected))
         emitted.append(selected)
         visible = emitted[:-1] if selected == end else emitted
@@ -84,7 +84,7 @@ def run_request(request=None, *, checkpoint=None, capture=True, run_id=None, req
         if selected == end:
             stop_reason = 'turn_end'
             break
-    outcome = RunOutcome(selected_tokens=len(emitted), delivered_tokens=sum(i != end for i in emitted),
+    outcome = RunOutcome(selected_tokens=len(emitted), published_tokens=sum(i != end for i in emitted),
                          unused_budget=request.generation.max_new_tokens - len(emitted),
                          stop_reason=stop_reason, complete=stop_reason == 'turn_end')
     record = {'format': 'naive-gpt-run-v2', 'id': run_id, 'request_id': request_id,

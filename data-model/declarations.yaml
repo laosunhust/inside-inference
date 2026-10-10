@@ -8,3 +8,7 @@ modules:
 - domains/interface.yaml
 - domains/hardware.yaml
 - domains/tokenizer.yaml
+- domains/operations.yaml
+- domains/runtime.yaml
+- domains/serving.yaml
+- domains/interaction.yaml

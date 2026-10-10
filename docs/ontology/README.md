@@ -2,15 +2,19 @@
 
 Only this README may contain standalone prose in this directory. The ontology
 itself is registered YAML, consumed by declaration generation and visual inspection.
-`make check`, `make test`, and `make test-integration` reject additional prose files,
+`make _check`, `make test`, and `make test-integration` reject additional prose files,
 unregistered files, nested authorities, symlinks, malformed modules, and ownership drift.
 
 | Authority | Owns |
 | --- | --- |
 | [Manifest](declarations.yaml) | Exact module inventory. |
+| [Operations](operations.yaml) | Semantic ownership of implemented transformer operations. |
 | [Model](model.yaml) | Parameter identity and numerical sequence-state snapshots. |
-| [Inference system](inference-system.yaml) | Execution configuration, requests, responses, workloads, and current logical resource limits. |
-| [Hardware](hardware.yaml) | Observed compute and storage backend identity. |
+| [Inference system](inference-system.yaml) | Component composition, caller contracts, requests, responses, and workloads. |
+| [Runtime](runtime.yaml) | Model forward execution and the decoding algorithm that advances a sequence. |
+| [Serving](serving.yaml) | Request scheduling, KV-cache management, state transfer, and conditional compute service. |
+| [Hardware](hardware.yaml) | Observed backend identity and hypothetical resource graphs. |
+| [Customer interaction](interaction.yaml) | Declared submission, consumption and cancellation actions. |
 | [Experiment](experiment.yaml) | Experiment specifications, executions, causal events, and numerical/measurement observations. |
 | [Interface](interface.yaml) | Inspection cursors, advertised execution capabilities, and service errors. |
 | [Tokenizer](tokenizer.yaml) | One tokenizer concept owning vocabulary entries, framing inputs, encoding spans, and results. |
@@ -21,7 +25,7 @@ unregistered files, nested authorities, symlinks, malformed modules, and ownersh
 Each concept grants an explicit, nonempty list of declaration names using `schemas`.
 Every declaration has exactly one concept as its `x-owner`; supporting records may
 share that owner. Unused grants, unowned schemas, duplicate
-owners, and forbidden dependencies fail admission. Owners cannot introduce fields;
+owners, and dangling declaration references fail admission. Owners cannot introduce fields;
 field shapes remain in the data model.
 
 Each visual projection belongs to one owner and names existing fields in that
@@ -49,9 +53,9 @@ configuration. There is no `Worker` schema or admitted owner yet. Introduce both
 with the first executable placement experiment, and account for shared resources
 without duplicating their capacity.
 
-Reusable hardware profiles, multi-node topology, deployment controllers, and
-optimization objectives are also pending. Current `KVResidencySystemConfig` limits and rates
-are hypothetical system assumptions; `ExecutionBackend` identifies actual execution.
+Calibrated hardware profiles, topology execution, deployment controllers, and
+optimization objectives are pending. ResourceGraph now declares hypothetical nodes
+and directed links; it does not execute a fleet. The separately owned components of `KVResidencySystemConfig` carry hypothetical limits and rates; `ExecutionBackend` identifies actual execution.
 Neither is a calibrated hardware model. The [KV lab](../labs/kv-residency.md) owns
 the implemented boundary and evidence.
 
@@ -71,3 +75,92 @@ cost, service, resilience, energy, robustness, and operability. These are intend
 questions, not implemented optimization declarations. See the
 [purpose](../purpose/README.md#learning-and-decision-goals) and
 [candidate-screening guidance](../labs/README.md#candidate-screening).
+
+## Operation ownership and experiment subjects
+
+[Operations](operations.yaml) declares embedding, positional encoding, normalization,
+attention, residual addition, feed-forward computation, and output projection.
+Their operation declarations enumerate the implemented operations they own.
+Tokenizer and KVState own their input-ID and retained-state operations. These
+are supported operation identities, not a claim that alternative architectures
+are implemented. ModelArchitecture still governs the fixed model configuration.
+
+TensorObservation records evidence and references an owned operation declaration;
+it no longer carries an independently authored display category. Generation
+rejects competing operation names or an observation union that omits an operation.
+The engine rejects unregistered operations. Semantic owners and navigation are
+therefore derived from the same declarations as the execution evidence.
+
+ExperimentSpec owns `OntologyBinding`: exactly one `primary` concept and unique
+`related` concepts that exclude the primary. Reference choices are generated
+from admitted ontology; do not maintain an enum elsewhere. Catalog experiments
+must declare this binding. The build reports unknown concepts with their catalog
+path and suggestions; generated Python and browser validators enforce the same
+reference and uniqueness rules in records and submitted inputs.
+
+Fixed lab endpoints retain their declared subjects in resolved specifications and
+reject incompatible bindings. Association identifies what is being studied, not
+proof that an experiment is correct or that every associated concept is changed.
+The generated step-level Ontology and Labs links use these owners and bindings.
+
+## Decomposition under test
+
+These boundaries are hypotheses, not a complete or certified architecture. The
+YAML modules own their meanings; this outline explains how to challenge them.
+
+- A request supplies GenerationPolicy. Decoding uses model predictions to advance
+  the sequence under that policy. ModelExecution performs the forward work;
+  transformer operations explain its internal computation.
+- RequestScheduling chooses eligible work. KVCache manages valid reuse and
+  capacity; KVState is the numerical payload. Neither changes the attention rule.
+- StateTransfer makes a payload available across a boundary. ComputeService gives
+  conditional service costs. ExecutionBackend identifies the actual local device
+  and implementation; it is not the hypothetical resource model.
+- InferenceResponse describes publication and completion. Producing logits or
+  selecting a token is not evidence of client delivery or protocol behavior.
+
+Prefill and decode are phases, not separate owners or necessarily separate
+machines. Cached continuation exercises the same numerical model with retained
+state. Speculation challenges the Decoding boundary through draft/verify/accept
+work; it is still planned. The planned P/D lab is currently scoped to lossless
+KV handoff, not a complete disaggregated fleet.
+
+Routing, execution placement, TP/PP collectives, and response transport remain
+undeclared. They need executable declarations with their first implementations;
+SSE framing, backpressure, cancellation and API compatibility must not be inferred
+from the current in-process response records. These gaps should drive future
+revision rather than assigning new labs to InferenceSystem by default.
+
+The local nano-vLLM reference separates scheduler, block manager, model runner and
+sampler. That supports investigating these responsibilities independently, but
+its classes are not a universal ontology and its scheduling policy is not ours.
+
+## Scenario foundations, not execution capabilities
+
+CustomerInteraction and ResourceGraph are generated, inspectable declarations for
+future investigations. They are deliberately separate from supported run bindings.
+Existing engines reject these configurations rather than silently ignore them.
+[Scenario validation](../../inside_inference/scenarios.py) checks their cross-record
+invariants after generated shape validation; it returns generated records and
+performs no scheduling or performance prediction. Shape validation alone does not
+check graph endpoints or action chronology.
+
+Customer actions use one declared virtual clock. Submissions have unique invocation
+IDs; consumption is cumulative application-output bytes; cancellation is intent.
+Consumption after cancellation may drain buffered output. Availability, receipt,
+acknowledgment, retries and external-tool dependencies need future execution
+semantics and evidence. Workload remains the implemented fixed-arrival input.
+
+ResourceGraph starts with local compute/memory budgets and independent directed
+point-to-point links. IDs are unique, endpoints must exist, and disconnected nodes
+are legal. There is no implicit reverse route, shared-duplex capacity, multi-hop
+routing or contention solver. Expand this representation with a concrete experiment
+when shared memory, switches or shared link pools must be represented; do not encode
+one physical budget multiple times. Rates are hypothetical and explicitly unitized.
+SimGrid's [resource models](https://simgrid.org/doc/latest/Models.html) provide a reuse
+reference for future shared-link simulation; this declaration does not adopt or
+validate those algorithms.
+
+Ontology has no `depends_on` allowlist. Generated schema references express record
+composition; execution events and tensor inputs express the causal evidence
+currently available. Neither is a complete model of operational dependencies.

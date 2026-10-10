@@ -22,7 +22,7 @@ def main():
     if args.replay:result=replay_cache(decode_json(args.replay.read_text()))
     else:
         spec=decode_json(args.spec.read_text()) if args.spec else default_experiment()
-        if args.backend:spec['system']['backend']=args.backend
+        if args.backend:spec['system']['model_execution']['backend']=args.backend
         checkpoint=decode_json(args.checkpoint.read_text()) if args.checkpoint else None
         result=run_cache_experiment(spec,checkpoint=checkpoint)
     output.parent.mkdir(parents=True,exist_ok=True);output.write_bytes(canonical(result)+b'\n')

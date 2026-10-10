@@ -99,3 +99,19 @@ platform before saying an experiment is cheap enough for interactive use. Record
 simulation time separately. Feasibility evidence for the bounded landing-page simulator lives in its
 [lab contract](request-playground.md). This does not establish feasibility
 for larger or more detailed connected simulations.
+
+## Declared subjects
+
+Every catalog experiment declares `ontology_binding` with one primary subject and
+zero or more distinct related concepts from the admitted ontology. The primary
+identifies what the experiment tests; related concepts identify other relevant
+mechanisms or boundaries for which the lab provides a concrete observation.
+Merely depending on a component or emitting a record does not justify a binding.
+For example, a positional-encoding lab primarily studies `PositionEncoding`; its
+related embedding and attention concepts identify the computation sites being
+compared. Planned alternatives remain explicitly planned.
+
+`ExperimentSpec` owns the binding declaration. Executable lab specifications retain
+it in completed records, and replay must preserve it. Catalog associations generate
+step-level lab navigation; the experiment question and evidence limits remain
+necessary alongside these mechanically validated references.

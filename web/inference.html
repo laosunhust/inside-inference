@@ -9,8 +9,8 @@
 <button id="inspect-response" data-entity="response" data-term="Response"><small>03 · BACK TO THE CLIENT</small><strong id="response-preview"></strong><span id="response-status"></span></button>
 </div>
 <section class="pass-panel"><div class="panel-heading"><h2>Zoom 2 · Follow the sequence</h2><button id="next-pass">Next prediction →</button></div><p id="run-outcome" class="run-outcome"></p><p id="submitted-request"></p><p id="workload-summary"></p>
-<details><summary>Recorded events: arrival → computation → selection → delivery</summary><ol id="event-stream"></ol></details>
-<div id="pass-tabs" class="pass-tabs" aria-label="Executed model passes"></div><p id="pass-caption"></p><div id="sequence-strip" class="token-strip" aria-label="Input positions for selected pass"></div><div class="prediction-arrow">↓ final input position predicts ↓</div><div id="selected-token" class="selected-token"></div><p class="control-hint">Every chip is an actual token ID. Selecting a chip inspects that sequence position. All earlier positions are recomputed on every pass; there is no KV cache.</p></section>
+<details><summary>Recorded events: arrival → computation → selection → publication</summary><ol id="event-stream"></ol></details>
+<div id="pass-tabs" class="pass-tabs" aria-label="Executed model passes"></div><p id="pass-caption"></p><div id="sequence-strip" class="token-strip" aria-label="Input positions for selected pass"></div><div class="prediction-arrow">↓ final input position predicts ↓</div><button id="selected-token" data-entity="selection" data-term="Token selection" class="selected-token" aria-label="Inspect this prediction"></button><p class="control-hint">Every chip is an actual token ID. Selecting a chip inspects that sequence position. All earlier positions are recomputed on every pass; there is no KV cache.</p></section>
 </div><form id="inference-form" class="inference-form">
 <p class="eyebrow">REQUEST · EDITABLE BEFORE EXECUTION</p>
 <div id="request-fields"></div><button id="execute" class="primary" disabled>Apply request and compute →</button>
@@ -19,17 +19,31 @@
 <details><summary>Inference system · supported capabilities</summary><div id="system-declaration"></div></details>
 <a href="declarations.html">What owns each setting? ↗</a>
 </form></div>
-<div class="computation-path" aria-label="Execution operations">
-<button id="inspect-tokenizer" data-entity="tokenizer" data-term="Tokenizer"><strong>Tokenize</strong><span>Text → IDs</span></button>
-<button id="inspect-embedding" data-entity="embedding" data-term="Embedding"><strong>Embed</strong><span>ID + position → vector</span></button>
-<button id="inspect-layers" data-entity="layers" data-term="Transformer layers"><strong>Causal GPT block</strong><span>Attend → mix → transform</span></button>
-<button id="inspect-projection" data-entity="projection" data-term="Output projection"><strong>Project</strong><span>Vector → 384 logits</span></button>
-<button id="inspect-selection" data-entity="selection" data-term="Token selection"><strong>Select</strong><span>Mask → greedy choice</span></button>
-<button id="inspect-detokenizer" data-entity="detokenizer" data-term="Detokenizer"><strong>Decode text</strong><span>IDs → visible output</span></button>
-</div>
+<section class="execution-journey" aria-label="Execution path">
+<div class="execution-heading"><h2>Computation</h2><span id="computation-caption"></span></div>
+<div class="execution-scroll"><div id="execution-canvas">
+<svg id="execution-edges" aria-hidden="true"><defs><marker id="path-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0,0 6,3 0,6"/></marker></defs></svg>
+<ol id="computation-path" class="execution-path" aria-label="Recorded computation stages"></ol>
+</div></div>
+</section>
+<!-- Display labels and declared bindings only. Trace observations determine order and repetition. -->
+<template id="operation-labels">
+<button id="inspect-input-ids" data-entity="input-ids" data-operation="input_ids" data-term="Tokenizer"><strong>Token IDs</strong><span>Prompt + previously selected IDs</span></button>
+<button id="inspect-token-embedding" data-entity="token-embedding" data-operation="token_embedding" data-term="Embedding"><strong>Token embedding</strong><span>Token ID → learned vector</span></button>
+<button id="inspect-position" data-entity="position" data-operation="position_embedding" data-term="Positional encoding"><strong>Position embedding</strong><span>Absolute position → learned vector</span></button>
+<button id="inspect-embedding" aria-label="Add token and position embeddings" data-entity="embedding" data-operation="embedding" data-term="Embedding"><strong>+</strong><span>Token vector + position vector</span></button>
+<button id="inspect-normalization" aria-label="Layer normalization before attention" data-entity="normalization" data-operation="ln1" data-term="Normalization"><strong>Layer norm</strong><span>Normalize channels at each position</span></button>
+<button id="inspect-layers" data-entity="layers" data-operation="attention" data-term="Attention"><strong>Attention</strong><span>Q/K/V → scaled scores → causal mask → softmax → weighted values → output projection</span></button>
+<button id="inspect-residual" aria-label="Add attention residual" data-entity="residual" data-operation="attention_residual" data-term="Residual addition"><strong>+</strong><span>Preserved input + attention output</span></button>
+<button id="inspect-ff-normalization" aria-label="Layer normalization before feed-forward" data-entity="ff-normalization" data-operation="ln2" data-term="Normalization"><strong>Layer norm</strong><span>Normalize channels at each position</span></button>
+<button id="inspect-feedforward" data-entity="feedforward" data-operation="ff_up" data-term="Feed forward"><strong>Feed-forward</strong><span>Project up → GELU → project down</span></button>
+<button id="inspect-ff-residual" aria-label="Add feed-forward residual" data-entity="ff-residual" data-operation="ff_residual" data-term="Residual addition"><strong>+</strong><span>Preserved input + feed-forward output</span></button>
+<button id="inspect-final-normalization" aria-label="Final layer normalization" data-entity="final-normalization" data-operation="ln_final" data-term="Normalization"><strong>Final norm</strong><span>Normalize channels before vocabulary projection</span></button>
+<button id="inspect-projection" data-entity="projection" data-operation="logits" data-term="Output projection"><strong>Vocabulary projection</strong><span>Vector → one logit per vocabulary ID</span></button>
+</template>
 <section class="numerical-inspector" id="numerical-inspector" aria-label="Zoom 3: actual computation">
-<div class="panel-heading"><h2 id="detail-title">Zoom 3 · Inspect a step</h2><a id="definition-link" href="ontology.html">Ontology ↗</a></div><p id="definition"></p>
-<div id="detail-body"></div>
+<div class="panel-heading"><h2 id="detail-title">Zoom 3 · Inspect a step</h2><span><a id="definition-link" href="ontology.html">Ontology ↗</a> · <a id="labs-link" hidden>Labs ↗</a><span id="labs-empty">No primary lab yet</span></span></div><p id="definition"></p>
+<p id="inspection-context" role="status"></p><div id="detail-body"></div>
 </section>
 <details class="model-notes"><summary>Run identity, parameters, evidence, and replay</summary><div><p>This view reads recorded Python observations. It performs no model arithmetic. Numbers in tables are rounded for readability; exported JSON retains binary64 values. Both prefill and decode use the same parameters and causal head.</p><p><a href="naive-gpt-contract.html">Experiment contract and limits ↗</a> · <a href="request-cost.html">Separate request-cost simulation ↗</a></p><pre id="run-identity"></pre><button id="download-run">Download complete run + checkpoint</button><details><summary>Inspect a parameter tensor</summary><label for="parameter-name">Parameter</label><select id="parameter-name"></select><pre id="parameter-values"></pre></details></div></details>
 <noscript><p>JavaScript is needed to inspect the trace. <a href="naive-gpt-contract.html">Read the experiment contract</a>.</p></noscript>
@@ -40,4 +54,5 @@
 <script src="contract-runtime.js" defer></script>
 <script src="declarations.generated.js" defer></script>
 <script src="inspection-session.js" defer></script>
+<script src="execution-path.js" defer></script>
 <script src="inference.js" defer></script>

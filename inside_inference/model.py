@@ -1,4 +1,5 @@
 """One explicit, uncached decoder block. Observations capture executed values."""
+from inside_inference.declarations_generated import operation_for
 from dataclasses import asdict
 from inside_inference.declarations_generated import ModelArchitecture, InitializationProvenance, TrainingProvenance, KVState
 import hashlib
@@ -130,19 +131,20 @@ class Model:
             raise ValueError('Forward requires 1..context valid token IDs')
         nodes = []
         prefix = (work_id or f'{run_id}/step-{step}') + '/'
-        def observe(name, value, inputs, formula, term='Transformer layers', layer=0, axes=None, positions=None):
+        def observe(name, value, inputs, formula, layer=0, axes=None, positions=None):
+            operation=operation_for(name)
             if capture:
-                nodes.append(dict(id=prefix + name, name=name, term=term, layer=layer,
+                nodes.append(dict(id=prefix + name, operation=operation, layer=layer,
                     request_id=request_id, run_id=run_id, step=step,
                     positions=list(range(offset, total)) if positions is None else positions, shape=shape(value),
                     dtype='bool' if name == 'causal_mask' else 'int' if name == 'input_ids' else 'binary64',
                     inputs=[i if i.startswith(('parameter:', 'state:')) else prefix + i for i in inputs],
                     formula=formula, axes=axes or ['position', 'channel'], values=value))
             return value
-        def dense(name, x, source, weight, term='Transformer layers', layer=0):
+        def dense(name, x, source, weight, layer=0):
             return observe(name, linear(x, p[weight], p[weight + '_bias']),
                 [source, 'parameter:' + weight, 'parameter:' + weight + '_bias'],
-                'X @ W + bias', term, layer)
+                'X @ W + bias', layer=layer)
         def norm(name, x, source):
             means = [[sum(row) / c.width] for row in x]
             variances = [[sum((a - mean[0]) ** 2 for a in row) / c.width]
@@ -156,23 +158,23 @@ class Model:
             return observe(name, normalized,
                 [source, name + '_mean', name + '_variance', 'parameter:' + name + '_scale',
                  'parameter:' + name + '_bias'], '(X - mean) / sqrt(variance + epsilon) * scale + bias', layer=layer)
-        observe('input_ids', ids, [], 'IDs supplied to this forward pass', 'Tokenizer', None, ['position'])
+        observe('input_ids', ids, [], 'IDs supplied to this forward pass', layer=None, axes=['position'])
         token = observe('token_embedding', [p['token_embedding'][i][:] for i in ids],
-                        ['input_ids', 'parameter:token_embedding'], 'E[token_id]', 'Embedding', None)
+                        ['input_ids', 'parameter:token_embedding'], 'E[token_id]', layer=None)
         position = observe('position_embedding', [row[:] for row in p['position_embedding'][offset:total]],
-                           ['parameter:position_embedding'], 'P[absolute_position]', 'Embedding', None)
+                           ['parameter:position_embedding'], 'P[absolute_position]', layer=None)
         x = observe('embedding', add(token, position), ['token_embedding', 'position_embedding'],
-                    'token embedding + position embedding', 'Embedding', None)
+                    'token embedding + position embedding', layer=None)
         normalized = norm('ln1', x, 'embedding')
         q, k, v = [dense(name, normalized, 'ln1', name) for name in ('query', 'key', 'value')]
         key_source, value_source = 'key', 'value'
         if state is not None:
             source = 'state:' + identity(state.to_dict())
             k = observe('retained_keys', [list(row) for row in state.keys] + k,
-                [source, 'key'], 'concatenate(cached K, new K)', 'Sequence state',
+                [source, 'key'], 'concatenate(cached K, new K)',
                 positions=list(range(total)))
             v = observe('retained_values', [list(row) for row in state.values] + v,
-                [source, 'value'], 'concatenate(cached V, new V)', 'Sequence state',
+                [source, 'value'], 'concatenate(cached V, new V)',
                 positions=list(range(total)))
             key_source, value_source = 'retained_keys', 'retained_values'
         scores = observe('scores', [[sum(a * b for a, b in zip(qr, kr)) / math.sqrt(c.width)
@@ -202,7 +204,7 @@ class Model:
         final = norm('ln_final', residual, 'ff_residual')
         logits = observe('logits', linear(final, p['lm_head'], p['lm_bias']),
                          ['ln_final', 'parameter:lm_head', 'parameter:lm_bias'],
-                         'final hidden @ output weights + bias', 'Output projection', None,
+                         'final hidden @ output weights + bias', layer=None,
                          axes=['position', 'vocabulary ID'])
         if not all(math.isfinite(x) for row in logits for x in row):
             raise ValueError('Nonfinite model output')

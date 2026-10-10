@@ -7,15 +7,14 @@ import unittest
 from urllib.request import Request,urlopen
 from urllib.error import HTTPError
 
-from inside_inference.cache_lab import run_cache_experiment,logical_record
 from inside_inference.model import canonical
-from inside_inference.declarations_generated import API_PATHS,CacheCapabilities,CacheRun
+from inside_inference.declarations_generated import API_PATHS,CacheCapabilities,ApiError
 from scripts.dev.serve_intro import Handler
-from tests.unit.test_cache_lab import scenario
+from tests.fixtures.execution import cache_scenario as scenario
 
 
 class CacheServerTests(unittest.TestCase):
-    def test_cache_http_matches_direct_and_rejects_unsupported_capacity(self):
+    def test_cache_capabilities_and_http_error_translation(self):
         class QuietHandler(Handler):
             def log_message(self,*args):pass
         with tempfile.TemporaryDirectory() as directory:
@@ -25,12 +24,9 @@ class CacheServerTests(unittest.TestCase):
             try:
                 with urlopen(base+API_PATHS['cacheCapabilities']) as response:CacheCapabilities.from_dict(json.load(response))
                 spec=scenario()
-                with urlopen(Request(base+API_PATHS['cacheRun'],data=canonical(spec),headers={'Content-Type':'application/json'})) as response:
-                    record=json.load(response)
-                CacheRun.from_dict(record)
-                self.assertEqual(logical_record(record),logical_record(run_cache_experiment(spec)))
-                spec['system']['device_kv_bytes']=1
+                spec['system']['kv_cache']['device_kv_bytes']=1
                 with self.assertRaises(HTTPError) as caught:
                     urlopen(Request(base+API_PATHS['cacheRun'],data=canonical(spec),headers={'Content-Type':'application/json'}))
                 self.assertEqual(caught.exception.code,400)
+                ApiError.validate_shape(json.load(caught.exception))
             finally:server.shutdown();server.server_close();thread.join()

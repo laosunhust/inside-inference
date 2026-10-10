@@ -1,4 +1,5 @@
 """Optional explicit PyTorch transcription; CPU training and CUDA inspection share equations."""
+from inside_inference.declarations_generated import operation_for
 from copy import deepcopy
 import math
 import torch
@@ -27,10 +28,11 @@ class TensorModel(nn.Module):
         total=offset+ids.shape[1]
         if total>c.context:raise ValueError('Cached sequence exceeds context')
         observations=[]
-        def observe(name,value,inputs,formula,term='Transformer layers',layer=0,axes=None,positions=None):
+        def observe(name,value,inputs,formula,layer=0,axes=None,positions=None):
+            operation=operation_for(name)
             if capture:
-                observations.append(dict(name=name,values=value,inputs=inputs,formula=formula,
-                    term=term,layer=layer,axes=axes or ['position','channel'],
+                observations.append(dict(operation=operation,values=value,inputs=inputs,formula=formula,
+                    layer=layer,axes=axes or ['position','channel'],
                     positions=list(range(offset,total)) if positions is None else positions))
             return value
         def dense(x,name,source):
@@ -42,15 +44,15 @@ class TensorModel(nn.Module):
             return observe(name,(x-mean)/torch.sqrt(variance+c.epsilon)*p[name+'_scale']+p[name+'_bias'],
                 [source,name+'_mean',name+'_variance','parameter:'+name+'_scale','parameter:'+name+'_bias'],
                 '(X - mean) / sqrt(variance + epsilon) * scale + bias',layer=layer)
-        observe('input_ids',ids,[],'IDs supplied to this forward pass','Tokenizer',None,['position'])
-        token=observe('token_embedding',p['token_embedding'][ids],['input_ids','parameter:token_embedding'],'E[token_id]','Embedding',None)
-        position=observe('position_embedding',p['position_embedding'][offset:total].unsqueeze(0).expand(ids.shape[0],-1,-1),['parameter:position_embedding'],'P[absolute_position]','Embedding',None)
-        x=observe('embedding',token+position,['token_embedding','position_embedding'],'token embedding + position embedding','Embedding',None)
+        observe('input_ids',ids,[],'IDs supplied to this forward pass',layer=None,axes=['position'])
+        token=observe('token_embedding',p['token_embedding'][ids],['input_ids','parameter:token_embedding'],'E[token_id]',layer=None)
+        position=observe('position_embedding',p['position_embedding'][offset:total].unsqueeze(0).expand(ids.shape[0],-1,-1),['parameter:position_embedding'],'P[absolute_position]',layer=None)
+        x=observe('embedding',token+position,['token_embedding','position_embedding'],'token embedding + position embedding',layer=None)
         normalized=norm(x,'ln1','embedding')
         q,k,v=(dense(normalized,name,'ln1') for name in ('query','key','value'))
         if cached is not None:k,v=torch.cat((cached[0],k),dim=1),torch.cat((cached[1],v),dim=1)
-        k=observe('retained_keys',k,['state:input','key'],'concatenate(cached K, new K)','Sequence state',positions=list(range(total)))
-        v=observe('retained_values',v,['state:input','value'],'concatenate(cached V, new V)','Sequence state',positions=list(range(total)))
+        k=observe('retained_keys',k,['state:input','key'],'concatenate(cached K, new K)',positions=list(range(total)))
+        v=observe('retained_values',v,['state:input','value'],'concatenate(cached V, new V)',positions=list(range(total)))
         scores=observe('scores',q@k.transpose(-1,-2)/math.sqrt(c.width),['query','retained_keys'],'Q @ K^T / sqrt(width)',axes=['query position','key position'])
         allowed=torch.arange(total,device=ids.device)[None,:]<=torch.arange(offset,total,device=ids.device)[:,None]
         observe('causal_mask',allowed.unsqueeze(0).expand(ids.shape[0],-1,-1),['input_ids'],'key_position <= query_position',axes=['query position','key position'])
@@ -62,7 +64,7 @@ class TensorModel(nn.Module):
         activated=observe('gelu',0.5*up*(1+torch.tanh(math.sqrt(2/math.pi)*(up+0.044715*up**3))),['ff_up'],'0.5*x*(1+tanh(sqrt(2/pi)*(x+0.044715*x^3)))')
         x=observe('ff_residual',x+dense(activated,'ff_down','gelu'),['attention_residual','ff_down'],'residual + feed-forward output')
         final=norm(x,'ln_final','ff_residual')
-        logits=observe('logits',final@p['lm_head']+p['lm_bias'],['ln_final','parameter:lm_head','parameter:lm_bias'],'final hidden @ output weights + bias','Output projection',None,['position','vocabulary ID'])
+        logits=observe('logits',final@p['lm_head']+p['lm_bias'],['ln_final','parameter:lm_head','parameter:lm_bias'],'final hidden @ output weights + bias',layer=None,axes=['position','vocabulary ID'])
         return dict(logits=logits,keys=k,values=v,observations=observations)
 
     def export(self,provenance):

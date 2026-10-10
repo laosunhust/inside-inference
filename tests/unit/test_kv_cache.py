@@ -22,10 +22,10 @@ class KVCacheTests(unittest.TestCase):
                 for a, b in zip(result['logits'], reference['logits'][-length:]):
                     for x, y in zip(a, b):
                         self.assertTrue(math.isclose(x, y, abs_tol=1e-10, rel_tol=1e-9))
-                nodes = {n['name']: n for n in reference['nodes']}
+                nodes = {n['operation']['name']: n for n in reference['nodes']}
                 self.assertEqual(result['state'].to_dict()['keys'], nodes['key']['values'])
                 self.assertEqual(result['state'].to_dict()['values'], nodes['value']['values'])
-                cached_nodes = {n['name']: n for n in result['nodes']}
+                cached_nodes = {n['operation']['name']: n for n in result['nodes']}
                 self.assertEqual(cached_nodes['query']['positions'], list(range(end-length, end)))
                 self.assertEqual(cached_nodes['scores']['shape'], [length, end])
                 self.assertEqual(cached_nodes['causal_mask']['values'],

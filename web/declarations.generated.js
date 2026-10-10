@@ -497,19 +497,11 @@ globalThis.Declarations = (() => {
     "x-owner": "InferenceSystem",
     "additionalProperties": false,
     "required": [
-      "execution",
       "max_new_tokens_cap",
       "max_requests",
-      "arrival_policy"
+      "model_execution"
     ],
     "properties": {
-      "execution": {
-        "type": "string",
-        "title": "Execution strategy",
-        "description": "Supported baseline value.",
-        "const": "full-prefix-recomputation",
-        "default": "full-prefix-recomputation"
-      },
       "max_new_tokens_cap": {
         "type": "integer",
         "title": "Supported new-token limit",
@@ -526,12 +518,8 @@ globalThis.Declarations = (() => {
         "const": 1,
         "default": 1
       },
-      "arrival_policy": {
-        "type": "string",
-        "title": "Supported arrivals",
-        "description": "Supported arrivals",
-        "const": "single-at-zero",
-        "default": "single-at-zero"
+      "model_execution": {
+        "$ref": "#/$defs/FullPrefixExecutionConfig"
       }
     }
   },
@@ -649,78 +637,15 @@ globalThis.Declarations = (() => {
     "x-owner": "InferenceSystem",
     "additionalProperties": false,
     "required": [
-      "backend",
-      "device_kv_bytes",
-      "host_kv_bytes",
-      "max_active_requests",
-      "compute_flops_per_us",
-      "memory_bytes_per_us",
-      "link_bytes_per_us",
-      "link_latency_us",
-      "retention_policy",
       "max_requests",
-      "max_new_tokens_cap"
+      "max_new_tokens_cap",
+      "model_execution",
+      "scheduling",
+      "kv_cache",
+      "transfer",
+      "compute_service"
     ],
     "properties": {
-      "backend": {
-        "type": "string",
-        "enum": [
-          "reference",
-          "cuda"
-        ],
-        "default": "reference",
-        "title": "Numerical backend"
-      },
-      "device_kv_bytes": {
-        "type": "integer",
-        "minimum": 1,
-        "maximum": 1048576,
-        "default": 16384,
-        "title": "Device KV budget \u00b7 bytes"
-      },
-      "host_kv_bytes": {
-        "type": "integer",
-        "minimum": 0,
-        "maximum": 1048576,
-        "default": 32768,
-        "title": "Host KV budget \u00b7 bytes"
-      },
-      "max_active_requests": {
-        "type": "integer",
-        "minimum": 1,
-        "maximum": 8,
-        "default": 2,
-        "title": "Active request slots"
-      },
-      "compute_flops_per_us": {
-        "type": "number",
-        "minimum": 0.001,
-        "default": 1000,
-        "title": "Effective matmul FLOPs / virtual \u00b5s"
-      },
-      "memory_bytes_per_us": {
-        "type": "number",
-        "minimum": 0.001,
-        "default": 1000,
-        "title": "Logical memory bytes / virtual \u00b5s"
-      },
-      "link_bytes_per_us": {
-        "type": "number",
-        "minimum": 0.001,
-        "default": 100,
-        "title": "Transfer bytes / virtual \u00b5s"
-      },
-      "link_latency_us": {
-        "type": "number",
-        "minimum": 0,
-        "default": 10,
-        "title": "Transfer startup \u00b7 virtual \u00b5s"
-      },
-      "retention_policy": {
-        "type": "string",
-        "const": "whole-prefix-lru",
-        "default": "whole-prefix-lru"
-      },
       "max_requests": {
         "type": "integer",
         "const": 8,
@@ -730,10 +655,25 @@ globalThis.Declarations = (() => {
         "type": "integer",
         "const": 8,
         "default": 8
+      },
+      "model_execution": {
+        "$ref": "#/$defs/CachedExecutionConfig"
+      },
+      "scheduling": {
+        "$ref": "#/$defs/RequestSchedulingConfig"
+      },
+      "kv_cache": {
+        "$ref": "#/$defs/KVCacheConfig"
+      },
+      "transfer": {
+        "$ref": "#/$defs/StateTransferConfig"
+      },
+      "compute_service": {
+        "$ref": "#/$defs/ComputeServiceConfig"
       }
     }
   },
-  "TokenDelivered": {
+  "TokenPublished": {
     "type": "object",
     "x-owner": "InferenceResponse",
     "additionalProperties": false,
@@ -749,8 +689,8 @@ globalThis.Declarations = (() => {
         "type": "string",
         "title": "Event kind",
         "description": "Event kind",
-        "const": "token-delivered",
-        "default": "token-delivered"
+        "const": "token-published",
+        "default": "token-published"
       },
       "work_id": {
         "type": "string",
@@ -759,12 +699,12 @@ globalThis.Declarations = (() => {
       },
       "token_ids": {
         "type": "array",
-        "title": "Delivered token IDs",
-        "description": "Delivered token IDs",
+        "title": "Published token IDs",
+        "description": "Published token IDs",
         "items": {
           "type": "integer",
-          "title": "Delivered token ID",
-          "description": "Delivered token ID",
+          "title": "Published token ID",
+          "description": "Published token ID",
           "minimum": 0,
           "maximum": 9007199254740991
         },
@@ -772,14 +712,14 @@ globalThis.Declarations = (() => {
       },
       "output_start": {
         "type": "integer",
-        "title": "Client token offset",
-        "description": "Client token offset",
+        "title": "Published output token offset",
+        "description": "Published output token offset",
         "minimum": 0,
         "maximum": 9007199254740991
       },
       "display_delta": {
         "type": "string",
-        "title": "Decoded text delivered to the client",
+        "title": "Diagnostic text published to the output collector",
         "description": "Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear as labeled markers."
       }
     }
@@ -811,7 +751,7 @@ globalThis.Declarations = (() => {
     "additionalProperties": false,
     "required": [
       "selected_tokens",
-      "delivered_tokens",
+      "published_tokens",
       "unused_budget",
       "stop_reason",
       "complete"
@@ -823,9 +763,9 @@ globalThis.Declarations = (() => {
         "description": "Includes terminal controls.",
         "minimum": 1
       },
-      "delivered_tokens": {
+      "published_tokens": {
         "type": "integer",
-        "title": "Delivered IDs",
+        "title": "Published IDs",
         "description": "Every selected ID except TURN_END, including diagnostic control/byte/hex tokens.",
         "minimum": 0
       },
@@ -879,7 +819,8 @@ globalThis.Declarations = (() => {
     "required": [
       "model",
       "system",
-      "request"
+      "request",
+      "ontology_binding"
     ],
     "properties": {
       "model": {
@@ -890,6 +831,9 @@ globalThis.Declarations = (() => {
       },
       "request": {
         "$ref": "#/$defs/InferenceRequest"
+      },
+      "ontology_binding": {
+        "$ref": "#/$defs/OntologyBinding"
       }
     }
   },
@@ -900,7 +844,8 @@ globalThis.Declarations = (() => {
     "required": [
       "model",
       "system",
-      "workload"
+      "workload",
+      "ontology_binding"
     ],
     "properties": {
       "model": {
@@ -911,6 +856,9 @@ globalThis.Declarations = (() => {
       },
       "workload": {
         "$ref": "#/$defs/Workload"
+      },
+      "ontology_binding": {
+        "$ref": "#/$defs/OntologyBinding"
       }
     }
   },
@@ -988,45 +936,6 @@ globalThis.Declarations = (() => {
       }
     }
   },
-  "TokenSelected": {
-    "type": "object",
-    "x-owner": "ExperimentEvent",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "work_id",
-      "token_id",
-      "output_position"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "token-selected",
-        "default": "token-selected"
-      },
-      "work_id": {
-        "type": "string",
-        "title": "Producing computation",
-        "description": "Producing computation"
-      },
-      "token_id": {
-        "type": "integer",
-        "title": "Selected vocabulary ID",
-        "description": "Selected vocabulary ID",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      },
-      "output_position": {
-        "type": "integer",
-        "title": "Absolute sequence position",
-        "description": "Absolute sequence position",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      }
-    }
-  },
   "RunEvent": {
     "type": "object",
     "x-owner": "ExperimentEvent",
@@ -1089,7 +998,7 @@ globalThis.Declarations = (() => {
             "$ref": "#/$defs/TokenSelected"
           },
           {
-            "$ref": "#/$defs/TokenDelivered"
+            "$ref": "#/$defs/TokenPublished"
           },
           {
             "$ref": "#/$defs/RequestFinished"
@@ -1278,9 +1187,6 @@ globalThis.Declarations = (() => {
           "null"
         ]
       },
-      "name": {
-        "type": "string"
-      },
       "positions": {
         "type": "array",
         "items": {
@@ -1301,9 +1207,6 @@ globalThis.Declarations = (() => {
       },
       "step": {
         "type": "integer"
-      },
-      "term": {
-        "type": "string"
       },
       "values": {
         "type": "array",
@@ -1326,6 +1229,37 @@ globalThis.Declarations = (() => {
             }
           ]
         }
+      },
+      "operation": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/EmbeddingOperation"
+          },
+          {
+            "$ref": "#/$defs/PositionEncodingOperation"
+          },
+          {
+            "$ref": "#/$defs/NormalizationOperation"
+          },
+          {
+            "$ref": "#/$defs/AttentionOperation"
+          },
+          {
+            "$ref": "#/$defs/ResidualAdditionOperation"
+          },
+          {
+            "$ref": "#/$defs/FeedForwardOperation"
+          },
+          {
+            "$ref": "#/$defs/OutputProjectionOperation"
+          },
+          {
+            "$ref": "#/$defs/TokenizerOperation"
+          },
+          {
+            "$ref": "#/$defs/KVStateOperation"
+          }
+        ]
       }
     },
     "required": [
@@ -1335,54 +1269,13 @@ globalThis.Declarations = (() => {
       "id",
       "inputs",
       "layer",
-      "name",
       "positions",
       "request_id",
       "run_id",
       "shape",
       "step",
-      "term",
-      "values"
-    ],
-    "additionalProperties": false,
-    "x-owner": "ExperimentObservation"
-  },
-  "TokenSelection": {
-    "type": "object",
-    "properties": {
-      "decoding": {
-        "type": "string"
-      },
-      "probabilities": {
-        "type": "array",
-        "items": {
-          "type": "number"
-        }
-      },
-      "raw_logits": {
-        "type": "array",
-        "items": {
-          "type": "number"
-        }
-      },
-      "rng_state": {
-        "type": "null"
-      },
-      "rule": {
-        "type": "string",
-        "const": "unmasked-greedy-v1"
-      },
-      "selected_id": {
-        "type": "integer"
-      }
-    },
-    "required": [
-      "decoding",
-      "probabilities",
-      "raw_logits",
-      "rng_state",
-      "rule",
-      "selected_id"
+      "values",
+      "operation"
     ],
     "additionalProperties": false,
     "x-owner": "ExperimentObservation"
@@ -1393,7 +1286,8 @@ globalThis.Declarations = (() => {
     "additionalProperties": false,
     "required": [
       "system",
-      "workload"
+      "workload",
+      "ontology_binding"
     ],
     "properties": {
       "system": {
@@ -1401,6 +1295,9 @@ globalThis.Declarations = (() => {
       },
       "workload": {
         "$ref": "#/$defs/Workload"
+      },
+      "ontology_binding": {
+        "$ref": "#/$defs/OntologyBinding"
       }
     }
   },
@@ -1418,7 +1315,9 @@ globalThis.Declarations = (() => {
       "device_reserved_bytes",
       "host_retained_bytes",
       "detail",
-      "causes"
+      "causes",
+      "phase",
+      "transfer_direction"
     ],
     "properties": {
       "event_id": {
@@ -1480,97 +1379,117 @@ globalThis.Declarations = (() => {
         "items": {
           "type": "string"
         }
-      }
-    }
-  },
-  "CacheComputation": {
-    "type": "object",
-    "x-owner": "ExperimentObservation",
-    "additionalProperties": false,
-    "required": [
-      "work_id",
-      "request_id",
-      "step",
-      "input_ids",
-      "state_before",
-      "state_after",
-      "nodes",
-      "selection",
-      "matmul_flops",
-      "logical_memory_bytes",
-      "reference_max_abs_error",
-      "phase",
-      "reference_matmul_flops"
-    ],
-    "properties": {
-      "work_id": {
-        "type": "string"
-      },
-      "request_id": {
-        "type": "string"
-      },
-      "step": {
-        "type": "integer",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      },
-      "input_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 383
-        }
-      },
-      "state_before": {
-        "$ref": "#/$defs/KVState"
-      },
-      "state_after": {
-        "$ref": "#/$defs/KVState"
-      },
-      "nodes": {
-        "type": "array",
-        "items": {
-          "$ref": "#/$defs/TensorObservation"
-        }
-      },
-      "selection": {
-        "oneOf": [
-          {
-            "$ref": "#/$defs/TokenSelection"
-          },
-          {
-            "type": "null"
-          }
-        ]
-      },
-      "matmul_flops": {
-        "type": "integer",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      },
-      "logical_memory_bytes": {
-        "type": "integer",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      },
-      "reference_max_abs_error": {
-        "type": "number",
-        "minimum": 0
       },
       "phase": {
-        "type": "string",
+        "type": [
+          "string",
+          "null"
+        ],
         "enum": [
-          "cache-build",
+          null,
           "prefill",
-          "decode"
+          "decode",
+          "cache-build"
         ]
       },
-      "reference_matmul_flops": {
-        "type": "integer",
-        "minimum": 0
+      "transfer_direction": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          null,
+          "host-to-device",
+          "device-to-host"
+        ]
       }
-    }
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "kind": {
+              "enum": [
+                "compute-start",
+                "compute-end"
+              ]
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "phase": {
+              "not": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "not": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "compute-start",
+                  "compute-end"
+                ]
+              }
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "phase": {
+              "type": "null"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "kind": {
+              "enum": [
+                "transfer-start",
+                "transfer-end"
+              ]
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "transfer_direction": {
+              "not": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "not": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "transfer-start",
+                  "transfer-end"
+                ]
+              }
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "transfer_direction": {
+              "type": "null"
+            }
+          }
+        }
+      }
+    ]
   },
   "CacheMeasurement": {
     "type": "object",
@@ -1704,131 +1623,6 @@ globalThis.Declarations = (() => {
     "additionalProperties": false,
     "x-owner": "ExperimentExecution"
   },
-  "NumericalPrecision": {
-    "type": "object",
-    "properties": {
-      "accumulation": {
-        "type": "string"
-      },
-      "compute": {
-        "type": "string"
-      },
-      "storage": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "accumulation",
-      "compute",
-      "storage"
-    ],
-    "additionalProperties": false,
-    "x-owner": "ExperimentObservation"
-  },
-  "NumericalPass": {
-    "type": "object",
-    "properties": {
-      "display_so_far": {
-        "type": "string",
-        "description": "Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear as labeled markers."
-      },
-      "execution": {
-        "type": "string"
-      },
-      "id": {
-        "type": "string"
-      },
-      "input_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "nodes": {
-        "type": "array",
-        "items": {
-          "$ref": "#/$defs/TensorObservation"
-        }
-      },
-      "output_position": {
-        "type": "integer"
-      },
-      "phase": {
-        "type": "string"
-      },
-      "positions": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "request_id": {
-        "type": "string"
-      },
-      "run_id": {
-        "type": "string"
-      },
-      "selection": {
-        "$ref": "#/$defs/TokenSelection"
-      },
-      "selection_position": {
-        "type": "integer"
-      },
-      "step": {
-        "type": "integer"
-      }
-    },
-    "required": [
-      "display_so_far",
-      "execution",
-      "id",
-      "input_ids",
-      "nodes",
-      "output_position",
-      "phase",
-      "positions",
-      "request_id",
-      "run_id",
-      "selection",
-      "selection_position",
-      "step"
-    ],
-    "additionalProperties": false,
-    "x-owner": "ExperimentObservation"
-  },
-  "ModelForwardCompleted": {
-    "type": "object",
-    "x-owner": "ExperimentEvent",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "work_id",
-      "phase"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "model-forward-completed",
-        "default": "model-forward-completed"
-      },
-      "work_id": {
-        "type": "string",
-        "title": "Numerical observation identity",
-        "description": "Numerical observation identity"
-      },
-      "phase": {
-        "type": "string",
-        "title": "Execution phase",
-        "description": "Execution phase",
-        "enum": [
-          "prefill",
-          "decode"
-        ]
-      }
-    }
-  },
   "KVRunBinding": {
     "type": "object",
     "x-owner": "ExperimentSpec",
@@ -1836,7 +1630,8 @@ globalThis.Declarations = (() => {
     "required": [
       "model",
       "system",
-      "workload"
+      "workload",
+      "ontology_binding"
     ],
     "properties": {
       "model": {
@@ -1847,8 +1642,802 @@ globalThis.Declarations = (() => {
       },
       "workload": {
         "$ref": "#/$defs/Workload"
+      },
+      "ontology_binding": {
+        "$ref": "#/$defs/OntologyBinding"
       }
     }
+  },
+  "OntologyBinding": {
+    "type": "object",
+    "x-owner": "ExperimentSpec",
+    "x-ontology-binding": true,
+    "additionalProperties": false,
+    "required": [
+      "primary",
+      "related"
+    ],
+    "properties": {
+      "primary": {
+        "type": "string",
+        "description": "Primary subject; must name an admitted ontology concept.",
+        "x-ontology-reference": true,
+        "enum": [
+          "ApiError",
+          "Attention",
+          "ComputeService",
+          "CustomerInteraction",
+          "Decoding",
+          "Embedding",
+          "ExecutionBackend",
+          "ExecutionCapabilities",
+          "ExperimentEvent",
+          "ExperimentExecution",
+          "ExperimentObservation",
+          "ExperimentSpec",
+          "FeedForward",
+          "GenerationPolicy",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceSystem",
+          "InspectionState",
+          "KVCache",
+          "KVState",
+          "ModelArchitecture",
+          "ModelArtifact",
+          "ModelExecution",
+          "ModelWeights",
+          "Normalization",
+          "OutputProjection",
+          "PositionEncoding",
+          "RequestScheduling",
+          "ResidualAddition",
+          "ResourceGraph",
+          "StateTransfer",
+          "Tokenizer",
+          "Workload"
+        ]
+      },
+      "related": {
+        "type": "array",
+        "uniqueItems": true,
+        "description": "Other associated concepts; excludes the primary subject.",
+        "items": {
+          "type": "string",
+          "x-ontology-reference": true,
+          "enum": [
+            "ApiError",
+            "Attention",
+            "ComputeService",
+            "CustomerInteraction",
+            "Decoding",
+            "Embedding",
+            "ExecutionBackend",
+            "ExecutionCapabilities",
+            "ExperimentEvent",
+            "ExperimentExecution",
+            "ExperimentObservation",
+            "ExperimentSpec",
+            "FeedForward",
+            "GenerationPolicy",
+            "InferenceRequest",
+            "InferenceResponse",
+            "InferenceSystem",
+            "InspectionState",
+            "KVCache",
+            "KVState",
+            "ModelArchitecture",
+            "ModelArtifact",
+            "ModelExecution",
+            "ModelWeights",
+            "Normalization",
+            "OutputProjection",
+            "PositionEncoding",
+            "RequestScheduling",
+            "ResidualAddition",
+            "ResourceGraph",
+            "StateTransfer",
+            "Tokenizer",
+            "Workload"
+          ]
+        }
+      }
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ApiError"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "Attention"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "Attention"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ComputeService"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ComputeService"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "CustomerInteraction"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "CustomerInteraction"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "Decoding"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "Decoding"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "Embedding"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "Embedding"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ExecutionBackend"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ExecutionBackend"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ExecutionCapabilities"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ExecutionCapabilities"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ExperimentEvent"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ExperimentEvent"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ExperimentExecution"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ExperimentExecution"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ExperimentObservation"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ExperimentObservation"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ExperimentSpec"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ExperimentSpec"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "FeedForward"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "FeedForward"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "GenerationPolicy"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "GenerationPolicy"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "InferenceRequest"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "InferenceRequest"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "InferenceResponse"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "InferenceResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "InferenceSystem"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "InferenceSystem"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "InspectionState"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "InspectionState"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "KVCache"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "KVCache"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "KVState"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "KVState"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ModelArchitecture"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ModelArchitecture"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ModelArtifact"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ModelArtifact"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ModelExecution"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ModelExecution"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ModelWeights"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ModelWeights"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "Normalization"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "Normalization"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "OutputProjection"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "OutputProjection"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "PositionEncoding"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "PositionEncoding"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "RequestScheduling"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "RequestScheduling"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ResidualAddition"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ResidualAddition"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ResourceGraph"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ResourceGraph"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "StateTransfer"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "StateTransfer"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "Tokenizer"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "Tokenizer"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "Workload"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "Workload"
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
   },
   "InspectionState": {
     "type": "object",
@@ -1857,7 +2446,8 @@ globalThis.Declarations = (() => {
     "required": [
       "run_id",
       "prediction",
-      "position"
+      "position",
+      "observation_id"
     ],
     "properties": {
       "run_id": {
@@ -1877,6 +2467,15 @@ globalThis.Declarations = (() => {
         "title": "Sequence position",
         "description": "Zero-based position within selected pass.",
         "minimum": 0
+      },
+      "observation_id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "title": "Executed observation",
+        "description": "Exact observation ID within the selected pass, or null for request and output inspection.",
+        "default": null
       }
     }
   },
@@ -1971,6 +2570,98 @@ globalThis.Declarations = (() => {
       },
       "precision": {
         "type": "string"
+      }
+    }
+  },
+  "ResourceNode": {
+    "type": "object",
+    "x-owner": "ResourceGraph",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "memory_capacity_bytes",
+      "compute_flops_per_us",
+      "memory_bytes_per_us"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "memory_capacity_bytes": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "compute_flops_per_us": {
+        "type": "number",
+        "minimum": 0.001
+      },
+      "memory_bytes_per_us": {
+        "type": "number",
+        "minimum": 0.001
+      }
+    }
+  },
+  "ResourceLink": {
+    "type": "object",
+    "x-owner": "ResourceGraph",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "source",
+      "target",
+      "bandwidth_bytes_per_us",
+      "startup_us"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "source": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "target": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "bandwidth_bytes_per_us": {
+        "type": "number",
+        "minimum": 0.001
+      },
+      "startup_us": {
+        "type": "number",
+        "minimum": 0
+      }
+    }
+  },
+  "ResourceGraph": {
+    "type": "object",
+    "x-owner": "ResourceGraph",
+    "additionalProperties": false,
+    "required": [
+      "basis",
+      "nodes",
+      "links"
+    ],
+    "properties": {
+      "basis": {
+        "type": "string",
+        "const": "hypothetical"
+      },
+      "nodes": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/ResourceNode"
+        },
+        "minItems": 1
+      },
+      "links": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/ResourceLink"
+        }
       }
     }
   },
@@ -2135,6 +2826,716 @@ globalThis.Declarations = (() => {
       "text"
     ],
     "additionalProperties": false
+  },
+  "EmbeddingOperation": {
+    "type": "object",
+    "x-owner": "Embedding",
+    "x-operation": true,
+    "additionalProperties": false,
+    "required": [
+      "name"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "enum": [
+          "token_embedding",
+          "embedding"
+        ]
+      }
+    }
+  },
+  "PositionEncodingOperation": {
+    "type": "object",
+    "x-owner": "PositionEncoding",
+    "x-operation": true,
+    "additionalProperties": false,
+    "required": [
+      "name"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "enum": [
+          "position_embedding"
+        ]
+      }
+    }
+  },
+  "NormalizationOperation": {
+    "type": "object",
+    "x-owner": "Normalization",
+    "x-operation": true,
+    "additionalProperties": false,
+    "required": [
+      "name"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "enum": [
+          "ln1_mean",
+          "ln1_variance",
+          "ln1",
+          "ln2_mean",
+          "ln2_variance",
+          "ln2",
+          "ln_final_mean",
+          "ln_final_variance",
+          "ln_final"
+        ]
+      }
+    }
+  },
+  "AttentionOperation": {
+    "type": "object",
+    "x-owner": "Attention",
+    "x-operation": true,
+    "additionalProperties": false,
+    "required": [
+      "name"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "enum": [
+          "query",
+          "key",
+          "value",
+          "scores",
+          "causal_mask",
+          "attention",
+          "weighted_values",
+          "attention_output"
+        ]
+      }
+    }
+  },
+  "ResidualAdditionOperation": {
+    "type": "object",
+    "x-owner": "ResidualAddition",
+    "x-operation": true,
+    "additionalProperties": false,
+    "required": [
+      "name"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "enum": [
+          "attention_residual",
+          "ff_residual"
+        ]
+      }
+    }
+  },
+  "FeedForwardOperation": {
+    "type": "object",
+    "x-owner": "FeedForward",
+    "x-operation": true,
+    "additionalProperties": false,
+    "required": [
+      "name"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "enum": [
+          "ff_up",
+          "gelu",
+          "ff_down"
+        ]
+      }
+    }
+  },
+  "OutputProjectionOperation": {
+    "type": "object",
+    "x-owner": "OutputProjection",
+    "x-operation": true,
+    "additionalProperties": false,
+    "required": [
+      "name"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "enum": [
+          "logits"
+        ]
+      }
+    }
+  },
+  "TokenizerOperation": {
+    "type": "object",
+    "x-owner": "Tokenizer",
+    "x-operation": true,
+    "additionalProperties": false,
+    "required": [
+      "name"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "enum": [
+          "input_ids"
+        ]
+      }
+    }
+  },
+  "KVStateOperation": {
+    "type": "object",
+    "x-owner": "KVState",
+    "x-operation": true,
+    "additionalProperties": false,
+    "required": [
+      "name"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "enum": [
+          "retained_keys",
+          "retained_values"
+        ]
+      }
+    }
+  },
+  "CacheComputation": {
+    "type": "object",
+    "x-owner": "ModelExecution",
+    "additionalProperties": false,
+    "required": [
+      "work_id",
+      "request_id",
+      "step",
+      "input_ids",
+      "state_before",
+      "state_after",
+      "nodes",
+      "selection",
+      "matmul_flops",
+      "logical_memory_bytes",
+      "reference_max_abs_error",
+      "phase",
+      "reference_matmul_flops"
+    ],
+    "properties": {
+      "work_id": {
+        "type": "string"
+      },
+      "request_id": {
+        "type": "string"
+      },
+      "step": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "input_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 383
+        }
+      },
+      "state_before": {
+        "$ref": "#/$defs/KVState"
+      },
+      "state_after": {
+        "$ref": "#/$defs/KVState"
+      },
+      "nodes": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/TensorObservation"
+        }
+      },
+      "selection": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/TokenSelection"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "matmul_flops": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "logical_memory_bytes": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "reference_max_abs_error": {
+        "type": "number",
+        "minimum": 0
+      },
+      "phase": {
+        "type": "string",
+        "enum": [
+          "cache-build",
+          "prefill",
+          "decode"
+        ]
+      },
+      "reference_matmul_flops": {
+        "type": "integer",
+        "minimum": 0
+      }
+    }
+  },
+  "ModelForwardCompleted": {
+    "type": "object",
+    "x-owner": "ModelExecution",
+    "additionalProperties": false,
+    "required": [
+      "kind",
+      "work_id",
+      "phase"
+    ],
+    "properties": {
+      "kind": {
+        "type": "string",
+        "title": "Event kind",
+        "description": "Event kind",
+        "const": "model-forward-completed",
+        "default": "model-forward-completed"
+      },
+      "work_id": {
+        "type": "string",
+        "title": "Numerical observation identity",
+        "description": "Numerical observation identity"
+      },
+      "phase": {
+        "type": "string",
+        "title": "Execution phase",
+        "description": "Execution phase",
+        "enum": [
+          "prefill",
+          "decode"
+        ]
+      }
+    }
+  },
+  "NumericalPrecision": {
+    "type": "object",
+    "properties": {
+      "accumulation": {
+        "type": "string"
+      },
+      "compute": {
+        "type": "string"
+      },
+      "storage": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "accumulation",
+      "compute",
+      "storage"
+    ],
+    "additionalProperties": false,
+    "x-owner": "ModelExecution"
+  },
+  "TokenSelection": {
+    "type": "object",
+    "properties": {
+      "decoding": {
+        "type": "string"
+      },
+      "probabilities": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "raw_logits": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "rng_state": {
+        "type": "null"
+      },
+      "rule": {
+        "type": "string",
+        "const": "unmasked-greedy-v1"
+      },
+      "selected_id": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "decoding",
+      "probabilities",
+      "raw_logits",
+      "rng_state",
+      "rule",
+      "selected_id"
+    ],
+    "additionalProperties": false,
+    "x-owner": "Decoding"
+  },
+  "TokenSelected": {
+    "type": "object",
+    "x-owner": "Decoding",
+    "additionalProperties": false,
+    "required": [
+      "kind",
+      "work_id",
+      "token_id",
+      "output_position"
+    ],
+    "properties": {
+      "kind": {
+        "type": "string",
+        "title": "Event kind",
+        "description": "Event kind",
+        "const": "token-selected",
+        "default": "token-selected"
+      },
+      "work_id": {
+        "type": "string",
+        "title": "Producing computation",
+        "description": "Producing computation"
+      },
+      "token_id": {
+        "type": "integer",
+        "title": "Selected vocabulary ID",
+        "description": "Selected vocabulary ID",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "output_position": {
+        "type": "integer",
+        "title": "Absolute sequence position",
+        "description": "Absolute sequence position",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      }
+    }
+  },
+  "NumericalPass": {
+    "type": "object",
+    "properties": {
+      "display_so_far": {
+        "type": "string",
+        "description": "Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear as labeled markers."
+      },
+      "execution": {
+        "type": "string"
+      },
+      "id": {
+        "type": "string"
+      },
+      "input_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      },
+      "nodes": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/TensorObservation"
+        }
+      },
+      "output_position": {
+        "type": "integer"
+      },
+      "phase": {
+        "type": "string"
+      },
+      "positions": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      },
+      "request_id": {
+        "type": "string"
+      },
+      "run_id": {
+        "type": "string"
+      },
+      "selection": {
+        "$ref": "#/$defs/TokenSelection"
+      },
+      "selection_position": {
+        "type": "integer"
+      },
+      "step": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "display_so_far",
+      "execution",
+      "id",
+      "input_ids",
+      "nodes",
+      "output_position",
+      "phase",
+      "positions",
+      "request_id",
+      "run_id",
+      "selection",
+      "selection_position",
+      "step"
+    ],
+    "additionalProperties": false,
+    "x-owner": "Decoding"
+  },
+  "FullPrefixExecutionConfig": {
+    "type": "object",
+    "x-owner": "ModelExecution",
+    "additionalProperties": false,
+    "required": [
+      "execution"
+    ],
+    "properties": {
+      "execution": {
+        "type": "string",
+        "title": "Execution strategy",
+        "description": "Supported baseline value.",
+        "const": "full-prefix-recomputation",
+        "default": "full-prefix-recomputation"
+      }
+    }
+  },
+  "CachedExecutionConfig": {
+    "type": "object",
+    "x-owner": "ModelExecution",
+    "additionalProperties": false,
+    "required": [
+      "backend"
+    ],
+    "properties": {
+      "backend": {
+        "type": "string",
+        "enum": [
+          "reference",
+          "cuda"
+        ],
+        "default": "reference",
+        "title": "Numerical backend"
+      }
+    }
+  },
+  "RequestSchedulingConfig": {
+    "type": "object",
+    "x-owner": "RequestScheduling",
+    "additionalProperties": false,
+    "required": [
+      "max_active_requests"
+    ],
+    "properties": {
+      "max_active_requests": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 8,
+        "default": 2,
+        "title": "Active request slots"
+      }
+    }
+  },
+  "KVCacheConfig": {
+    "type": "object",
+    "x-owner": "KVCache",
+    "additionalProperties": false,
+    "required": [
+      "device_kv_bytes",
+      "host_kv_bytes",
+      "retention_policy"
+    ],
+    "properties": {
+      "device_kv_bytes": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 1048576,
+        "default": 16384,
+        "title": "Device KV budget \u00b7 bytes"
+      },
+      "host_kv_bytes": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1048576,
+        "default": 32768,
+        "title": "Host KV budget \u00b7 bytes"
+      },
+      "retention_policy": {
+        "type": "string",
+        "const": "whole-prefix-lru",
+        "default": "whole-prefix-lru"
+      }
+    }
+  },
+  "StateTransferConfig": {
+    "type": "object",
+    "x-owner": "StateTransfer",
+    "additionalProperties": false,
+    "required": [
+      "link_bytes_per_us",
+      "link_latency_us"
+    ],
+    "properties": {
+      "link_bytes_per_us": {
+        "type": "number",
+        "minimum": 0.001,
+        "default": 100,
+        "title": "Transfer bytes / virtual \u00b5s"
+      },
+      "link_latency_us": {
+        "type": "number",
+        "minimum": 0,
+        "default": 10,
+        "title": "Transfer startup \u00b7 virtual \u00b5s"
+      }
+    }
+  },
+  "ComputeServiceConfig": {
+    "type": "object",
+    "x-owner": "ComputeService",
+    "additionalProperties": false,
+    "required": [
+      "compute_flops_per_us",
+      "memory_bytes_per_us"
+    ],
+    "properties": {
+      "compute_flops_per_us": {
+        "type": "number",
+        "minimum": 0.001,
+        "default": 1000,
+        "title": "Effective matmul FLOPs / virtual \u00b5s"
+      },
+      "memory_bytes_per_us": {
+        "type": "number",
+        "minimum": 0.001,
+        "default": 1000,
+        "title": "Logical memory bytes / virtual \u00b5s"
+      }
+    }
+  },
+  "CustomerSubmission": {
+    "type": "object",
+    "x-owner": "CustomerInteraction",
+    "additionalProperties": false,
+    "required": [
+      "kind",
+      "at_us",
+      "request_id",
+      "request"
+    ],
+    "properties": {
+      "kind": {
+        "type": "string",
+        "const": "submit"
+      },
+      "at_us": {
+        "type": "number",
+        "minimum": 0
+      },
+      "request_id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "request": {
+        "$ref": "#/$defs/InferenceRequest"
+      }
+    }
+  },
+  "CustomerConsumption": {
+    "type": "object",
+    "x-owner": "CustomerInteraction",
+    "additionalProperties": false,
+    "required": [
+      "kind",
+      "at_us",
+      "request_id",
+      "output_bytes"
+    ],
+    "properties": {
+      "kind": {
+        "type": "string",
+        "const": "consume"
+      },
+      "at_us": {
+        "type": "number",
+        "minimum": 0
+      },
+      "request_id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "output_bytes": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Cumulative application-output bytes consumed; excludes protocol framing. A declared action, not proof that bytes were available."
+      }
+    }
+  },
+  "CustomerCancellation": {
+    "type": "object",
+    "x-owner": "CustomerInteraction",
+    "additionalProperties": false,
+    "required": [
+      "kind",
+      "at_us",
+      "request_id"
+    ],
+    "properties": {
+      "kind": {
+        "type": "string",
+        "const": "cancel"
+      },
+      "at_us": {
+        "type": "number",
+        "minimum": 0
+      },
+      "request_id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      }
+    }
+  },
+  "CustomerInteraction": {
+    "type": "object",
+    "x-owner": "CustomerInteraction",
+    "additionalProperties": false,
+    "required": [
+      "clock",
+      "actions"
+    ],
+    "properties": {
+      "clock": {
+        "type": "string",
+        "const": "scenario-virtual-us"
+      },
+      "actions": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/CustomerSubmission"
+            },
+            {
+              "$ref": "#/$defs/CustomerConsumption"
+            },
+            {
+              "$ref": "#/$defs/CustomerCancellation"
+            }
+          ]
+        }
+      }
+    }
   }
 };
   const meanings = {
@@ -2149,7 +3550,6 @@ globalThis.Declarations = (() => {
       "generation limits",
       "inspection position"
     ],
-    "depends_on": [],
     "capability_reads": [],
     "projections": {},
     "schemas": [
@@ -2167,7 +3567,6 @@ globalThis.Declarations = (() => {
       "cached answers",
       "service timing"
     ],
-    "depends_on": [],
     "capability_reads": [],
     "projections": {
       "Sequence state": {
@@ -2195,7 +3594,8 @@ globalThis.Declarations = (() => {
       }
     },
     "schemas": [
-      "KVState"
+      "KVState",
+      "KVStateOperation"
     ]
   },
   "ModelArtifact": {
@@ -2209,10 +3609,6 @@ globalThis.Declarations = (() => {
       "request text",
       "generation limits",
       "inspection position"
-    ],
-    "depends_on": [
-      "ModelArchitecture",
-      "ModelWeights"
     ],
     "capability_reads": [],
     "projections": {},
@@ -2234,7 +3630,6 @@ globalThis.Declarations = (() => {
       "Request and generation configuration",
       "Per-request KV state"
     ],
-    "depends_on": [],
     "capability_reads": [],
     "projections": {},
     "schemas": [
@@ -2245,48 +3640,29 @@ globalThis.Declarations = (() => {
     "meaning": "The configured execution boundary that accepts inference requests and produces their outputs.",
     "lifetime": "Fixed for an identified system configuration.",
     "owns": [
-      "Supported execution strategy, request admission limits, and resource assumptions.",
-      "Reference and KV residency experiment configurations."
+      "Composition of separately owned execution, scheduling, cache, transfer and compute-service configurations.",
+      "System-wide supported request and output-token ceilings."
     ],
     "excludes": [
-      "Model weights",
-      "Per-request generation settings",
-      "Observed execution results"
+      "Constituent mechanisms and their observations.",
+      "Caller-requested generation policy and response publication.",
+      "Model weights and measured results."
     ],
-    "depends_on": [],
     "capability_reads": [],
     "projections": {
       "Inference system": {
-        "meaning": "The configured inference boundary. Current declarations cover an uncached reference engine and a KV residency experiment; neither represents a general serving fleet.",
+        "meaning": "Composition of the implemented execution components and system-wide limits; not an algorithm or a generic lab subject.",
         "fields": {
           "InferenceSystem": [
-            "execution",
+            "model_execution",
             "max_requests"
           ],
           "KVResidencySystemConfig": [
-            "backend",
-            "max_active_requests",
-            "retention_policy"
-          ]
-        }
-      },
-      "Resource": {
-        "meaning": "A bounded capability or capacity consumed by work or retained state. Compute rate, storage capacity, and data-transfer bandwidth have different units and constraints.",
-        "fields": {
-          "KVResidencySystemConfig": [
-            "device_kv_bytes",
-            "host_kv_bytes",
-            "compute_flops_per_us",
-            "memory_bytes_per_us"
-          ]
-        }
-      },
-      "Link": {
-        "meaning": "Hypothetical transfer bandwidth and startup delay for the KV residency experiment. Compute and transfers serialize in this model; the declaration does not describe a multi-link fabric or configurable contention.",
-        "fields": {
-          "KVResidencySystemConfig": [
-            "link_bytes_per_us",
-            "link_latency_us"
+            "model_execution",
+            "scheduling",
+            "kv_cache",
+            "transfer",
+            "compute_service"
           ]
         }
       }
@@ -2306,9 +3682,9 @@ globalThis.Declarations = (() => {
     "excludes": [
       "model initialization",
       "system capacity",
+      "Backend execution strategies such as speculative drafting and verification",
       "observed outcomes"
     ],
-    "depends_on": [],
     "capability_reads": [
       "system.max_new_tokens_cap"
     ],
@@ -2329,9 +3705,6 @@ globalThis.Declarations = (() => {
       "model initialization",
       "system capacity",
       "observed outcomes"
-    ],
-    "depends_on": [
-      "GenerationPolicy"
     ],
     "capability_reads": [],
     "projections": {
@@ -2364,9 +3737,6 @@ globalThis.Declarations = (() => {
       "Actual admission or execution order chosen by the scheduler",
       "Generated outputs and measured completion times"
     ],
-    "depends_on": [
-      "InferenceRequest"
-    ],
     "capability_reads": [],
     "projections": {},
     "schemas": [
@@ -2378,20 +3748,19 @@ globalThis.Declarations = (() => {
     "lifetime": "Immutable execution evidence, accumulated as output is published and the request finishes.",
     "owns": [
       "Selected token IDs published to the modeled output collector and their diagnostic display contribution.",
-      "Request completion, selection and delivery counts, unused budget, and termination reason."
+      "Request completion, selection and publication counts, unused budget, and termination reason."
     ],
     "excludes": [
-      "Undelivered selections, including TURN_END, and any future speculative candidates",
+      "Unpublished selections, including TURN_END, and any future speculative candidates",
       "Internal tensors and KV state",
-      "Network receipt or acknowledgment; current delivery is in-process publication."
+      "Network receipt or acknowledgment; current publication is in-process publication."
     ],
-    "depends_on": [],
     "capability_reads": [],
     "projections": {
       "Response": {
         "meaning": "Published output and the request outcome. The existing event envelope supplies request/run identity and order; publication is not proof of network receipt.",
         "fields": {
-          "TokenDelivered": [
+          "TokenPublished": [
             "token_ids",
             "output_start",
             "display_delta"
@@ -2400,7 +3769,7 @@ globalThis.Declarations = (() => {
             "outcome"
           ],
           "RunOutcome": [
-            "delivered_tokens",
+            "published_tokens",
             "stop_reason",
             "complete"
           ]
@@ -2408,7 +3777,7 @@ globalThis.Declarations = (() => {
       }
     },
     "schemas": [
-      "TokenDelivered",
+      "TokenPublished",
       "RequestFinished",
       "RunOutcome"
     ]
@@ -2417,17 +3786,12 @@ globalThis.Declarations = (() => {
     "meaning": "The declared inputs, configuration, and assumptions for an experiment.",
     "lifetime": "Editable before execution; the consumed specification is frozen in the execution record.",
     "owns": [
-      "Submitted experiment input, and resolved bindings identifying the model, inference system, and request or workload actually consumed."
+      "Submitted experiment input, and resolved bindings identifying the model, inference system, and request or workload actually consumed.",
+      "Primary and related ontology subjects, resolved against admitted concepts and preserved in execution."
     ],
     "excludes": [
       "Observed outcomes and execution identity",
       "Causal events and numerical measurements"
-    ],
-    "depends_on": [
-      "InferenceRequest",
-      "InferenceSystem",
-      "ModelArtifact",
-      "Workload"
     ],
     "capability_reads": [],
     "projections": {},
@@ -2435,7 +3799,8 @@ globalThis.Declarations = (() => {
       "RequestBinding",
       "RunBinding",
       "KVExperimentInput",
-      "KVRunBinding"
+      "KVRunBinding",
+      "OntologyBinding"
     ]
   },
   "ExperimentExecution": {
@@ -2450,30 +3815,8 @@ globalThis.Declarations = (() => {
       "Inspection cursor or playback position",
       "Claims that a local run predicts production performance"
     ],
-    "depends_on": [
-      "ExperimentSpec",
-      "ExperimentEvent",
-      "ExperimentObservation",
-      "GenerationPolicy",
-      "Tokenizer",
-      "ModelArtifact",
-      "InferenceResponse",
-      "ExecutionBackend",
-      "KVState"
-    ],
     "capability_reads": [],
-    "projections": {
-      "Detokenizer": {
-        "meaning": "The recorded output IDs and their diagnostic display under the identified tokenizer. This view renders word pieces and labeled control/byte/hex IDs; it does not establish valid decoded text or a streaming UTF-8 decoder.",
-        "fields": {
-          "NumericalTrace": [
-            "output_ids",
-            "output_display",
-            "tokenizer"
-          ]
-        }
-      }
-    },
+    "projections": {},
     "schemas": [
       "RunRecord",
       "CacheRun",
@@ -2485,17 +3828,14 @@ globalThis.Declarations = (() => {
     "meaning": "An occurrence within an execution, with explicit order, causal links, and the applicable clock interpretation.",
     "lifetime": "Recorded when an occurrence happens; earlier events are not rewritten.",
     "owns": [
-      "Event envelopes and actual transitions for request arrival, input encoding, model forward completion, and token selection.",
-      "KV residency and scheduling transitions, and the declared interpretation of event time."
+      "Causal event envelopes, request arrival and input-encoding payloads, and the declared event clock.",
+      "The current cache event envelope records cross-mechanism scheduling, cache and service transitions; it is not their semantic owner."
     ],
     "excludes": [
       "A global sequential step shared by concurrent requests",
       "Inferring causality from adjacency or equal timestamps",
       "Treating virtual time or execution order as measured wall time",
       "Response publication and completion payloads, owned by InferenceResponse"
-    ],
-    "depends_on": [
-      "InferenceResponse"
     ],
     "capability_reads": [],
     "projections": {
@@ -2508,28 +3848,6 @@ globalThis.Declarations = (() => {
             "payload"
           ]
         }
-      },
-      "Residency": {
-        "meaning": "A copy of a state artifact at a location, with allocated size, readiness, and lifetime. A remote or in-flight copy is not automatically ready for local computation.",
-        "fields": {
-          "CacheEvent": [
-            "state_id",
-            "kind",
-            "device_reserved_bytes",
-            "host_retained_bytes"
-          ]
-        }
-      },
-      "Queue": {
-        "meaning": "Work or requests waiting for eligibility or resources. Being queued is different from actively consuming service.",
-        "fields": {
-          "CacheEvent": [
-            "request_id",
-            "kind",
-            "time_us",
-            "causes"
-          ]
-        }
       }
     },
     "schemas": [
@@ -2537,107 +3855,38 @@ globalThis.Declarations = (() => {
       "CacheEvent",
       "EventClock",
       "RequestArrived",
-      "InputEncoded",
-      "ModelForwardCompleted",
-      "TokenSelected"
+      "InputEncoded"
     ]
   },
   "ExperimentObservation": {
-    "meaning": "Recorded numerical values or measurements from an execution, associated with the work or event they describe.",
+    "meaning": "Recorded tensors or local measurements attached to executed work; mechanism-specific decisions and computations have separate owners.",
     "lifetime": "Captured during execution and retained unchanged with its evidence.",
     "owns": [
-      "Intermediate tensors, numerical passes, logits and token selections, and actual KV computations.",
-      "Declared numerical precision and local wall-time measurements with their measurement boundaries."
+      "Recorded intermediate tensors and their dependencies.",
+      "Local wall-time measurements with their measurement boundaries."
     ],
     "excludes": [
       "Requested settings and hypothetical service rates",
       "Equating selected tokens with published response tokens",
       "Treating a host measurement as target-accelerator performance"
     ],
-    "depends_on": [
-      "KVState"
-    ],
     "capability_reads": [],
-    "projections": {
-      "Embedding": {
-        "meaning": "Maps token IDs to parameter vectors; position information is applied according to the model configuration. These vectors are model inputs, not sequence-state cache entries.",
-        "fields": {
-          "TensorObservation": [
-            "term",
-            "name",
-            "positions",
-            "values",
-            "formula"
-          ]
-        }
-      },
-      "Transformer layers": {
-        "meaning": "Transform position-aware representations through attention, feed-forward operations, normalization, and residual paths under the model configuration. Causal attention restricts accessible history; execution may read or update sequence state.",
-        "fields": {
-          "TensorObservation": [
-            "term",
-            "layer",
-            "inputs",
-            "shape",
-            "values",
-            "formula"
-          ]
-        }
-      },
-      "Output projection": {
-        "meaning": "Maps final hidden representations to vocabulary logits. Logits are scores, not selected tokens or decoded text.",
-        "fields": {
-          "TensorObservation": [
-            "term",
-            "shape",
-            "values",
-            "formula"
-          ]
-        }
-      },
-      "Token selection": {
-        "meaning": "The executed selection from raw logits, with its selected vocabulary ID and recorded rule. Current execution uses greedy selection; selecting an ID does not itself mean that it was published as output.",
-        "fields": {
-          "TokenSelection": [
-            "raw_logits",
-            "selected_id",
-            "rule"
-          ]
-        }
-      },
-      "Work item": {
-        "meaning": "An executed KV model computation, identified by work ID and linked to input IDs, tensors, and before/after KV states. Transfers are separate events, not instances of this computation record.",
-        "fields": {
-          "CacheComputation": [
-            "work_id",
-            "input_ids",
-            "nodes",
-            "state_before",
-            "state_after"
-          ]
-        }
-      }
-    },
+    "projections": {},
     "schemas": [
       "TensorObservation",
-      "NumericalPass",
-      "TokenSelection",
-      "CacheComputation",
-      "CacheMeasurement",
-      "NumericalPrecision"
+      "CacheMeasurement"
     ]
   },
   "InspectionState": {
     "meaning": "A cursor into an identified recorded run; moving it never executes inference.",
     "lifetime": "Changes on inspection; reset when the bound run changes.",
     "owns": [
-      "A cursor into an identified recorded run; moving it never executes inference."
+      "Run, prediction, sequence position, and executed observation selection; moving the cursor never executes inference."
     ],
     "excludes": [
       "input text",
       "model or generation configuration"
     ],
-    "depends_on": [],
     "capability_reads": [],
     "projections": {},
     "schemas": [
@@ -2655,7 +3904,6 @@ globalThis.Declarations = (() => {
       "A structured recovery or retry policy",
       "Evidence that an experiment completed"
     ],
-    "depends_on": [],
     "capability_reads": [],
     "projections": {},
     "schemas": [
@@ -2674,7 +3922,6 @@ globalThis.Declarations = (() => {
       "Measured performance or calibrated hardware capacity",
       "Evidence of the backend or implementation that actually executed a run"
     ],
-    "depends_on": [],
     "capability_reads": [],
     "projections": {},
     "schemas": [
@@ -2693,7 +3940,6 @@ globalThis.Declarations = (() => {
       "logical capacity budgets",
       "worker placement policy"
     ],
-    "depends_on": [],
     "capability_reads": [],
     "projections": {
       "Hardware backend": {
@@ -2713,19 +3959,39 @@ globalThis.Declarations = (() => {
       "ExecutionBackend"
     ]
   },
+  "ResourceGraph": {
+    "meaning": "Hypothetical execution locations with local memory and directed point-to-point transfer links.",
+    "lifetime": "Immutable scenario input; changing it defines a different scenario.",
+    "owns": [
+      "Each node identifies one exclusive compute/local-memory budget; each directed link identifies one exclusive capacity.",
+      "Rates use FLOPs or bytes per virtual microsecond; capacity uses bytes. Values are assumptions, not calibrated profiles.",
+      "A reverse link is independent capacity. Shared duplex pools or multiple aliases for the same physical resource are outside this initial representation."
+    ],
+    "excludes": [
+      "No routing, placement, resource scheduling, contention algorithm or topology execution is implemented.",
+      "No model/device compatibility, target-model scaling, weight/workspace allocation or vendor performance claim."
+    ],
+    "capability_reads": [],
+    "projections": {},
+    "schemas": [
+      "ResourceNode",
+      "ResourceLink",
+      "ResourceGraph"
+    ]
+  },
   "Tokenizer": {
     "meaning": "The identified vocabulary and codec that frame conversation input and map source bytes to inspectable token IDs.",
     "lifetime": "Vocabulary and codec identity are fixed for an encoding; turns are inputs and spans/results are recorded evidence.",
     "owns": [
       "Vocabulary entries, role-tagged framing inputs, and the resulting token sequence.",
-      "Source-byte/token spans and identities required to explain and reproduce encoding."
+      "Source-byte/token spans and identities required to explain and reproduce encoding.",
+      "Identity of the token-ID input supplied to model computation; these IDs are not embedding vectors."
     ],
     "excludes": [
       "Embedding vectors and model computation",
       "Generation policy and serving decisions",
       "Diagnostic output display is not a guarantee that arbitrary generated IDs form valid text."
     ],
-    "depends_on": [],
     "capability_reads": [],
     "projections": {
       "Tokenizer": {
@@ -2739,18 +4005,395 @@ globalThis.Declarations = (() => {
             "codec_version"
           ]
         }
+      },
+      "Detokenizer": {
+        "meaning": "The recorded output IDs and their diagnostic display under the identified tokenizer. This view renders word pieces and labeled control/byte/hex IDs; it does not establish valid decoded text or a streaming UTF-8 decoder.",
+        "fields": {
+          "Token": [
+            "id",
+            "piece",
+            "kind"
+          ]
+        }
       }
     },
     "schemas": [
       "Token",
       "Turn",
       "Span",
-      "Encoding"
+      "Encoding",
+      "TokenizerOperation"
+    ]
+  },
+  "Embedding": {
+    "meaning": "Look up token vectors and combine the declared input representations.",
+    "lifetime": "A model operation identity; observations are captured per execution.",
+    "owns": [
+      "Look up token vectors and combine the declared input representations."
+    ],
+    "excludes": [
+      "Positional vectors are supplied by PositionEncoding; later attention mixing is separate."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Embedding": {
+        "meaning": "Look up token vectors and combine the declared input representations.",
+        "fields": {
+          "EmbeddingOperation": [
+            "name"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "EmbeddingOperation"
+    ]
+  },
+  "PositionEncoding": {
+    "meaning": "Represent sequence position according to the model architecture; the current implementation uses learned absolute vectors.",
+    "lifetime": "A model operation identity; observations are captured per execution.",
+    "owns": [
+      "Represent sequence position according to the model architecture; the current implementation uses learned absolute vectors."
+    ],
+    "excludes": [
+      "Does not establish extrapolation or compatibility when a mechanism is replaced."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Positional encoding": {
+        "meaning": "Represent sequence position according to the model architecture; the current implementation uses learned absolute vectors.",
+        "fields": {
+          "PositionEncodingOperation": [
+            "name"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "PositionEncodingOperation"
+    ]
+  },
+  "Normalization": {
+    "meaning": "Normalize channels using the declared statistics, epsilon, scale, and bias.",
+    "lifetime": "A model operation identity; observations are captured per execution.",
+    "owns": [
+      "Normalize channels using the declared statistics, epsilon, scale, and bias."
+    ],
+    "excludes": [
+      "Does not own residual addition or feed-forward projections."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Normalization": {
+        "meaning": "Normalize channels using the declared statistics, epsilon, scale, and bias.",
+        "fields": {
+          "NormalizationOperation": [
+            "name"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "NormalizationOperation"
+    ]
+  },
+  "Attention": {
+    "meaning": "Query and mix sequence information, using accessible key/value history or a recurrent summary. The GPT baseline implements causal softmax attention.",
+    "lifetime": "A model operation identity; observations are captured per execution.",
+    "owns": [
+      "Query-based sequence mixing and the state-update rule of recurrent attention."
+    ],
+    "excludes": [
+      "KVState owns numerical K/V payloads; KVCache owns retention and reuse management.",
+      "Position mechanisms are owned by PositionEncoding."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Attention": {
+        "meaning": "Query and mix sequence information. The declared GPT operations implement causal softmax attention; the standalone KDA lab illustrates a recurrent update.",
+        "fields": {
+          "AttentionOperation": [
+            "name"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "AttentionOperation"
+    ]
+  },
+  "ResidualAddition": {
+    "meaning": "Add a branch output to its preserved residual input.",
+    "lifetime": "A model operation identity; observations are captured per execution.",
+    "owns": [
+      "Add a branch output to its preserved residual input."
+    ],
+    "excludes": [
+      "Does not own either branch computation or normalization."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Residual addition": {
+        "meaning": "Add a branch output to its preserved residual input.",
+        "fields": {
+          "ResidualAdditionOperation": [
+            "name"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "ResidualAdditionOperation"
+    ]
+  },
+  "FeedForward": {
+    "meaning": "Apply per-position channel projections and the declared activation.",
+    "lifetime": "A model operation identity; observations are captured per execution.",
+    "owns": [
+      "Apply per-position channel projections and the declared activation."
+    ],
+    "excludes": [
+      "Does not mix token positions or own residual addition."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Feed forward": {
+        "meaning": "Apply per-position channel projections and the declared activation.",
+        "fields": {
+          "FeedForwardOperation": [
+            "name"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "FeedForwardOperation"
+    ]
+  },
+  "OutputProjection": {
+    "meaning": "Project final hidden vectors to vocabulary scores.",
+    "lifetime": "A model operation identity; observations are captured per execution.",
+    "owns": [
+      "Project final hidden vectors to vocabulary scores."
+    ],
+    "excludes": [
+      "Does not select, deliver, or decode output tokens."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Output projection": {
+        "meaning": "Project final hidden vectors to vocabulary scores.",
+        "fields": {
+          "OutputProjectionOperation": [
+            "name"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "OutputProjectionOperation"
+    ]
+  },
+  "ModelExecution": {
+    "meaning": "Execute model forward computations over input positions and available sequence state, producing logits and intermediate values.",
+    "lifetime": "Configuration is fixed for a run; observations identify the work that actually executed.",
+    "owns": [
+      "Numerical forward work, its precision and completion evidence.",
+      "Declared full-prefix or cached execution implementation and numerical backend selection."
+    ],
+    "excludes": [
+      "Caller selection and stopping requirements.",
+      "Draft acceptance, output publication, request scheduling, and resource-service timing."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Work item": {
+        "meaning": "An executed KV model computation, identified by work ID and linked to input IDs, tensors, and before/after KV states. Transfers are separate events, not instances of this computation record.",
+        "fields": {
+          "CacheComputation": [
+            "work_id",
+            "input_ids",
+            "nodes",
+            "state_before",
+            "state_after"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "FullPrefixExecutionConfig",
+      "CachedExecutionConfig",
+      "CacheComputation",
+      "ModelForwardCompleted",
+      "NumericalPrecision"
+    ]
+  },
+  "Decoding": {
+    "meaning": "Use model predictions to advance a generated sequence while honoring the requested generation policy.",
+    "lifetime": "Configuration is fixed for a run; observations identify the work that actually executed.",
+    "owns": [
+      "Prediction-step evidence and the selected token; the implemented algorithm is autoregressive greedy selection.",
+      "The algorithmic boundary for future draft proposal, target verification, acceptance and rollback."
+    ],
+    "excludes": [
+      "Requested generation policy, owned by GenerationPolicy.",
+      "Forward tensor equations, response transport and inter-request scheduling.",
+      "Declaring this boundary does not implement speculative decoding or distribution-preserving sampling."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Token selection": {
+        "meaning": "Inspect the executed choice from target logits. The current algorithm is greedy; draft verification is not implemented.",
+        "fields": {
+          "TokenSelection": [
+            "raw_logits",
+            "selected_id",
+            "probabilities"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "TokenSelection",
+      "TokenSelected",
+      "NumericalPass"
+    ]
+  },
+  "RequestScheduling": {
+    "meaning": "Decide which arrived requests may become active and which eligible work runs next under resource constraints.",
+    "lifetime": "Configuration is fixed for a run; observations identify the work that actually executed.",
+    "owns": [
+      "Active-request admission slots; the current KV engine admits FIFO and rotates active requests between serialized service steps."
+    ],
+    "excludes": [
+      "Arrival declarations are workload input, not a scheduling decision.",
+      "KV allocation and eviction policy, tensor equations, and token selection.",
+      "No batching, priority, preemption or fair-sharing guarantee is implemented."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Queue": {
+        "meaning": "Pending requests wait for admission slots and KV reservations. The active queue rotates requests while service remains serialized.",
+        "fields": {
+          "RequestSchedulingConfig": [
+            "max_active_requests"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "RequestSchedulingConfig"
+    ]
+  },
+  "KVCache": {
+    "meaning": "Manage allocation, residency, retention and valid reuse of KV-state payloads under declared capacities.",
+    "lifetime": "Configuration is fixed for a run; observations identify the work that actually executed.",
+    "owns": [
+      "Logical device and host KV budgets and exact whole-prefix LRU retention.",
+      "Cache validity, lookup, allocation and eviction decisions in the current KV lab."
+    ],
+    "excludes": [
+      "The numerical keys and values belong to KVState.",
+      "Attention equations, transfer service costs and request scheduling.",
+      "No partial-prefix paging or model-quality claim."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Residency": {
+        "meaning": "KV residency is managed within logical device and host budgets. A transfer must complete before a remote payload is usable.",
+        "fields": {
+          "KVCacheConfig": [
+            "device_kv_bytes",
+            "host_kv_bytes",
+            "retention_policy"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "KVCacheConfig"
+    ]
+  },
+  "StateTransfer": {
+    "meaning": "Move an identified sequence-state payload across an execution or memory boundary before dependent work uses it.",
+    "lifetime": "Configuration is fixed for a run; observations identify the work that actually executed.",
+    "owns": [
+      "Declared payload-transfer bandwidth and startup delay; current modeled duration is startup plus bytes divided by rate.",
+      "The handoff boundary for future lossless prefill-to-decode KV movement."
+    ],
+    "excludes": [
+      "Endpoint placement, routing and topology selection.",
+      "State interpretation or attention math; cache retention and eviction choices.",
+      "No vendor conversion, network contention or physical-performance calibration is represented."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Link": {
+        "meaning": "Hypothetical bandwidth and startup delay for serialized KV transfers. This is not a fabric topology or contention model.",
+        "fields": {
+          "StateTransferConfig": [
+            "link_bytes_per_us",
+            "link_latency_us"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "StateTransferConfig"
+    ]
+  },
+  "ComputeService": {
+    "meaning": "Translate declared operation and memory-traffic counts into conditional service time under explicit resource rates.",
+    "lifetime": "Configuration is fixed for a run; observations identify the work that actually executed.",
+    "owns": [
+      "Hypothetical compute and memory rates; the KV lab charges the maximum of operation time and memory-traffic time."
+    ],
+    "excludes": [
+      "Numerical model results and actual device identity.",
+      "Measured physical performance, transfer service, and request scheduling.",
+      "No calibrated accelerator or multi-resource overlap model."
+    ],
+    "capability_reads": [],
+    "projections": {
+      "Resource": {
+        "meaning": "Hypothetical compute and memory-service rates, distinct from physical backend measurements and cache capacity.",
+        "fields": {
+          "ComputeServiceConfig": [
+            "compute_flops_per_us",
+            "memory_bytes_per_us"
+          ]
+        }
+      }
+    },
+    "schemas": [
+      "ComputeServiceConfig"
+    ]
+  },
+  "CustomerInteraction": {
+    "meaning": "Declared client submissions, cumulative output consumption and cancellation on one scenario clock.",
+    "lifetime": "Immutable scenario input; changing it defines a different scenario.",
+    "owns": [
+      "Ordered customer actions; equal-time array order breaks ties. Each submission creates one invocation.",
+      "Consumption describes client demand; cancellation expresses intent, not acknowledgment or immediate server termination."
+    ],
+    "excludes": [
+      "No browser rendering, API protocol, network delivery, retry grouping or agent tool orchestration is implemented.",
+      "These inputs are validated scenarios, not accepted by existing inference engines."
+    ],
+    "capability_reads": [],
+    "projections": {},
+    "schemas": [
+      "CustomerSubmission",
+      "CustomerConsumption",
+      "CustomerCancellation",
+      "CustomerInteraction"
     ]
   }
 };
+  const operationOwners = {"token_embedding": "Embedding", "embedding": "Embedding", "position_embedding": "PositionEncoding", "ln1_mean": "Normalization", "ln1_variance": "Normalization", "ln1": "Normalization", "ln2_mean": "Normalization", "ln2_variance": "Normalization", "ln2": "Normalization", "ln_final_mean": "Normalization", "ln_final_variance": "Normalization", "ln_final": "Normalization", "query": "Attention", "key": "Attention", "value": "Attention", "scores": "Attention", "causal_mask": "Attention", "attention": "Attention", "weighted_values": "Attention", "attention_output": "Attention", "attention_residual": "ResidualAddition", "ff_residual": "ResidualAddition", "ff_up": "FeedForward", "gelu": "FeedForward", "ff_down": "FeedForward", "logits": "OutputProjection", "input_ids": "Tokenizer", "retained_keys": "KVState", "retained_values": "KVState"};
+  const labs = [{"id": "naive-gpt", "name": "Na\u00efve GPT computation", "status": "mechanical-demo", "ontology_binding": {"primary": "ModelExecution", "related": ["Tokenizer", "Embedding", "PositionEncoding", "Normalization", "Attention", "ResidualAddition", "FeedForward", "OutputProjection", "Decoding"]}}, {"id": "kimi-delta-attention", "name": "Kimi Delta Attention (KDA)", "status": "mechanical-demo", "ontology_binding": {"primary": "Attention", "related": []}}, {"id": "prefix-cache", "name": "Exact prefix caching", "status": "mechanical-demo", "ontology_binding": {"primary": "KVCache", "related": ["KVState", "RequestScheduling", "StateTransfer", "ComputeService"]}}, {"id": "prefill-decode", "name": "Prefill/decode KV handoff", "status": "planned", "ontology_binding": {"primary": "StateTransfer", "related": ["KVState", "ModelExecution"]}}, {"id": "speculative-decoding", "name": "Speculative decoding", "status": "planned", "ontology_binding": {"primary": "Decoding", "related": ["ModelExecution", "KVState"]}}, {"id": "positional-encoding", "name": "Positional encoding", "status": "planned", "ontology_binding": {"primary": "PositionEncoding", "related": ["Embedding", "Attention"]}}];
   const routes = {"capabilities": "/api/capabilities", "run": "/api/runs", "cacheRun": "/api/cache-runs", "cacheCapabilities": "/api/cache-capabilities"};
-  const hash = "fff50d28723a183cba6d403b664ec2935d216ee000010117ef701741bffc2f1e";
+  const hash = "7d7fe15f73b0fbe675902adec145e3ae68d36e5ea24ad9d31e5adda3be7f440f";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);
@@ -2760,5 +4403,5 @@ globalThis.Declarations = (() => {
     assertShape(name,value);
     ContractRuntime.bounds(schemas[name],value,schemas,context);
   };
-  return {schemas, meanings, routes, hash, assertShape, assertBound};
+  return {schemas, meanings, routes, hash, operationOwners, labs, assertShape, assertBound};
 })();

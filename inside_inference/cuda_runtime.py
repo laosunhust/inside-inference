@@ -33,9 +33,9 @@ class CudaRuntime(ReferenceRuntime):
         self.gpu[new_id]=(result['keys'],result['values']);self.device[new_id]=new_state
         nodes=[];prefix=(trace.get('work_id') or f"{trace['run_id']}/step-{trace['step']}")+'/'
         for raw in result['observations']:
-            value=raw['values'][0].cpu().tolist();name=raw['name']
+            value=raw['values'][0].cpu().tolist();name=raw['operation']['name']
             inputs=[('state:'+key if i=='state:input' else i) for i in raw['inputs']]
-            nodes.append(dict(id=prefix+name,name=name,term=raw['term'],layer=raw['layer'],
+            nodes.append(dict(id=prefix+name,operation=raw['operation'],layer=raw['layer'],
                 request_id=trace['request_id'],run_id=trace['run_id'],step=trace['step'],
                 positions=raw['positions'],shape=shape(value),
                 dtype='bool' if name=='causal_mask' else 'int' if name=='input_ids' else 'binary64',

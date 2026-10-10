@@ -98,9 +98,9 @@ class ModelTests(unittest.TestCase):
                     checkpoint['parameters'][name] = [0.5 + i / 10 for i in range(len(values))]
             expected = reference(checkpoint, ids)
             actual = Model(checkpoint).forward(ids)
-            self.assertEqual(set(expected), {n['name'] for n in actual['nodes']})
+            self.assertEqual(set(expected), {n['operation']['name'] for n in actual['nodes']})
             for node in actual['nodes']:
-                self.assert_values(node['values'], expected[node['name']])
+                self.assert_values(node['values'], expected[node['operation']['name']])
 
     def test_hand_calculated_uniform_attention_and_residual(self):
         checkpoint = self.checkpoint()
@@ -110,7 +110,7 @@ class ModelTests(unittest.TestCase):
         p['query'] = p['key'] = [[0., 0.], [0., 0.]]
         p['value'] = p['attention_output'] = [[1., 0.], [0., 1.]]
         p['ff_down'] = [[0., 0.] for _ in p['ff_down']]
-        nodes = {n['name']: n['values'] for n in Model(checkpoint).forward([32, 33])['nodes']}
+        nodes = {n['operation']['name']: n['values'] for n in Model(checkpoint).forward([32, 33])['nodes']}
         self.assertEqual(nodes['attention'], [[1., 0.], [.5, .5]])
         a = 1 / math.sqrt(1 + 1e-5)
         self.assert_values(nodes['weighted_values'], [[a, -a], [0., 0.]])
@@ -131,7 +131,7 @@ class ModelTests(unittest.TestCase):
         model=Model(self.checkpoint())
         before=model.forward([32,33])
         expected=copy.deepcopy(before['logits'])
-        position=next(n for n in before['nodes'] if n['name']=='position_embedding')
+        position=next(n for n in before['nodes'] if n['operation']['name']=='position_embedding')
         position['values'][0][0]+=1000
         self.assertEqual(model.forward([32,33])['logits'],expected)
         self.assertEqual(model.sha256,identity(model.checkpoint))
@@ -145,7 +145,7 @@ class ModelTests(unittest.TestCase):
         seen = set('parameter:' + name for name in model.parameters)
         for node in result['nodes']:
             self.assertEqual((node['request_id'], node['run_id'], node['step'], node['positions']), ('r', 'u', 2, [0, 1]))
-            self.assertTrue(set(node['inputs']) <= seen, node['name'])
+            self.assertTrue(set(node['inputs']) <= seen, node['operation']['name'])
             seen.add(node['id'])
         self.assertEqual(result['nodes'][-1]['values'], result['logits'])
 

@@ -132,3 +132,99 @@ class GovernanceTests(unittest.TestCase):
             spec['components']={'schemas':{'Alias':{'$ref':'./inference.schema.json#/$defs/ApiError'}}}
             path.write_text(yaml.safe_dump(spec))
             with self.assertRaisesRegex(ValueError,'canonical declaration'):outputs(root)
+
+    def test_ontology_binding_rejects_invented_duplicate_and_missing_subjects(self):
+        from inside_inference.declarations_generated import OntologyBinding
+        from scripts.build.contracts import lab_bindings
+        import json
+        ontology, schema = load_declarations(), load_schema()
+        good = {'primary':'PositionEncoding', 'related':['Embedding','Attention']}
+        OntologyBinding.from_dict(good)
+        catalog = json.loads((ROOT/'catalog/stack.json').read_text())
+        for bad in ({'primary':'PositionEncodng','related':[]},
+                    {'primary':'PositionEncoding','related':['ImaginaryAttention']},
+                    {'primary':'PositionEncoding','related':['Attention','Attention']},
+                    {'primary':'PositionEncoding','related':['PositionEncoding']},
+                    {'related':['Attention']}, {'primary':['Attention'],'related':[]}):
+            with self.subTest(binding=bad):
+                with self.assertRaises(ValueError): OntologyBinding.from_dict(bad)
+                forged = copy.deepcopy(catalog); forged['innovations'][0]['ontology_binding'] = bad
+                with self.assertRaisesRegex(ValueError, r'innovations\[naive-gpt\]\.ontology_binding'):
+                    lab_bindings(ROOT, ontology, schema, catalog=forged)
+        forged = copy.deepcopy(catalog)
+        forged['innovations'][0]['ontology_binding'] = {'primary':'PositionEncodng','related':[]}
+        with self.assertRaisesRegex(ValueError, "Suggestions:.*PositionEncoding"):
+            lab_bindings(ROOT, ontology, schema, catalog=forged)
+        missing = copy.deepcopy(ontology); del missing['terms']['PositionEncoding']
+        with self.assertRaisesRegex(ValueError,'unknown ontology concept'):
+            lab_bindings(ROOT, missing, schema, catalog=catalog)
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            for folder in ('docs/ontology','data-model','catalog'):
+                shutil.copytree(ROOT/folder,root/folder)
+            (root/'catalog/stack.json').write_text(json.dumps(forged))
+            with self.assertRaisesRegex(ValueError, 'unknown ontology concept'):
+                outputs(root)
+
+    def test_operations_have_exactly_one_owner_and_no_unregistered_runtime_names(self):
+        from inside_inference.declarations_generated import OPERATION_OWNERS, operation_for
+        from inside_inference.model import Model, ModelArchitecture, initialize
+        from inside_inference.tokenizer import Tokenizer
+        from scripts.build.contracts import operation_owners
+        ontology, schema = load_declarations(), load_schema()
+        self.assertEqual(OPERATION_OWNERS, operation_owners(schema))
+        self.assertEqual(OPERATION_OWNERS['position_embedding'], 'PositionEncoding')
+        self.assertEqual(OPERATION_OWNERS['attention'], 'Attention')
+        model=Model(initialize(ModelArchitecture(),Tokenizer().manifest_sha256))
+        uncached=model.forward([0,3,42])['nodes']
+        cached=model.forward_cached([0,3,42])['nodes']
+        self.assertEqual({n['operation']['name'] for n in uncached+cached},set(OPERATION_OWNERS))
+        for node in uncached+cached:
+            self.assertIn(OPERATION_OWNERS[node['operation']['name']],ontology['terms'])
+        with self.assertRaisesRegex(ValueError,'Unknown model operation'):
+            operation_for('invented_attention')
+        forged=copy.deepcopy(schema)
+        forged['$defs']['EmbeddingOperation']['properties']['name']['enum'].append('attention')
+        with self.assertRaisesRegex(ValueError,'already belongs'):
+            admit(ontology,forged)
+        forged=copy.deepcopy(schema)
+        forged['$defs']['TensorObservation']['properties']['operation']['anyOf'].pop()
+        with self.assertRaisesRegex(ValueError,'every admitted operation'):
+            admit(ontology,forged)
+        forged=copy.deepcopy(schema)
+        forged['$defs']['OntologyBinding']['properties']['primary']['enum'].append('Imaginary')
+        with self.assertRaisesRegex(ValueError,'ontology reference choices'):
+            admit(ontology,forged)
+
+        forged=copy.deepcopy(schema)
+        forged['$defs']['OntologyBinding']['allOf']=[]
+        with self.assertRaisesRegex(ValueError,'primary exclusion'):
+            admit(ontology,forged)
+
+
+class FrontendGovernanceTests(unittest.TestCase):
+    def test_frontend_rejects_semantic_drift(self):
+        from scripts.check.governance.frontend import audit_frontend_source, audit_frontend
+        from scripts.build.contracts import lab_bindings
+        ontology, spec = load_declarations(), load_schema()
+        labs = lab_bindings(ROOT, ontology, spec)
+        def check(source, suffix='.html'):
+            return audit_frontend_source(Path('web/probe'+suffix), source, ontology, spec, labs)
+        self.assertEqual(check('<button data-operation="attention" data-term="Attention"></button>'), [])
+        self.assertEqual(check('const owner = Declarations.operationOwners[node.operation.name];', '.js'), [])
+        cases = [
+            ('<button data-term="InventedAttention"></button>', '.html', 'unknown ontology projection'),
+            ('<button data-term="Embedding" data-operation="attention"></button>', '.html', 'does not belong'),
+            ('<button data-term="Attention" data-operation="invented"></button>', '.html', 'does not belong'),
+            ('<a href="ontology.html#Invented">x</a>', '.html', 'unknown ontology anchor'),
+            ('const url="ontology.html#Invented";', '.js', 'unknown ontology anchor'),
+            ('<a href="labs/invented.html">x</a>', '.html', 'unknown lab'),
+            ('<section data-primary="Attention">x</section>', '.html', 'handwritten ownership'),
+            ("const x={ontology_binding:{primary:'Attention',related:[]}};", '.js', 'handwritten ontology_binding'),
+            ('const operationOwners={attention:"Embedding"};', '.js', 'handwritten semantic registry'),
+            ('Declarations.labs=[];', '.js', 'cannot replace'),
+            ('const field={minimum:1};', '.js', 'handwritten field limit'),
+        ]
+        for source, suffix, message in cases:
+            with self.subTest(source=source):
+                self.assertTrue(any(message in error for error in check(source, suffix)))

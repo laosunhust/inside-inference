@@ -1,0 +1,129 @@
+$defs:
+  EmbeddingOperation:
+    type: object
+    x-owner: Embedding
+    x-operation: true
+    additionalProperties: false
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        enum:
+        - token_embedding
+        - embedding
+  PositionEncodingOperation:
+    type: object
+    x-owner: PositionEncoding
+    x-operation: true
+    additionalProperties: false
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        enum:
+        - position_embedding
+  NormalizationOperation:
+    type: object
+    x-owner: Normalization
+    x-operation: true
+    additionalProperties: false
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        enum:
+        - ln1_mean
+        - ln1_variance
+        - ln1
+        - ln2_mean
+        - ln2_variance
+        - ln2
+        - ln_final_mean
+        - ln_final_variance
+        - ln_final
+  AttentionOperation:
+    type: object
+    x-owner: Attention
+    x-operation: true
+    additionalProperties: false
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        enum:
+        - query
+        - key
+        - value
+        - scores
+        - causal_mask
+        - attention
+        - weighted_values
+        - attention_output
+  ResidualAdditionOperation:
+    type: object
+    x-owner: ResidualAddition
+    x-operation: true
+    additionalProperties: false
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        enum:
+        - attention_residual
+        - ff_residual
+  FeedForwardOperation:
+    type: object
+    x-owner: FeedForward
+    x-operation: true
+    additionalProperties: false
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        enum:
+        - ff_up
+        - gelu
+        - ff_down
+  OutputProjectionOperation:
+    type: object
+    x-owner: OutputProjection
+    x-operation: true
+    additionalProperties: false
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        enum:
+        - logits
+  TokenizerOperation:
+    type: object
+    x-owner: Tokenizer
+    x-operation: true
+    additionalProperties: false
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        enum:
+        - input_ids
+  KVStateOperation:
+    type: object
+    x-owner: KVState
+    x-operation: true
+    additionalProperties: false
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        enum:
+        - retained_keys
+        - retained_values

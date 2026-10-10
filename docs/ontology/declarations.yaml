@@ -1,4 +1,4 @@
-purpose: Own the meaning, lifetime, and allowed dependencies of inference declarations.
+purpose: Own the meaning, lifetime, and ownership of inference declarations.
 modules:
 - model.yaml
 - inference-system.yaml
@@ -6,3 +6,7 @@ modules:
 - interface.yaml
 - hardware.yaml
 - tokenizer.yaml
+- operations.yaml
+- runtime.yaml
+- serving.yaml
+- interaction.yaml

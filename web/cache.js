@@ -3,7 +3,7 @@
 'use strict';
 const $=id=>document.getElementById(id), make=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 if(!$('cache-data'))return;
-let serialized=$('cache-data').textContent,run=JSON.parse(serialized),draft=structuredClone({system:run.declaration.system,workload:run.declaration.workload}),cursor=0,live=false,busy=false;
+let serialized=$('cache-data').textContent,run=JSON.parse(serialized),draft=structuredClone({system:run.declaration.system,workload:run.declaration.workload,ontology_binding:run.declaration.ontology_binding}),cursor=0,live=false,busy=false;
 const tokens=JSON.parse($('cache-tokens').textContent),ontology=JSON.parse($('cache-ontology').textContent);
 Declarations.assertShape('CacheRun',run);
 const number=x=>Number(x).toLocaleString(undefined,{maximumFractionDigits:3});
@@ -18,21 +18,27 @@ function input(parent,key,value,field,onChange){
 }
 function controls(){
  $('cache-system-fields').replaceChildren();$('cache-rate-fields').replaceChildren();
- for(const [key,field] of Object.entries(Declarations.schemas.KVResidencySystemConfig.properties)){
-  if(field.const!==undefined)continue;
-  const parent=$(key.includes('_per_us')||key==='link_latency_us'?'cache-rate-fields':'cache-system-fields');
-  input(parent,key,draft.system[key],field,value=>draft.system[key]=value);
+ function fields(schema,value,parent){
+  for(const [key,field] of Object.entries(schema.properties)){
+   if(field.const!==undefined)continue;
+   if(field.$ref){
+    const child=Declarations.schemas[field.$ref.split('/').at(-1)],group=make('fieldset'),legend=make('legend');
+    const link=make('a',child['x-owner'].replace(/([a-z])([A-Z])/g,'$1 $2').replace(/([A-Z])([A-Z][a-z])/g,'$1 $2'));link.href='ontology.html#'+child['x-owner'];legend.append(link);group.append(legend);parent.append(group);
+    fields(child,value[key],group);
+   }else input(parent,key,value[key],field,v=>value[key]=v);
+  }
  }
+ fields(Declarations.schemas.KVResidencySystemConfig,draft.system,$('cache-system-fields'));
  requests();lock();
 }
 function requests(){
  const parent=$('cache-request-fields');parent.replaceChildren();
  draft.workload.requests.forEach((r,i)=>{
   const row=make('div');row.className='cache-request';row.append(make('small',r.request_id));
-  input(row,'text-'+i,r.request.text,{type:'string',title:'Input'},v=>r.request.text=v);
+  input(row,'text-'+i,r.request.text,Declarations.schemas.InferenceRequest.properties.text,v=>r.request.text=v);
   const pair=make('div');pair.className='cache-request-grid';row.append(pair);
-  input(pair,'arrival-'+i,r.arrival_us,{type:'integer',minimum:0,title:'Arrival · virtual µs'},v=>r.arrival_us=v);
-  input(pair,'budget-'+i,r.request.generation.max_new_tokens,{type:'integer',minimum:1,maximum:draft.system.max_new_tokens_cap,title:'Maximum new tokens'},v=>r.request.generation.max_new_tokens=v);
+  input(pair,'arrival-'+i,r.arrival_us,Declarations.schemas.RequestArrival.properties.arrival_us,v=>r.arrival_us=v);
+  input(pair,'budget-'+i,r.request.generation.max_new_tokens,{...Declarations.schemas.GenerationPolicy.properties.max_new_tokens,maximum:draft.system.max_new_tokens_cap},v=>r.request.generation.max_new_tokens=v);
   const remove=make('button','Remove request');remove.type='button';remove.id='cache-remove-'+i;
   remove.onclick=()=>{if(draft.workload.requests.length>1){draft.workload.requests.splice(i,1);requests();dirty();}};row.append(remove);
   parent.append(row);
@@ -46,13 +52,13 @@ function matrix(value,labels){
 function inspect(){
  const event=run.events[cursor];$('cache-event-caption').textContent=`${cursor+1}/${run.events.length} · ${event.request_id} · ${event.kind} · ${number(event.time_us)} µs`;
  for(const [tier,key,cap] of [['device','device_reserved_bytes','device_kv_bytes'],['host','host_retained_bytes','host_kv_bytes']]){
-  $(tier+'-meter').max=run.declaration.system[cap];$(tier+'-meter').value=event[key];$(tier+'-count').textContent=`${event[key]} / ${run.declaration.system[cap]} bytes`;
+  $(tier+'-meter').max=run.declaration.system.kv_cache[cap];$(tier+'-meter').value=event[key];$(tier+'-count').textContent=`${event[key]} / ${run.declaration.system.kv_cache[cap]} bytes`;
  }
  $('cache-prev').disabled=cursor===0;$('cache-next').disabled=cursor===run.events.length-1;
  $('cache-events').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('active',i===cursor));
  $('cache-causes').replaceChildren();if(event.causes.length)$('cache-causes').append(make('small','Enabled by: '));for(const id of event.causes){const i=run.events.findIndex(e=>e.event_id===id),cause=run.events[i],button=make('button',cause.request_id+' '+cause.kind);button.onclick=()=>{cursor=i;inspect();};$('cache-causes').append(button);}
  $('cache-state').replaceChildren();const state=event.state_id&&run.states[event.state_id];
- $('cache-state-caption').textContent=event.detail+(state?` · ${state.token_ids.length} cached positions · ${state.keys.length*(state.keys[0]?.length||0)*16} K/V bytes`:' · No state snapshot attached to this event.');
+ $('cache-state-caption').textContent=(event.phase||event.transfer_direction||event.detail)+(state?` · ${state.token_ids.length} cached positions · ${state.precision} K/V state`:' · No state snapshot attached to this event.');
  if(state){const labels=state.token_ids.map((id,i)=>`${i}: #${id} ${tokens[id]}`);$('cache-state').append(make('h3','Keys'),matrix(state.keys,labels),make('h3','Values'),matrix(state.values,labels));$('cache-raw').textContent=JSON.stringify(state,null,2);}
  const work=run.computations.findIndex(c=>c.request_id===event.request_id&&event.state_id&&JSON.stringify(c.state_after)===JSON.stringify(state));
  if(work>=0){$('cache-work-choice').value=work;tensorChoices();}
@@ -60,15 +66,17 @@ function inspect(){
 function tensorChoices(){
  const work=run.computations[Number($('cache-work-choice').value)];if(!work)return;
  const prior=$('cache-tensor-choice').value;$('cache-tensor-choice').replaceChildren();
- for(const n of work.nodes){const o=make('option',n.name);o.value=n.name;$('cache-tensor-choice').append(o);}
- $('cache-tensor-choice').value=work.nodes.some(n=>n.name===prior)?prior:'attention';tensor();
+ for(const n of work.nodes){const o=make('option',n.operation.name);o.value=n.operation.name;$('cache-tensor-choice').append(o);}
+ $('cache-tensor-choice').value=work.nodes.some(n=>n.operation.name===prior)?prior:'attention';tensor();
 }
 function tensor(){
  const work=run.computations[Number($('cache-work-choice').value)];if(!work)return;
- const node=work.nodes.find(n=>n.name===$('cache-tensor-choice').value);if(!node)return;
- const definition=ontology[node.term];if(!definition)throw new Error('Unknown ontology projection: '+node.term);
- const link=make('a',node.term+' ↗');link.href='ontology.html#'+definition.anchor;link.title=definition.meaning;
- $('cache-tensor').replaceChildren(make('p',`${work.phase} · positions ${node.positions.join(', ')} · shape [${node.shape.join(', ')}] · ${node.formula}`),make('p',`This work: ${work.matmul_flops} dense-matmul FLOPs; full-prefix reference check: ${work.reference_matmul_flops}. Scalar operations are excluded.`),link,matrix(node.values));
+ const node=work.nodes.find(n=>n.operation.name===$('cache-tensor-choice').value);if(!node)return;
+ const owner=Declarations.operationOwners[node.operation.name], definition=Declarations.meanings[owner];
+ if(!definition)throw new Error('Unknown operation owner: '+node.operation.name);
+ const link=make('a','Ontology: '+owner+' ↗');link.href='ontology.html#'+owner;link.title=definition.meaning;
+ const labs=make('a','Labs ↗');labs.href='labs-by-concept.html#'+owner;
+ $('cache-tensor').replaceChildren(make('p',`${work.phase} · positions ${node.positions.join(', ')} · shape [${node.shape.join(', ')}] · ${node.formula}`),make('p',`This work: ${work.matmul_flops} dense-matmul FLOPs; full-prefix reference check: ${work.reference_matmul_flops}. Scalar operations are excluded.`),link,labs,matrix(node.values));
  $('cache-raw').textContent=JSON.stringify(node,null,2);
 }
 function timeline(){
@@ -80,7 +88,7 @@ function timeline(){
   const arrived=run.events.find(e=>e.request_id===r.request_id&&e.kind==='arrived'),admitted=run.events.find(e=>e.request_id===r.request_id&&e.kind==='admitted');
   const block=(start,end,color,label,index)=>{const rect=element('rect',{x:65+start/total*620,y,width:Math.max(2,(end-start)/total*620),height:23,rx:4,fill:color});const title=document.createElementNS(ns,'title');title.textContent=`${label}: ${number(start)} → ${number(end)} µs`;rect.append(title);rect.addEventListener('click',()=>{cursor=index;inspect();});};
   if(arrived&&admitted&&admitted.time_us>arrived.time_us)block(arrived.time_us,admitted.time_us,'#66778a','Admission wait',run.events.indexOf(admitted));
-  run.events.forEach((e,j)=>{if(e.request_id!==r.request_id||!['compute-start','transfer-start','retention-start'].includes(e.kind))return;const end=run.events.slice(j+1).find(x=>x.kind===(e.kind==='retention-start'?'retained':e.kind.replace('start','end')));if(end)block(e.time_us,end.time_us,e.kind==='compute-start'?'#5ac9bd':e.kind==='retention-start'?'#e1b46c':'#9aaafa',e.detail,j);});
+  run.events.forEach((e,j)=>{if(e.request_id!==r.request_id||!['compute-start','transfer-start','retention-start'].includes(e.kind))return;const end=run.events.slice(j+1).find(x=>x.kind===(e.kind==='retention-start'?'retained':e.kind.replace('start','end')));if(end)block(e.time_us,end.time_us,e.kind==='compute-start'?'#5ac9bd':e.kind==='retention-start'?'#e1b46c':'#9aaafa',e.phase||e.transfer_direction||e.detail,j);});
  });element('text',{x:65,y:req.length*56+15,fill:'#a2b8ca','font-size':11},`0 → ${number(total)} virtual µs`);$('cache-timeline').replaceChildren(svg);
 }
 function render(){
@@ -99,6 +107,7 @@ $('cache-form').onsubmit=async event=>{
  try{Declarations.assertShape('KVExperimentInput',draft);busy=true;lock();$('cache-error').hidden=true;status('running','Executing the submitted experiment…');
  const response=await fetch(Declarations.routes.cacheRun,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(draft)}),raw=await response.text(),value=JSON.parse(raw);
  if(!response.ok)throw Error(value.error||response.statusText);Declarations.assertShape('CacheRun',value);
+ if(value.declaration.ontology_binding.primary!==draft.ontology_binding.primary || JSON.stringify(value.declaration.ontology_binding.related)!==JSON.stringify(draft.ontology_binding.related))throw Error('Response ontology binding differs from the submitted experiment');
  serialized=raw;run=value;render();status('ready','Accepted run. Every view reads this computation and schedule.');
  }catch(error){$('cache-error').hidden=false;$('cache-error').textContent=error.message;status('error','Execution failed. Previous accepted evidence remains visible.');}
  finally{busy=false;lock();}

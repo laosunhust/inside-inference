@@ -3,11 +3,11 @@ terms:
     meaning: A cursor into an identified recorded run; moving it never executes inference.
     lifetime: Changes on inspection; reset when the bound run changes.
     owns:
-    - A cursor into an identified recorded run; moving it never executes inference.
+    - Run, prediction, sequence position, and executed observation selection; moving the cursor never
+      executes inference.
     excludes:
     - input text
     - model or generation configuration
-    depends_on: []
     capability_reads: []
     projections: {}
     schemas:
@@ -22,13 +22,12 @@ terms:
     - Successful inference output
     - A structured recovery or retry policy
     - Evidence that an experiment completed
-    depends_on: []
     capability_reads: []
     projections: {}
     schemas:
     - ApiError
   ExecutionCapabilities:
-    meaning: The running service’s advertised execution support and contract compatibility information.
+    meaning: "The running service\u2019s advertised execution support and contract compatibility information."
     lifetime: A service-discovery snapshot; refresh when connecting to or reconnecting with a service.
     owns:
     - Engine and contract identity used to check client/service compatibility.
@@ -37,7 +36,6 @@ terms:
     - The configuration selected for an experiment
     - Measured performance or calibrated hardware capacity
     - Evidence of the backend or implementation that actually executed a run
-    depends_on: []
     capability_reads: []
     projections: {}
     schemas:

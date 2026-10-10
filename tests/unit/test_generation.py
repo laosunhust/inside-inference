@@ -24,7 +24,7 @@ class GenerationTests(unittest.TestCase):
             self.assertEqual(step['input_ids'], prefix)
             self.assertEqual(step['phase'], 'decode' if number else 'prefill')
             selection = step['selection']
-            raw = next(n['values'] for n in step['nodes'] if n['name'] == 'logits')[-1]
+            raw = next(n['values'] for n in step['nodes'] if n['operation']['name'] == 'logits')[-1]
             self.assertEqual(selection['raw_logits'], raw)
             candidate = sorted(((-raw[i], i) for i in range(len(raw))))[0][1]
             self.assertEqual(selection['selected_id'], candidate)

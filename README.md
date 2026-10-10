@@ -8,6 +8,12 @@ Inside Inference is a laboratory for understanding inference systems, built in
 public. Follow a workload from a chat, agent, or application through an inference
 system. Change one thing, observe what happens, and investigate why.
 
+Real problems drive the work: explain a stalled request, evaluate a hardware
+claim, or explore how to serve workloads on a constrained fleet. Labs are
+instruments for these [investigations](docs/purpose/investigations.md), and the
+ontology supplies the boundaries, dependencies, and observations needed to
+connect symptoms to mechanisms and test possible improvements.
+
 An inference system is a constrained optimization problem. Decisions from hardware
 planning to per-step scheduling must satisfy capacity, latency, quality, availability,
 and policy constraints while trading cost, service, and resilience against each other.

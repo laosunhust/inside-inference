@@ -3,17 +3,27 @@
     "id": "warm",
     "spec": {
       "system": {
-        "backend": "reference",
-        "device_kv_bytes": 16384,
-        "host_kv_bytes": 32768,
-        "max_active_requests": 1,
-        "compute_flops_per_us": 1000,
-        "memory_bytes_per_us": 1000,
-        "link_bytes_per_us": 100,
-        "link_latency_us": 10,
-        "retention_policy": "whole-prefix-lru",
         "max_requests": 8,
-        "max_new_tokens_cap": 8
+        "max_new_tokens_cap": 8,
+        "kv_cache": {
+          "device_kv_bytes": 16384,
+          "host_kv_bytes": 32768,
+          "retention_policy": "whole-prefix-lru"
+        },
+        "scheduling": {
+          "max_active_requests": 1
+        },
+        "compute_service": {
+          "compute_flops_per_us": 1000,
+          "memory_bytes_per_us": 1000
+        },
+        "transfer": {
+          "link_bytes_per_us": 100,
+          "link_latency_us": 10
+        },
+        "model_execution": {
+          "backend": "reference"
+        }
       },
       "workload": {
         "kind": "fixed-arrivals",
@@ -43,6 +53,15 @@
             }
           }
         ]
+      },
+      "ontology_binding": {
+        "primary": "KVCache",
+        "related": [
+          "KVState",
+          "RequestScheduling",
+          "StateTransfer",
+          "ComputeService"
+        ]
       }
     },
     "lookups": [
@@ -54,17 +73,27 @@
     "id": "remote",
     "spec": {
       "system": {
-        "backend": "reference",
-        "device_kv_bytes": 1024,
-        "host_kv_bytes": 32768,
-        "max_active_requests": 1,
-        "compute_flops_per_us": 1000,
-        "memory_bytes_per_us": 1000,
-        "link_bytes_per_us": 100,
-        "link_latency_us": 10,
-        "retention_policy": "whole-prefix-lru",
         "max_requests": 8,
-        "max_new_tokens_cap": 8
+        "max_new_tokens_cap": 8,
+        "kv_cache": {
+          "device_kv_bytes": 1024,
+          "host_kv_bytes": 32768,
+          "retention_policy": "whole-prefix-lru"
+        },
+        "scheduling": {
+          "max_active_requests": 1
+        },
+        "compute_service": {
+          "compute_flops_per_us": 1000,
+          "memory_bytes_per_us": 1000
+        },
+        "transfer": {
+          "link_bytes_per_us": 100,
+          "link_latency_us": 10
+        },
+        "model_execution": {
+          "backend": "reference"
+        }
       },
       "workload": {
         "kind": "fixed-arrivals",
@@ -105,6 +134,15 @@
               }
             }
           }
+        ]
+      },
+      "ontology_binding": {
+        "primary": "KVCache",
+        "related": [
+          "KVState",
+          "RequestScheduling",
+          "StateTransfer",
+          "ComputeService"
         ]
       }
     },
@@ -118,17 +156,27 @@
     "id": "evicted",
     "spec": {
       "system": {
-        "backend": "reference",
-        "device_kv_bytes": 1024,
-        "host_kv_bytes": 0,
-        "max_active_requests": 1,
-        "compute_flops_per_us": 1000,
-        "memory_bytes_per_us": 1000,
-        "link_bytes_per_us": 100,
-        "link_latency_us": 10,
-        "retention_policy": "whole-prefix-lru",
         "max_requests": 8,
-        "max_new_tokens_cap": 8
+        "max_new_tokens_cap": 8,
+        "kv_cache": {
+          "device_kv_bytes": 1024,
+          "host_kv_bytes": 0,
+          "retention_policy": "whole-prefix-lru"
+        },
+        "scheduling": {
+          "max_active_requests": 1
+        },
+        "compute_service": {
+          "compute_flops_per_us": 1000,
+          "memory_bytes_per_us": 1000
+        },
+        "transfer": {
+          "link_bytes_per_us": 100,
+          "link_latency_us": 10
+        },
+        "model_execution": {
+          "backend": "reference"
+        }
       },
       "workload": {
         "kind": "fixed-arrivals",
@@ -170,6 +218,15 @@
             }
           }
         ]
+      },
+      "ontology_binding": {
+        "primary": "KVCache",
+        "related": [
+          "KVState",
+          "RequestScheduling",
+          "StateTransfer",
+          "ComputeService"
+        ]
       }
     },
     "lookups": [
@@ -182,17 +239,27 @@
     "id": "concurrent",
     "spec": {
       "system": {
-        "backend": "reference",
-        "device_kv_bytes": 16384,
-        "host_kv_bytes": 32768,
-        "max_active_requests": 2,
-        "compute_flops_per_us": 1000,
-        "memory_bytes_per_us": 1000,
-        "link_bytes_per_us": 100,
-        "link_latency_us": 10,
-        "retention_policy": "whole-prefix-lru",
         "max_requests": 8,
-        "max_new_tokens_cap": 8
+        "max_new_tokens_cap": 8,
+        "kv_cache": {
+          "device_kv_bytes": 16384,
+          "host_kv_bytes": 32768,
+          "retention_policy": "whole-prefix-lru"
+        },
+        "scheduling": {
+          "max_active_requests": 2
+        },
+        "compute_service": {
+          "compute_flops_per_us": 1000,
+          "memory_bytes_per_us": 1000
+        },
+        "transfer": {
+          "link_bytes_per_us": 100,
+          "link_latency_us": 10
+        },
+        "model_execution": {
+          "backend": "reference"
+        }
       },
       "workload": {
         "kind": "fixed-arrivals",
@@ -221,6 +288,15 @@
               }
             }
           }
+        ]
+      },
+      "ontology_binding": {
+        "primary": "KVCache",
+        "related": [
+          "KVState",
+          "RequestScheduling",
+          "StateTransfer",
+          "ComputeService"
         ]
       }
     },

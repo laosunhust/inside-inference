@@ -1,0 +1,248 @@
+$defs:
+  CacheComputation:
+    type: object
+    x-owner: ModelExecution
+    additionalProperties: false
+    required:
+    - work_id
+    - request_id
+    - step
+    - input_ids
+    - state_before
+    - state_after
+    - nodes
+    - selection
+    - matmul_flops
+    - logical_memory_bytes
+    - reference_max_abs_error
+    - phase
+    - reference_matmul_flops
+    properties:
+      work_id:
+        type: string
+      request_id:
+        type: string
+      step:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      input_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+          maximum: 383
+      state_before:
+        $ref: '#/$defs/KVState'
+      state_after:
+        $ref: '#/$defs/KVState'
+      nodes:
+        type: array
+        items:
+          $ref: '#/$defs/TensorObservation'
+      selection:
+        oneOf:
+        - $ref: '#/$defs/TokenSelection'
+        - type: 'null'
+      matmul_flops:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      logical_memory_bytes:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+      reference_max_abs_error:
+        type: number
+        minimum: 0
+      phase:
+        type: string
+        enum:
+        - cache-build
+        - prefill
+        - decode
+      reference_matmul_flops:
+        type: integer
+        minimum: 0
+  ModelForwardCompleted:
+    type: object
+    x-owner: ModelExecution
+    additionalProperties: false
+    required:
+    - kind
+    - work_id
+    - phase
+    properties:
+      kind:
+        type: string
+        title: Event kind
+        description: Event kind
+        const: model-forward-completed
+        default: model-forward-completed
+      work_id:
+        type: string
+        title: Numerical observation identity
+        description: Numerical observation identity
+      phase:
+        type: string
+        title: Execution phase
+        description: Execution phase
+        enum:
+        - prefill
+        - decode
+  NumericalPrecision:
+    type: object
+    properties:
+      accumulation:
+        type: string
+      compute:
+        type: string
+      storage:
+        type: string
+    required:
+    - accumulation
+    - compute
+    - storage
+    additionalProperties: false
+    x-owner: ModelExecution
+  TokenSelection:
+    type: object
+    properties:
+      decoding:
+        type: string
+      probabilities:
+        type: array
+        items:
+          type: number
+      raw_logits:
+        type: array
+        items:
+          type: number
+      rng_state:
+        type: 'null'
+      rule:
+        type: string
+        const: unmasked-greedy-v1
+      selected_id:
+        type: integer
+    required:
+    - decoding
+    - probabilities
+    - raw_logits
+    - rng_state
+    - rule
+    - selected_id
+    additionalProperties: false
+    x-owner: Decoding
+  TokenSelected:
+    type: object
+    x-owner: Decoding
+    additionalProperties: false
+    required:
+    - kind
+    - work_id
+    - token_id
+    - output_position
+    properties:
+      kind:
+        type: string
+        title: Event kind
+        description: Event kind
+        const: token-selected
+        default: token-selected
+      work_id:
+        type: string
+        title: Producing computation
+        description: Producing computation
+      token_id:
+        type: integer
+        title: Selected vocabulary ID
+        description: Selected vocabulary ID
+        minimum: 0
+        maximum: 9007199254740991
+      output_position:
+        type: integer
+        title: Absolute sequence position
+        description: Absolute sequence position
+        minimum: 0
+        maximum: 9007199254740991
+  NumericalPass:
+    type: object
+    properties:
+      display_so_far:
+        type: string
+        description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
+          as labeled markers.
+      execution:
+        type: string
+      id:
+        type: string
+      input_ids:
+        type: array
+        items:
+          type: integer
+      nodes:
+        type: array
+        items:
+          $ref: '#/$defs/TensorObservation'
+      output_position:
+        type: integer
+      phase:
+        type: string
+      positions:
+        type: array
+        items:
+          type: integer
+      request_id:
+        type: string
+      run_id:
+        type: string
+      selection:
+        $ref: '#/$defs/TokenSelection'
+      selection_position:
+        type: integer
+      step:
+        type: integer
+    required:
+    - display_so_far
+    - execution
+    - id
+    - input_ids
+    - nodes
+    - output_position
+    - phase
+    - positions
+    - request_id
+    - run_id
+    - selection
+    - selection_position
+    - step
+    additionalProperties: false
+    x-owner: Decoding
+  FullPrefixExecutionConfig:
+    type: object
+    x-owner: ModelExecution
+    additionalProperties: false
+    required:
+    - execution
+    properties:
+      execution:
+        type: string
+        title: Execution strategy
+        description: Supported baseline value.
+        const: full-prefix-recomputation
+        default: full-prefix-recomputation
+  CachedExecutionConfig:
+    type: object
+    x-owner: ModelExecution
+    additionalProperties: false
+    required:
+    - backend
+    properties:
+      backend:
+        type: string
+        enum:
+        - reference
+        - cuda
+        default: reference
+        title: Numerical backend

@@ -2,3 +2,5 @@
 .cache-panel,#cache-status{color:#dce8f3}.cache-panel a{color:#70d5c8}.cache-panel pre{background:#0b121c;color:#dce8f3;padding:.7rem}.cache-panel summary{cursor:pointer;color:#c1d5e5}.cache-panel h2,.cache-panel h3{color:#edf5ff}
 #cache-causes{margin:.5rem 0;font-size:.75rem}#cache-causes button{font-size:.7rem;padding:.2rem .4rem;margin:.2rem}
 .cache-legend span:nth-child(4){color:#e1b46c}
+
+.cache-panel fieldset{min-width:0;margin:.8rem 0;border:1px solid #344254;border-radius:8px}.cache-panel legend{font-size:.85rem;padding:0 .35rem}
