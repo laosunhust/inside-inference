@@ -24,9 +24,12 @@ terms:
           - kv_cache
           - transfer
           - compute_service
+          SystemConfigurationPreview:
+          - attention
     schemas:
     - InferenceSystem
     - KVResidencySystemConfig
+    - SystemConfigurationPreview
   GenerationPolicy:
     meaning: Per-request output-token budget and supported selection and termination rules.
     lifetime: "Editable per request before submission; immutable in that request\u2019s run binding."
@@ -76,13 +79,26 @@ terms:
     lifetime: Immutable in an identified execution record.
     owns:
     - An ordered collection of request arrivals; array order breaks equal-time ties.
+    - Declared transformation previews over source input; a rule is not an instantiated request or evidence
+      of generated arrivals.
     excludes:
     - Actual admission or execution order chosen by the scheduler
     - Generated outputs and measured completion times
     capability_reads: []
-    projections: {}
+    projections:
+      Workload:
+        meaning: An ordered request collection and the rules proposed to derive it from source input.
+          Transformation previews do not instantiate requests.
+        fields:
+          Workload:
+          - requests
+          WorkloadTransformationPreview:
+          - suffix_variants
+          - random_messages
+          - arrival_spacing_us
     schemas:
     - Workload
+    - WorkloadTransformationPreview
   InferenceResponse:
     meaning: The output published for one request and its observed completion outcome.
     lifetime: Immutable execution evidence, accumulated as output is published and the request finishes.

@@ -127,3 +127,24 @@ $defs:
         enum:
         - retained_keys
         - retained_values
+  AttentionConfiguration:
+    type: object
+    x-owner: Attention
+    title: Attention
+    description: Configuration preview. Only causal softmax executes in the landing model; KDA selects
+      the affected stage, not replacement weights or tensors.
+    additionalProperties: false
+    required:
+    - mechanism
+    properties:
+      mechanism:
+        type: string
+        title: Mechanism
+        default: causal-softmax
+        oneOf:
+        - type: string
+          const: causal-softmax
+          title: Causal softmax
+        - type: string
+          const: kda
+          title: KDA

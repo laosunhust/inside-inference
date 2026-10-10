@@ -170,7 +170,7 @@ class DeclarationTests(unittest.TestCase):
         spec = read(ROOT/'data-model/inference.schema.json')
         expected = {
             'InferenceRequest': ['InferenceRequest', 'RequestArrival'],
-            'InferenceSystem': ['InferenceSystem', 'KVResidencySystemConfig'],
+            'InferenceSystem': ['InferenceSystem', 'KVResidencySystemConfig', 'SystemConfigurationPreview'],
             'InferenceResponse': ['TokenPublished', 'RequestFinished', 'RunOutcome'],
             'ExecutionCapabilities': ['Capabilities', 'CacheCapabilities'],
             'Tokenizer': ['Token', 'Turn', 'Span', 'Encoding', 'TokenizerOperation'],

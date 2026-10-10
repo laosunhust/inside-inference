@@ -81,3 +81,24 @@ $defs:
           - $ref: '#/$defs/CustomerSubmission'
           - $ref: '#/$defs/CustomerConsumption'
           - $ref: '#/$defs/CustomerCancellation'
+  ClientConfigurationPreview:
+    type: object
+    x-owner: CustomerInteraction
+    title: Client
+    description: Client configuration preview. Paused marks the receiving boundary; no network, buffer,
+      or backpressure execution is implied.
+    additionalProperties: false
+    required:
+    - consumption
+    properties:
+      consumption:
+        type: string
+        title: Consumption
+        default: reading
+        oneOf:
+        - type: string
+          const: reading
+          title: Reading
+        - type: string
+          const: paused
+          title: Paused

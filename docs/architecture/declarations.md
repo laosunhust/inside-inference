@@ -33,6 +33,25 @@ records why it stopped and how much allowance remained unused. Counts include
 selected control IDs; visible output count is separate. Model initialization remains
 checkpoint preparation and is removed from the request form.
 
+## Control plane and data plane
+
+Source request text belongs to the data plane. The control plane defines rules over
+that source (linguistic variants and arrival spacing), inference mechanisms, and
+client consumption. A transformation rule is not an initialized request array.
+Workload remains the instantiated, ordered input consumed by execution.
+
+ConfigurationPreview composes separately owned workload transformations, system
+mechanism choices and client intent. Its fields, choices and defaults generate the
+controls; declaration ownership joins those controls to data-plane highlights and
+Zoom 3 details. Adding a supported field must not require a parallel UI registry.
+
+This is currently an interface preview. Nondefault transformations, KDA and paused
+consumption cannot execute in the landing engine; they mark the affected boundary
+without replacing the recorded baseline or fabricating tensors, messages or timing.
+The data-plane Apply source action runs only the declared baseline, independently of
+preview choices. Its returned binding is verified; preview highlights persist. Recorded
+evidence remains inspectable and exportable. SHA identities remain in machine records, not visible presentation.
+
 ## Interaction lifecycle
 
 The page holds one editable workload draft (currently one request), one submitted binding while executing,

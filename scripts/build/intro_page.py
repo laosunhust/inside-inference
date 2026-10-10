@@ -61,12 +61,15 @@ def esc(value):
     return html.escape(str(value), quote=True)
 
 
-def shell(title, body, prefix=''):
+def shell(title, body, prefix='', *, landing=False):
+    navigation = ('<span class="landing-links"><a href="labs-by-concept.html">Labs</a> · '
+                  '<a href="ontology.html">Ontology</a></span>' if landing else '<span>THE INFERENCE ATLAS</span>')
+    footer = '' if landing else '<footer>Mechanism → evidence → limits. An open laboratory, always incomplete.</footer>'
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)} · Inside Inference</title><link rel="stylesheet" href="{prefix}style.css"></head>
-<body><header><a href="{prefix}index.html">Inside Inference</a><span>THE INFERENCE ATLAS</span></header>
-<main>{body}</main><footer>Mechanism → evidence → limits. An open laboratory, always incomplete.</footer>
+<body><header><a href="{prefix}index.html">Inside Inference</a>{navigation}</header>
+<main>{body}</main>{footer}
 <script src="{prefix}app.js" defer></script></body></html>'''
 
 
@@ -95,7 +98,7 @@ def build(output, *, checkpoint=None):
     data = load_catalog()
     output.mkdir(parents=True, exist_ok=True)
     (output / 'labs').mkdir(exist_ok=True)
-    for name in ('style.css', 'app.js', 'journey.js', 'inference.js', 'execution-path.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
+    for name in ('style.css', 'app.js', 'journey.js', 'inference.js', 'configuration-preview.js', 'execution-path.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
         shutil.copyfile(ROOT / 'web' / name, output / name)
     layers = {x['id']: x for x in data['layers']}
     nav = ''.join(f'<a href="#layer-{x["id"]}">{i:02d} {esc(x["name"])}</a>'
@@ -180,7 +183,7 @@ The landing page executes an inspectable GPT with identified checkpoint provenan
         '__INFERENCE_DATA__', json.dumps(run_workload(checkpoint=checkpoint), allow_nan=False).replace('<', '\\u003c')).replace(
         '__ONTOLOGY_DATA__', json.dumps(terms).replace('<', '\\u003c'))
     numerical = '<link rel="stylesheet" href="inference.css">' + numerical
-    (output / 'index.html').write_text(shell('What happens if you change this?', numerical))
+    (output / 'index.html').write_text(shell('What happens if you change this?', numerical, landing=True))
     cache_record = run_cache_experiment(checkpoint=checkpoint)
     # Disposable static builds are reproducible. Real wall-clock samples remain
     # available from live/CLI execution, never invented as deterministic timings.

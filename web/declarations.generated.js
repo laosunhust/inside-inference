@@ -812,6 +812,56 @@ globalThis.Declarations = (() => {
     "additionalProperties": false,
     "x-owner": "GenerationPolicy"
   },
+  "SystemConfigurationPreview": {
+    "type": "object",
+    "x-owner": "InferenceSystem",
+    "title": "Inference system",
+    "description": "Expandable mechanism configuration preview; independent of the executed system binding.",
+    "additionalProperties": false,
+    "required": [
+      "attention"
+    ],
+    "properties": {
+      "attention": {
+        "$ref": "#/$defs/AttentionConfiguration"
+      }
+    }
+  },
+  "WorkloadTransformationPreview": {
+    "type": "object",
+    "x-owner": "Workload",
+    "title": "Input transformations",
+    "description": "Rules over the data-plane source input. Nonzero choices preview an intended workload transformation; the baseline does not generate variants, random messages, or timed arrivals.",
+    "additionalProperties": false,
+    "required": [
+      "suffix_variants",
+      "random_messages",
+      "arrival_spacing_us"
+    ],
+    "properties": {
+      "suffix_variants": {
+        "type": "integer",
+        "title": "Suffix variants",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "default": 0
+      },
+      "random_messages": {
+        "type": "integer",
+        "title": "Random messages",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "default": 0
+      },
+      "arrival_spacing_us": {
+        "type": "integer",
+        "title": "Arrival spacing (\u00b5s)",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "default": 0
+      }
+    }
+  },
   "RequestBinding": {
     "type": "object",
     "x-owner": "ExperimentSpec",
@@ -2439,6 +2489,29 @@ globalThis.Declarations = (() => {
       }
     ]
   },
+  "ConfigurationPreview": {
+    "type": "object",
+    "x-owner": "ExperimentSpec",
+    "title": "Configuration preview",
+    "description": "Workload transformation, mechanism and client choices over separately supplied data-plane input. Preview choices are not accepted execution settings; recorded evidence remains separately bound.",
+    "additionalProperties": false,
+    "required": [
+      "input",
+      "system",
+      "client"
+    ],
+    "properties": {
+      "input": {
+        "$ref": "#/$defs/WorkloadTransformationPreview"
+      },
+      "system": {
+        "$ref": "#/$defs/SystemConfigurationPreview"
+      },
+      "client": {
+        "$ref": "#/$defs/ClientConfigurationPreview"
+      }
+    }
+  },
   "InspectionState": {
     "type": "object",
     "x-owner": "InspectionState",
@@ -3000,6 +3073,35 @@ globalThis.Declarations = (() => {
       }
     }
   },
+  "AttentionConfiguration": {
+    "type": "object",
+    "x-owner": "Attention",
+    "title": "Attention",
+    "description": "Configuration preview. Only causal softmax executes in the landing model; KDA selects the affected stage, not replacement weights or tensors.",
+    "additionalProperties": false,
+    "required": [
+      "mechanism"
+    ],
+    "properties": {
+      "mechanism": {
+        "type": "string",
+        "title": "Mechanism",
+        "default": "causal-softmax",
+        "oneOf": [
+          {
+            "type": "string",
+            "const": "causal-softmax",
+            "title": "Causal softmax"
+          },
+          {
+            "type": "string",
+            "const": "kda",
+            "title": "KDA"
+          }
+        ]
+      }
+    }
+  },
   "CacheComputation": {
     "type": "object",
     "x-owner": "ModelExecution",
@@ -3536,6 +3638,35 @@ globalThis.Declarations = (() => {
         }
       }
     }
+  },
+  "ClientConfigurationPreview": {
+    "type": "object",
+    "x-owner": "CustomerInteraction",
+    "title": "Client",
+    "description": "Client configuration preview. Paused marks the receiving boundary; no network, buffer, or backpressure execution is implied.",
+    "additionalProperties": false,
+    "required": [
+      "consumption"
+    ],
+    "properties": {
+      "consumption": {
+        "type": "string",
+        "title": "Consumption",
+        "default": "reading",
+        "oneOf": [
+          {
+            "type": "string",
+            "const": "reading",
+            "title": "Reading"
+          },
+          {
+            "type": "string",
+            "const": "paused",
+            "title": "Paused"
+          }
+        ]
+      }
+    }
   }
 };
   const meanings = {
@@ -3663,13 +3794,17 @@ globalThis.Declarations = (() => {
             "kv_cache",
             "transfer",
             "compute_service"
+          ],
+          "SystemConfigurationPreview": [
+            "attention"
           ]
         }
       }
     },
     "schemas": [
       "InferenceSystem",
-      "KVResidencySystemConfig"
+      "KVResidencySystemConfig",
+      "SystemConfigurationPreview"
     ]
   },
   "GenerationPolicy": {
@@ -3731,16 +3866,32 @@ globalThis.Declarations = (() => {
     "meaning": "An ordered collection of request arrivals; array order breaks equal-time ties.",
     "lifetime": "Immutable in an identified execution record.",
     "owns": [
-      "An ordered collection of request arrivals; array order breaks equal-time ties."
+      "An ordered collection of request arrivals; array order breaks equal-time ties.",
+      "Declared transformation previews over source input; a rule is not an instantiated request or evidence of generated arrivals."
     ],
     "excludes": [
       "Actual admission or execution order chosen by the scheduler",
       "Generated outputs and measured completion times"
     ],
     "capability_reads": [],
-    "projections": {},
+    "projections": {
+      "Workload": {
+        "meaning": "An ordered request collection and the rules proposed to derive it from source input. Transformation previews do not instantiate requests.",
+        "fields": {
+          "Workload": [
+            "requests"
+          ],
+          "WorkloadTransformationPreview": [
+            "suffix_variants",
+            "random_messages",
+            "arrival_spacing_us"
+          ]
+        }
+      }
+    },
     "schemas": [
-      "Workload"
+      "Workload",
+      "WorkloadTransformationPreview"
     ]
   },
   "InferenceResponse": {
@@ -3787,7 +3938,8 @@ globalThis.Declarations = (() => {
     "lifetime": "Editable before execution; the consumed specification is frozen in the execution record.",
     "owns": [
       "Submitted experiment input, and resolved bindings identifying the model, inference system, and request or workload actually consumed.",
-      "Primary and related ontology subjects, resolved against admitted concepts and preserved in execution."
+      "Primary and related ontology subjects, resolved against admitted concepts and preserved in execution.",
+      "Unexecuted configuration previews, kept distinct from resolved execution bindings."
     ],
     "excludes": [
       "Observed outcomes and execution identity",
@@ -3800,7 +3952,8 @@ globalThis.Declarations = (() => {
       "RunBinding",
       "KVExperimentInput",
       "KVRunBinding",
-      "OntologyBinding"
+      "OntologyBinding",
+      "ConfigurationPreview"
     ]
   },
   "ExperimentExecution": {
@@ -4119,7 +4272,8 @@ globalThis.Declarations = (() => {
       }
     },
     "schemas": [
-      "AttentionOperation"
+      "AttentionOperation",
+      "AttentionConfiguration"
     ]
   },
   "ResidualAddition": {
@@ -4374,26 +4528,37 @@ globalThis.Declarations = (() => {
     "lifetime": "Immutable scenario input; changing it defines a different scenario.",
     "owns": [
       "Ordered customer actions; equal-time array order breaks ties. Each submission creates one invocation.",
-      "Consumption describes client demand; cancellation expresses intent, not acknowledgment or immediate server termination."
+      "Consumption describes client demand; cancellation expresses intent, not acknowledgment or immediate server termination.",
+      "Client consumption intent in configuration previews; previewing a pause does not execute a transport or buffer."
     ],
     "excludes": [
       "No browser rendering, API protocol, network delivery, retry grouping or agent tool orchestration is implemented.",
       "These inputs are validated scenarios, not accepted by existing inference engines."
     ],
     "capability_reads": [],
-    "projections": {},
+    "projections": {
+      "Client": {
+        "meaning": "Client-side consumption intent; a preview does not establish delivery or executed backpressure.",
+        "fields": {
+          "ClientConfigurationPreview": [
+            "consumption"
+          ]
+        }
+      }
+    },
     "schemas": [
       "CustomerSubmission",
       "CustomerConsumption",
       "CustomerCancellation",
-      "CustomerInteraction"
+      "CustomerInteraction",
+      "ClientConfigurationPreview"
     ]
   }
 };
   const operationOwners = {"token_embedding": "Embedding", "embedding": "Embedding", "position_embedding": "PositionEncoding", "ln1_mean": "Normalization", "ln1_variance": "Normalization", "ln1": "Normalization", "ln2_mean": "Normalization", "ln2_variance": "Normalization", "ln2": "Normalization", "ln_final_mean": "Normalization", "ln_final_variance": "Normalization", "ln_final": "Normalization", "query": "Attention", "key": "Attention", "value": "Attention", "scores": "Attention", "causal_mask": "Attention", "attention": "Attention", "weighted_values": "Attention", "attention_output": "Attention", "attention_residual": "ResidualAddition", "ff_residual": "ResidualAddition", "ff_up": "FeedForward", "gelu": "FeedForward", "ff_down": "FeedForward", "logits": "OutputProjection", "input_ids": "Tokenizer", "retained_keys": "KVState", "retained_values": "KVState"};
   const labs = [{"id": "naive-gpt", "name": "Na\u00efve GPT computation", "status": "mechanical-demo", "ontology_binding": {"primary": "ModelExecution", "related": ["Tokenizer", "Embedding", "PositionEncoding", "Normalization", "Attention", "ResidualAddition", "FeedForward", "OutputProjection", "Decoding"]}}, {"id": "kimi-delta-attention", "name": "Kimi Delta Attention (KDA)", "status": "mechanical-demo", "ontology_binding": {"primary": "Attention", "related": []}}, {"id": "prefix-cache", "name": "Exact prefix caching", "status": "mechanical-demo", "ontology_binding": {"primary": "KVCache", "related": ["KVState", "RequestScheduling", "StateTransfer", "ComputeService"]}}, {"id": "prefill-decode", "name": "Prefill/decode KV handoff", "status": "planned", "ontology_binding": {"primary": "StateTransfer", "related": ["KVState", "ModelExecution"]}}, {"id": "speculative-decoding", "name": "Speculative decoding", "status": "planned", "ontology_binding": {"primary": "Decoding", "related": ["ModelExecution", "KVState"]}}, {"id": "positional-encoding", "name": "Positional encoding", "status": "planned", "ontology_binding": {"primary": "PositionEncoding", "related": ["Embedding", "Attention"]}}];
   const routes = {"capabilities": "/api/capabilities", "run": "/api/runs", "cacheRun": "/api/cache-runs", "cacheCapabilities": "/api/cache-capabilities"};
-  const hash = "7d7fe15f73b0fbe675902adec145e3ae68d36e5ea24ad9d31e5adda3be7f440f";
+  const hash = "2d66e8c561d8b61bf3172b28461d0e0553bc0a6fbdb4f22e0dfea54bad95bee5";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

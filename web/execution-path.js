@@ -37,6 +37,7 @@ globalThis.ExecutionPath = (() => {
       button.title=button.getAttribute('aria-label') || button.textContent;
       button.onclick=()=>select(button.dataset.entity,node);
       const item=document.createElement('li');
+      item.dataset.configurationOwner=stage.owner;
       item.dataset.observations=JSON.stringify(stage.nodes.map(n=>n.id));item.dataset.inputs=JSON.stringify(stage.inputs);
       item.style.left=stage.x+'px';item.style.top=(stage.y-25)+'px';
       item.append(button);path.append(item);

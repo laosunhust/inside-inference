@@ -6,6 +6,7 @@ terms:
     - Submitted experiment input, and resolved bindings identifying the model, inference system, and request
       or workload actually consumed.
     - Primary and related ontology subjects, resolved against admitted concepts and preserved in execution.
+    - Unexecuted configuration previews, kept distinct from resolved execution bindings.
     excludes:
     - Observed outcomes and execution identity
     - Causal events and numerical measurements
@@ -17,6 +18,7 @@ terms:
     - KVExperimentInput
     - KVRunBinding
     - OntologyBinding
+    - ConfigurationPreview
   ExperimentExecution:
     meaning: One identified execution of an experiment specification, retaining its events and observations
       for inspection and replay.

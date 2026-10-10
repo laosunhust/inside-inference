@@ -607,3 +607,22 @@ $defs:
         items:
           type: string
           x-ontology-reference: true
+  ConfigurationPreview:
+    type: object
+    x-owner: ExperimentSpec
+    title: Configuration preview
+    description: Workload transformation, mechanism and client choices over separately supplied data-plane
+      input. Preview choices are not accepted execution settings; recorded evidence remains separately
+      bound.
+    additionalProperties: false
+    required:
+    - input
+    - system
+    - client
+    properties:
+      input:
+        $ref: '#/$defs/WorkloadTransformationPreview'
+      system:
+        $ref: '#/$defs/SystemConfigurationPreview'
+      client:
+        $ref: '#/$defs/ClientConfigurationPreview'

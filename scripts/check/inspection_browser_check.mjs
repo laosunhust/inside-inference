@@ -11,7 +11,7 @@ export async function checkInspection(evaluate, run, prediction) {
     }));
     for(const item of document.querySelectorAll('#computation-path > li')) {
       const button=item.querySelector('[data-operation]');button.click();
-      const actual=JSON.parse(document.querySelector('#detail-body > details pre').textContent);
+      const actual=JSON.parse(document.querySelector('#detail-body > details script').textContent);
       if(actual.operation.name!==button.dataset.operation || !JSON.parse(item.dataset.observations).includes(actual.id)) throw new Error('Stage opens a different computation');
 
     }
@@ -28,7 +28,7 @@ export async function checkInspection(evaluate, run, prediction) {
     document.getElementById('selection-logits').click();
     const nodes=[], parameters={}, rows={}, links={}, seen=new Set();
     function visit() {
-      const node=JSON.parse(document.querySelector('#detail-body > details pre').textContent);
+      const node=JSON.parse(document.querySelector('#detail-body > details script').textContent);
       const context=document.getElementById('inspection-context').dataset;
       if(context.observationId!==node.id || context.passId!==${JSON.stringify(pass.id)} || context.runId!==${JSON.stringify(run.id)}) throw new Error('Disconnected inspection identity');
       if(seen.has(node.id)) return;

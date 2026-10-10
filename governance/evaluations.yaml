@@ -1,25 +1,26 @@
 version: 1
-work_item: remove-detached-computation-controls
-question: Can the diagram stand alone without redundant tokenization, selection, publication controls and a loop
-  caption?
-necessity: The audit found complete runs repeated for small metadata assertions and duplicated generic ownership
-  probes.
-baseline: The authored operation-family strip shows combined embeddings before positional input and hides repeated
-  normalization/residual operations.
+work_item: control-plane-cards-and-source-apply
+question: Can readers open ontology-backed configuration from three cards and independently apply source edits?
+necessity: Inline controls dominate the page and preview selections currently block source execution.
+baseline: Editable preview choices mixed with a run button disabled by any nonbaseline preview.
 reuse:
-- source: out/experiments/unit-audit/audit.txt and existing unittest fixtures and assertions
-  decision: Reuse independent numerical oracles and mutation cases; use smaller real-model fixtures rather than
-    mocking validation or reducing vocabulary.
+- source: web/configuration-preview.js and native HTML dialog
+  decision: Reuse declared controls and browser-provided modal focus, Escape and focus restoration.
+- source: generated system schema references and executed operation owners
+  decision: Derive unavailable components from existing ontology instead of inventing a settings registry.
 criteria:
-- Remove the detached Tokenize, Next-token selection, Output IDs controls and Append ID caption from the computation
-  panel.
-- Preserve tokenization inspection through the request, selection through the existing selected-token chip, and
-  publication through the response.
-- Keep trace-derived diagram nodes, arrows, ontology bindings and numerical inspection unchanged.
-- Headless/browser parity and both test budgets must pass.
+- Remove redundant system-summary button and prediction tabs; retain bounded previous/next inspection.
+- Source editor starts collapsed, collapses on successful apply, and stays open on failure.
+- Input, inference-system and output are large clickable colored cards opening accessible overlays.
+- Available controls retain their ontology bindings; unavailable system components are visibly disabled.
+- Source text and its apply action stay in the data plane.
+- Applying source edits executes the declared baseline even with a preview selected, retaining preview highlights.
+- The apply action explicitly names the baseline and does not claim execution of preview mechanisms.
+- Failed submissions retain prior evidence; browser/headless parity and wall-time budgets pass.
 checks:
-- make test
 - make test-integration
+- Desktop and mobile screenshot inspection
 counterexamples:
-- Removing a control leaves the initial inspector without a valid ontology binding.
-- The selected-token chip or response-to-selection link no longer opens numerical selection evidence.
+- A preview selection blocks source application or silently becomes an executed setting.
+- An overlay lists experiment records as configurable inference mechanisms.
+- Closing an overlay loses preview settings or keyboard focus.

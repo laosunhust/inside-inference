@@ -4,7 +4,7 @@ from typing import Any
 from inside_inference.contract_runtime import Declaration
 
 API_PATHS = {'capabilities': '/api/capabilities', 'run': '/api/runs', 'cacheRun': '/api/cache-runs', 'cacheCapabilities': '/api/cache-capabilities'}
-CONTRACT_SHA256 = '7d7fe15f73b0fbe675902adec145e3ae68d36e5ea24ad9d31e5adda3be7f440f'
+CONTRACT_SHA256 = '2d66e8c561d8b61bf3172b28461d0e0553bc0a6fbdb4f22e0dfea54bad95bee5'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -547,6 +547,50 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                       'required': ['choice', 'explanation', 'rule'],
                       'additionalProperties': False,
                       'x-owner': 'GenerationPolicy'},
+ 'SystemConfigurationPreview': {'type': 'object',
+                                'x-owner': 'InferenceSystem',
+                                'title': 'Inference system',
+                                'description': 'Expandable mechanism '
+                                               'configuration preview; '
+                                               'independent of the executed '
+                                               'system binding.',
+                                'additionalProperties': False,
+                                'required': ['attention'],
+                                'properties': {'attention': {'$ref': '#/$defs/AttentionConfiguration'}}},
+ 'WorkloadTransformationPreview': {'type': 'object',
+                                   'x-owner': 'Workload',
+                                   'title': 'Input transformations',
+                                   'description': 'Rules over the data-plane '
+                                                  'source input. Nonzero '
+                                                  'choices preview an intended '
+                                                  'workload transformation; '
+                                                  'the baseline does not '
+                                                  'generate variants, random '
+                                                  'messages, or timed '
+                                                  'arrivals.',
+                                   'additionalProperties': False,
+                                   'required': ['suffix_variants',
+                                                'random_messages',
+                                                'arrival_spacing_us'],
+                                   'properties': {'suffix_variants': {'type': 'integer',
+                                                                      'title': 'Suffix '
+                                                                               'variants',
+                                                                      'minimum': 0,
+                                                                      'maximum': 9007199254740991,
+                                                                      'default': 0},
+                                                  'random_messages': {'type': 'integer',
+                                                                      'title': 'Random '
+                                                                               'messages',
+                                                                      'minimum': 0,
+                                                                      'maximum': 9007199254740991,
+                                                                      'default': 0},
+                                                  'arrival_spacing_us': {'type': 'integer',
+                                                                         'title': 'Arrival '
+                                                                                  'spacing '
+                                                                                  '(µs)',
+                                                                         'minimum': 0,
+                                                                         'maximum': 9007199254740991,
+                                                                         'default': 0}}},
  'RequestBinding': {'type': 'object',
                     'x-owner': 'ExperimentSpec',
                     'additionalProperties': False,
@@ -1131,6 +1175,20 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                {'if': {'properties': {'primary': {'const': 'Workload'}}},
                                 'then': {'properties': {'related': {'type': 'array',
                                                                     'not': {'contains': {'const': 'Workload'}}}}}}]},
+ 'ConfigurationPreview': {'type': 'object',
+                          'x-owner': 'ExperimentSpec',
+                          'title': 'Configuration preview',
+                          'description': 'Workload transformation, mechanism '
+                                         'and client choices over separately '
+                                         'supplied data-plane input. Preview '
+                                         'choices are not accepted execution '
+                                         'settings; recorded evidence remains '
+                                         'separately bound.',
+                          'additionalProperties': False,
+                          'required': ['input', 'system', 'client'],
+                          'properties': {'input': {'$ref': '#/$defs/WorkloadTransformationPreview'},
+                                         'system': {'$ref': '#/$defs/SystemConfigurationPreview'},
+                                         'client': {'$ref': '#/$defs/ClientConfigurationPreview'}}},
  'InspectionState': {'type': 'object',
                      'x-owner': 'InspectionState',
                      'additionalProperties': False,
@@ -1422,6 +1480,26 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                       'properties': {'name': {'type': 'string',
                                               'enum': ['retained_keys',
                                                        'retained_values']}}},
+ 'AttentionConfiguration': {'type': 'object',
+                            'x-owner': 'Attention',
+                            'title': 'Attention',
+                            'description': 'Configuration preview. Only causal '
+                                           'softmax executes in the landing '
+                                           'model; KDA selects the affected '
+                                           'stage, not replacement weights or '
+                                           'tensors.',
+                            'additionalProperties': False,
+                            'required': ['mechanism'],
+                            'properties': {'mechanism': {'type': 'string',
+                                                         'title': 'Mechanism',
+                                                         'default': 'causal-softmax',
+                                                         'oneOf': [{'type': 'string',
+                                                                    'const': 'causal-softmax',
+                                                                    'title': 'Causal '
+                                                                             'softmax'},
+                                                                   {'type': 'string',
+                                                                    'const': 'kda',
+                                                                    'title': 'KDA'}]}}},
  'CacheComputation': {'type': 'object',
                       'x-owner': 'ModelExecution',
                       'additionalProperties': False,
@@ -1750,7 +1828,26 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                     'minItems': 1,
                                                     'items': {'oneOf': [{'$ref': '#/$defs/CustomerSubmission'},
                                                                         {'$ref': '#/$defs/CustomerConsumption'},
-                                                                        {'$ref': '#/$defs/CustomerCancellation'}]}}}}}
+                                                                        {'$ref': '#/$defs/CustomerCancellation'}]}}}},
+ 'ClientConfigurationPreview': {'type': 'object',
+                                'x-owner': 'CustomerInteraction',
+                                'title': 'Client',
+                                'description': 'Client configuration preview. '
+                                               'Paused marks the receiving '
+                                               'boundary; no network, buffer, '
+                                               'or backpressure execution is '
+                                               'implied.',
+                                'additionalProperties': False,
+                                'required': ['consumption'],
+                                'properties': {'consumption': {'type': 'string',
+                                                               'title': 'Consumption',
+                                                               'default': 'reading',
+                                                               'oneOf': [{'type': 'string',
+                                                                          'const': 'reading',
+                                                                          'title': 'Reading'},
+                                                                         {'type': 'string',
+                                                                          'const': 'paused',
+                                                                          'title': 'Paused'}]}}}}
 
 @dataclass(frozen=True, kw_only=True)
 class ModelArchitecture(Declaration):
@@ -1945,6 +2042,23 @@ class DecodingContract(Declaration):
     choice: str
     explanation: str
     rule: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class AttentionConfiguration(Declaration):
+    mechanism: str | str = 'causal-softmax'
+
+
+@dataclass(frozen=True, kw_only=True)
+class SystemConfigurationPreview(Declaration):
+    attention: AttentionConfiguration = field(default_factory=AttentionConfiguration)
+
+
+@dataclass(frozen=True, kw_only=True)
+class WorkloadTransformationPreview(Declaration):
+    suffix_variants: int = 0
+    random_messages: int = 0
+    arrival_spacing_us: int = 0
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -2262,6 +2376,18 @@ class CacheRun(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class ClientConfigurationPreview(Declaration):
+    consumption: str | str = 'reading'
+
+
+@dataclass(frozen=True, kw_only=True)
+class ConfigurationPreview(Declaration):
+    input: WorkloadTransformationPreview = field(default_factory=WorkloadTransformationPreview)
+    system: SystemConfigurationPreview = field(default_factory=SystemConfigurationPreview)
+    client: ClientConfigurationPreview = field(default_factory=ClientConfigurationPreview)
+
+
+@dataclass(frozen=True, kw_only=True)
 class InspectionState(Declaration):
     run_id: str
     prediction: int
@@ -2345,7 +2471,7 @@ class CustomerInteraction(Declaration):
     actions: tuple[CustomerSubmission | CustomerConsumption | CustomerCancellation, ...]
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'FullPrefixExecutionConfig': FullPrefixExecutionConfig, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'CachedExecutionConfig': CachedExecutionConfig, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'TokenPublished': TokenPublished, 'RunOutcome': RunOutcome, 'RequestFinished': RequestFinished, 'DecodingContract': DecodingContract, 'OntologyBinding': OntologyBinding, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'ModelForwardCompleted': ModelForwardCompleted, 'TokenSelected': TokenSelected, 'RunEvent': RunEvent, 'Span': Span, 'Encoding': Encoding, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'CacheComputation': CacheComputation, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction}
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'FullPrefixExecutionConfig': FullPrefixExecutionConfig, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'CachedExecutionConfig': CachedExecutionConfig, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'TokenPublished': TokenPublished, 'RunOutcome': RunOutcome, 'RequestFinished': RequestFinished, 'DecodingContract': DecodingContract, 'AttentionConfiguration': AttentionConfiguration, 'SystemConfigurationPreview': SystemConfigurationPreview, 'WorkloadTransformationPreview': WorkloadTransformationPreview, 'OntologyBinding': OntologyBinding, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'ModelForwardCompleted': ModelForwardCompleted, 'TokenSelected': TokenSelected, 'RunEvent': RunEvent, 'Span': Span, 'Encoding': Encoding, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'CacheComputation': CacheComputation, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ClientConfigurationPreview': ClientConfigurationPreview, 'ConfigurationPreview': ConfigurationPreview, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction}
 OPERATION_OWNERS = {'token_embedding': 'Embedding', 'embedding': 'Embedding', 'position_embedding': 'PositionEncoding', 'ln1_mean': 'Normalization', 'ln1_variance': 'Normalization', 'ln1': 'Normalization', 'ln2_mean': 'Normalization', 'ln2_variance': 'Normalization', 'ln2': 'Normalization', 'ln_final_mean': 'Normalization', 'ln_final_variance': 'Normalization', 'ln_final': 'Normalization', 'query': 'Attention', 'key': 'Attention', 'value': 'Attention', 'scores': 'Attention', 'causal_mask': 'Attention', 'attention': 'Attention', 'weighted_values': 'Attention', 'attention_output': 'Attention', 'attention_residual': 'ResidualAddition', 'ff_residual': 'ResidualAddition', 'ff_up': 'FeedForward', 'gelu': 'FeedForward', 'ff_down': 'FeedForward', 'logits': 'OutputProjection', 'input_ids': 'Tokenizer', 'retained_keys': 'KVState', 'retained_values': 'KVState'}
 LAB_BINDINGS = {'naive-gpt': {'primary': 'ModelExecution', 'related': ['Tokenizer', 'Embedding', 'PositionEncoding', 'Normalization', 'Attention', 'ResidualAddition', 'FeedForward', 'OutputProjection', 'Decoding']}, 'kimi-delta-attention': {'primary': 'Attention', 'related': []}, 'prefix-cache': {'primary': 'KVCache', 'related': ['KVState', 'RequestScheduling', 'StateTransfer', 'ComputeService']}, 'prefill-decode': {'primary': 'StateTransfer', 'related': ['KVState', 'ModelExecution']}, 'speculative-decoding': {'primary': 'Decoding', 'related': ['ModelExecution', 'KVState']}, 'positional-encoding': {'primary': 'PositionEncoding', 'related': ['Embedding', 'Attention']}}
 for model in MODELS.values():

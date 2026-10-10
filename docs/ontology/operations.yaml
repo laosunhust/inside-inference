@@ -69,6 +69,7 @@ terms:
           - name
     schemas:
     - AttentionOperation
+    - AttentionConfiguration
   ResidualAddition:
     meaning: Add a branch output to its preserved residual input.
     lifetime: A model operation identity; observations are captured per execution.
