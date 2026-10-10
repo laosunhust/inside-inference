@@ -1,0 +1,25 @@
+version: 1
+work_item: remove-detached-computation-controls
+question: Can the diagram stand alone without redundant tokenization, selection, publication controls and a loop
+  caption?
+necessity: The audit found complete runs repeated for small metadata assertions and duplicated generic ownership
+  probes.
+baseline: The authored operation-family strip shows combined embeddings before positional input and hides repeated
+  normalization/residual operations.
+reuse:
+- source: out/experiments/unit-audit/audit.txt and existing unittest fixtures and assertions
+  decision: Reuse independent numerical oracles and mutation cases; use smaller real-model fixtures rather than
+    mocking validation or reducing vocabulary.
+criteria:
+- Remove the detached Tokenize, Next-token selection, Output IDs controls and Append ID caption from the computation
+  panel.
+- Preserve tokenization inspection through the request, selection through the existing selected-token chip, and
+  publication through the response.
+- Keep trace-derived diagram nodes, arrows, ontology bindings and numerical inspection unchanged.
+- Headless/browser parity and both test budgets must pass.
+checks:
+- make test
+- make test-integration
+counterexamples:
+- Removing a control leaves the initial inspector without a valid ontology binding.
+- The selected-token chip or response-to-selection link no longer opens numerical selection evidence.

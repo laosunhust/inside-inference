@@ -1,5 +1,8 @@
 # Tokenizer and dataset: first experiment checkpoint
 
+Next proposal (2026-10-10): [bounded 384-token BPE comparison](tokenizer-spike-proposal.md).
+This is awaiting review and does not change the codec described below.
+
 Date: 2026-10-08. Scope: the first part of the requested four-hour experiment,
 before a trainer or GPT implementation. Commands: `make _tokenizer-example`,
 `make _dataset-audit`, `make test`, `make _check`.

@@ -1,0 +1,34 @@
+version: 1
+work_item: preserve-evaluation-history
+question: Can evaluation criteria and results remain inspectable without allowing later work to overwrite
+  earlier commitments?
+necessity: The single-record admission file allowed a new valid evaluation to replace previous criteria.
+baseline: Only field presence is checked; four legacy committed evaluations and the uncommitted separator
+  diagnosis must be retained.
+reuse:
+- source: Existing strict YAML reader, Git history, approval-lock mechanism and governance tests
+  decision: Reuse parsing and Git objects as preservation evidence; retain separate criteria and result
+    records without adding a service.
+criteria:
+- Preserve all four legacy committed evaluation snapshots and the current separator criteria without rewriting
+  their bytes.
+- Require an existing active criteria record; validate all records, not just the active one.
+- Reject changed or deleted committed criteria and results, including after a violating commit; amendments
+  use new records with explicit supersedes links.
+- Bind each result to an existing criteria path and exact content digest; require maintained evidence
+  references.
+- Reject unsafe paths, symlinks, dangling references and unavailable required Git history.
+- Demonstrate violations in unit tests and actual temporary Git history in integration, without exceeding
+  existing harness budgets.
+- 'Keep evaluation limitations explicit: local Git provenance does not authenticate approval or prove
+  evidence scientifically.'
+- Audit M2 acceptance evidence and identify the next G1 work without training or changing model behavior.
+checks:
+- make test
+- make test-integration
+- Read M2 acceptance against numerical tests, lab declarations and evidence
+counterexamples:
+- A valid new active record replaces an older record.
+- An agent edits criteria and updates a result digest to disguise weakened criteria.
+- A rewrite is committed and becomes HEAD before the next check.
+- A result points to a missing or different criteria revision.

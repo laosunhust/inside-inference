@@ -179,6 +179,8 @@
     $('sequence-strip').replaceChildren(...p.input_ids.map(tokenButton));
     const id = p.selection.selected_id;
     $('selected-token').textContent = label(id);
+    $('output-label').textContent = accepted().checkpoint.provenance.kind === 'untrained'
+      ? 'Published output · untrained' : 'Published output';
     $('response-preview').textContent = InspectionSession.publicationText(session.run,session.view.prediction) || '—';
     $('previous-pass').disabled = session.view.prediction === 0;
     $('next-pass').disabled = session.view.prediction === accepted().passes.length - 1;

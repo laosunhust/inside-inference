@@ -1,0 +1,23 @@
+version: 1
+work_item: word-separator-diagnosis
+question: Are missing spaces explained by the current run's selections and the pilot's response supervision?
+necessity: Diagnose the observed output before changing the tokenizer or training.
+baseline: The v2 lexical codec, the currently served run, and regenerated pilot preparation examples.
+reuse:
+- source: inside_inference/preparation.py and inside_inference/workload.py
+  decision: Reuse actual preparation and inference paths without starting training or duplicating projection rules.
+criteria:
+- Regenerate train/development examples and count SPACE targets, input spaces, and unused multi-word accepted answers.
+- Preserve the observed served run and distinguish it from the unrecovered historical browser session.
+- Verify checkpoint identity, raw-logit selections, published deltas, and strict text decoding for the observed run.
+- Replay the same workload with the recorded weights and compare selected IDs and logits.
+- Derive a compact untrained-output label from checkpoint provenance, never from output appearance.
+- Keep tokenizer, manifest, model weights, selection policy and displayed output bytes unchanged.
+- Stop within thirty minutes; report missing evidence rather than broadening into training or migration.
+checks:
+- make _diagnose-word-separator
+- make test-integration
+counterexamples:
+- SPACE was selected but publication or presentation discarded it.
+- A trained checkpoint is mislabeled untrained, or a new reproduction is claimed as the original browser session.
+- Spaces in prompts are counted as supervised SPACE targets despite response-only loss.

@@ -1,0 +1,26 @@
+version: 1
+work_item: control-plane-cards-and-source-apply
+question: Can readers open ontology-backed configuration from three cards and independently apply source edits?
+necessity: Inline controls dominate the page and preview selections currently block source execution.
+baseline: Editable preview choices mixed with a run button disabled by any nonbaseline preview.
+reuse:
+- source: web/configuration-preview.js and native HTML dialog
+  decision: Reuse declared controls and browser-provided modal focus, Escape and focus restoration.
+- source: generated system schema references and executed operation owners
+  decision: Derive unavailable components from existing ontology instead of inventing a settings registry.
+criteria:
+- Remove redundant system-summary button and prediction tabs; retain bounded previous/next inspection.
+- Source editor starts collapsed, collapses on successful apply, and stays open on failure.
+- Input, inference-system and output are large clickable colored cards opening accessible overlays.
+- Available controls retain their ontology bindings; unavailable system components are visibly disabled.
+- Source text and its apply action stay in the data plane.
+- Applying source edits executes the declared baseline even with a preview selected, retaining preview highlights.
+- The apply action explicitly names the baseline and does not claim execution of preview mechanisms.
+- Failed submissions retain prior evidence; browser/headless parity and wall-time budgets pass.
+checks:
+- make test-integration
+- Desktop and mobile screenshot inspection
+counterexamples:
+- A preview selection blocks source application or silently becomes an executed setting.
+- An overlay lists experiment records as configurable inference mechanisms.
+- Closing an overlay loses preview settings or keyboard focus.

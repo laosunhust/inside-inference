@@ -4,6 +4,8 @@ from pathlib import Path
 import shutil
 import tempfile
 import unittest
+from unittest.mock import patch
+import hashlib
 import yaml
 from scripts import ROOT
 from scripts.build.structured import read_yaml
@@ -93,14 +95,64 @@ class GovernanceTests(unittest.TestCase):
                 (root/'governance/limits.yaml').write_text(yaml.safe_dump(bad))
                 with self.assertRaises(ValueError): load_limits(root)
 
-    def test_evaluation_without_criteria_or_reuse_is_blocked(self):
-        original=read_yaml(ROOT/'governance/evaluations.yaml')
-        for key in ('question','baseline','criteria','counterexamples','reuse'):
-            with self.subTest(key=key), tempfile.TemporaryDirectory() as directory:
-                root=Path(directory);(root/'governance').mkdir()
-                changed=copy.deepcopy(original);changed[key]=[] if isinstance(changed[key],list) else ''
-                (root/'governance/evaluations.yaml').write_text(yaml.safe_dump(changed))
-                with self.assertRaises(ValueError):audit_evaluation(root)
+    def test_evaluation_history_references_and_result_binding(self):
+        active=read_yaml(ROOT/'governance/evaluations.yaml')['active']
+        original=read_yaml(ROOT/active)
+        def write(root, name, value):
+            path=root/name;path.parent.mkdir(parents=True,exist_ok=True)
+            path.write_text(yaml.safe_dump(value))
+        criteria='governance/evaluations/records/test/first.yaml'
+        result='governance/evaluations/results/test/first.yaml'
+        for violation in (None, 'deleted', 'rewritten', 'rehash', 'dangling', 'bad-result',
+                          'missing-evidence', 'symlink', 'cycle', 'duplicate', 'missing-criteria', 'missing-reuse', 'missing-question', 'missing-baseline', 'missing-counterexamples'):
+            with self.subTest(violation=violation), tempfile.TemporaryDirectory() as directory:
+                root=Path(directory)
+                write(root, criteria, original)
+                preserved={criteria:(root/criteria).read_bytes()}
+                write(root, 'governance/evaluations.yaml', {'version':2,'active':criteria})
+                (root/'evidence.md').write_text('Measured result')
+                record={'version':1,'evaluation':criteria,'evaluation_sha256':hashlib.sha256(preserved[criteria]).hexdigest(),
+                        'outcome':'passed','summary':'Measured','evidence':['evidence.md']}
+                write(root,result,record)
+                if violation=='duplicate':
+                    write(root,'governance/evaluations/records/test/duplicate.yaml',original)
+                if violation=='deleted': (root/criteria).unlink()
+                if violation in ('rewritten','rehash'):
+                    changed=copy.deepcopy(original);changed['criteria']=['Weakened']
+                    write(root,criteria,changed)
+                    if violation=='rehash':
+                        record['evaluation_sha256']=hashlib.sha256((root/criteria).read_bytes()).hexdigest()
+                        write(root,result,record)
+                if violation=='dangling':
+                    write(root,'governance/evaluations.yaml',{'version':2,'active':'missing.yaml'})
+                if violation=='bad-result':
+                    record['evaluation_sha256']='0'*64;write(root,result,record)
+                if violation=='missing-evidence': (root/'evidence.md').unlink()
+                if violation=='symlink':
+                    (root/criteria).unlink();(root/criteria).symlink_to(root/'evidence.md')
+                if violation == 'cycle' or violation in ('missing-criteria','missing-reuse','missing-question','missing-baseline','missing-counterexamples'):
+                    changed=copy.deepcopy(original)
+                    if violation=='cycle': changed['supersedes']=criteria
+                    else: changed[violation.removeprefix('missing-')]=[]
+                    write(root,criteria,changed);preserved={}
+                with patch('scripts.check.governance.evaluation.committed_evaluations',return_value=preserved):
+                    if violation:
+                        with self.assertRaises(ValueError): audit_evaluation(root)
+                    else:
+                        self.assertEqual(audit_evaluation(root),[])
+                        amendment=copy.deepcopy(original);amendment['supersedes']=criteria
+                        write(root,'governance/evaluations/records/test/second.yaml',amendment)
+                        self.assertEqual(audit_evaluation(root),[])
+                        # Completed results are commitments too, not just criteria.
+                        preserved[result]=(root/result).read_bytes()
+                        record['outcome']='failed';write(root,result,record)
+                        with self.assertRaisesRegex(ValueError,'immutable'): audit_evaluation(root)
+
+    def test_shallow_evaluation_history_cannot_reset_preservation(self):
+        from scripts.check.governance.evaluation import committed_evaluations
+        with patch('scripts.check.governance.evaluation.git',return_value=b'true\n'):
+            with self.assertRaisesRegex(ValueError,'non-shallow'):
+                committed_evaluations(ROOT)
 
     def test_ignored_source_and_nested_output_names_cannot_escape_limits(self):
         policy=load_limits(ROOT)

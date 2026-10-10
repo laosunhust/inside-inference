@@ -79,6 +79,8 @@ try {
   assert.equal(await evaluate(`document.querySelectorAll('.configuration-changed').length`),0);
   const firstDelivery=initial.events.filter(e=>e.payload.kind==='token-published' && e.payload.work_id===initial.traces[0].passes[0].id).map(e=>e.payload.display_delta).join('');
   assert.equal(await evaluate(`document.getElementById('response-preview').textContent`),firstDelivery);
+  assert.equal(await evaluate(`document.getElementById('output-label').textContent`),
+    initial.traces[0].checkpoint.provenance.kind==='untrained' ? 'Published output · untrained' : 'Published output');
   assert.ok(await evaluate(`document.getElementById('workload-summary').textContent.includes('execution order only')`));
   assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`), initial.traces[0].passes[0].input_ids.length);
   for (const id of ['inspect-request','inspect-embedding','inspect-layers','inspect-projection','selected-token','inspect-response']) {

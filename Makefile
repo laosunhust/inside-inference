@@ -82,6 +82,13 @@ _tokenizer-example:
 _dataset-audit:
 	@$(PYTHON) -m scripts.experiments.prepare_corpus
 
+# Read-only diagnosis against the running local page; uses optional preparation
+# dependencies to reproduce response supervision, but never trains a model.
+_diagnose-word-separator:
+	@$(PYTHON) -m scripts.experiments.diagnose_word_separator $(ARGS)
+
+.PHONY: _diagnose-word-separator
+
 .PHONY: help setup _intro-page serve-intro _check test test-integration _test _test-integration
 .PHONY: _data-models _data-models-check _make-check _layout-check
 .PHONY: _inference-example _measure-inference _vocabulary-study _tokenizer-example _dataset-audit

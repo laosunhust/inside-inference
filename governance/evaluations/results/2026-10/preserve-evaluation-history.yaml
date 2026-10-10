@@ -1,0 +1,9 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/preserve-evaluation-history.yaml
+evaluation_sha256: 3e02760f449753d3363f27cd86b714f6e58da1e4f07147ae88dbbb4734a0c13e
+outcome: passed
+summary: Recovered all four committed legacy criteria and preserved separator admission; protected checker
+  now rejects historical overwrite/deletion and binds results to criteria. Both harness budgets pass.
+  M2 reference evidence audited; G1 remains the next unimplemented lab.
+evidence:
+- docs/research/evaluation-preservation.md

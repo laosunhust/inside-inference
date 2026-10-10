@@ -1,0 +1,9 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/word-separator-diagnosis.yaml
+evaluation_sha256: bb0298fa87eb934438fb68a3fadd7d84cf4f8a2e4bedda5ef3ac7c39e1288dad
+outcome: passed
+summary: Current served untrained seed-7 run reproduces concatenation without selecting SPACE; original
+  browser session was not recovered. Pilot supervision has zero SPACE targets. No training or tokenizer
+  changes. Full integration passed in 75.61s.
+evidence:
+- docs/research/word-separator-diagnosis.md

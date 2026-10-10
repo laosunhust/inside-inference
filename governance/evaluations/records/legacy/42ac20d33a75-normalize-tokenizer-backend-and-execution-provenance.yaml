@@ -1,0 +1,29 @@
+version: 1
+work_item: normalize-tokenizer-backend-and-execution-provenance
+question: Can both inference paths expose consistent resolved model bindings and execution provenance
+  while preserving their numerical results and submission APIs?
+necessity: Tokenizer nouns mirror records, CacheBackend leaks a lab name, and KV records omit a resolved
+  model reference and detailed source inventory.
+reuse:
+- source: Existing model reference, run bindings, source hashing, runtime descriptions, and replay functions
+  decision: Reuse the current records and hashing mechanism; share provenance construction and validation
+    without adding external dependencies.
+criteria:
+- One Tokenizer owner governs Token, Span, Encoding, and Turn; ExecutionBackend replaces CacheBackend.
+- Submitted input stays distinct from resolved model/system/workload declarations on both paths.
+- Shared ExecutionProvenance contains source inventory, aggregate hash, Python/Git identity, and observed
+  backend; obsolete parallel fields are removed.
+- Replay rejects mismatched model, source inventory, runtime version, or backend; Git revision alone is
+  informational.
+- Reference and KV numerical outputs match captured baseline; CPU and available CUDA paths pass full integration.
+checks:
+- make check
+- make test
+- make test-integration
+baseline: Current passing ontology review harness and actual baseline runs saved in /tmp/normalization-baseline.json.
+counterexamples:
+- A changed model payload or bound model hash
+- A changed source entry with an unchanged aggregate hash
+- A forged Python version or backend
+- A KV input pretending to include a resolved model
+- Different logits, token choices, outcomes, or missing browser parity
