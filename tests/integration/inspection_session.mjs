@@ -41,10 +41,10 @@ for(const event of forged.events) {
 assert.throws(()=>InspectionSession.create(forged),/Published IDs differ/);
 
 const selected=run.traces[0].passes[1].nodes.find(n=>n.operation.name==='attention');
-state=InspectionSession.transition(state,{type:'INSPECT',view:{observation_id:selected.id}});
+state=InspectionSession.transition(state,{type:'INSPECT',view:{surface:'model',observation_id:selected.id}});
 assert.equal(state.view.observation_id,selected.id);
-assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{observation_id:'foreign-observation'}}));
-assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{observation_id:run.traces[0].passes[0].nodes[0].id}}));
+assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{surface:'model',observation_id:'foreign-observation'}}));
+assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{surface:'model',observation_id:run.traces[0].passes[0].nodes[0].id}}));
 state=InspectionSession.transition(state,{type:'INSPECT',view:{position:0}});
 assert.equal(state.view.observation_id,run.traces[0].passes[0].nodes.find(n=>n.operation.name==='attention').id);
 for(const binding of [
@@ -75,8 +75,21 @@ branch=InspectionSession.transition(branch,{type:'STEP_ACCEPT',result:step});
 assert.deepEqual(InspectionSession.sequence(branch),step.sequence_ids);
 assert.equal(branch.view.position,step.sequence_ids.length-1);
 const cursor=branch.view.position;
-branch=InspectionSession.transition(branch,{type:'INSPECT',view:{observation_id:step.computation.nodes[0].id}});
+branch=InspectionSession.transition(branch,{type:'INSPECT',view:{surface:'model',observation_id:step.computation.nodes[0].id}});
 assert.equal(branch.view.position,cursor,'operand inspection must not move the prefix cursor');
 branch=InspectionSession.transition(branch,{type:'INSPECT',view:{position:0}});
 assert.deepEqual(InspectionSession.nextRequest(branch).prefix_ids,step.sequence_ids.slice(0,1));
 assert.deepEqual(InspectionSession.nextRequest(branch).output_ids,[]);
+
+const acceptedOutput=InspectionSession.output(branch);
+const prefix=InspectionSession.nextRequest(branch), originalPosition=branch.view.position;
+for(const view of InspectionSession.journey(branch)) {
+ branch=InspectionSession.transition(branch,{type:'INSPECT',view});
+ assert.deepEqual(branch.view.surface,view.surface);
+ assert.deepEqual(branch.view.observation_id,view.observation_id);
+ assert.equal(branch.view.position,originalPosition);
+ assert.deepEqual(InspectionSession.nextRequest(branch),prefix);
+ assert.equal(InspectionSession.output(branch),acceptedOutput);
+}
+assert.throws(()=>InspectionSession.transition(branch,{type:'INSPECT',view:{surface:'model',observation_id:null}}));
+assert.throws(()=>InspectionSession.transition(branch,{type:'INSPECT',view:{surface:'response',observation_id:step.computation.nodes[0].id}}));

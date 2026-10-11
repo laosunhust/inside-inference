@@ -64,7 +64,7 @@
     const workIds = new Set(run.traces[0].passes.filter(p=>p.step<=prediction).map(p=>p.id));
     return run.events.filter(e=>e.payload.kind==='token-published' && workIds.has(e.payload.work_id)).map(e=>e.payload.display_delta).join('');
   };
-  const cursor = run => ({run_id:run.id,position:run.traces[0].passes[0].selection_position,observation_id:null});
+  const cursor = run => ({run_id:run.id,position:run.traces[0].passes[0].selection_position,observation_id:null,surface:'request'});
   function create(run) {
     validateRun(run);
     return {run, draft:copy(run.declaration.workload), submitted:null, view:cursor(run), step:null, submitted_step:null, phase:'offline', live:false, error:null};
@@ -96,7 +96,7 @@
         if(state.phase!=='running' || !state.submitted_step || !equal(event.result.request,state.submitted_step)) throw new Error('Step differs from submitted prefix');
         validateStep(event.result,state.run);
         return {...state,step:event.result,submitted_step:null,phase:'ready',error:null,
-          view:{run_id:event.result.id,position:event.result.sequence_ids.length-1,observation_id:null}};
+          view:{run_id:event.result.id,position:event.result.sequence_ids.length-1,observation_id:null,surface:'selection'}};
       }
       case 'INSPECT': {
         const view = {...state.view,...event.view};
@@ -113,6 +113,17 @@
       }
       default: throw new Error('Unknown inspection transition');
     }
+  }
+  const output = state => state.step ? state.step.computation.display_so_far : publicationText(state.run);
+  function journey(state) {
+    const pass=computation(state);
+    return [
+      {surface:'request',observation_id:null},
+      {surface:'system',observation_id:null},
+      ...pass.nodes.map(node=>({surface:'model',observation_id:node.id})),
+      {surface:'selection',observation_id:null},
+      {surface:'response',observation_id:null},
+    ];
   }
   const sequence = state => state.step?.sequence_ids || state.run.traces[0].sequence_ids;
   function computation(state) {
@@ -146,5 +157,5 @@
     if(p.run_id!==result.id || !equal(p.input_ids,prefix) || p.selection_position!==prefix.length-1 || p.output_position!==prefix.length || p.step!==spec.output_ids.length || winner!==selected ||
        !equal(result.output_ids,output) || !equal(result.sequence_ids,[...prefix,selected]) || result.remaining_tokens!==remaining || result.stop_reason!==stop) throw new Error('Step evidence differs from its exact prefix and selection');
   }
-  globalThis.InspectionSession = {create,transition,validateRun,publicationText,sequence,computation,nextRequest,validateStep};
+  globalThis.InspectionSession = {create,transition,validateRun,publicationText,sequence,computation,nextRequest,validateStep,output,journey};
 })();

@@ -152,7 +152,6 @@ body:has(#control-plane) .landing-links{font-size:12px;letter-spacing:0}
 .token-chip small{font-size:9px;color:#68796f}
 #pass-caption{font-size:11px;color:#53695d}
 .active,.selected-object{outline:2px solid #147d69;outline-offset:2px}
-.playground .selected-token{background:#e1f0e6}
 .event-record,.model-notes{font-size:12px}
 .numerical-inspector .panel-heading>span{font-size:12px}
 #definition{font-size:13px}
@@ -200,7 +199,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #workload-boundary.configuration-changed{border-left:3px solid #b17d2e;background:#fffaf0}
 @media(max-width:650px){.configuration-card>strong{font-size:17px}
 .configuration-card>small{font-size:10px}}
-.output-item>small{font-size:11px;color:#53695d}
 .cache-heading h1{font-size:clamp(2.2rem,5vw,4rem);line-height:1.05}
 .cache-panel{border:1px solid #344254;border-radius:16px;background:#101a25}
 .cache-panel h2{font-size:1.15rem}
@@ -260,3 +258,6 @@ button.primary:hover{background:var(--action-hover);border-color:var(--action-ho
 a{text-underline-offset:4px}
 dt{text-transform:uppercase}
 .wires path{marker-end:url(#arrow)}
+
+.execution-endpoint{border:1px solid var(--line);border-radius:10px}
+.execution-endpoint>legend{color:var(--muted);font-size:12px}

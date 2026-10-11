@@ -19,19 +19,18 @@
 <div class="configuration-actions"><button id="execute" class="primary" disabled>Apply</button>
 </div>
 <p id="run-error" role="alert" hidden></p></form></div>
-<p id="pass-caption"></p><div id="sequence-strip" class="token-strip" aria-label="Input positions for selected pass"></div>
 <section class="execution-journey" aria-label="Execution path">
-<div class="execution-heading"><h2>Computation</h2><span id="computation-caption"></span><div class="prediction-controls"><button id="next-token" class="primary" type="button" disabled>Next Token</button></div></div>
+<div class="execution-heading"><h2>Request journey</h2><span id="computation-caption"></span><div class="prediction-controls"><button id="token-journey" class="primary" type="button" aria-pressed="false" title="Replay this prediction’s recorded stages">Token Journey</button><button id="next-token" class="primary" type="button" disabled>Next Token</button></div></div>
+<div class="system-route"><button id="journey-request" type="button" data-entity="request" data-term="Request">Request</button><span aria-hidden="true">→</span><button id="journey-dispatch" type="button" data-entity="system" data-term="Inference system"><span id="dispatch-label"></span></button><span aria-hidden="true">↓</span></div>
+<fieldset class="execution-endpoint"><legend>Execution endpoint</legend>
 <div class="execution-scroll"><div id="execution-canvas">
 <svg id="execution-edges" aria-hidden="true"><defs><marker id="path-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0,0 6,3 0,6"/></marker></defs></svg>
 <ol id="computation-path" class="execution-path" aria-label="Recorded computation stages"></ol>
 </div></div>
+</fieldset>
+<div id="client-boundary" class="request-preview"><small>Output</small><strong id="response-preview"></strong><button id="output-details" class="primary" type="button" data-entity="response" data-term="Response" aria-expanded="false" aria-controls="sequence-details">Details</button></div>
+<div id="sequence-details" hidden><p id="pass-caption"></p><div id="sequence-strip" class="token-strip" aria-label="Combined input and output tokens"></div></div>
 </section>
-<div class="output-row">
-<div class="output-item"><small>Selected token</small><button id="selected-token" data-entity="selection" data-term="Token selection" class="selected-token" aria-label="Inspect this prediction"></button></div>
-<div id="client-boundary" class="output-item"><small id="output-label">Published output</small>
-<button id="inspect-response" data-entity="response" data-term="Response" aria-label="Inspect published output"><strong id="response-preview"></strong></button></div>
-</div>
 <details class="event-record"><summary>Events</summary><p id="workload-summary"></p><ol id="event-stream"></ol></details>
 </section>
 <!-- Display labels and declared bindings only. Trace observations determine order and repetition. -->

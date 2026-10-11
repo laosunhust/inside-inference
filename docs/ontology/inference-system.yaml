@@ -7,6 +7,7 @@ terms:
     - Composition of separately owned execution, scheduling, cache, transfer and compute-service
       configurations.
     - System-wide supported request and output-token ceilings.
+    - Declared dispatch boundary; the baseline uses one direct in-process execution endpoint.
     excludes:
     - Constituent mechanisms and their observations.
     - Caller-requested generation policy and response publication.
@@ -19,6 +20,7 @@ terms:
         fields:
           InferenceSystem:
           - model_execution
+          - dispatch
           - max_requests
           KVResidencySystemConfig:
           - model_execution

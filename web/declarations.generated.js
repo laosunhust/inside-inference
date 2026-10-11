@@ -499,6 +499,7 @@ globalThis.Declarations = (() => {
     "required": [
       "max_new_tokens_cap",
       "max_requests",
+      "dispatch",
       "model_execution"
     ],
     "properties": {
@@ -517,6 +518,13 @@ globalThis.Declarations = (() => {
         "maximum": 9007199254740991,
         "const": 1,
         "default": 1
+      },
+      "dispatch": {
+        "type": "string",
+        "title": "Direct dispatch",
+        "description": "One in-process execution endpoint; no router, queue, network or placement simulation.",
+        "const": "direct-in-process",
+        "default": "direct-in-process"
       },
       "model_execution": {
         "$ref": "#/$defs/FullPrefixExecutionConfig"
@@ -2629,7 +2637,8 @@ globalThis.Declarations = (() => {
     "required": [
       "run_id",
       "position",
-      "observation_id"
+      "observation_id",
+      "surface"
     ],
     "properties": {
       "run_id": {
@@ -2652,8 +2661,59 @@ globalThis.Declarations = (() => {
         "title": "Executed observation",
         "description": "Exact observation ID within the selected pass, or null for request and output inspection.",
         "default": null
+      },
+      "surface": {
+        "type": "string",
+        "title": "Inspection surface",
+        "description": "Single detail and diagram focus; model requires an observation in the selected computation.",
+        "enum": [
+          "request",
+          "workload",
+          "client",
+          "system",
+          "model",
+          "selection",
+          "response"
+        ],
+        "default": "request"
       }
-    }
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "surface": {
+              "const": "model"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "observation_id": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "not": {
+            "properties": {
+              "surface": {
+                "const": "model"
+              }
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "observation_id": {
+              "type": "null"
+            }
+          }
+        }
+      }
+    ]
   },
   "Capabilities": {
     "type": "object",
@@ -4444,7 +4504,8 @@ globalThis.Declarations = (() => {
     "lifetime": "Fixed for an identified system configuration.",
     "owns": [
       "Composition of separately owned execution, scheduling, cache, transfer and compute-service configurations.",
-      "System-wide supported request and output-token ceilings."
+      "System-wide supported request and output-token ceilings.",
+      "Declared dispatch boundary; the baseline uses one direct in-process execution endpoint."
     ],
     "excludes": [
       "Constituent mechanisms and their observations.",
@@ -4458,6 +4519,7 @@ globalThis.Declarations = (() => {
         "fields": {
           "InferenceSystem": [
             "model_execution",
+            "dispatch",
             "max_requests"
           ],
           "KVResidencySystemConfig": [
@@ -4715,10 +4777,11 @@ globalThis.Declarations = (() => {
     ]
   },
   "InspectionState": {
-    "meaning": "One selected position in an identified accepted token sequence, with an observation selection. Selection alone never executes inference.",
+    "meaning": "One selected position in an identified accepted token sequence, with one shared diagram/detail surface and observation selection. Selection and journey replay never execute inference.",
     "lifetime": "Changes on inspection; reset when the bound run changes.",
     "owns": [
       "Sequence position shared by token highlighting, derived recorded computation and the next submitted raw prefix.",
+      "Shared diagram/detail focus and recorded-journey replay selection.",
       "Executed observation selection; inspecting an operand never changes the generation prefix."
     ],
     "excludes": [
@@ -5246,7 +5309,7 @@ globalThis.Declarations = (() => {
   const operationOwners = {"token_embedding": "Embedding", "embedding": "Embedding", "position_embedding": "PositionEncoding", "ln1_mean": "Normalization", "ln1_variance": "Normalization", "ln1": "Normalization", "ln2_mean": "Normalization", "ln2_variance": "Normalization", "ln2": "Normalization", "ln_final_mean": "Normalization", "ln_final_variance": "Normalization", "ln_final": "Normalization", "query": "Attention", "key": "Attention", "value": "Attention", "scores": "Attention", "causal_mask": "Attention", "attention": "Attention", "weighted_values": "Attention", "attention_output": "Attention", "attention_residual": "ResidualAddition", "ff_residual": "ResidualAddition", "ff_up": "FeedForward", "gelu": "FeedForward", "ff_down": "FeedForward", "logits": "OutputProjection", "input_ids": "Tokenizer", "retained_keys": "KVState", "retained_values": "KVState"};
   const labs = [{"id": "naive-gpt", "name": "Na\u00efve GPT computation", "status": "mechanical-demo", "ontology_binding": {"primary": "ModelExecution", "related": ["Tokenizer", "Embedding", "PositionEncoding", "Normalization", "Attention", "ResidualAddition", "FeedForward", "OutputProjection", "Decoding"]}}, {"id": "kimi-delta-attention", "name": "Kimi Delta Attention (KDA)", "status": "mechanical-demo", "ontology_binding": {"primary": "Attention", "related": []}}, {"id": "prefix-cache", "name": "Exact prefix caching", "status": "mechanical-demo", "ontology_binding": {"primary": "KVCache", "related": ["KVState", "RequestScheduling", "StateTransfer", "ComputeService"]}}, {"id": "prefill-decode", "name": "Prefill/decode KV handoff", "status": "planned", "ontology_binding": {"primary": "StateTransfer", "related": ["KVState", "ModelExecution"]}}, {"id": "speculative-decoding", "name": "Speculative decoding", "status": "planned", "ontology_binding": {"primary": "Decoding", "related": ["ModelExecution", "KVState"]}}, {"id": "positional-encoding", "name": "Positional encoding", "status": "planned", "ontology_binding": {"primary": "PositionEncoding", "related": ["Embedding", "Attention"]}}];
   const routes = {"capabilities": "/api/capabilities", "run": "/api/runs", "cacheRun": "/api/cache-runs", "cacheCapabilities": "/api/cache-capabilities", "tokenStep": "/api/token-step", "artifact": "/api/artifacts"};
-  const hash = "c8c0e51f36391b73ae8921cbbdd27ed365feb9bc7d49bf5afcaef9b3445806bb";
+  const hash = "54445cd9033ad0f720a3dddb77714220828467b75300492a8012436f197c317d";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

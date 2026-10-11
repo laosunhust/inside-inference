@@ -1,11 +1,12 @@
 terms:
   InspectionState:
     meaning: One selected position in an identified accepted token sequence, with
-      an observation selection. Selection alone never executes inference.
+      one shared diagram/detail surface and observation selection. Selection and journey replay never execute inference.
     lifetime: Changes on inspection; reset when the bound run changes.
     owns:
     - Sequence position shared by token highlighting, derived recorded computation
       and the next submitted raw prefix.
+    - Shared diagram/detail focus and recorded-journey replay selection.
     - Executed observation selection; inspecting an operand never changes the generation
       prefix.
     excludes:

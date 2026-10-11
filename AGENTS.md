@@ -78,10 +78,20 @@ evaluations remain visible; presentation cannot substitute for either.
 Commit only when asked. Preserve the user's work and keep changes within the
 agreed scope. Each change must be explainable and reviewable on its own.
 
-Prefer cohesive modules and simple interfaces. Correctness takes precedence over
-backward compatibility; retire superseded paths and update their consumers together.
-Invalid or unsupported input must fail explicitly. Defaults initialize valid
-configurations; they must not repair failures or conceal alternate execution paths.
+SSOT is the highest development principle. Each fact, configuration and selection
+has one authority; consumers derive from it. Fix conflicting authorities at their
+source rather than synchronizing duplicates or masking drift in presentation.
+
+During development, backward compatibility is not a requirement. Favor forward
+compatibility through clear semantic boundaries and declared interfaces, without
+speculative abstractions. Prefer deletion and replacement of incorrect or superseded
+code, schemas and UI over adapters, fallbacks or parallel paths that preserve them.
+Update affected consumers together. This does not authorize destroying user data,
+execution evidence or unrelated work, or bypassing approval-locked boundaries.
+
+Prefer cohesive modules and simple interfaces. Invalid or unsupported input must
+fail explicitly. Defaults initialize valid configurations; they must not repair
+failures or conceal alternate execution paths.
 
 The root Makefile owns development workflows. Shared procedures and command details
 belong there; documents link to their authority instead of maintaining parallel

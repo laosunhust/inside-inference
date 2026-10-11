@@ -16,7 +16,8 @@ export async function checkInspection(evaluate, run, prediction) {
 
     }
     if(document.querySelector('#inspect-tokenizer, #inspect-selection, #inspect-publication, #generation-loop')) throw new Error('Detached computation controls returned');
-    document.getElementById('selected-token').click();
+    document.getElementById('output-details').click();
+    document.getElementById('response-selection').click();
     if(document.querySelector('#inspect-projection strong').textContent!=='Vocabulary projection') throw new Error('Ambiguous operation labels');
     function checkLabs(owner) {
       const count=Declarations.labs.filter(l=>l.ontology_binding.primary===owner && l.status==='mechanical-demo').length;
@@ -53,7 +54,7 @@ export async function checkInspection(evaluate, run, prediction) {
       }
     }
     visit();
-    return {nodes,parameters,rows,links,path,edges:Array.from(document.querySelectorAll('#execution-edges path'),p=>[Number(p.dataset.source),Number(p.dataset.target)]),height:document.querySelector('.execution-journey').getBoundingClientRect().height,position:Number(document.getElementById('inspection-context').dataset.position)};
+    return {nodes,parameters,rows,links,path,edges:Array.from(document.querySelectorAll('#execution-edges path'),p=>[Number(p.dataset.source),Number(p.dataset.target)]),height:document.querySelector('.execution-endpoint').getBoundingClientRect().height,position:Number(document.getElementById('inspection-context').dataset.position)};
   })()`);
   assert.deepEqual(observed.nodes.toSorted((a,b)=>a.id.localeCompare(b.id)),pass.nodes.toSorted((a,b)=>a.id.localeCompare(b.id)));
   assert.deepEqual(observed.path.flatMap(stage=>stage.observations),pass.nodes.map(n=>n.id));
@@ -81,4 +82,56 @@ export async function checkInspection(evaluate, run, prediction) {
   const referenced=new Set(pass.nodes.flatMap(n=>n.inputs).filter(id=>id.startsWith('parameter:')).map(id=>id.slice(10)));
   assert.deepEqual(Object.keys(observed.parameters).sort(),[...referenced].sort());
   assert.equal(observed.position,pass.selection_position);
+}
+
+// Exercise actual timed replay; virtual browser time avoids adding presentation delays to the harness.
+export async function checkJourney({send,evaluate,until,click},run) {
+  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  const before=await evaluate(`document.getElementById('inspection-context').dataset.position`);
+  const output=await evaluate(`document.getElementById('response-preview').textContent`);
+  await evaluate(`window.journeyVisits=[]; window.journeyObserver=new MutationObserver(()=>{
+    const context=document.getElementById('inspection-context').dataset;
+    const tensor=document.querySelector('#detail-body > details script');
+    const selected=document.querySelector('#computation-path .selected-object');
+    const stage=selected?.getBoundingClientRect(), viewport=document.querySelector('.execution-scroll').getBoundingClientRect();
+    window.journeyVisits.push({surface:context.surface,id:context.observationId,position:context.position,output:document.getElementById('response-preview').textContent,
+      tensor:tensor ? JSON.parse(tensor.textContent) : null,
+      visible:!stage || stage.left>=viewport.left && stage.right<=viewport.right,
+      highlighted:selected ? JSON.parse(selected.parentElement.dataset.observations) : []});
+  }); window.journeyObserver.observe(document.getElementById('inspection-context'),{attributes:true,childList:true});`);
+  await click('token-journey');
+  assert.equal(await evaluate(`document.getElementById('inspection-context').dataset.surface`),'request');
+  await click('token-journey');
+  assert.equal(await evaluate(`document.getElementById('token-journey').getAttribute('aria-pressed')`),'false');
+  await click('token-journey');
+  await click('inspect-layers');
+  assert.equal(await evaluate(`document.getElementById('token-journey').getAttribute('aria-pressed')`),'false','Manual selection cancels replay');
+  await evaluate('window.journeyVisits=[]');
+  await click('token-journey');
+  await send('Emulation.setVirtualTimePolicy',{policy:'advance',budget:30000});
+  await until(`document.getElementById('token-journey').getAttribute('aria-pressed')==='false'`);
+  await send('Emulation.setVirtualTimePolicy',{policy:'advance'});
+  const visits=await evaluate(`window.journeyObserver.disconnect(); window.journeyVisits`);
+  const tensors=visits.filter(v=>v.surface==='model');
+  assert.deepEqual(tensors.map(v=>v.tensor),run.traces[0].passes[0].nodes);
+  tensors.forEach(v=>{assert.equal(v.id,v.tensor.id);assert.ok(v.highlighted.includes(v.id));assert.ok(v.visible,'Replay stage must stay visible on narrow screens');});
+  assert.deepEqual(visits.map(v=>v.surface),['request','system',...tensors.map(()=>'model'),'selection','response']);
+  visits.forEach(v=>{assert.equal(v.position,before,'Replay must preserve the generation prefix');assert.equal(v.output,output,'Inspection must not rewrite accepted output');});
+  assert.equal(await evaluate(`document.getElementById('dispatch-label').textContent`),'Direct dispatch');
+  assert.equal(await evaluate(`document.querySelector('.execution-endpoint #computation-path')!==null`),true);
+  await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
+}
+
+export async function checkShortInput({evaluate,until,click}) {
+  await evaluate(`document.getElementById('prompt').value='ann has '; document.getElementById('prompt').dispatchEvent(new Event('input')); document.getElementById('output-budget').value=2; document.getElementById('output-budget').dispatchEvent(new Event('change')); document.getElementById('inference-form').requestSubmit()`);
+  await until(`document.getElementById('binding-status').dataset.phase==='ready'`);
+  const ids=await evaluate(`Array.from(document.querySelectorAll('#sequence-strip button small'),n=>Number(n.textContent.split('#')[1]))`);
+  assert.deepEqual(ids.slice(0,8),[0,3,331,6,131,6,5,4]);
+  assert.equal(ids.length,10,'Combined panel includes the two actually selected output IDs');
+  assert.equal(await evaluate(`document.getElementById('sequence-details').hidden`),true);
+  assert.equal(await evaluate(`document.getElementById('request-preview').textContent`),'ann has ');
+  await click('token-journey');
+  await evaluate(`document.getElementById('prompt').value='ann has'; document.getElementById('prompt').dispatchEvent(new Event('input'))`);
+  assert.equal(await evaluate(`document.getElementById('token-journey').getAttribute('aria-pressed')`),'false');
+  assert.equal(await evaluate(`document.getElementById('token-journey').disabled`),true);
 }

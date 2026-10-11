@@ -18,21 +18,18 @@ body:has(#control-plane) .landing-links{display:inline}
 .system-settings .table-scroll{max-height:240px}
 .playground .request-preview{display:flex;align-items:center;gap:12px;text-align:left;margin:12px 0 16px;padding:8px 10px 8px 14px;max-width:100%;overflow-wrap:anywhere}
 .request-preview strong{flex:1;min-width:0}
-.playground #edit-input{flex:none;min-height:40px}
+.playground .request-preview>button{flex:none;min-height:40px}
 .token-strip{display:flex;gap:4px;flex-wrap:wrap}
 .playground .token-chip{padding:4px 6px}
 .token-chip{display:grid;gap:2px;min-width:34px}
 #pass-caption{margin:8px 0}
-.output-row{display:flex;align-items:center;gap:12px;min-width:0}
-.playground .selected-token{overflow-wrap:anywhere}
-#inspect-response{display:grid;gap:3px;text-align:left;min-width:0;overflow-wrap:anywhere}
 .event-record,.model-notes{margin:12px 0 0}
 #definition{margin:10px 0}
 #inspection-context{overflow-wrap:anywhere}
 @media(max-width:700px){.control-plane,.pass-panel,.numerical-inspector{padding:12px}
 .inference-form{flex-wrap:wrap}
 #request-fields{grid-template-columns:minmax(0,1fr) 110px;flex-basis:100%}
-.output-row{flex-wrap:wrap}}
+}
 .table-scroll{max-height:420px;overflow:auto;margin:1rem 0}
 .table-scroll table{border-collapse:collapse;width:100%}
 .table-scroll th,.table-scroll td{text-align:left;padding:.5rem;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -70,7 +67,6 @@ body:has(#control-plane) .landing-links{display:inline}
 .configuration-actions{display:flex;gap:12px;align-items:center;margin-top:12px}
 #configuration-status,#configuration-detail{padding:7px 10px;margin:12px 0}
 .execution-path>li.configuration-changed::after{position:absolute;top:54px;left:0;width:100%;text-align:center}
-#client-boundary{padding:5px}
 .source-editor{margin:8px 0}
 .source-editor #request-fields{margin-top:8px;max-width:760px}
 .source-editor textarea{width:100%;padding:8px}
@@ -79,6 +75,8 @@ body:has(#control-plane) .landing-links{display:inline}
 .playground .configuration-card{padding:12px;min-height:120px}
 .configuration-actions,#client-boundary{flex-wrap:wrap}
 .unavailable-components{grid-template-columns:1fr}}
-.prediction-controls{display:flex;gap:6px;margin-left:auto}
-.output-item{display:grid;gap:5px;min-width:0}
+.prediction-controls{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
 #response-preview{white-space:pre-wrap;overflow-wrap:anywhere}
+
+.system-route{display:flex;gap:12px;align-items:center;margin:8px 0}
+.execution-endpoint{min-width:0;margin:0;padding:0 8px}

@@ -1,0 +1,26 @@
+version: 1
+work_item: token-journey-inspection
+question: Can input, request-path replay and numerical inspection share accepted evidence and one selection authority?
+necessity: The input strip incorrectly includes generated continuation, and the overview presents model internals as the whole system.
+baseline: The original input strip uses completed sequence_ids and detail selection has a separate entity variable. Owner review refined the correction to one combined token panel under Output Details and stable accepted output independent of inspection.
+reuse:
+- source: Existing InspectionSession, execution events, dependency graph and generated declarations
+  decision: Extend the shared cursor and reuse actual events/tensors; do not create a second execution or animation trace.
+- source: references/llm-viz/src/llm/PhaseTimeline.tsx
+  decision: Use the walkthrough interaction pattern, but retain this repository's recorded evidence and shared selection instead of adopting a separate rendering engine.
+criteria:
+- Input and Output rows display the accepted request and output. One collapsed Details panel owns the combined input/output token sequence; no separate input or selected-token strips remain.
+- One declared inspection cursor owns the visible surface and numerical observation; clicks and Token Journey use the same transitions.
+- Token Journey replays the current prediction's recorded stages without network execution or changing its generation prefix. Pause and manual selection cancel automatic advancement.
+- Input edits, new accepted runs and token execution stop playback; no stale timer can select evidence from a replaced run.
+- The overview contains request admission, declared direct dispatch, an execution endpoint containing the actual model graph, and output. It does not claim simulated routing, MoE or multi-node execution.
+- Configuration previews stay labeled and cannot be replayed as executed evidence. Future topology must derive from resolved system declarations and execution evidence.
+- Existing numerical and export parity coverage remains; browser checks reproduce the short-input regression and cursor/replay behavior within the existing test budget.
+counterexamples:
+- Inspection changes the accepted output text, or the token details disagree with the accepted combined sequence.
+- Animation updates highlighting but leaves numerical inspection on another observation.
+- A configured but unimplemented mechanism appears to have executed.
+- A stale replay callback changes selection after input replacement or branching.
+checks:
+- make test-integration
+- Desktop and narrow rendered inspection

@@ -4,7 +4,7 @@ from typing import Any
 from inside_inference.contract_runtime import Declaration
 
 API_PATHS = {'capabilities': '/api/capabilities', 'run': '/api/runs', 'cacheRun': '/api/cache-runs', 'cacheCapabilities': '/api/cache-capabilities', 'tokenStep': '/api/token-step', 'artifact': '/api/artifacts'}
-CONTRACT_SHA256 = 'c8c0e51f36391b73ae8921cbbdd27ed365feb9bc7d49bf5afcaef9b3445806bb'
+CONTRACT_SHA256 = '54445cd9033ad0f720a3dddb77714220828467b75300492a8012436f197c317d'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -307,6 +307,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                      'additionalProperties': False,
                      'required': ['max_new_tokens_cap',
                                   'max_requests',
+                                  'dispatch',
                                   'model_execution'],
                      'properties': {'max_new_tokens_cap': {'type': 'integer',
                                                            'title': 'Supported '
@@ -327,6 +328,19 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                      'maximum': 9007199254740991,
                                                      'const': 1,
                                                      'default': 1},
+                                    'dispatch': {'type': 'string',
+                                                 'title': 'Direct dispatch',
+                                                 'description': 'One '
+                                                                'in-process '
+                                                                'execution '
+                                                                'endpoint; no '
+                                                                'router, '
+                                                                'queue, '
+                                                                'network or '
+                                                                'placement '
+                                                                'simulation.',
+                                                 'const': 'direct-in-process',
+                                                 'default': 'direct-in-process'},
                                     'model_execution': {'$ref': '#/$defs/FullPrefixExecutionConfig'}}},
  'GenerationPolicy': {'type': 'object',
                       'x-owner': 'GenerationPolicy',
@@ -1253,7 +1267,10 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
  'InspectionState': {'type': 'object',
                      'x-owner': 'InspectionState',
                      'additionalProperties': False,
-                     'required': ['run_id', 'position', 'observation_id'],
+                     'required': ['run_id',
+                                  'position',
+                                  'observation_id',
+                                  'surface'],
                      'properties': {'run_id': {'type': 'string',
                                                'title': 'Observed run',
                                                'description': 'SHA-256 '
@@ -1297,7 +1314,28 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                       'and '
                                                                       'output '
                                                                       'inspection.',
-                                                       'default': None}}},
+                                                       'default': None},
+                                    'surface': {'type': 'string',
+                                                'title': 'Inspection surface',
+                                                'description': 'Single detail '
+                                                               'and diagram '
+                                                               'focus; model '
+                                                               'requires an '
+                                                               'observation in '
+                                                               'the selected '
+                                                               'computation.',
+                                                'enum': ['request',
+                                                         'workload',
+                                                         'client',
+                                                         'system',
+                                                         'model',
+                                                         'selection',
+                                                         'response'],
+                                                'default': 'request'}},
+                     'allOf': [{'if': {'properties': {'surface': {'const': 'model'}}},
+                                'then': {'properties': {'observation_id': {'type': 'string'}}}},
+                               {'if': {'not': {'properties': {'surface': {'const': 'model'}}}},
+                                'then': {'properties': {'observation_id': {'type': 'null'}}}}]},
  'Capabilities': {'type': 'object',
                   'x-owner': 'ExecutionCapabilities',
                   'additionalProperties': False,
@@ -2304,6 +2342,7 @@ class FullPrefixExecutionConfig(Declaration):
 class InferenceSystem(Declaration):
     max_new_tokens_cap: int = 16
     max_requests: int = 1
+    dispatch: str = 'direct-in-process'
     model_execution: FullPrefixExecutionConfig = field(default_factory=FullPrefixExecutionConfig)
 
 
@@ -2775,6 +2814,7 @@ class InspectionState(Declaration):
     run_id: str
     position: int
     observation_id: str | None = None
+    surface: str = 'request'
 
 
 @dataclass(frozen=True, kw_only=True)

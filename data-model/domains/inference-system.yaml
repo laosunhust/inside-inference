@@ -6,6 +6,7 @@ $defs:
     required:
     - max_new_tokens_cap
     - max_requests
+    - dispatch
     - model_execution
     properties:
       max_new_tokens_cap:
@@ -22,6 +23,12 @@ $defs:
         maximum: 9007199254740991
         const: 1
         default: 1
+      dispatch:
+        type: string
+        title: Direct dispatch
+        description: One in-process execution endpoint; no router, queue, network or placement simulation.
+        const: direct-in-process
+        default: direct-in-process
       model_execution:
         $ref: '#/$defs/FullPrefixExecutionConfig'
   GenerationPolicy:

@@ -172,8 +172,13 @@ Restart the native service after contract changes so its identity matches the pa
 
 ## Prefix selection and live stepping
 
-`InspectionState.position` is the single sequence cursor. The token strip selects
-it; the recorded computation is derived from that position. Inspecting an operand
+`InspectionState.position` is the single sequence cursor. The Output row shows the
+accepted execution's output; its Details button reveals
+the single combined input/output token sequence. Both text and tokens derive from
+the same accepted run or step. Inspection never changes that output. The token
+panel selects a prefix; successful execution replaces the accepted continuation.
+Event inspection may select a recorded prediction, and successful live stepping
+advances the cursor to its new output position. Inspecting an operand
 never moves the prefix. The newest selected output has no embedding computation
 of its own yet; details identify the last computed row rather than inventing one.
 
@@ -184,6 +189,21 @@ the suffix; a failed call preserves it. Selecting within generated output retain
 the preceding continuation and its budget usage. Selecting within the prompt starts
 a new continuation from that exact prefix, without adding chat framing. Partial
 byte encodings are numerical inputs, not claims of text comprehension.
+
+`InspectionState.surface` and `observation_id` jointly select the diagram and
+third-level details. There is no independent detail-panel selection. **Token
+Journey** walks the current prediction's request, direct dispatch, recorded tensor
+observations, selection and output through this same cursor. It replays evidence;
+its playback pace is not a simulated execution time. Pausing, manual inspection,
+input edits and new execution cancel playback without changing the generation
+prefix. Configuration previews disable replay until the baseline is restored.
+
+The overview encloses the numerical dependency graph in an execution endpoint.
+The baseline's declared dispatch is one direct in-process call; it supplies no
+router, network, queue or multi-node timing. A stepped raw prefix is not retokenized.
+Future MoE placement, P/D separation and parallelism must enter through resolved
+system configuration and execution evidence, then project into this view. Neither
+hardcoded frontend topology nor a configuration preview establishes executed work.
 
 The loaded baseline remains an inspectable completed reference run. Stepping makes
 new computations; it does not play its next recorded frame. Step exports retain

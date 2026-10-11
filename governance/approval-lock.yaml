@@ -21,7 +21,7 @@ approval:
     \ checker/tests. Owner response on 2026-10-11: \"Approve locking the theme check\". Owner instruction on 2026-10-11:\
     \ add a clear AGENTS.md Development obligation for UI, \"Show, dont' tell\". Owner instruction on 2026-10-11:\
     \ \"fix the interface, adapt implementation to interface, and add the interface to governance boundary ... only\
-    \ one HTTP, with two runtimes.\""
+    \ one HTTP, with two runtimes.\" Owner instruction on 2026-10-11: SSOT is the highest Development philosophy; ignore backward compatibility during development, emphasize forward compatibility, and prefer deletion of superseded paths."
   scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile and
     ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content remains unlocked.
     Retain approved folder and file-size limits. This approval does not authorize future policy changes. Additional
@@ -52,9 +52,11 @@ approval:
     and refreshes only its recorded hash; no other enforcement or limit changes. Establish one OpenAPI-driven WSGI
     application and generated socket/Lambda runtime bridges; extend generate_data_models.py, add/protect http_transport.py
     and governance/http.py, wire __main__.py, protect test_http_boundary.py, and update locks.py. No constitution,
-    limits, or public workflow changes.'
+    limits, or public workflow changes. Additional owner authorization on 2026-10-11 updates only AGENTS.md
+    Development principles for SSOT, compatibility and removal of superseded implementations, and its recorded
+    hash. No lock inventory, limits or enforcement changes.'
 files:
-  AGENTS.md: 5586e3ec46d114c9b9097416d962bf668af52dc0418bfb4f11bac2d51066273c
+  AGENTS.md: a3b2a91977c76d5f157aa0a581300d339102bfa0f952f1048a3f33a7b370ff99
   governance/limits.yaml: 6be775a37ca614960261a44ae07d13305bafb71195a84f9b3233af25601b784e
   scripts/__init__.py: 07cf2de9025005ac8dbafe1162d8cd39cf4f99dab454bd0388b597a5585db2ea
   scripts/build/compile_validators.mjs: 8d226d90bad36a219aa69af05a511b665f2b7149b6ba50557b778e51c6a52795

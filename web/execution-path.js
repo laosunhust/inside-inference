@@ -55,5 +55,21 @@ globalThis.ExecutionPath = (() => {
       edge.append(title);edges.append(edge);
     }));
   }
-  return {render};
+  // Timers only advance the shared inspection cursor; they never own selected evidence.
+  function playback(changed) {
+    let timer=null;
+    const stop=()=>{if(timer!==null) clearTimeout(timer);timer=null;changed();};
+    function start(views, inspect) {
+      stop();
+      let index=0;
+      function advance() {
+        if(index===views.length) return stop();
+        timer=setTimeout(advance,650);
+        inspect(views[index++]);
+      }
+      advance();changed();
+    }
+    return {start,stop,running:()=>timer!==null};
+  }
+  return {render,playback};
 })();
