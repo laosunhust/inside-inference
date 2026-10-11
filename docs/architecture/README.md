@@ -1,7 +1,10 @@
 # Architecture
 
 Start with the boundary relevant to your question. The [ontology](../ontology/README.md)
-owns meaning; these documents own how those meanings are implemented and connected.
+owns meaning; these documents own component boundaries and how they connect.
+[Purpose](../purpose/README.md) owns the mission and scope;
+[data models](../../data-model/README.md) own interface shapes. Architecture explains
+those interfaces without maintaining a competing declaration.
 
 | Question | Document |
 | --- | --- |

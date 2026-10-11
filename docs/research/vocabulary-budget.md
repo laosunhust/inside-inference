@@ -3,7 +3,7 @@
 Date: 2026-10-08. Status: recommendation, not a frozen tokenizer/model contract.
 
 **Decision update:** the user has now frozen vocabulary size at 384 total IDs.
-The [current purpose](../purpose/README.md#fixed-language-inspectable-computation)
+The [current purpose](../purpose/README.md#scope-and-boundaries)
 owns that decision and the planned byte/hex fallback. Candidate recommendations
 below preserve the reasoning before that decision; other model dimensions remain
 experimental. This study does not establish trained-model quality.

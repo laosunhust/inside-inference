@@ -7,7 +7,7 @@ Date: 2026-10-10. This addresses the evaluation overwrite exposed by the
 
 [Evaluation admission](../../governance/evaluations.yaml) is now an active-record
 index. Criteria and results live in separate dated folders below
-[governance/evaluations](../../governance/evaluations/). Every criteria record is
+[governance/evaluations](../../governance/evaluations). Every criteria record is
 checked, not just the active one. Results reference the exact criteria file and
 its SHA-256, plus maintained evidence. Amendments use a new file with an explicit
 `supersedes` link to criteria for the same work item.
@@ -50,7 +50,7 @@ remain deferred; no additional training or default-checkpoint change was made.
 
 ## M2 audit and next lab
 
-The [M2 acceptance](../purpose/milestones.md#m2--reuse-state-without-changing-the-answer)
+The [M2 acceptance](../implementation/milestones.md#m2--reuse-state-without-changing-the-answer)
 remains supported for the fixed one-block/head width-8 binary64 instrument:
 
 | Acceptance | Inspected current evidence |
@@ -65,7 +65,7 @@ trained-checkpoint or optional physical CUDA measurements; those remain scoped t
 [their existing evidence](kv-residency-2026-10-09.md). Logical bytes and hypothetical
 service rates are not accelerator performance predictions.
 
-[G1](../purpose/milestones.md#g1--inspect-a-state-handoff) remains unimplemented.
+[G1](../implementation/milestones.md#g1--inspect-a-state-handoff) remains unimplemented.
 The current reference transfer reconstructs `KVState` in another logical pool and
 removes the source entry. It has no serialized layout conversion or endpoint import
 protocol, so it is not G1 evidence.

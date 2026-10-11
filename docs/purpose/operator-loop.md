@@ -1,15 +1,64 @@
-# Investigations and improvement
+# The operator improvement loop
 
-Inside Inference should help people understand a real inference problem, narrow
-its possible causes, and decide what to measure or change next. Its ontology is
-the foundation for that investigation: responsibilities, state, dependencies,
-resource constraints, and observable boundaries. Labs are instruments for testing
-explanations and interventions. Their number or novelty is not the objective.
+The [purpose](README.md) introduces the operator's reasoning-and-action cycle.
+This document owns its two investigation workflows and the evidence needed to
+choose the next action. Ontology supplies the responsibilities, state, resource
+constraints, and observable boundaries; labs are instruments for testing them.
 
 This is intended direction, not a claim that automated diagnosis, hardware
-calibration, or fleet optimization is implemented. The [purpose overview](README.md#learning-and-decision-goals)
-owns P0/P1/P2; [milestones](milestones.md) own delivery order. This page establishes
-why those instruments are needed, without adding executable ontology authority.
+calibration, or fleet optimization is implemented. The [purpose overview](README.md)
+owns P0/P1/P2 and the input/system/output framing; [milestones](../implementation/milestones.md)
+own delivery order. This page defines the investigation workflow without adding
+executable ontology authority or an autonomous deployment policy.
+
+## Two improvement loops
+
+**User-driven:** customer report or feature request → testable hypothesis and
+acceptance criteria → controlled reproduction → system evidence → intervention →
+verification under the reproduced condition against the predeclared acceptance
+criteria. This closes the lab investigation, not the original customer issue.
+Confirming that the original customer's need is met requires evidence from outside
+the lab, such as a check in the affected deployment or customer confirmation.
+Without that evidence, the customer outcome remains unverified.
+
+Adjust input conditions as evidence narrows the question, recording each changed
+workload rather than silently changing the comparison. A feature request expresses
+a desired outcome; it need not imply a current defect.
+
+**Operator-driven:** proposed software or hardware change → baseline and fixed
+workload → predicted customer benefit and regression criteria → controlled
+comparison → adopt, reject, or obtain more evidence. Define explicit feedback
+(such as a reported stall or satisfaction judgment) and implicit signals (such as
+completion, cancellation, retries, or latency) before examining results. An implicit
+signal is a proxy with alternative explanations: cancellation alone does not prove
+dissatisfaction. Simulated outcomes do not establish actual customer benefit.
+
+For each comparison, hold input and relevant conditions fixed, including resource
+budgets and model requirements, and identify the intentional intervention. If the
+intervention is hardware, declare what changes and the comparison constraints;
+identical requests alone do not make a fair comparison. Check displaced costs,
+quality, availability, and effects on other requests as well as the desired gain.
+Evidence may justify only a real-hardware trial, not production adoption.
+
+The operator uses execution evidence to choose the next experiment. An inspection
+click or configuration preview is not an executed intervention. Neither loop
+automatically authorizes deployment. The [ontology terminology](../ontology/README.md#experiment-harness-and-system-under-test)
+separates experiment configuration, request input, and execution evidence.
+
+## Reproduce without the original input
+
+Original requests may be unavailable for privacy or other reasons. Construct a
+controlled workload from the conditions relevant to the claim: for example,
+context length, arrival pattern, shared prefixes, cancellation, or client read
+behavior. Record which conditions are known, which are synthesized, and which
+remain unknown. Preserve the instantiated inputs so another operator can reproduce
+the experiment; a transformation recipe alone is insufficient execution evidence.
+
+A synthetic reproduction can expose a plausible mechanism without proving the
+cause of the reported incident. Failure to reproduce means unresolved under the
+tested conditions, not that the customer was wrong. Distinguish reports by evidence
+and reproducibility rather than volume or confidence. Repeated complaints can
+motivate investigation but do not alone establish prevalence or a common cause.
 
 ## Start with a real question
 
@@ -116,19 +165,3 @@ These are evaluation directions, not achieved scores or fixed numerical targets.
 The first useful result may be “measure this boundary next.” Faster diagnosis
 means reaching a justified decision with less uncertainty or effort, not merely
 displaying a likely-sounding explanation sooner.
-
-## Why separate execution phases or hardware pools?
-
-Disaggregated inference is a question to test under constraints. Compare a colocated
-baseline with separated phases while preserving model behavior and user requirements.
-Investigate whether specialization and reduced interference outweigh handoff costs,
-extra queues, state capacity, compatibility costs and stranded capacity. An advantage
-is durable only over an evidenced range of workload mixes, context lengths, traffic,
-resource ratios and failure conditions; a favorable point is not a universal result.
-
-AMD's [Helios/Cerebras announcement](https://ir.amd.com/news-events/press-releases/detail/1293/amd-and-cerebras-announce-industry-leading-ultra-low-latency-and-high-throughput-ai-inference-solution)
-describes a combined disaggregated inference workflow. Treat that as motivation for
-investigating complementary resources and phase placement. The announcement does
-not establish our model's parameter values or validate a predicted advantage.
-The initial ResourceGraph can describe hypothetical locations and links; execution
-placement, compatibility and calibrated hardware profiles remain unimplemented.

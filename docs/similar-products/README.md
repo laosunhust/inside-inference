@@ -37,7 +37,7 @@ integrating this whole list.
 
 ## What the connection must preserve
 
-A useful first connection follows the existing [baseline-first milestones](../purpose/milestones.md):
+A useful first connection follows the existing [baseline-first milestones](../implementation/milestones.md):
 naïve execution, then KV reuse, a lossless state handoff, ordinary multi-head
 attention, and MQA.
 For each experiment, connect the relevant evidence:

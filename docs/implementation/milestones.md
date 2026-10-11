@@ -1,26 +1,18 @@
 # Milestones and acceptance criteria
 
-This document owns the milestone scorecard: what counts as completing the
-bootstrap and first usable inference instrument. [Purpose](README.md) owns the mission
-and fixed-vocabulary decision; [architecture](../architecture/inspection.md) owns
-implementation boundaries; each lab owns its claim-specific validity evidence.
+This ledger owns delivery order, milestone-specific acceptance criteria, and
+completion status. It implements the [purpose](../purpose/README.md); it does not
+define another mission or set project-wide scope. Completing an instrument is
+progress toward the purpose, not evidence that a customer outcome improved.
 
-Mission: **learn what happens when an inference mechanism changes, by inspecting
-actual computation or a justified simulation, and locating its consequences in
-the request journey.** Understanding is the foundation for the
-[decision goals](README.md#learning-and-decision-goals). Model quality rankings,
-audience size, and public launch are not success measures.
+## Evaluation setup
 
-## Boundaries at this checkpoint
-
-| Decision | Boundary |
-| --- | --- |
-| Frozen | 384 total model token IDs; include lexical, punctuation, control, and fallback symbols. All token IDs and every output logit remain inspectable. |
-| Tokenizer baseline | Implemented reversible UTF-8 byte/hex fallback with explicit matching, framing, and traces; candidate manifest has known coverage gaps. See the codec contract. |
-| Language world | Bounded everyday conversation inspired by language familiar to a three-year-old. Encoding foreign text is not evidence of understanding it. |
-| Still experimental | Width, depth, heads, context, precision, attention/state mechanism, serving policies, and resource assumptions. Record each change; training settings belong to checkpoint preparation. |
-| Separate evidence | Numerical execution, simulated resource costs, measured host performance, learned behavior, and real-system validity. None substitutes for another. |
-| Navigation | Customer journey → execution steps → configurable mechanism and numerical detail, over the same identified run. |
+Use the [purpose boundaries](../purpose/README.md#scope-and-boundaries),
+[experimental method](../labs/methodology.md), and
+[inspection architecture](../architecture/inspection.md) for project scope,
+evidence interpretation, and presentation structure. Each lab supplies its
+claim-specific validity evidence. The criteria below apply to individual
+milestones; they do not replace those authorities.
 
 The 384-ID decision alone does not establish an adequate vocabulary. The first
 manifest candidate is complete as an ID allocation, but has known lexical gaps.
@@ -51,7 +43,7 @@ Current capability ledger:
 | Vocabulary-budget audit | Implemented counting study; not a tokenizer or language model. |
 | 384-entry manifest and reversible tokenizer | Implemented candidate; independent codec checks pass, everyday coverage gaps remain. T1 is not complete. |
 | Bounded task corpus | Implemented recipe and audit; template-based and limited in lexical coverage. |
-| GPT forward execution | Implemented single-block/head baseline with independent numerical checks and replay; untrained defaults and explicit compatible checkpoint loading. |
+| GPT forward execution | Implemented single-block/head baseline with independent numerical checks and replay; shipped trained weights and explicit compatible checkpoint loading. |
 | Checkpoint preparation | [First trained pilot](../research/checkpoint-pilot-2026-10-09.md) exported and numerically verified; provisional development behavior gate failed. L1 test gates remain unevaluated. |
 | Learned conversation | Not established; checkpoint preparation is supporting work. |
 | Tensor inspection in all three views | Implemented for the naïve baseline; offline replay and local live execution. |
@@ -78,7 +70,7 @@ set the implementation order.
 | M4 | Multi-query attention (MQA) as a controlled change to the multi-head reference. | Which K/V projections and state are shared, what storage changes, and what computation differs. |
 | Later | GQA, alternative state mechanisms such as KDA, or other justified interventions. | One new mechanism relative to an already understood reference. |
 
-M1 uses the [naïve inference contract](../implementation/naive-inference.md).
+M1 uses the [naïve inference contract](naive-inference.md).
 The planned sequence is M2 → G1 → M3 → M4 after T1/M1 correctness.
 G1 depends on M2; M3/M4 retain their preceding numerical baselines. L1 is a separate checkpoint
 suitability assessment; it is not a prerequisite for arithmetic, caching, or state
@@ -106,7 +98,7 @@ supplement them with the codec's stated rules and invariants.
 
 The first complete path is input → tokenizer → embedding/position → causal GPT
 layers → logits → selection → output. Obtaining compatible weights is a
-[preparation prerequisite](../implementation/model-preparation.md), not a second
+[preparation prerequisite](model-preparation.md), not a second
 reader journey through training. Start with one causal attention head and one
 complete GPT block, with full-prefix recomputation and explicit intermediate
 operations. No KV cache, shared-KV attention, quantization, or fused attention is
@@ -278,7 +270,7 @@ Initial local execution targets, to be measured after implementation:
 These are starting budgets for a repeatable learning loop, not requirements for
 every future mechanism. If exceeded, report the result and revise the scope or
 execution strategy explicitly; do not conceal required computation to hit a target.
-Checkpoint preparation has separate [cost planning](../implementation/model-preparation.md#cost-planning);
+Checkpoint preparation has separate [cost planning](model-preparation.md#cost-planning);
 training speed is not an inference-research success metric.
 
 ## Review outcome format

@@ -3,7 +3,7 @@
 > Historical plan, converted from `ObservableGPT.docx` on
 > 2026-10-08. Content is preserved; headings, tables, lists, and diagrams are
 > reformatted for GitHub and agent use. This is not a current delivery commitment.
-> [Current purpose](README.md) supersedes its project scope, competition framing,
+> [Current purpose](../purpose/README.md) supersedes its project scope, competition framing,
 > weekend schedule, release prerequisites, and 100-ID vocabulary. The original
 > DOCX is not present in this checkout; use this Markdown edition for references.
 

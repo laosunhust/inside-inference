@@ -90,7 +90,7 @@ explicit, inspectable assumption with visible consequences.
 
 | ID | Gap | Showcase | Evidence boundary |
 | --- | --- | --- | --- |
-| G1 | Make state semantics inspectable across a declared boundary in this repository. | See the [G1 milestone](../purpose/milestones.md#g1--inspect-a-state-handoff) for scope and acceptance. | Real tiny-model computation. Says nothing about real-device timing. |
+| G1 | Make state semantics inspectable across a declared boundary in this repository. | See the [G1 milestone](../implementation/milestones.md#g1--inspect-a-state-handoff) for scope and acceptance. | Real tiny-model computation. Says nothing about real-device timing. |
 | G2 | Follow attention–FFN crossings back to actual layer computation. | Split each layer's attention and FFN across declared devices; trace every crossing and its bytes; verify equivalence. | Real computation; crossing latency is a declared parameter. |
 | G3 | Connect disclosed model configuration to boundary traffic under stated assumptions. | Parameterize published architectures, such as GQA, MLA, and MoE configs, into handoff bytes, SRAM fit, and per-token crossing costs under an explicit dependency and overlap model for each announced pairing. | Conditional arithmetic; undisclosed values remain explicit assumptions. |
 | G4 | Inspect interactions between techniques across declared pools. | Add prefix reuse, speculative decoding, and offload tiers to the same declared boundary; show which state moves, is reused, or is discarded. | Mechanics are real for the tiny model; costs are simulated. |
@@ -105,7 +105,7 @@ assumptions. It must not present simulated timings as that vendor's performance.
 
 ## Proposed focus
 
-The [milestones](../purpose/milestones.md#build-order-establish-the-reference-before-changing-it)
+The [milestones](../implementation/milestones.md#build-order-establish-the-reference-before-changing-it)
 own acceptance and ordering: establish M2, then the bounded lossless G1 handoff,
 then M3/M4. Precision conversion is a separate follow-up. G2–G5 remain candidate
 questions, not a mandatory chain or commitments to implement every vendor scenario.

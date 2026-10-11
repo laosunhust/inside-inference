@@ -9,7 +9,7 @@ The [vocabulary audit](vocabulary-budget.md) supports investigating 384 IDs, not
 freezing a complete model or asserting that it learns useful conversation.
 
 **Decision update:** the user has now frozen vocabulary size at 384 total IDs.
-The [current purpose](../purpose/README.md#fixed-language-inspectable-computation)
+The [current purpose](../purpose/README.md#scope-and-boundaries)
 owns that decision and the planned byte/hex fallback. Candidate recommendations
 below preserve the reasoning before that decision; other model dimensions remain
 experimental. This study does not establish trained-model quality.

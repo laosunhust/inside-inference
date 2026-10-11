@@ -4,7 +4,7 @@ Owns the prerequisite work needed to obtain a usable model/checkpoint. This is
 implementation support for inference experiments, not a training-research roadmap.
 The [purpose](../purpose/README.md) owns the vocabulary and language-world boundary;
 the [inspection architecture](../architecture/inspection.md) owns execution/trace
-interfaces; [milestones](../purpose/milestones.md) define inference acceptance.
+interfaces; [milestones](milestones.md) define inference acceptance.
 
 ## Minimal preparation
 
@@ -12,7 +12,7 @@ Build or obtain a compatible checkpoint for the fixed vocabulary and declared
 model architecture. A local trainer may be necessary to produce it. Keep its
 scope to reproducible checkpoint preparation: identified corpus/tokenizer, seed,
 configuration, precision, validation, and checkpoint identity, within the
-[purpose’s training boundary](../purpose/README.md#inference-is-the-research-boundary).
+[purpose’s training boundary](../purpose/README.md#scope-and-boundaries).
 
 If we maintain a trainer, verify gradients, parameter updates, and checkpoint
 resume against independent calculations. Those checks ensure trustworthy model

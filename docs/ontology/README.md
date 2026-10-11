@@ -20,6 +20,25 @@ unregistered files, nested authorities, symlinks, malformed modules, and ownersh
 | [Tokenizer](tokenizer.yaml) | One tokenizer concept owning vocabulary entries, framing inputs, encoding spans, and results. |
 | [Data model](../../data-model/README.md) | Concrete field shapes and generated consumers. |
 
+## Experiment harness and system under test
+
+The existing owners distinguish three roles:
+
+| Role in the experiment harness | Declared owner |
+| --- | --- |
+| Experiment configuration and resolved system/workload bindings | [ExperimentSpec](experiment.yaml) |
+| Request input: concrete arrivals, with proposed transformations distinguished from instantiated requests | [Workload](inference-system.yaml) |
+| Consumed configuration and execution evidence | [ExperimentExecution](experiment.yaml) |
+
+The UI's “control plane” and “data plane” refer to the **experiment harness**:
+configuration controls the experiment, while the request view supplies and follows
+its input. They do not name the inference system's operational control plane or
+request-processing path. Workload describes input to that path; it is not the path
+itself. Scheduling and routing decisions belong to the system under test, not to
+ExperimentSpec merely because both involve control. Prefer “experiment
+configuration” and “request input” when this UI distinction is unnecessary.
+These are explanations of the linked owners, not additional schema definitions.
+
 ## Enforced mapping
 
 Each concept grants an explicit, nonempty list of declaration names using `schemas`.

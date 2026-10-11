@@ -23,7 +23,7 @@ same attention mechanism configuration and implementation.
 
 The first path is request → prefill or decode → naïve causal attention and its
 actual arithmetic. Establish this reference before adding a mechanism selector.
-Follow the [incremental milestone order](../purpose/milestones.md#build-order-establish-the-reference-before-changing-it):
+Follow the [incremental milestone order](../implementation/milestones.md#build-order-establish-the-reference-before-changing-it):
 naïve inference, KV reuse, lossless state handoff, ordinary multi-head attention,
 then shared-KV variants.
 Both prefill and decode use the same declared attention configuration.

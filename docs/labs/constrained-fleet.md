@@ -10,7 +10,7 @@ P0 explains each mechanism, P1 screens options on the fixed fleet, and P2 screen
 hardware additions when P1 has no acceptable candidate. Nothing here is implemented.
 Numbers are illustrative arithmetic on assumed configurations, not measurements
 or vendor claims. Screening evidence follows the
-[candidate-screening rules](../labs/README.md#candidate-screening).
+[candidate-screening rules](README.md#candidate-screening).
 
 ## Why profiled step times are insufficient
 
@@ -60,7 +60,7 @@ non-blocking switch, with traffic spread evenly, for ≈400 GB/s aggregate.
 Candidate placements: FP4 with experts spread across islands; hot experts in HBM
 and cold experts in DRAM; attention and KV on one island with experts elsewhere;
 layer pipelining across islands; and prefill/decode separation with a
-[state handoff](../purpose/milestones.md#g1--inspect-a-state-handoff).
+[state handoff](../implementation/milestones.md#g1--inspect-a-state-handoff).
 Each has a different crossing pattern, capacity use, and failure behavior.
 
 ## Operations: degraded modes are part of the design
@@ -113,6 +113,22 @@ An empty P1 shortlist is a result. Turn it into a proposal:
 5. **Staged plan with measurement gates**: the smallest purchase or pilot that
    tests the critical assumption before committing to the rest.
 
+## Why separate execution phases or hardware pools?
+
+Disaggregated inference is a question to test under constraints. Compare a colocated
+baseline with separated phases while preserving model behavior and user requirements.
+Investigate whether specialization and reduced interference outweigh handoff costs,
+extra queues, state capacity, compatibility costs and stranded capacity. An advantage
+is durable only over an evidenced range of workload mixes, context lengths, traffic,
+resource ratios and failure conditions; a favorable point is not a universal result.
+
+AMD's [Helios/Cerebras announcement](https://ir.amd.com/news-events/press-releases/detail/1293/amd-and-cerebras-announce-industry-leading-ultra-low-latency-and-high-throughput-ai-inference-solution)
+describes a combined disaggregated inference workflow. Treat that as motivation for
+investigating complementary resources and phase placement. The announcement does
+not establish our model's parameter values or validate a predicted advantage.
+The initial ResourceGraph can describe hypothetical locations and links; execution
+placement, compatibility and calibrated hardware profiles remain unimplemented.
+
 ## Instrument roles
 
 | Instrument | Establishes | Does not establish |
@@ -127,7 +143,7 @@ assumptions fit; see [similar products](../similar-products/README.md).
 
 ## Prerequisites in this repository
 
-Proposed, not yet scheduled in the [milestones](../purpose/milestones.md):
+Proposed, not yet scheduled in the [milestones](../implementation/milestones.md):
 the G1 state handoff; a MoE milestone after M4 with actual routing, dispatch,
 combine, and expert load; routing traces and a fleet graph as declared inputs in
 the [data model](../../data-model/README.md); and failure events in the workload

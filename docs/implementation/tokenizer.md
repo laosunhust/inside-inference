@@ -2,7 +2,7 @@
 
 Status: first implementation checkpoint in progress. This document owns the codec
 and framing contract, not model quality. The [purpose](../purpose/README.md) fixes
-384 total IDs; [milestones](../purpose/milestones.md) own acceptance. The maintained
+384 total IDs; [milestones](milestones.md) own acceptance. The maintained
 manifest at `data/tokenizer/vocabulary.json` owns the actual IDs and their roles.
 
 ## Question and validity boundary

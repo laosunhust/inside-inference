@@ -4,6 +4,9 @@ This guide explains how to assess a lab. It is not executable ontology or a
 claim that passing structural checks establishes physical validity. Domain
 ownership is enforced by the [ontology declarations](../ontology/README.md).
 
+The [experimental method](methodology.md) explains instrument selection, the tiny-model
+boundary, and validation of abstractions.
+
 ## Abstraction contract
 
 Before implementing a lab, record these items in its owning specification. This

@@ -10,18 +10,12 @@ system. Change one thing, observe what happens, and investigate why.
 
 Real problems drive the work: explain a stalled request, evaluate a hardware
 claim, or explore how to serve workloads on a constrained fleet. Labs are
-instruments for these [investigations](docs/purpose/investigations.md), and the
+instruments for these [operator loops](docs/purpose/operator-loop.md), and the
 ontology supplies the boundaries, dependencies, and observations needed to
 connect symptoms to mechanisms and test possible improvements.
 
-An inference system is a constrained optimization problem. Decisions from hardware
-planning to per-step scheduling must satisfy capacity, latency, quality, availability,
-and policy constraints while trading cost, service, and resilience against each other.
-Large public regions absorb much of this through statistical averaging across many
-tenants. Smaller regions, such as sovereign or dedicated deployments, often cannot:
-demand peaks, failures, residency rules, and mixed hardware become binding.
-The [ontology roadmap](docs/ontology/README.md#system-optimization-direction) distinguishes
-these planned optimization inputs and objectives from executable declarations.
+The [purpose](docs/purpose/README.md) explains why constrained fleets motivate
+these investigations and how understanding supports deployment decisions.
 
 The intended outcome is an explanation you can inspect: where an innovation acts,
 what computation or state it changes, and which consequences follow under the
@@ -48,28 +42,35 @@ they are not capabilities already implemented here.
 
 ## Start exploring
 
-| I want to… | Start here |
-| --- | --- |
-| Run the visual laboratory | `make help` → [Makefile](Makefile) |
-| Understand the mission and expected outcomes | [Purpose](docs/purpose/README.md) |
-| Find existing tools and reuse opportunities | [Similar products](docs/similar-products/README.md) |
-| Understand the words and boundaries | [Ontology](docs/ontology/README.md) |
-| Follow how the system is designed | [Architecture](docs/architecture/README.md) |
-| Inspect declared inputs, outputs, and generated models | [Data model](data-model/README.md) |
-| Find an innovation and its lab | [Lab catalog](catalog/README.md) |
-| Inspect the tiny model's mechanics | [Implementation](docs/implementation/README.md) |
-| Assess progress and acceptance criteria | [Milestones](docs/purpose/milestones.md) |
-| Inspect build limits and evaluation criteria | [Limits](governance/limits.yaml) · [Approval locks](governance/approval-lock.yaml) · [Evaluation](governance/evaluations.yaml) |
-| Contribute code or documentation | [Contributor guidance](AGENTS.md) |
+Each topic has one documentation owner. Other pages introduce it or link to it;
+they do not redefine its mission, scope, or rules. Historical plans and research
+reports preserve their original context, not current policy.
 
-Workflow code follows the same boundaries: [build generators](scripts/build/),
-[checks](scripts/check/), [local development](scripts/dev/), and
-[experiment entry points](scripts/experiments/). Numerical and simulation behavior
-lives in [inside_inference/](inside_inference/); [web/](web/) presents its evidence.
+| Topic | Authority and boundary |
+| --- | --- |
+| Mission, priorities, and project scope | [Purpose](docs/purpose/README.md): why and high-level what. |
+| Investigation workflows | [Operator loop](docs/purpose/operator-loop.md): user/operator loops and decision evidence. |
+| Meanings and ownership | [Ontology](docs/ontology/README.md): executable semantic authority. |
+| Field shapes and generated interfaces | [Data model](data-model/README.md): declarations, not duplicate domain meanings. |
+| System design | [Architecture](docs/architecture/README.md): component boundaries and interactions. |
+| Numerical mechanisms and preparation | [Implementation](docs/implementation/README.md): how the instruments work within declared scope. |
+| Delivery order and completion | [Milestones](docs/implementation/milestones.md): milestone-specific acceptance and status. |
+| Experiment validity | [Lab guidance](docs/labs/README.md): claim-specific assumptions and evidence. |
+| Lab discovery | [Catalog](catalog/README.md): indexing and links to owning labs. |
+| Prior work and reuse | [Similar products](docs/similar-products/README.md): assessments and source limitations. |
+| Research findings | [Research](docs/research): dated investigations and results, not standing requirements. |
+| Historical proposals | [History](docs/history): superseded context, not delivery commitments. |
+| Development workflows | `make help` → [Makefile](Makefile): commands and prerequisites. |
+| Governance | [AGENTS.md](AGENTS.md): durable agent obligations; [limits](governance/limits.yaml), [locks](governance/approval-lock.yaml), and [evaluations](governance/evaluations.yaml): enforced bounds and work-item evidence. |
+
+Workflow code follows the same boundaries: [build generators](scripts/build),
+[checks](scripts/check), [local development](scripts/dev), and
+[experiment entry points](scripts/experiments). Numerical and simulation behavior
+lives in [inside_inference/](inside_inference); [web/](web) presents its evidence.
 The [Makefile](Makefile) owns commands and setup. Use `make help`; uncommon
 maintenance targets begin with `_`.
 
-The laboratory is evolving. The [milestone scorecard](docs/purpose/milestones.md)
+The laboratory is evolving. The [milestone scorecard](docs/implementation/milestones.md)
 distinguishes working instruments, planned experiments, and missing evidence.
 The intended public home is **insideinference.dev**; this is not a deployment announcement.
 
