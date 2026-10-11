@@ -174,16 +174,12 @@ class GovernanceTests(unittest.TestCase):
             root=Path(directory)
             shutil.copytree(ROOT/'docs/ontology',root/'docs/ontology')
             shutil.copytree(ROOT/'data-model',root/'data-model')
-            path=root/'data-model/openapi.yaml';original=read_yaml(path)
-            spec=copy.deepcopy(original)
-            spec['paths']['/api/runs']['post']['responses']['200']['content']['application/json']['schema']={
-                'type':'object','properties':{'new':{'type':'string'}}}
-            path.write_text(yaml.safe_dump(spec))
-            with self.assertRaisesRegex(ValueError,'Inline public schemas'):outputs(root)
-            spec=copy.deepcopy(original)
-            spec['components']={'schemas':{'Alias':{'$ref':'./inference.schema.json#/$defs/ApiError'}}}
-            path.write_text(yaml.safe_dump(spec))
-            with self.assertRaisesRegex(ValueError,'canonical declaration'):outputs(root)
+            path=root/'data-model/execution.yaml';original=read_yaml(path)
+            for value in ('Invented',{'type':'object'}):
+                spec=copy.deepcopy(original)
+                spec['operations']['run']['response']=value
+                path.write_text(yaml.safe_dump(spec))
+                with self.assertRaisesRegex(ValueError,'execution schema'):outputs(root)
 
     def test_ontology_binding_rejects_invented_duplicate_and_missing_subjects(self):
         from inside_inference.declarations_generated import OntologyBinding

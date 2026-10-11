@@ -10,7 +10,7 @@ from inside_inference.model import identity
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ('model.py', 'generation.py', 'tokenizer.py', 'declarations.py',
            'declarations_generated.py', 'contract_runtime.py', 'workload.py',
-           'cache_lab.py', 'kv_runtime.py', 'cuda_runtime.py', 'tensor_model.py', 'provenance.py')
+           'cache_lab.py', 'kv_runtime.py', 'provenance.py')
 
 
 def source_inventory():

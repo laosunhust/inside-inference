@@ -2,9 +2,6 @@
 import hashlib
 import copy
 from functools import lru_cache
-import os
-from pathlib import Path
-import tempfile
 
 from inside_inference.contract_runtime import decode_json
 from inside_inference.declarations_generated import ArtifactReference, ArtifactResponse, MODELS
@@ -54,51 +51,3 @@ class MemoryStore:
     def read(self, key, schema=None):
         try: return self.objects[key]
         except KeyError: raise FileNotFoundError('Artifact not found') from None
-
-
-class FileStore:
-    def __init__(self, root):
-        self.root = Path(root).resolve()
-        self.root.mkdir(parents=True, exist_ok=True)
-
-    def path(self, key):
-        if len(key) != 64 or any(c not in '0123456789abcdef' for c in key):
-            raise ValueError('Invalid artifact key')
-        path = self.root / (key + '.json')
-        if path.is_symlink(): raise ValueError('Artifact path cannot be a symlink')
-        return path
-
-    def write(self, key, raw):
-        path = self.path(key)
-        if path.exists():
-            if path.read_bytes() != raw: raise ValueError('Immutable artifact conflict')
-            return
-        fd, temporary = tempfile.mkstemp(dir=self.root)
-        try:
-            with os.fdopen(fd, 'wb') as handle: handle.write(raw)
-            os.replace(temporary, path)
-        finally:
-            Path(temporary).unlink(missing_ok=True)
-
-    def read(self, key, schema=None): return self.path(key).read_bytes()
-
-
-class S3Store:
-    """An injected boto3-compatible client; no SDK dependency in numerical code."""
-    def __init__(self, client, bucket, prefix='evidence/'):
-        self.client, self.bucket, self.prefix = client, bucket, prefix
-
-    def key(self, digest):
-        if len(digest) != 64 or any(c not in '0123456789abcdef' for c in digest):
-            raise ValueError('Invalid artifact key')
-        return self.prefix + digest + '.json'
-
-    def write(self, key, raw):
-        self.client.put_object(Bucket=self.bucket, Key=self.key(key), Body=raw,
-                               ContentType='application/json')
-
-    def read(self, key, schema=None):
-        try:
-            return self.client.get_object(Bucket=self.bucket, Key=self.key(key))['Body'].read()
-        except self.client.exceptions.NoSuchKey:
-            raise FileNotFoundError('Artifact not found') from None

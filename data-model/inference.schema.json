@@ -2669,6 +2669,21 @@
         }
       }
     },
+    "ExecutionReplayInput": {
+      "type": "object",
+      "x-owner": "ExperimentExecution",
+      "additionalProperties": false,
+      "required": [
+        "record_json"
+      ],
+      "properties": {
+        "record_json": {
+          "type": "string",
+          "title": "Exported evidence",
+          "description": "Exact exported JSON bytes; preserve numeric lexemes for replay."
+        }
+      }
+    },
     "InspectionState": {
       "type": "object",
       "x-owner": "InspectionState",
@@ -2813,8 +2828,7 @@
           "items": {
             "type": "string",
             "enum": [
-              "reference",
-              "cuda"
+              "reference"
             ]
           },
           "minItems": 1,
@@ -3628,8 +3642,7 @@
         "backend": {
           "type": "string",
           "enum": [
-            "reference",
-            "cuda"
+            "reference"
           ],
           "default": "reference",
           "title": "Numerical backend"

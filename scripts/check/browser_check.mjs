@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {checkJourney,checkShortInput} from './inspection_browser_check.mjs';
 import {checkInspection} from './inspection_browser_check.mjs';
 import {checkCache} from './cache_browser_check.mjs';
-import {writeFile,readFile,rm} from 'node:fs/promises';
+import {writeFile,readFile,rm,rename} from 'node:fs/promises';
 const [port, base, file, output] = process.argv.slice(2);
 const references=JSON.parse(await readFile(output+'/references.json','utf8'));
 const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
@@ -32,7 +32,12 @@ async function until(expression) {
 }
 const click = id => evaluate(`document.getElementById(${JSON.stringify(id)}).click()`);
 try {
-  await send('Runtime.enable'); await send('Page.enable');
+  await send('Runtime.enable'); await send('Page.enable'); await send('Network.enable');
+  const requests=[];
+  socket.addEventListener('message',event=>{
+    const data=JSON.parse(event.data);
+    if(data.method==='Network.requestWillBeSent')requests.push(data.params.request);
+  });
   await send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:output});
   await send('Emulation.setDeviceMetricsOverride', {width:1280,height:1000,deviceScaleFactor:1,mobile:false});
   await send('Page.navigate', {url:base+'/index.html'});
@@ -87,6 +92,7 @@ try {
     delete copy.id;delete copy.run_id;delete copy.request_id;return copy;
   };
   for(const fixture of references) {
+    fixture.record=await evaluate(`Execution.run(${JSON.stringify(fixture.workload)}).then(receipt=>EvidenceClient.restore(receipt))`);
     const request=fixture.workload.requests[0].request, trace=fixture.record.traces[0];
     await apply(request);
     assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`),trace.tokenizer.ids.length);
@@ -98,6 +104,11 @@ try {
       assert.equal(await evaluate(`document.getElementById('response-preview').textContent`),pass.display_so_far);
       assert.equal(await evaluate(`document.getElementById('response-preview').children.length`),0);
       assert.deepEqual(await evaluate(`Array.from(document.querySelectorAll('#sequence-strip button small'),n=>Number(n.textContent.split('#')[1]))`),exported.sequence_ids);
+      if(i===trace.passes.length-1) {
+        const raw=await readFile(output+'/'+fixture.id+'.browser.json','utf8');
+        const replayed=await evaluate(`Execution.replayTokenStep(${JSON.stringify({record_json:raw})})`);
+        assert.deepEqual(replayed,exported,'Export must replay in its browser runtime');
+      }
       if(i===0 || i===trace.passes.length-1)await checkInspection(evaluate,exported);
       if(fixture===references[0] && i===0)await checkJourney({send,evaluate,until,click},exported);
     }
@@ -126,13 +137,24 @@ try {
   assert.ok(await evaluate(`!document.getElementById('inference-form').hidden && document.getElementById('next-token').disabled`));
   await send('Page.navigate',{url:base+'/index.html'});
   await until(`document.getElementById('next-token') && !document.getElementById('next-token').disabled`);
-  const steps=JSON.parse(await readFile(output+'/steps.json','utf8'));
-  for(const fixture of steps) {
-    if(fixture.name!=='continue')await evaluate(`document.querySelectorAll('#sequence-strip button')[${fixture.position}].click()`);
+  let prior=[];
+  for(const name of ['first','continue','branch']) {
+    const position=name==='branch'?2:prepared.tokenizer.ids.length-1;
+    if(name!=='continue')await evaluate(`document.querySelectorAll('#sequence-strip button')[${position}].click()`);
+    const spec=await evaluate(`(()=>{
+      const prepared=JSON.parse(document.getElementById('inference-data').textContent);
+      return {checkpoint_sha256:prepared.declaration.model.checkpoint_sha256,
+        prefix_ids:prepared.tokenizer.ids.slice(0,${position+1}),output_ids:[],
+        generation:prepared.declaration.workload.requests[0].request.generation,
+        ontology_binding:prepared.declaration.ontology_binding};
+    })()`);
+    if(name==='continue')spec.output_ids=prior;
+    const expected=await evaluate(`Execution.tokenStep(${JSON.stringify(spec)}).then(receipt=>EvidenceClient.restore(receipt))`);
     await next();
-    const exported=await download(fixture.name+'.step-browser.json');
-    assert.deepEqual(exported,fixture.record,'Branch execution differs from headless/CLI/HTTP');
-    await checkInspection(evaluate,fixture.record);
+    const exported=await download(name+'.step-browser.json');
+    assert.deepEqual(exported,expected,'Branch differs from headless worker operation');
+    prior=exported.output_ids;
+    await checkInspection(evaluate,exported);
   }
   await click('token-journey');await click('reset');await noExecution();
   await new Promise(r=>setTimeout(r,700));
@@ -177,7 +199,18 @@ try {
     await evaluate(`document.getElementById('time').value=${run.end};document.getElementById('time').dispatchEvent(new Event('input'));`);
     assert.equal(await evaluate(`document.getElementById('output-count').textContent`),`${run.output_tokens} / ${run.output_tokens} delivered`);
   }
+  // Failure is explicit; there is no native service to fall back to.
+  const workerPath=output+'/site/execution/worker.generated.js';
+  await rename(workerPath,workerPath+'.missing');
+  try {
+    await send('Page.navigate',{url:base+'/index.html?missing-worker'});
+    await until(`document.getElementById('binding-status')?.dataset.phase==='failed'`);
+    assert.equal(await evaluate(`document.getElementById('next-token').disabled`),true);
+    assert.ok(await evaluate(`document.getElementById('run-error').textContent.length>0`));
+  } finally {await rename(workerPath+'.missing',workerPath);}
+  assert.ok(requests.every(request=>request.method==='GET'),'Static site must not submit computation over HTTP');
+  assert.ok(requests.every(request=>!new URL(request.url).pathname.startsWith('/api/')),'No compute endpoint');
   assert.deepEqual(errors, []);
-  await writeFile(output+'/browser-checks.json',JSON.stringify({passed:true,checks:['idle preparation without inference','apply/reset clear evidence','per-token parity with complete headless runs','step exports and branching','replay cancellation','configuration preview blocks execution','explicit overflow','offline preparation','mobile layout','cache/KDA/request-cost parity']},null,2));
+  await writeFile(output+'/browser-checks.json',JSON.stringify({passed:true,checks:['idle preparation without inference','apply/reset clear evidence','per-token parity with complete headless runs','step exports and branching in the same browser runtime','replay cancellation','configuration preview blocks execution','explicit overflow','offline preparation','mobile layout','cache/KDA/request-cost parity']},null,2));
   console.log('Browser checks passed; screenshots and evidence: '+output);
 } finally { socket.close(); }

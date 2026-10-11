@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from scripts.check.governance.evaluation import committed_evaluations
+from scripts.check.governance.evaluation import committed_evaluations, evidence_reference
 
 
 class EvaluationHistoryTests(unittest.TestCase):
@@ -19,6 +19,16 @@ class EvaluationHistoryTests(unittest.TestCase):
             old.write_text('version: 1\nwork_item: legacy\n')
             git('add','.');git('commit','-m','Legacy criteria')
             anchor=git('rev-parse','HEAD')
+            evidence=root/'engine.py';evidence.write_text('original computation')
+            git('add','.');git('commit','-m','Evidence')
+            evidence.unlink();git('add','-u');git('commit','-m','Retire superseded implementation')
+            evidence_reference(root,'engine.py')
+            with self.assertRaisesRegex(ValueError,'Missing historical'):
+                evidence_reference(root,'never-existed.py')
+            (root/'engine.py').symlink_to(root/'absent')
+            with self.assertRaisesRegex(ValueError,'Invalid evaluation'):
+                evidence_reference(root,'engine.py')
+            (root/'engine.py').unlink()
             target='governance/evaluations/records/test/new.yaml'
             path=root/target;path.parent.mkdir(parents=True);path.write_text('version: 1\nwork_item: new\n')
             git('add','.');git('commit','-m','New criteria')

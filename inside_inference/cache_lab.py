@@ -1,6 +1,5 @@
 """A bounded, replayable KV lab: actual computation, explicit virtual resource service."""
 from collections import OrderedDict, deque
-from functools import lru_cache
 import math
 from time import perf_counter_ns
 
@@ -12,14 +11,8 @@ from inside_inference.tokenizer import Tokenizer, Turn
 from inside_inference.provenance import execution_provenance, stable_provenance, validate_provenance
 
 
-@lru_cache(maxsize=1)
 def available_backends():
-    import importlib.util
-    backends = ['reference']
-    if importlib.util.find_spec('torch') is not None:
-        import torch
-        if torch.cuda.is_available(): backends.append('cuda')
-    return backends
+    return ['reference']
 
 
 def default_experiment():
@@ -65,8 +58,6 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
     if model.checkpoint['manifest_sha256'] != codec.manifest_sha256:
         raise ValueError('Checkpoint tokenizer identity differs')
     cfg = spec.system
-    if cfg.model_execution.backend == 'cuda' and cfg.model_execution.backend not in available_backends():
-        raise ValueError('CUDA backend unavailable in this environment; use make _cache-cuda-setup and its Python')
     # Admit and encode the entire workload before allocating resources or computing.
     waiting_inputs, seen, previous = [], set(), -1
     if not 1 <= len(spec.workload.requests) <= cfg.max_requests:
@@ -88,11 +79,7 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
         waiting_inputs.append(dict(id=item.request_id, arrival=item.arrival_us, ids=ids,
             prefix_ids=ids[:-1], request=request, reservation=reservation, emitted=[],
             stage='lookup', state=None, step=0))
-    if cfg.model_execution.backend == 'reference':
-        runtime = ReferenceRuntime(checkpoint)
-    else:
-        from inside_inference.cuda_runtime import CudaRuntime
-        runtime = CudaRuntime(checkpoint)
+    runtime = ReferenceRuntime(checkpoint)
     backend = runtime.describe()
     binding = KVRunBinding(model=ModelArtifactReference(checkpoint_sha256=model.sha256,
         tokenizer_sha256=codec.manifest_sha256, architecture=model.config), system=cfg, workload=spec.workload, ontology_binding=spec.ontology_binding)

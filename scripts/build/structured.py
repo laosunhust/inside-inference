@@ -12,11 +12,8 @@ import yaml
 from inside_inference.contract_runtime import decode_json
 
 
-class StrictLoader(yaml.SafeLoader):
-    def compose_node(self, parent, index):
-        if self.check_event(yaml.AliasEvent):
-            raise ValueError('YAML aliases are not admitted authorities')
-        return super().compose_node(parent, index)
+class StrictLoader(yaml.CSafeLoader):
+    pass
 
 
 def mapping(loader, node):
@@ -34,6 +31,10 @@ StrictLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, map
 
 @lru_cache(maxsize=128)
 def _parse_yaml(source):
+    # LibYAML composes in C, so compose_node overrides cannot reject aliases.
+    # Scan first; retain the same strict mapping constructor and safe value types.
+    if any(isinstance(token,yaml.AliasToken) for token in yaml.scan(source,Loader=StrictLoader)):
+        raise ValueError('YAML aliases are not admitted authorities')
     value = yaml.load(source, Loader=StrictLoader)
     return decode_json(json.dumps(value, allow_nan=False))
 

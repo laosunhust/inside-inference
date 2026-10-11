@@ -17,12 +17,13 @@ setup: ## Install locked Python and build-tool dependencies locally.
 	@python3 -m venv .venv
 	@.venv/bin/python -m pip install -r requirements.txt
 	@npm ci --ignore-scripts
+	@$(PYTHON) -m scripts.build.browser_runtime
 
 _intro-page: _governance-check _data-models-check
 	@$(PYTHON) -m scripts.build.intro_page $(if $(CHECKPOINT),--checkpoint "$(CHECKPOINT)",)
 
-serve-intro: _intro-page ## Replace the listener on port 8000 and serve live inference locally.
-	@$(PYTHON) -m scripts.dev.serve_intro $(if $(CHECKPOINT),--checkpoint "$(CHECKPOINT)",)
+serve-intro: _intro-page ## Replace the listener on port 8000 and serve the static browser application.
+	@$(PYTHON) -m scripts.dev.serve_intro
 
 _check: _governance-check _make-check _layout-check _data-models-check
 	@$(PYTHON) -m scripts.build.intro_page --check
@@ -35,14 +36,14 @@ test: ## Light harness: contract and correctness tests; no browser or HTTP serve
 _test: _governance-check _make-check _layout-check _data-models-check
 	@$(PYTHON) -m scripts.check.governance.harness
 
-# Optional CHECKPOINT=path.json binds both embedded and live execution for serve-intro
-# and runs browser parity on that artifact in test-integration (default is the shipped trained checkpoint).
-# Full harness runs unit checks once, then composition and real adapter/browser parity.
+# Optional CHECKPOINT=path.json binds embedded preparation and packaged browser weights
+# and runs browser parity on that artifact (default is the shipped trained checkpoint).
+# Full harness runs unit checks once, then static serving and browser-worker parity.
 # Component invariants belong in unit tests; integration compares complete records
 # against checked references and owns transport, export/replay and rendered wiring.
 # Missing Chrome/Node support is a failure, never a silently skipped test.
 # Evidence: out/experiments/integration/ (workloads, run records, screenshots, result).
-test-integration: ## Full harness: reproduce interactive runs through headless, CLI, HTTP, and browser.
+test-integration: ## Full harness: reproduce interactive runs through headless and interactive calls in the browser.
 	@$(PYTHON) -m scripts.check.governance.budget test-integration
 
 # Private workflows share prerequisites; public wrappers time the complete work.
@@ -63,12 +64,6 @@ _layout-check:
 	@python3 -m scripts.check.layout
 
 # Maintainer experiments. Outputs under out/ are disposable, never authorities.
-_inference-example: _data-models-check
-	@$(PYTHON) -m scripts.experiments.run_inference
-
-_measure-inference: _data-models-check
-	@$(PYTHON) -m scripts.experiments.measure_inference
-
 _vocabulary-study:
 	@mkdir -p out/experiments/vocabulary-study
 	@$(PYTHON) -m scripts.experiments.vocabulary_study > out/experiments/vocabulary-study/report.json
@@ -82,16 +77,9 @@ _tokenizer-example:
 _dataset-audit:
 	@$(PYTHON) -m scripts.experiments.prepare_corpus
 
-# Read-only diagnosis against the running local page; uses optional preparation
-# dependencies to reproduce response supervision, but never trains a model.
-_diagnose-word-separator:
-	@$(PYTHON) -m scripts.experiments.diagnose_word_separator $(ARGS)
-
-.PHONY: _diagnose-word-separator
-
 .PHONY: help setup _intro-page serve-intro _check test test-integration _test _test-integration
 .PHONY: _data-models _data-models-check _make-check _layout-check
-.PHONY: _inference-example _measure-inference _vocabulary-study _tokenizer-example _dataset-audit
+.PHONY: _vocabulary-study _tokenizer-example _dataset-audit
 
 # Optional checkpoint preparation; binary64 CPU training stays outside inference setup.
 _preparation-setup:
@@ -112,25 +100,6 @@ _verify-checkpoint: _data-models-check
 
 .PHONY: _verify-checkpoint
 
-# Optional physical VRAM/pinned-DRAM lab. The isolated environment leaves the CPU
-# setup untouched. Use its Python for serve-intro or test-integration to expose CUDA.
-_cache-cuda-setup:
-	@python3 -m venv out/experiments/kv-cuda-venv
-	@out/experiments/kv-cuda-venv/bin/python -m pip install -r requirements-cache-cuda.txt
-
-_test-cache-cuda: _data-models-check
-	@out/experiments/kv-cuda-venv/bin/python -m unittest discover -s tests/cuda -v
-
-_cache-example: _data-models-check
-	@$(PYTHON) -m scripts.experiments.run_cache $(ARGS)
-
-.PHONY: _cache-cuda-setup _test-cache-cuda _cache-example
-
-_measure-cache-hardware: _data-models-check
-	@out/experiments/kv-cuda-venv/bin/python -m scripts.check.cache_hardware
-
-.PHONY: _measure-cache-hardware
-
 # Governance lock updates require explicit owner authorization; checks never refresh hashes.
 # Review governance/approval-lock.yaml, then use sha256sum on approved changed paths.
 _governance-check:
@@ -146,9 +115,3 @@ _references:
 	@$(PYTHON) -m scripts.dev.references nano-vllm https://github.com/GeeeekExplorer/nano-vllm.git bb823b3e06983d71485a8e1f23715ebd87d98ef8
 
 .PHONY: _references
-
-# Bounded research harness; downloads pinned Pyodide assets under out/, then tests static-only execution.
-_browser-spike: _governance-check _data-models-check
-	@$(PYTHON) -m scripts.experiments.browser_spike.prepare
-	@$(PYTHON) -m scripts.experiments.browser_spike.run
-.PHONY: _browser-spike

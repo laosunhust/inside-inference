@@ -105,7 +105,9 @@ class Declaration:
         return result
 
     def validate_bound(self,context):
-        validate(self._definitions[self.__class__.__name__],self.to_dict(),self._definitions,context=context,bound=True)
+        value = self.to_dict()
+        self.validate_shape(value)
+        _bounds(self._definitions[self.__class__.__name__],value,self._definitions,context,'$')
 
 
 def decode_json(text):

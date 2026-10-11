@@ -245,7 +245,7 @@
   }
   function renderStatus() {
     const phase=session.phase;
-    const messages={offline:'Execution unavailable offline',ready:'',dirty:'Unapplied input changes',running:'',failed:'Operation failed'};
+    const messages={offline:location.protocol==='file:'?'Open through a web server':'Loading engine…',ready:'',dirty:'Unapplied input changes',running:'',failed:'Operation failed'};
     $('binding-status').textContent=phase==='ready' && configuration && !configuration.executable() ? 'Configuration preview' : messages[phase];
     $('binding-status').dataset.phase=phase;
     for(const id of ['prompt','output-budget','execute']) $(id).disabled=!session.live || phase==='running';
@@ -304,9 +304,7 @@
     playback.stop();
     try {
       session=InspectionSession.transition(session,{type:'STEP_SUBMIT'});renderPass();
-      const response=await fetch(Declarations.routes.tokenStep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(session.submitted_step)});
-      const delivered=await response.json();
-      if(!response.ok) throw new Error(delivered.error);
+      const delivered=await Execution.tokenStep(session.submitted_step);
       const result=await EvidenceClient.restore(delivered);
       session=InspectionSession.transition(session,{type:'STEP_ACCEPT',result});
       receipt=delivered;
@@ -320,8 +318,7 @@
     event.preventDefault();playback.stop();
     try {
       session=InspectionSession.transition(session,{type:'SUBMIT'});receipt=null;renderPass();
-      const response=await fetch(Declarations.routes.prepareInput,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(session.submitted.workload)});
-      const delivered=await response.json();if(!response.ok) throw new Error(delivered.error);
+      const delivered=await Execution.prepareInput(session.submitted.workload);
       session=InspectionSession.transition(session,{type:'ACCEPT',prepared:delivered});
       renderRun();
       const editor=document.querySelector('.source-editor');
@@ -335,12 +332,10 @@
   };
   $('download-run').onclick=async()=>{try { const serializedRun=await EvidenceClient.export(receipt);const a=make('a');const url=URL.createObjectURL(new Blob([serializedRun],{type:'application/json'}));a.href=url;a.download='inference-run.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000); } catch(error) { session={...session,error:error.message};renderStatus(); } };
   renderRun();
-  if(location.protocol!=='file:') fetch(Declarations.routes.capabilities).then(async response=>{
-    if(!response.ok) return;
-    const capabilities=await response.json();
-    if(capabilities.engine!==Declarations.schemas.Capabilities.properties.engine.const || capabilities.contract_sha256!==Declarations.hash) throw new Error('Page and execution server use different declarations; rebuild and reload.');
+  if(location.protocol!=='file:') Execution.capabilities().then(capabilities=>{
+    if(capabilities.engine!==Declarations.schemas.Capabilities.properties.engine.const || capabilities.contract_sha256!==Declarations.hash) throw new Error('Page and engine declarations differ; rebuild and reload.');
     session=InspectionSession.transition(session,{type:'CONNECT'});renderStatus();
-  }).catch(error=>{session={...session,error:error.message};renderStatus();});
+  }).catch(error=>{session=InspectionSession.transition(session,{type:'FAIL',message:error.message});renderStatus();});
   if (location.hash) {
     const target = $(location.hash.slice(1)); if (target && target.dataset.entity) chooseEntity(target.dataset.entity);
   }

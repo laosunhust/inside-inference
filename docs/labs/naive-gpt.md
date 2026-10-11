@@ -113,8 +113,8 @@ execution. Client output derives from publication events. This first adapter acc
 only one arrival at zero and records execution order without claiming latency.
 See the [input/output contract](../architecture/workloads.md).
 
-For exact replay, pass the downloaded record to
-`.venv/bin/python -m scripts.experiments.run_inference --replay PATH`.
+For exact replay, the browser execution interface accepts the downloaded JSON text
+through its declared replay operation.
 Replay verifies source and checkpoint identity as well as the resulting evidence.
 
 Changes to decoding filters, forced tokens or stops, output repair, or other

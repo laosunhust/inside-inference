@@ -1,0 +1,44 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/transport-consolidation.yaml
+evaluation_sha256: f681d984b559783a54219374b8fc2775193e38f2554a6dc0f3f82888bb613f4b
+outcome: passed
+summary: 'Deleted the unused Lambda bridge, composition entry point, S3 adapter and AWS-only test paths. Retained
+  socket admission, private artifact serving and durable file-store integrity checks. OpenAPI remains the sole operation/request/response
+  authority; the generated execution client derives logical methods and the HTTP binding from it. UI and evidence
+  reconstruction call that client; governance rejects authored frontend transport construction and stale generated
+  clients. Alternate-transport tests run without fetch, reject bad request/response shapes and propagate failure;
+  original JSON text remains available for lossless cache export. No unused worker adapter was added. AGENTS clarifies
+  that highest priority for feature-development SSOT does not override governance, authorization or evaluations.
+  Approval locks record the owner''s scoped authorization.
+
+
+  Profiling found schema validation dominant (5.36s cumulative under cProfile, including nested work), with strict
+  YAML parsing also repeated across processes. Capability validation now uses its cached declaration validator instead
+  of serializing the schema graph; strict YAML uses LibYAML with explicit alias rejection and the existing duplicate-key/nonfinite
+  checks. No numerical assertions, schema admission cases or supported transport coverage were removed. The AWS-specific
+  integration case fell from 0.788s to 0.271s after consolidation to consumed stores. The full integration-test
+  suite fell from 22.04s to 20.77s.
+
+
+  make test passed 105 tests in 9.21s end-to-end (6.13s tests), versus the preceding recorded 9.92s (6.49s tests).
+  make test-integration passed 105 unit tests, 27 integration tests and browser parity in 87.83s, versus 90.53s.
+  Budgets remain 10s/100s. These are single-host samples, not statistically controlled performance claims; the unit
+  budget still has limited headroom. The first full-harness attempt stopped on generated trailing whitespace, corrected
+  in the generator before the successful run. Browser execution remains a feasibility spike; the generated client
+  seam does not establish production worker parity. Source admission catches ordinary authored transport calls,
+  not arbitrary JavaScript obfuscation.'
+evidence:
+- AGENTS.md
+- data-model/openapi.yaml
+- scripts/build/http_transport.py
+- scripts/build/structured.py
+- inside_inference/contract_runtime.py
+- scripts/check/governance/http.py
+- tests/unit/contracts/test_http_boundary.py
+- tests/integration/inspection_session.mjs
+- tests/integration/test_artifact_delivery.py
+- tests/integration/test_http_runtimes.py
+- web/execution/client.generated.js
+- web/execution/evidence-client.js
+- docs/architecture/delivery.md
+- docs/architecture/website.md

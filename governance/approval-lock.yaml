@@ -21,7 +21,14 @@ approval:
     \ checker/tests. Owner response on 2026-10-11: \"Approve locking the theme check\". Owner instruction on 2026-10-11:\
     \ add a clear AGENTS.md Development obligation for UI, \"Show, dont' tell\". Owner instruction on 2026-10-11:\
     \ \"fix the interface, adapt implementation to interface, and add the interface to governance boundary ... only\
-    \ one HTTP, with two runtimes.\" Owner instruction on 2026-10-11: SSOT is the highest Development philosophy; ignore backward compatibility during development, emphasize forward compatibility, and prefer deletion of superseded paths."
+    \ one HTTP, with two runtimes.\" Owner instruction on 2026-10-11: SSOT is the highest Development philosophy;\
+    \ ignore backward compatibility during development, emphasize forward compatibility, and prefer deletion of\
+    \ superseded paths. Owner instruction on 2026-10-11: \"ok. let's go ahead and make changes accordingly. feels\
+    \ like primarily deletion/consolidation.\", approving removal of unused Lambda/S3 paths, transport-interface\
+    \ consolidation and enforcement, test-efficiency improvements, and clarification that feature-development SSOT\
+    \ priority does not override governance or evaluations. Owner instruction on 2026-10-11: \"right. let's continue\
+    \ deleting. we don't truly need speed up here for this tiny LLM.\", following explicit agreement to delete CUDA\
+    \ and native website compute, adopt browser-only operation execution and retain native component testing."
   scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile and
     ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content remains unlocked.
     Retain approved folder and file-size limits. This approval does not authorize future policy changes. Additional
@@ -52,35 +59,40 @@ approval:
     and refreshes only its recorded hash; no other enforcement or limit changes. Establish one OpenAPI-driven WSGI
     application and generated socket/Lambda runtime bridges; extend generate_data_models.py, add/protect http_transport.py
     and governance/http.py, wire __main__.py, protect test_http_boundary.py, and update locks.py. No constitution,
-    limits, or public workflow changes. Additional owner authorization on 2026-10-11 updates only AGENTS.md
-    Development principles for SSOT, compatibility and removal of superseded implementations, and its recorded
-    hash. No lock inventory, limits or enforcement changes.'
+    limits, or public workflow changes. Additional owner authorization on 2026-10-11 updates only AGENTS.md Development
+    principles for SSOT, compatibility and removal of superseded implementations, and its recorded hash. No lock
+    inventory, limits or enforcement changes. This authorization covers AGENTS.md clarification, scripts/build/http_transport.py
+    deletion and generated client, scripts/check/governance/http.py and tests/unit/contracts/test_http_boundary.py
+    boundary enforcement, and scripts/build/structured.py equivalent strict YAML admission using LibYAML. No limit
+    or lock-inventory changes. Browser-only cutover: update the existing transport generator and declaration generator,
+    execution-boundary admission/tests, and evaluation evidence admission/tests so retired source evidence remains
+    recoverable in Git without rewriting historical records. Budgets and protected inventory remain unchanged.'
 files:
-  AGENTS.md: a3b2a91977c76d5f157aa0a581300d339102bfa0f952f1048a3f33a7b370ff99
+  AGENTS.md: 3d82da87d8d152cde464d421d61a35cdc4f1afb6109b0c3d35edb0cd5411b596
   governance/limits.yaml: 6be775a37ca614960261a44ae07d13305bafb71195a84f9b3233af25601b784e
   scripts/__init__.py: 07cf2de9025005ac8dbafe1162d8cd39cf4f99dab454bd0388b597a5585db2ea
   scripts/build/compile_validators.mjs: 8d226d90bad36a219aa69af05a511b665f2b7149b6ba50557b778e51c6a52795
   scripts/build/contracts.py: fca886ce74f82593a921b318535a6731ddf71124a70f1942f5f43f419742e63e
-  scripts/build/generate_data_models.py: 772724755e37eaef7b2f4fbeef47b3ee011a606e871daf646bbf9adb5bfa4c9d
+  scripts/build/generate_data_models.py: aeab9cc39005ce44068551dcdb85c2fa1abb560d41011ee455b0b631c868794b
   scripts/build/ontology.py: 9f5271f975a3c877906abad76fba1eb58496bf4399691e77c3bfa4bba7e35454
-  scripts/build/structured.py: 5e630f42c1a43bc187bea9dbf4073690615a7c1da2c95f35596a0d50ff42046c
+  scripts/build/structured.py: f548e8e5f85e47297091182e45702fbfe5d1196463727dd387b91beedd138b06
   scripts/check/governance/__init__.py: f90f2f4c5a46fe4fa0deb54d71f7a463cc6368400b54fee101c89aab7e6aba50
   scripts/check/governance/__main__.py: a0c2e0ab3c08e90a315850795278f89e30b7c6bfd5f9f2d246c4421638fae137
-  scripts/check/governance/evaluation.py: 3a2d46e5073e8d8c01fb58bc43bef52ff0c62c9a4726c50652d3261d23a09804
+  scripts/check/governance/evaluation.py: 2e8584123755b3723d494225aa188ec68ab8a0ff25cbcbc3fc7f9c8c17b49b82
   scripts/check/governance/interfaces.py: c77bd3ba3350912007ca86f0f2d7ba7efc66d0519a6f7916254a4f4c26c2f0bc
   scripts/check/governance/locks.py: b49a82dd34f4f6da2261226fecc277fffb8465f64c32e97f73a1601bfc2fdc75
   scripts/check/governance/structure.py: d1730cf1a43d2c3e1702bf06377fbdf2d8041a3e1365b26f6313d8eb8e8bad90
   scripts/check/layout.py: 54e53c43a5ce571375c049e9ebf740631ab24c14acdd1efaafca5eb2f63679e2
   scripts/check/make_interface.py: 298a6bd1e6f90becabbd0d12ba369c5a0d697f0b81f758fabf56423f01cd26b8
-  tests/unit/contracts/test_governance.py: bafdfe92f7970ff74e3a949db17a24fdcc31c2d12af554f749ad6bb2d920d366
+  tests/unit/contracts/test_governance.py: b46995fdec000909fe7fa7f3d66e635fe1272855c702b681b5a1e1e713ce363e
   tests/unit/contracts/test_governance_locks.py: acf09b594c79261c3c40a854cfc0dde0848b208e6996946ee6ef65de23348ef7
   scripts/check/governance/frontend.py: 52215b95b64864ec6a726e28f7ef020d46308bc349615acff086f839abbf93c4
   scripts/check/governance/harness.py: 31ea6e97f860f971745a04f8188015815697183b83a1ab6382dff2abcca59a79
   tests/unit/contracts/test_harness.py: 1ba20fd6e4e3a9a0bed83d99d8b1f3e87e50dc97f99deec7b1e30f8c08ae7de2
   scripts/check/governance/budget.py: d1c09b74ec64a35e5523d23658b1251e65499ed4cba6aeceb1de7e7c257e10ab
-  tests/integration/test_evaluation_history.py: 9cf2f155cf3dd210dad2d7811ba89f268469470e0039a85a023254afe92f466e
+  tests/integration/test_evaluation_history.py: 8c8c04bc9a6bae1c6ae6aa163ce8658f56d39b4649415aa315c9807b30873b6d
   scripts/build/theme.py: 09ae41862b4155fad25c2189c5a4253155ec55a59f70422de67d69fed2922639
   tests/unit/test_theme.py: 96a198554b23d8a80230cbe4e62cdf18a02f0b1a81a8f65da8380a192f66eb07
-  scripts/build/http_transport.py: 901c7b015086ae5c8dac69e1780cf408a498e166157014ba2952e7708d7d1acf
-  scripts/check/governance/http.py: df816bde7592c5ce99b816290b8192e017bc5836b15f61b5cb38db4aec635ec5
-  tests/unit/contracts/test_http_boundary.py: c790fc50ab824199caaf8ec9ffebfd3f8dd64a5c72835ce15412f49a992b9398
+  scripts/build/http_transport.py: 11985fab8ce46c65243026a13857b2a6f0f8fae1fbff448c57980c1a22c245c9
+  scripts/check/governance/http.py: 81bb53256905b83a56826a27271d4253ebb36caeb143df785353b4d2c02c57ca
+  tests/unit/contracts/test_http_boundary.py: a4d1ba3749a547aba1f21e2b059af1d84f413070f8b18c8461dbc09435d11ba2

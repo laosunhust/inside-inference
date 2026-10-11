@@ -1,5 +1,11 @@
 # Browser execution feasibility spike
 
+Historical snapshot: the native comparison driver and its private Make target were
+retired after browser-only product integration. Their source remains in Git at
+`11ec96a`. Current execution and checks are described in the
+[website architecture](../architecture/website.md). The findings below retain
+their original scope.
+
 Date: 2026-10-11. Result: **feasible for the tested reference model and KV simulation**.
 This supports the [browser-first architecture](../architecture/website.md); it does
 not complete a production worker interface or migrate the website.

@@ -1,0 +1,26 @@
+version: 1
+work_item: transport-consolidation
+question: Can unused AWS adapters be deleted and current UI operations share one transport-independent declaration without weakening parity or test budgets?
+necessity: Lambda/S3 have no current consumer, browser modules construct HTTP directly, and harness times leave little margin.
+baseline: Committed test wall times are 9.92s and 90.53s. HTTP shapes live in OpenAPI; UI and evidence retrieval call fetch directly; socket and unused Lambda/S3 adapters are maintained.
+reuse:
+- source: Existing declarations, common execution service, WSGI application and artifact codec
+  decision: Retain consumed domain behavior and storage; delete AWS-only composition and tests.
+- source: Existing generated consumers and harness timings
+  decision: Generate a logical execution client and HTTP binding from shared operation declarations. Profile measured work before optimizing; do not increase budgets.
+criteria:
+- Lambda runtime generation, AWS composition and S3 storage are removed, with no supported consumer lost; socket admission and durable file-store integrity remain tested.
+- AGENTS preserves SSOT as the highest feature-development principle while explicitly retaining governance, authorization and evaluation obligations.
+- Browser presentation, session and evidence reconstruction contain no HTTP request construction; the client validates declared requests/responses through an injectable transport.
+- Logical operation names and request/response types have one authored authority; HTTP schema bindings derive from it and unknown operations or mismatched shapes fail.
+- An alternate transport can exercise the same client without fetch; no unused production worker or remote adapter is added. Worker integration must consume the same logical operations.
+- Governance rejects direct transport calls outside the designated boundary and stale generated clients; regression tests demonstrate rejection.
+- Profile evidence identifies costly work; optimizations preserve numerical, schema-admission and browser parity coverage, with unchanged 10s and 100s budgets.
+counterexamples:
+- Removing Lambda also removes origin/error tests or durable file-store checks still needed by the socket runtime.
+- A transport adapter silently repairs inputs, changes numerical results or returns undeclared shapes.
+- Faster tests bypass validation, omit difficult cases or weaken time limits.
+checks:
+- make test
+- make test-integration
+- Profile before/after and generated-boundary mutation tests

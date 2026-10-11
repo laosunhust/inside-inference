@@ -2667,6 +2667,21 @@ globalThis.Declarations = (() => {
       }
     }
   },
+  "ExecutionReplayInput": {
+    "type": "object",
+    "x-owner": "ExperimentExecution",
+    "additionalProperties": false,
+    "required": [
+      "record_json"
+    ],
+    "properties": {
+      "record_json": {
+        "type": "string",
+        "title": "Exported evidence",
+        "description": "Exact exported JSON bytes; preserve numeric lexemes for replay."
+      }
+    }
+  },
   "InspectionState": {
     "type": "object",
     "x-owner": "InspectionState",
@@ -2811,8 +2826,7 @@ globalThis.Declarations = (() => {
         "items": {
           "type": "string",
           "enum": [
-            "reference",
-            "cuda"
+            "reference"
           ]
         },
         "minItems": 1,
@@ -3626,8 +3640,7 @@ globalThis.Declarations = (() => {
       "backend": {
         "type": "string",
         "enum": [
-          "reference",
-          "cuda"
+          "reference"
         ],
         "default": "reference",
         "title": "Numerical backend"
@@ -4759,7 +4772,8 @@ globalThis.Declarations = (() => {
       "StoredRunRecord",
       "StoredTokenStepResult",
       "ExecutionArchive",
-      "ExecutionBundle"
+      "ExecutionBundle",
+      "ExecutionReplayInput"
     ]
   },
   "ExperimentEvent": {
@@ -5349,8 +5363,7 @@ globalThis.Declarations = (() => {
 };
   const operationOwners = {"token_embedding": "Embedding", "embedding": "Embedding", "position_embedding": "PositionEncoding", "ln1_mean": "Normalization", "ln1_variance": "Normalization", "ln1": "Normalization", "ln2_mean": "Normalization", "ln2_variance": "Normalization", "ln2": "Normalization", "ln_final_mean": "Normalization", "ln_final_variance": "Normalization", "ln_final": "Normalization", "query": "Attention", "key": "Attention", "value": "Attention", "scores": "Attention", "causal_mask": "Attention", "attention": "Attention", "weighted_values": "Attention", "attention_output": "Attention", "attention_residual": "ResidualAddition", "ff_residual": "ResidualAddition", "ff_up": "FeedForward", "gelu": "FeedForward", "ff_down": "FeedForward", "logits": "OutputProjection", "input_ids": "Tokenizer", "retained_keys": "KVState", "retained_values": "KVState"};
   const labs = [{"id": "naive-gpt", "name": "Na\u00efve GPT computation", "status": "mechanical-demo", "ontology_binding": {"primary": "ModelExecution", "related": ["Tokenizer", "Embedding", "PositionEncoding", "Normalization", "Attention", "ResidualAddition", "FeedForward", "OutputProjection", "Decoding"]}}, {"id": "kimi-delta-attention", "name": "Kimi Delta Attention (KDA)", "status": "mechanical-demo", "ontology_binding": {"primary": "Attention", "related": []}}, {"id": "prefix-cache", "name": "Exact prefix caching", "status": "mechanical-demo", "ontology_binding": {"primary": "KVCache", "related": ["KVState", "RequestScheduling", "StateTransfer", "ComputeService"]}}, {"id": "prefill-decode", "name": "Prefill/decode KV handoff", "status": "planned", "ontology_binding": {"primary": "StateTransfer", "related": ["KVState", "ModelExecution"]}}, {"id": "speculative-decoding", "name": "Speculative decoding", "status": "planned", "ontology_binding": {"primary": "Decoding", "related": ["ModelExecution", "KVState"]}}, {"id": "positional-encoding", "name": "Positional encoding", "status": "planned", "ontology_binding": {"primary": "PositionEncoding", "related": ["Embedding", "Attention"]}}];
-  const routes = {"capabilities": "/api/capabilities", "run": "/api/runs", "cacheRun": "/api/cache-runs", "cacheCapabilities": "/api/cache-capabilities", "tokenStep": "/api/token-step", "artifact": "/api/artifacts", "prepareInput": "/api/prepare-input"};
-  const hash = "f9ed5090ea4a1a9d796a3a020c41a4bcf2933bc589458880f936121e385df03d";
+  const hash = "61690aa2142cf6be0fe3c32da1de12a61499935bc18a4c809489e34a2a2474f4";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);
@@ -5360,5 +5373,5 @@ globalThis.Declarations = (() => {
     assertShape(name,value);
     ContractRuntime.bounds(schemas[name],value,schemas,context);
   };
-  return {schemas, meanings, routes, hash, operationOwners, labs, assertShape, assertBound};
+  return {schemas, meanings, hash, operationOwners, labs, assertShape, assertBound};
 })();

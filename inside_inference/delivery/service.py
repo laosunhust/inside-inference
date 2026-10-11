@@ -1,29 +1,32 @@
-"""Common API application. HTTP and Lambda only adapt envelopes around this code."""
-from inside_inference.declarations_generated import API_PATHS, CONTRACT_SHA256, Capabilities, CacheCapabilities
+"""Declared execution operations shared by the browser and component tooling."""
+from inside_inference.declarations_generated import EXECUTION_OPERATIONS, MODELS, CONTRACT_SHA256, Capabilities, CacheCapabilities
 from inside_inference.workload import run_workload, prepare_input
-from inside_inference.generation import run_token_step
-from inside_inference.cache_lab import run_cache_experiment, available_backends
+from inside_inference.generation import run_token_step, replay_token_step
+from inside_inference.cache_lab import run_cache_experiment, available_backends, replay_cache
 from inside_inference.delivery.codec import publish
 from inside_inference.delivery.store import response
+from inside_inference.model import canonical
+from inside_inference.contract_runtime import decode_json
 
 
-def dispatch(method, route, payload, store, *, checkpoint=None):
-    if method == 'GET' and route == API_PATHS['capabilities']:
-        return 200, Capabilities(contract_sha256=CONTRACT_SHA256).to_dict()
-    if method == 'GET' and route == API_PATHS['cacheCapabilities']:
-        return 200, CacheCapabilities(contract_sha256=CONTRACT_SHA256, backends=tuple(available_backends())).to_dict()
-    if method != 'POST': return 404, {'error': 'Unknown endpoint'}
-    try:
-        if route == API_PATHS['artifact']: return 200, response(store, payload)
-        if route == API_PATHS['prepareInput']: return 200, prepare_input(payload, checkpoint=checkpoint)
-        if route == API_PATHS['run']:
-            return 200, publish(run_workload(payload, checkpoint=checkpoint), store)
-        if route == API_PATHS['tokenStep']:
-            return 200, publish(run_token_step(payload, checkpoint=checkpoint), store)
-        if route == API_PATHS['cacheRun']: return 200, run_cache_experiment(payload, checkpoint=checkpoint)
-        return 404, {'error': 'Unknown endpoint'}
-    except FileNotFoundError:
-        if route == API_PATHS['artifact']: return 404, {'error': 'Artifact not found'}
-        raise
-    except (ValueError, TypeError, UnicodeError) as error:
-        return 400, {'error': str(error)}
+def execute(name, payload, store, *, checkpoint=None):
+    if name not in EXECUTION_OPERATIONS: raise ValueError('Unknown execution operation')
+    operation = EXECUTION_OPERATIONS[name]
+    if operation['request']: MODELS[operation['request']].validate_shape(payload)
+    elif payload is not None: raise ValueError('Unexpected operation input')
+    if name == 'capabilities': value = Capabilities(contract_sha256=CONTRACT_SHA256).to_dict()
+    elif name == 'cacheCapabilities': value = CacheCapabilities(contract_sha256=CONTRACT_SHA256, backends=tuple(available_backends())).to_dict()
+    elif name == 'artifact': value = response(store, payload)
+    elif name == 'prepareInput': value = prepare_input(payload, checkpoint=checkpoint)
+    elif name == 'run': value = publish(run_workload(payload, checkpoint=checkpoint), store)
+    elif name == 'tokenStep': value = publish(run_token_step(payload, checkpoint=checkpoint), store)
+    elif name == 'replayTokenStep': value = replay_token_step(decode_json(payload["record_json"]))
+    elif name == 'replayCache': value = replay_cache(decode_json(payload["record_json"]))
+    elif name == 'cacheRun': value = run_cache_experiment(payload, checkpoint=checkpoint)
+    else: raise ValueError('Declared operation has no implementation')
+    MODELS[operation['response']].validate_shape(value)
+    return canonical(value).decode()
+
+
+def execute_json(name, payload, store):
+    return execute(name, decode_json(payload), store)

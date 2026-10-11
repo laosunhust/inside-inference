@@ -10,7 +10,7 @@ import shutil
 from inside_inference.labs.kda import demo
 from inside_inference.labs.journey import scenarios, simulate
 from inside_inference.workload import prepare_input
-from inside_inference.cache_lab import run_cache_experiment
+from inside_inference.cache_lab import default_experiment
 from inside_inference.tokenizer import Tokenizer
 from scripts.build.generate_data_models import admit, generate, read
 from scripts.build.ontology import load_declarations
@@ -97,10 +97,13 @@ def ontology_terms():
 def build(output, *, checkpoint=None):
     check_theme(ROOT)
     generate(check=True)
+    from scripts.build.browser_runtime import package
+    package(output,checkpoint)
     data = load_catalog()
     output.mkdir(parents=True, exist_ok=True)
     (output / 'labs').mkdir(exist_ok=True)
-    for name in ('evidence-client.js', 'theme.css', 'style.css', 'app.js', 'journey.js', 'inference.js', 'configuration-preview.js', 'execution-path.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
+    for name in ('execution/evidence-client.js', 'execution/client.generated.js', 'execution/worker.generated.js', 'theme.css', 'style.css', 'app.js', 'journey.js', 'inference.js', 'configuration-preview.js', 'execution-path.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
+        (output / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / 'web' / name, output / name)
     layers = {x['id']: x for x in data['layers']}
     nav = ''.join(f'<a href="#layer-{x["id"]}">{i:02d} {esc(x["name"])}</a>'
@@ -186,10 +189,7 @@ The landing page executes an inspectable GPT with identified checkpoint provenan
         '__ONTOLOGY_DATA__', json.dumps(terms).replace('<', '\\u003c'))
     numerical = '<link rel="stylesheet" href="inference.css">' + numerical
     (output / 'index.html').write_text(shell('What happens if you change this?', numerical, landing=True))
-    cache_record = run_cache_experiment(checkpoint=checkpoint)
-    # Disposable static builds are reproducible. Real wall-clock samples remain
-    # available from live/CLI execution, never invented as deterministic timings.
-    cache_record['measurements'] = []
+    cache_record = default_experiment()
     cache = (ROOT / 'web/cache.html').read_text().replace(
         '__CACHE_DATA__', json.dumps(cache_record, allow_nan=False).replace('<', '\\u003c')).replace(
         '__ONTOLOGY_DATA__', json.dumps(terms).replace('<', '\\u003c')).replace(

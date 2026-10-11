@@ -70,6 +70,20 @@ def reference(root, path, prefix=''):
         raise ValueError(f'Invalid or missing evaluation reference: {path!r}')
 
 
+def evidence_reference(root, path):
+    # Deletion must not force rewriting historical evaluation results. Missing
+    # source evidence must remain recoverable as a regular blob in Git history.
+    if regular_file(root,path):
+        reference(root,path)
+        return
+    if not safe_path(path) or (root/path).exists() or (root/path).is_symlink():
+        raise ValueError('Invalid evaluation evidence: '+str(path))
+    if not (root/'.git').exists(): raise ValueError('Missing historical evaluation evidence: '+path)
+    revision=git(root,'log','-1','--format=%H','--diff-filter=AM','HEAD','--',path).decode().strip()
+    if not revision or git(root,'cat-file','-t',f'{revision}:{path}').strip()!=b'blob':
+        raise ValueError('Missing historical evaluation evidence: '+path)
+
+
 def audit_evaluation(root):
     for path, content in committed_evaluations(root).items():
         reference(root, path)
@@ -132,7 +146,7 @@ def audit_evaluation(root):
             raise ValueError(f'{path}: result needs an explicit outcome and summary')
         strings(value['evidence'], f'{path}: result requires evidence')
         for evidence in value['evidence']:
-            reference(root, evidence)
+            evidence_reference(root, evidence)
             if evidence.startswith(('out/', 'references/')):
                 raise ValueError(f'{path}: results require maintained evidence, not disposable artifacts')
     return []

@@ -14,11 +14,7 @@
   async function read(reference, raw=false) {
     Declarations.assertShape('ArtifactReference',reference);
     const key=reference.sha256;
-    if(!objects.has(key)) objects.set(key,(async()=>{
-      const response=await fetch(Declarations.routes.artifact,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(reference)});
-      const value=await response.json();if(!response.ok) throw new Error(value.error);
-      return value;
-    })());
+    if(!objects.has(key)) objects.set(key,Execution.artifact(reference));
     let artifact;
     try { artifact=await objects.get(key); }
     catch(error) { objects.delete(key);throw error; }

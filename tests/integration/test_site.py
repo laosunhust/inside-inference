@@ -131,7 +131,7 @@ class AtlasTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory, \
              patch('scripts.build.intro_page.demo', return_value=traces), \
              patch('scripts.build.intro_page.prepare_input', return_value=snapshot), \
-             patch('scripts.build.intro_page.run_cache_experiment', return_value=cache):
+             patch('scripts.build.intro_page.default_experiment', return_value=cache):
             root = Path(directory)
             build(root)
             page = (root/'labs/kimi-delta-attention.html').read_text()

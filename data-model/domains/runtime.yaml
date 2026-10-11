@@ -243,6 +243,5 @@ $defs:
         type: string
         enum:
         - reference
-        - cuda
         default: reference
         title: Numerical backend

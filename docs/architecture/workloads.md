@@ -3,7 +3,7 @@
 Owns the executable input/output boundary. Declaration meanings and ownership are
 in [ontology modules](../ontology/README.md); field shapes belong to
 [JSON Schema](../../data-model/declarations.yaml). HTTP operations belong to
-[OpenAPI](../../data-model/openapi.yaml). The UI is a projection of the recorded run.
+[execution operations](../../data-model/execution.yaml). The UI is a projection of the recorded run.
 
 ## Input: a workload, bound to a model and system
 
@@ -103,8 +103,8 @@ rates alone cannot establish speedup on real hardware. See the
 
 ## Standards and enforcement
 
-Domain records use JSON Schema 2020-12. OpenAPI 3.1 describes the HTTP boundary by
-referencing those records. Python uses a maintained JSON Schema validator; browser
+Domain records use JSON Schema 2020-12. The execution operation registry references
+those records across the browser worker boundary. Python uses a maintained JSON Schema validator; browser
 validators are compiled from the same schemas with Ajv. Ontology ownership checks
 and behavioral invariants remain repository code because shape validation cannot
 prove chronology, valid output publication, or computational fidelity.

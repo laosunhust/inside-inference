@@ -78,7 +78,9 @@ evaluations remain visible; presentation cannot substitute for either.
 Commit only when asked. Preserve the user's work and keep changes within the
 agreed scope. Each change must be explainable and reviewable on its own.
 
-SSOT is the highest development principle. Each fact, configuration and selection
+SSOT is the highest development principle when designing and implementing features.
+It does not override governance, authorization, or evaluation obligations.
+Each fact, configuration and selection
 has one authority; consumers derive from it. Fix conflicting authorities at their
 source rather than synchronizing duplicates or masking drift in presentation.
 

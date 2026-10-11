@@ -1,0 +1,57 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/browser-only-execution.yaml
+evaluation_sha256: dfd7bdc7200e7f5d37b8765d92e59ae539ee1f5ca1b100fd4c6bcebbdbe0a0a3
+outcome: passed
+summary: 'The public website now uses a generated browser client and Pyodide worker executing the existing scalar
+  Python engine. The preview server serves static files only; POST requests fail and compute routes do not exist.
+  The execution registry replaces OpenAPI/HTTP routes as the operation authority; generated consumers and Python
+  admission share request/response declarations. Removed CUDA implementation, optional GPU dependency/setup/tests,
+  native HTTP compute/storage adapters, unused file evidence storage, native lab CLI commands and the duplicate
+  feasibility driver. Optional checkpoint preparation and native component/build tooling remain; neither is a second
+  website execution runtime. Current architecture requires a named browser limitation or physical-measurement need
+  before adding native execution.
+
+
+  The integration harness compares interactive computation with headless operations in the same browser worker,
+  including all fields in per-step evidence, exact-prefix branching, real KV reuse and logical resource schedules,
+  artifacts and export/replay. No cross-runtime tolerance or native token choice defines product success. Replay
+  initially exposed that a JavaScript numeric reserialization can alter evidence identity; ExecutionReplayInput
+  now carries original exported JSON text, validated and decoded by the engine. Exact browser replay passes. Missing-worker
+  startup produces a visible failure and disabled execution, without native fallback. Network assertions and static-server
+  tests reject compute-server use. Fresh desktop and 390px inspection verified empty startup output and ann after
+  one real browser step. The local port-8000 preview was restarted as static-only.
+
+
+  make test passed 104 tests in 8.43s within 10s. make test-integration passed 104 unit tests, 24 integration tests
+  and browser checks in 84.26s within 100s. An earlier full run passed in 97.98s; redundant browser budget examples
+  were consolidated to budget exhaustion, the default complete multiword response, and one byte-fallback prediction.
+  Unit and integration termination-boundary coverage remains. Missing-worker coverage was added. No budget was relaxed.
+  YAML/operation/governance checks pass. A unit test initially exposed historical-evidence lookup attempting a subprocess
+  in a non-Git fixture; missing-history admission now fails before that lookup. Historical reports remain immutable,
+  while deleted source evidence must be recoverable as a Git blob (including tests rejecting nonexistent or symlink
+  evidence).
+
+
+  Qualification is desktop Chromium plus narrow viewport rendering, not all browsers or devices. Browser wall time
+  is not GPU/HBM timing; resource service rates remain hypothetical. Runtime assets must be installed by make setup;
+  builds and test runs do not silently download missing prerequisites. Static CDN delivery, cache/compression policy
+  and persistent browser storage remain future deployment work.'
+evidence:
+- data-model/execution.yaml
+- data-model/domains/experiment.yaml
+- docs/ontology/experiment.yaml
+- scripts/build/http_transport.py
+- scripts/build/browser_runtime.py
+- inside_inference/delivery/service.py
+- inside_inference/cache_lab.py
+- inside_inference/kv_runtime.py
+- scripts/check/governance/http.py
+- scripts/check/governance/evaluation.py
+- tests/unit/contracts/test_http_boundary.py
+- tests/integration/test_evaluation_history.py
+- tests/integration/test_http_runtimes.py
+- scripts/check/browser_check.mjs
+- scripts/check/cache_browser_check.mjs
+- tests/fixtures/integration/workloads.json
+- docs/architecture/website.md
+- docs/architecture/delivery.md

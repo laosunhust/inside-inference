@@ -170,8 +170,8 @@ $defs:
           type: integer
       output_display:
         type: string
-        description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
-          as labeled markers.
+        description: Diagnostic token display; raw IDs are authoritative. Control,
+          byte, and hex IDs appear as labeled markers.
       passes:
         type: array
         items:
@@ -611,9 +611,9 @@ $defs:
     type: object
     x-owner: ExperimentSpec
     title: Configuration preview
-    description: Workload transformation, mechanism and client choices over separately supplied data-plane
-      input. Preview choices are not accepted execution settings; recorded evidence remains separately
-      bound.
+    description: Workload transformation, mechanism and client choices over separately
+      supplied data-plane input. Preview choices are not accepted execution settings;
+      recorded evidence remains separately bound.
     additionalProperties: false
     required:
     - input
@@ -680,8 +680,8 @@ $defs:
   PreparedInput:
     type: object
     x-owner: ExperimentSpec
-    description: Validated model and workload binding with encoded input; no forward pass, selected output
-      or execution identity.
+    description: Validated model and workload binding with encoded input; no forward
+      pass, selected output or execution identity.
     additionalProperties: false
     required:
     - declaration
@@ -705,3 +705,14 @@ $defs:
         $ref: '#/$defs/DecodingContract'
       contract_sha256:
         type: string
+  ExecutionReplayInput:
+    type: object
+    x-owner: ExperimentExecution
+    additionalProperties: false
+    required:
+    - record_json
+    properties:
+      record_json:
+        type: string
+        title: Exported evidence
+        description: Exact exported JSON bytes; preserve numeric lexemes for replay.

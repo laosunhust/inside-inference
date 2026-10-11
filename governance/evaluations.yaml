@@ -1,5 +1,5 @@
 version: 2
-active: governance/evaluations/records/2026-10/interactive-execution-lifecycle.yaml
+active: governance/evaluations/records/2026-10/browser-only-execution.yaml
 # Criteria live under evaluations/records/, grouped by date; results under results/.
 # Changing active does not delete earlier criteria. Amendments use a new filename
 # and an explicit supersedes reference with the same work_item.

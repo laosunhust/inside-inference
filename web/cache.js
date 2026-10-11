@@ -1,9 +1,11 @@
 /* Projections of canonical cache evidence. No inference or scheduling in the renderer. */
-(() => {
+(async () => {
 'use strict';
 const $=id=>document.getElementById(id), make=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 if(!$('cache-data'))return;
-let serialized=$('cache-data').textContent,run=JSON.parse(serialized),draft=structuredClone({system:run.declaration.system,workload:run.declaration.workload,ontology_binding:run.declaration.ontology_binding}),cursor=0,live=false,busy=false;
+let draft=JSON.parse($('cache-data').textContent),cursor=0,live=false,busy=false;
+$('cache-status').textContent='Loading engine…';
+let serialized=await Execution.cacheRun(draft,{raw:true}),run=JSON.parse(serialized);
 const tokens=JSON.parse($('cache-tokens').textContent),ontology=JSON.parse($('cache-ontology').textContent);
 Declarations.assertShape('CacheRun',run);
 const number=x=>Number(x).toLocaleString(undefined,{maximumFractionDigits:3});
@@ -105,8 +107,7 @@ $('cache-add').onclick=()=>{if(draft.workload.requests.length>=draft.system.max_
 $('cache-form').onsubmit=async event=>{
  event.preventDefault();if(!live||busy)return;
  try{Declarations.assertShape('KVExperimentInput',draft);busy=true;lock();$('cache-error').hidden=true;status('running','Executing the submitted experiment…');
- const response=await fetch(Declarations.routes.cacheRun,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(draft)}),raw=await response.text(),value=JSON.parse(raw);
- if(!response.ok)throw Error(value.error||response.statusText);Declarations.assertShape('CacheRun',value);
+ const raw=await Execution.cacheRun(draft,{raw:true}),value=JSON.parse(raw);
  if(value.declaration.ontology_binding.primary!==draft.ontology_binding.primary || JSON.stringify(value.declaration.ontology_binding.related)!==JSON.stringify(draft.ontology_binding.related))throw Error('Response ontology binding differs from the submitted experiment');
  serialized=raw;run=value;render();status('ready','Accepted run. Every view reads this computation and schedule.');
  }catch(error){$('cache-error').hidden=false;$('cache-error').textContent=error.message;status('error','Execution failed. Previous accepted evidence remains visible.');}
@@ -114,5 +115,5 @@ $('cache-form').onsubmit=async event=>{
 };
 $('cache-download').onclick=()=>{const url=URL.createObjectURL(new Blob([serialized],{type:'application/json'}));const a=make('a');a.href=url;a.download='cache-'+run.id.slice(0,12)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 controls();render();
-(async()=>{try{if(location.protocol==='file:')throw Error('offline');const response=await fetch(Declarations.routes.cacheCapabilities);if(!response.ok)throw Error('offline');const capability=await response.json();Declarations.assertShape('CacheCapabilities',capability);if(capability.contract_sha256!==Declarations.hash)throw Error('Server contract differs; restart it');live=true;for(const option of $('cache-backend').options)option.disabled=!capability.backends.includes(option.value);status('ready','Accepted recorded run. Change a setting to execute a new experiment.');}catch(error){status('offline','Recorded inspection only. Use make serve-intro for execution. '+(error.message==='offline'?'':error.message));}lock();})();
-})();
+(async()=>{try{if(location.protocol==='file:')throw Error('offline');const capability=await Execution.cacheCapabilities();if(capability.contract_sha256!==Declarations.hash)throw Error('Server contract differs; restart it');live=true;for(const option of $('cache-backend').options)option.disabled=!capability.backends.includes(option.value);status('ready','Accepted recorded run. Change a setting to execute a new experiment.');}catch(error){status('offline','Browser execution unavailable. '+(error.message==='offline'?'':error.message));}lock();})();
+})().catch(error=>{document.getElementById('cache-status').textContent=error.message;});

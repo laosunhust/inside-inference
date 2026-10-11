@@ -106,6 +106,5 @@ $defs:
           type: string
           enum:
           - reference
-          - cuda
         minItems: 1
         uniqueItems: true

@@ -47,7 +47,7 @@ Current capability ledger:
 | Checkpoint preparation | [First trained pilot](../research/checkpoint-pilot-2026-10-09.md) exported and numerically verified; provisional development behavior gate failed. L1 test gates remain unevaluated. |
 | Learned conversation | Not established; checkpoint preparation is supporting work. |
 | Tensor inspection in all three views | Implemented for the naïve baseline; offline replay and local live execution. |
-| KV reuse, misses, residency, and admission | Implemented with real cached computation, bounded logical resources, and optional CUDA/pinned-DRAM execution. [M2 evidence](../research/kv-residency-2026-10-09.md) passes for the fixed model; service rates remain hypothetical. |
+| KV reuse, misses, residency, and admission | Implemented with real cached computation, bounded logical resources, and simulated transfers in the browser. [M2 evidence](../research/kv-residency-2026-10-09.md) passes for the fixed model; service rates remain hypothetical. |
 | Attention mechanism switching | Planned; no optimized attention options exposed. |
 | Validated hardware, serving, or language-quality claims | Not established. |
 

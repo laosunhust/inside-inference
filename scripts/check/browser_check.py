@@ -13,9 +13,6 @@ from scripts.check.governance.harness import run_suite
 
 from scripts.build.intro_page import ROOT, build
 from scripts.dev.http_runtimes_generated import socket_server
-from inside_inference.delivery.store import MemoryStore
-from scripts.check.parity import prepare, verify_browser_exports, prepare_steps, verify_step_exports
-from scripts.check import cache_parity
 
 
 def main():
@@ -44,20 +41,16 @@ def main():
         import sys
         if checkpoint is None:
             sys.modules['test_site'].AtlasTests.shared_site = site
-            sys.modules['test_inference_server'].ServerTests.shared_site = site
         if not run_suite(suite, output/'integration-timing.json'):
             result_path.write_text(json.dumps({'passed':False,'status':'integration tests failed'}))
             raise SystemExit(1)
-    server = socket_server(('127.0.0.1', 0), directory=site, store=MemoryStore(), checkpoint=checkpoint)
+    server = socket_server(('127.0.0.1', 0), directory=site)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
         base = f'http://127.0.0.1:{server.server_port}'
-        references = prepare(base,output,checkpoint_path=args.checkpoint)
-        step_references = prepare_steps(base,output,checkpoint_path=args.checkpoint)
-        cache_references = cache_parity.prepare(base,output,checkpoint_path=args.checkpoint)
-        for case in references:
-            (output / (case['id']+'.browser.json')).unlink(missing_ok=True)
+        shutil.copyfile(ROOT/'tests/fixtures/integration/workloads.json',output/'references.json')
+        shutil.copyfile(ROOT/'tests/fixtures/integration/cache.json',output/'cache-references.json')
         with tempfile.TemporaryDirectory(prefix='inference-browser-') as profile:
             with (output / 'chrome.log').open('w') as log:
                 process = subprocess.Popen([chrome, '--headless', '--no-sandbox', '--disable-gpu',
@@ -73,14 +66,9 @@ def main():
                     port = int(portfile.read_text().splitlines()[0])
                     subprocess.run([node, str(ROOT / 'scripts/check/browser_check.mjs'), str(port),
                         f'http://127.0.0.1:{server.server_port}', site.as_uri(), str(output)], check=True, timeout=120)
-                    verify_browser_exports(references,output)
-                    verify_step_exports(step_references,output)
-                    cache_parity.verify_browser_exports(cache_references,output)
-                    result_path.write_text(json.dumps({'passed':True, 'scope':'shared HTTP application on socket runtime, live and offline browser',
-                        'cases':[{'id':c['id'],'run_id':c['record']['id']} for c in references],
-                        'cache_cases':[{'id':c['id'],'run_id':c['record']['id']} for c in cache_references],
-                        'contract_sha256':references[0]['record']['contract_sha256'],
-                        'parity':['headless','CLI','HTTP','browser export','browser export replay']},indent=2))
+                    result_path.write_text(json.dumps({'passed':True,
+                        'scope':'static-only site; interactive/headless calls in the same browser worker',
+                        'parity':['browser headless operations','interactive computation','artifact restoration','browser export']},indent=2))
                 finally:
                     process.terminate()
                     process.wait(timeout=10)

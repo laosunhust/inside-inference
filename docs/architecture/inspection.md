@@ -106,10 +106,9 @@ Current working code remains small:
 | `inside_inference/model.py` | One complete single-head GPT forward path, explicit checkpoint validation, and tensor observations. |
 | `inside_inference/cache_lab.py` | Cached computation linked to admission, retention, retrieval, and virtual resource service. |
 | `inside_inference/kv_runtime.py` | Reference execution and logical residency pools. |
-| `inside_inference/cuda_runtime.py` | Optional CUDA computation and actual VRAM/pinned-DRAM K/V transfers. |
-| `inside_inference/tensor_model.py` | Explicit tensor equations shared by preparation and CUDA inspection. |
+| `inside_inference/tensor_model.py` | Tensor equations used only by optional checkpoint preparation. |
 | `inside_inference/generation.py` | Unmasked greedy selection, uncached continuation, run identity, and replay. |
-| `scripts/dev/serve_intro.py` | Local HTTP adapter to that same execution path. |
+| `scripts/dev/serve_intro.py` | Static-only local preview server. |
 | `inside_inference/tokenizer.py` | Exact lexical/byte codec, conversation framing, and actual encoding traces. |
 | `inside_inference/corpus.py` | Bounded task recipe, grouping, scoring forms, and corpus audit. |
 | `inside_inference/language_data.py` | Separate authored language seed and provenance/coverage audit. |
@@ -161,12 +160,9 @@ KV lab contract.
 
 Generated pages and experiment outputs under `out/` are disposable. Maintained
 fixtures and required datasets remain outside it. The static landing page exposes prepared
-input; token execution currently requires the native service.
-The [primary architectural hypothesis](website.md) is execution of the same Python
-engine in the browser, preserving declared execution and evidence interfaces. A separate
-[feasibility spike](../research/browser-execution-spike.md) passed for the reference
-model and KV simulation; the product UI has not yet adopted that execution path.
-Restart the native service after contract changes so its identity matches the page.
+input; the browser worker executes token steps. The [website architecture](website.md)
+owns the static delivery path and its declared execution interfaces. Rebuild the
+static bundle and reload after contract changes.
 
 ## Prefix selection and live stepping
 
@@ -205,7 +201,7 @@ hardcoded frontend topology nor a configuration preview establishes executed wor
 There is no completed reference run loaded into the interactive session. Reset, beside
 Output Details, clears the continuation and computation while retaining input and settings. Step exports retain
 the consumed request, checkpoint, provenance, tensors and raw-logit selection and
-use the CLI replay path. Prior continuation IDs are declared inputs, not evidence
+use the declared browser replay operation. Prior continuation IDs are declared inputs, not evidence
 that this stateless call executed their earlier predictions. No KV reuse or
 hardware-performance claim is introduced by this interface.
 

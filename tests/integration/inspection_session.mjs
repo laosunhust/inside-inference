@@ -62,3 +62,21 @@ for(const invalid of [true,0,1.5,'8']) {
 }
 assert.throws(()=>Declarations.assertShape('OntologyBinding',{primary:'Invented',related:[]}));
 console.log('Idle, prepare, step, branch, reset and stale-response transitions passed.');
+
+// The same generated operation client admits an alternate transport without HTTP.
+globalThis.document={currentScript:{src:'https://example.test/execution/client.generated.js'}};
+vm.runInThisContext(readFileSync('web/execution/client.generated.js','utf8'));
+globalThis.fetch=()=>{throw new Error('Unexpected HTTP dependency');};
+const calls=[];
+const client=ExecutionClient.create(async(name,input)=>{
+  calls.push({name,input});return JSON.stringify(prepared);
+});
+assert.deepEqual(await client.prepareInput(prepared.declaration.workload),prepared);
+assert.equal(calls[0].name,'prepareInput');
+await assert.rejects(()=>client.prepareInput({}));
+assert.equal(calls.length,1,'Invalid input must not reach the transport');
+await assert.rejects(()=>client.capabilities({}));
+assert.equal(client.invented,undefined);
+await assert.rejects(()=>ExecutionClient.create(async()=>JSON.stringify({})).prepareInput(prepared.declaration.workload));
+await assert.rejects(()=>ExecutionClient.create(async()=>{throw Error('transport failed');}).prepareInput(prepared.declaration.workload),/transport failed/);
+assert.equal(await client.prepareInput(prepared.declaration.workload,{raw:true}),JSON.stringify(prepared));

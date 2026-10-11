@@ -1,0 +1,26 @@
+version: 1
+work_item: browser-only-execution
+question: Can the public site execute inference and KV resource simulations entirely in its browser, without CUDA or a native compute service?
+necessity: The tiny model needs inspectable computation, not acceleration. No current investigation requires physical GPU measurements.
+baseline: The product uses HTTP/native computation; Pyodide feasibility is proven separately. Native/browser floating-point parity is not product identity.
+reuse:
+- source: scripts/experiments/browser_spike
+  decision: Reuse the proven Pyodide packaging and same Python engine. Promote operation execution to the declared client boundary.
+- source: Existing browser interaction harness and generated execution client
+  decision: Preserve interactive/headless reproduction in the same browser runtime; remove native HTTP comparisons.
+criteria:
+- The public site serves static assets only and all interactive computation runs in a worker using the existing Python engine.
+- CUDA implementation, dependencies, setup and tests are removed; KV cache retains real tensors with explicit simulated resource constraints.
+- Logical operations and request/response types have one authored declaration. Generated client and worker admission reject invalid inputs and responses; there is no HTTP compute fallback.
+- Integration compares interactive results to headless calls through the same worker, including prefix branching, artifacts, export and replay. Native component tests remain independent correctness tooling.
+- Reset, input replacement, failure, worker loading, and desktop/narrow presentation work without stale output. No request text is sent to a compute server.
+- Native execution is not a second product runtime. Future native infrastructure requires a named browser limitation or physical measurement that the browser cannot provide.
+- make test and make test-integration retain their existing budgets and governance rejection checks.
+counterexamples:
+- A browser operation silently falls back to native HTTP or changes model/tokenizer behavior.
+- A cache diagram substitutes invented tensors for actual computation.
+- Cross-runtime tolerance is treated as proof of identical token choices.
+checks:
+- make test
+- make test-integration
+- Static-only server and browser network assertions; generated-boundary mutation checks
