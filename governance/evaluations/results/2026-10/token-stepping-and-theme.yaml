@@ -1,0 +1,20 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/token-stepping-and-theme.yaml
+evaluation_sha256: c41397102704f0e794f0c49340948d0d8a28b42501fb8e2af2e330caded2eaf3
+outcome: passed
+summary: 'One selected token position governs inspection and real one-pass prefix branching. CLI, HTTP,
+  browser export and replay agree for initial stepping, continuation and earlier-prefix branching. Failures
+  preserve the accepted sequence. Shared theme admission rejects per-page appearance and direct JavaScript
+  paint; its checker and regression tests are approval-locked under the owner response. Final unit workflow:
+  97 tests, 8.32s total. Full integration: 25 integration tests plus browser parity, 98.25s total. An
+  earlier behavior-passing run exceeded 100s; reusing numerical fixtures in presentation-only tests removed
+  redundant computation without relaxing budgets. Subsequent theme admission hardening, source-label clarification
+  and lock registration passed unit and live desktop/390px browser checks; no page overflow or browser
+  runtime errors. This implements full-prefix recomputation, not KV reuse or accelerator performance simulation.'
+evidence:
+- docs/architecture/inspection.md
+- tests/unit/test_generation.py
+- tests/unit/test_theme.py
+- tests/integration/inspection_session.mjs
+- scripts/check/parity.py
+- scripts/check/browser_check.mjs

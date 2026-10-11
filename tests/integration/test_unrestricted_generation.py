@@ -13,6 +13,8 @@ class UnrestrictedGenerationTests(unittest.TestCase):
         self.tokenizer=Tokenizer()
         self.checkpoint=initialize(ModelArchitecture(),self.tokenizer.manifest_sha256)
         self.workload=default_workload().to_dict()
+        # Stop-rule coverage does not depend on the landing page's demo prompt.
+        self.workload['requests'][0]['request']['text']='cat'
         self.workload['requests'][0]['request']['generation']['max_new_tokens']=4
 
     def constant_winner(self,token):

@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "seed": 7,
+  "batch_size": 16,
+  "max_steps": 4000,
+  "max_seconds": 1800,
+  "evaluation_interval": 200,
+  "learning_rate": 0.003,
+  "betas": [
+    0.9,
+    0.999
+  ],
+  "epsilon": 1e-08,
+  "weight_decay": 0.01,
+  "threads": 1,
+  "dtype": "float64",
+  "device": "cpu",
+  "data_projection": "joined-user-turns-v1",
+  "loss": "final-response-and-turn-end-token-mean",
+  "target_policy": "shortest-multiword-v1",
+  "evaluation_budget": 11,
+  "readability_criteria": {
+    "separated_terminated": 54,
+    "correct_separated": 42,
+    "negation_correct": 12,
+    "correction_correct": 12,
+    "context_advantage": 12
+  }
+}

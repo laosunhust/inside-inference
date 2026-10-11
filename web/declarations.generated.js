@@ -506,8 +506,8 @@ globalThis.Declarations = (() => {
         "type": "integer",
         "title": "Supported new-token limit",
         "description": "Supported baseline value.",
-        "const": 8,
-        "default": 8
+        "const": 16,
+        "default": 16
       },
       "max_requests": {
         "type": "integer",
@@ -538,7 +538,7 @@ globalThis.Declarations = (() => {
         "title": "Maximum new tokens",
         "description": "An upper bound on selected IDs, including TURN_END. Generation may stop earlier.",
         "minimum": 1,
-        "default": 6,
+        "default": 11,
         "x-maximum-from": "system.max_new_tokens_cap"
       },
       "selection": {
@@ -570,7 +570,7 @@ globalThis.Declarations = (() => {
         "type": "string",
         "title": "Request input",
         "description": "Exact user text; no normalization or truncation.",
-        "default": "the ball is in"
+        "default": "ann has the cup. ben has the book. who has the cup?"
       },
       "generation": {
         "$ref": "#/$defs/GenerationPolicy"
@@ -653,8 +653,8 @@ globalThis.Declarations = (() => {
       },
       "max_new_tokens_cap": {
         "type": "integer",
-        "const": 8,
-        "default": 8
+        "const": 16,
+        "default": 16
       },
       "model_execution": {
         "$ref": "#/$defs/CachedExecutionConfig"
@@ -861,6 +861,48 @@ globalThis.Declarations = (() => {
         "default": 0
       }
     }
+  },
+  "TokenStepRequest": {
+    "type": "object",
+    "x-owner": "InferenceRequest",
+    "additionalProperties": false,
+    "required": [
+      "checkpoint_sha256",
+      "prefix_ids",
+      "output_ids",
+      "generation",
+      "ontology_binding"
+    ],
+    "properties": {
+      "checkpoint_sha256": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "prefix_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 383
+        },
+        "minItems": 1
+      },
+      "output_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 383
+        }
+      },
+      "generation": {
+        "$ref": "#/$defs/GenerationPolicy"
+      },
+      "ontology_binding": {
+        "$ref": "#/$defs/OntologyBinding"
+      }
+    },
+    "description": "One next-token invocation: exact raw prefix and supplied continuation, without chat framing. Generation budget counts the continuation, not the prefix."
   },
   "RequestBinding": {
     "type": "object",
@@ -2512,13 +2554,80 @@ globalThis.Declarations = (() => {
       }
     }
   },
+  "TokenStepResult": {
+    "type": "object",
+    "x-owner": "ExperimentExecution",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "contract_sha256",
+      "request",
+      "checkpoint",
+      "provenance",
+      "output_ids",
+      "sequence_ids",
+      "remaining_tokens",
+      "stop_reason",
+      "computation"
+    ],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "contract_sha256": {
+        "type": "string"
+      },
+      "request": {
+        "$ref": "#/$defs/TokenStepRequest"
+      },
+      "checkpoint": {
+        "$ref": "#/$defs/ModelArtifact"
+      },
+      "provenance": {
+        "$ref": "#/$defs/ExecutionProvenance"
+      },
+      "output_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 383
+        }
+      },
+      "sequence_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 383
+        }
+      },
+      "remaining_tokens": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "stop_reason": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          null,
+          "turn_end",
+          "output_budget"
+        ]
+      },
+      "computation": {
+        "$ref": "#/$defs/NumericalPass"
+      }
+    }
+  },
   "InspectionState": {
     "type": "object",
     "x-owner": "InspectionState",
     "additionalProperties": false,
     "required": [
       "run_id",
-      "prediction",
       "position",
       "observation_id"
     ],
@@ -2529,16 +2638,10 @@ globalThis.Declarations = (() => {
         "description": "SHA-256 identity of the exact artifact bytes or canonical checkpoint.",
         "pattern": "^[0-9a-f]{64}$"
       },
-      "prediction": {
-        "type": "integer",
-        "title": "Prediction index",
-        "description": "Zero-based cursor into actual passes.",
-        "minimum": 0
-      },
       "position": {
         "type": "integer",
         "title": "Sequence position",
-        "description": "Zero-based position within selected pass.",
+        "description": "Single selected position in the accepted sequence; determines the exact prefix for Next Token. The recorded computation is derived from this position.",
         "minimum": 0
       },
       "observation_id": {
@@ -3859,7 +3962,8 @@ globalThis.Declarations = (() => {
     },
     "schemas": [
       "InferenceRequest",
-      "RequestArrival"
+      "RequestArrival",
+      "TokenStepRequest"
     ]
   },
   "Workload": {
@@ -3974,7 +4078,8 @@ globalThis.Declarations = (() => {
       "RunRecord",
       "CacheRun",
       "NumericalTrace",
-      "ExecutionProvenance"
+      "ExecutionProvenance",
+      "TokenStepResult"
     ]
   },
   "ExperimentEvent": {
@@ -4031,10 +4136,11 @@ globalThis.Declarations = (() => {
     ]
   },
   "InspectionState": {
-    "meaning": "A cursor into an identified recorded run; moving it never executes inference.",
+    "meaning": "One selected position in an identified accepted token sequence, with an observation selection. Selection alone never executes inference.",
     "lifetime": "Changes on inspection; reset when the bound run changes.",
     "owns": [
-      "Run, prediction, sequence position, and executed observation selection; moving the cursor never executes inference."
+      "Sequence position shared by token highlighting, derived recorded computation and the next submitted raw prefix.",
+      "Executed observation selection; inspecting an operand never changes the generation prefix."
     ],
     "excludes": [
       "input text",
@@ -4557,8 +4663,8 @@ globalThis.Declarations = (() => {
 };
   const operationOwners = {"token_embedding": "Embedding", "embedding": "Embedding", "position_embedding": "PositionEncoding", "ln1_mean": "Normalization", "ln1_variance": "Normalization", "ln1": "Normalization", "ln2_mean": "Normalization", "ln2_variance": "Normalization", "ln2": "Normalization", "ln_final_mean": "Normalization", "ln_final_variance": "Normalization", "ln_final": "Normalization", "query": "Attention", "key": "Attention", "value": "Attention", "scores": "Attention", "causal_mask": "Attention", "attention": "Attention", "weighted_values": "Attention", "attention_output": "Attention", "attention_residual": "ResidualAddition", "ff_residual": "ResidualAddition", "ff_up": "FeedForward", "gelu": "FeedForward", "ff_down": "FeedForward", "logits": "OutputProjection", "input_ids": "Tokenizer", "retained_keys": "KVState", "retained_values": "KVState"};
   const labs = [{"id": "naive-gpt", "name": "Na\u00efve GPT computation", "status": "mechanical-demo", "ontology_binding": {"primary": "ModelExecution", "related": ["Tokenizer", "Embedding", "PositionEncoding", "Normalization", "Attention", "ResidualAddition", "FeedForward", "OutputProjection", "Decoding"]}}, {"id": "kimi-delta-attention", "name": "Kimi Delta Attention (KDA)", "status": "mechanical-demo", "ontology_binding": {"primary": "Attention", "related": []}}, {"id": "prefix-cache", "name": "Exact prefix caching", "status": "mechanical-demo", "ontology_binding": {"primary": "KVCache", "related": ["KVState", "RequestScheduling", "StateTransfer", "ComputeService"]}}, {"id": "prefill-decode", "name": "Prefill/decode KV handoff", "status": "planned", "ontology_binding": {"primary": "StateTransfer", "related": ["KVState", "ModelExecution"]}}, {"id": "speculative-decoding", "name": "Speculative decoding", "status": "planned", "ontology_binding": {"primary": "Decoding", "related": ["ModelExecution", "KVState"]}}, {"id": "positional-encoding", "name": "Positional encoding", "status": "planned", "ontology_binding": {"primary": "PositionEncoding", "related": ["Embedding", "Attention"]}}];
-  const routes = {"capabilities": "/api/capabilities", "run": "/api/runs", "cacheRun": "/api/cache-runs", "cacheCapabilities": "/api/cache-capabilities"};
-  const hash = "2d66e8c561d8b61bf3172b28461d0e0553bc0a6fbdb4f22e0dfea54bad95bee5";
+  const routes = {"capabilities": "/api/capabilities", "run": "/api/runs", "cacheRun": "/api/cache-runs", "cacheCapabilities": "/api/cache-capabilities", "tokenStep": "/api/token-step"};
+  const hash = "2505ac8538fed0d422e42db9c8103aacddbb3c54234acc18922ab686617f52f0";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

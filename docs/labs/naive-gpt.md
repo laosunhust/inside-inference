@@ -12,12 +12,11 @@ untied output projection are preserved. Every continuation recomputes the whole
 prefix. This preserves the baseline's arithmetic and causal dependencies; it
 does not simulate a scheduler, network, cache, accelerator, or training process.
 
-The default checkpoint contains seeded **untrained** parameters. Explicit checkpoint
-loading also supports the [bounded trained pilot](../research/checkpoint-pilot-2026-10-09.md). Its outputs do not
-establish language understanding. Unmasked greedy selection compares all 384 logits;
-readable words and spacing are not enforced. Changing a prompt is an intervention on the
-input; changing the initialization seed changes the checkpoint, not an inference
-optimization. No attention alternatives are offered before implementation.
+The default is the [shipped trained checkpoint](../../data/model/README.md).
+Its synthetic-task results do not establish language understanding. Unmasked greedy
+selection compares all 384 logits; readable words and spacing are learned, never
+enforced. Changing a prompt is an intervention on the input. No attention alternatives
+are offered before implementation.
 
 The admitted architecture schema owns dimensions, context limit, precision, and
 normalization constants. Parameters and their identity travel with exported runs.

@@ -18,7 +18,11 @@
     if (className) el.className = className;
     return el;
   };
-  const current = () => accepted().passes[session.view.prediction];
+  const current = () => InspectionSession.computation(session);
+  const sequence = () => InspectionSession.sequence(session);
+  const executionId = () => session.step?.id || session.run.id;
+  const observedPosition = () => Math.min(position(),current().selection_position);
+  const displayedOutput = () => session.step ? session.step.computation.display_so_far : InspectionSession.publicationText(session.run,current().step);
   const position = () => session.view.position;
   const inspect = view => { session = InspectionSession.transition(session,{type:'INSPECT',view}); renderPass(); };
   const label = id => {
@@ -36,15 +40,14 @@
   function tokenButton(id, pos) {
     const b = make('button', undefined, 'token-chip' + (pos === position() ? ' active' : ''));
     b.append(make('small', `p${pos} · #${id}`), make('strong', label(id)));
-    b.onclick = () => { entity='embedding'; inspect({position:pos,observation_id:current().nodes.find(n=>n.operation.name==='embedding').id}); };
+    b.disabled=session.phase==='running';
+    b.setAttribute('aria-pressed',String(pos===position()));
+    b.onclick = () => {
+      entity='embedding';
+      const pass=InspectionSession.computation({...session,view:{...session.view,position:pos}});
+      inspect({position:pos,observation_id:pass.nodes.find(n=>n.operation.name==='embedding').id});
+    };
     return b;
-  }
-  function choosePass(index) {
-    const old=current().nodes.find(n=>n.id===session.view.observation_id);
-    const pass=accepted().passes[index];
-    if(!old) entity='embedding';
-    const node=pass.nodes.find(n=>n.operation.name===(old?.operation.name || 'embedding'));
-    inspect({prediction:index,position:pass.selection_position,observation_id:node.id});
   }
   function chooseEntity(value) {
     entity = value;
@@ -62,11 +65,11 @@
   }
   function renderExecutionPath() {
     const pass=current(), path=$('computation-path');
-    if(path.dataset.passId===pass.id && path.dataset.runId===session.run.id) return;
-    ExecutionPath.render(pass,session.run.id,ontology,(selected,node)=>{
+    if(path.dataset.passId===pass.id && path.dataset.runId===executionId()) return;
+    ExecutionPath.render(pass,executionId(),ontology,(selected,node)=>{
       entity=selected;inspect({observation_id:node.id});
     });
-    $('computation-caption').textContent=`Prediction ${session.view.prediction+1} / ${accepted().passes.length} · ${pass.phase}`;
+    $('computation-caption').textContent=`Prediction ${pass.step+1} · ${pass.phase}`;
 
   }
   function dependencies(body, node) {
@@ -102,23 +105,22 @@
     select.onchange = () => openObservation(nodes.find(n=>n.operation.name===select.value));
     body.append(select);
     body.append(make('p', node.formula, 'equation'));
-    body.append(make('p', `Pass ${node.step} · position ${position()} · ${node.dtype} · axes: ${node.axes.join(' × ')}. Display: 6 significant digits.`));
+    body.append(make('p', `Pass ${node.step} · position ${observedPosition()} · ${node.dtype} · axes: ${node.axes.join(' × ')}. Display: 6 significant digits.`));
     if (node.operation.name === 'attention' || node.operation.name === 'scores' || node.operation.name === 'causal_mask') {
       const heat = make('div', undefined, 'attention-grid');
       heat.style.gridTemplateColumns = `repeat(${node.shape[1]}, minmax(20px, 1fr))`;
       node.values.forEach((row, i) => row.forEach((value, j) => {
-        const cell = make('button', undefined, 'heat-cell' + (i === position() ? ' heat-selected' : ''));
+        const cell = make('button', undefined, 'heat-cell' + (i === observedPosition() ? ' heat-selected' : ''));
         cell.title = `query p${i} (${label(current().input_ids[i])}) → key p${j} (${label(current().input_ids[j])}): ${number(value)}`;
         cell.setAttribute('aria-label', cell.title);
         const strength = node.operation.name === 'attention' ? value : node.operation.name === 'causal_mask' ? Number(value) : 0.35;
-        cell.style.backgroundColor = `rgba(20,125,105,${0.06 + 0.94 * strength})`;
-        cell.onclick = () => { inspect({position:i}); };
+        cell.style.setProperty('--heat-strength',String(strength));
         heat.append(cell);
       }));
       const scroll = make('div', undefined, 'table-scroll'); scroll.append(heat); body.append(scroll);
-      body.append(make('p', 'Rows are query positions; columns are key positions. Hover or focus a cell for its value. Click to inspect that query row.'));
+      body.append(make('p', 'Rows are query positions; columns are key positions. Hover or focus a cell for its value. Select a token above to choose the query position.'));
     }
-    const values=node.shape.length===1 ? [node.values[position()]] : node.values[position()];
+    const values=node.shape.length===1 ? [node.values[observedPosition()]] : node.values[observedPosition()];
     body.append(table([node.axes[1] || 'Token ID', 'Value'], values.map((v, i) => [node.operation.name === 'logits' ? `#${i} ${label(i)}` : i, number(v)])));
     const details = make('details'), record=make('script',JSON.stringify(node)); record.type='application/json';
     details.append(make('summary', 'Full tensor'),json({operation:node.operation,shape:node.shape,axes:node.axes,values:node.values}),record); body.append(details);
@@ -128,11 +130,11 @@
     document.querySelectorAll('[data-entity]').forEach(el=>el.classList.toggle('selected-object',el.dataset.entity===entity));
     const node=current().nodes.find(n=>n.id===session.view.observation_id);
     const context=$('inspection-context');
-    context.dataset.runId=session.run.id; context.dataset.passId=current().id;
-    context.dataset.observationId=node?.id || ''; context.dataset.position=position();
-    context.textContent=`${accepted().request_id} → prediction ${session.view.prediction+1} (${current().phase}) → input position ${position()} · #${current().input_ids[position()]} ${label(current().input_ids[position()])}${node ? ' → '+node.operation.name : ''}`;
+    context.dataset.runId=executionId(); context.dataset.passId=current().id;
+    context.dataset.observationId=node?.id || ''; context.dataset.position=observedPosition();
+    context.textContent=`Selected p${position()} · #${sequence()[position()]} ${label(sequence()[position()])} · computed row p${observedPosition()}${node ? ' → '+node.operation.name : ''}`;
     const button = document.querySelector(`[data-entity="${entity}"]`);
-    const term = entity==='workload' ? 'Workload' : entity==='client' ? 'Client' : button.dataset.term, definition = ontology[term];
+    const term = entity==='request' ? 'Request' : entity==='workload' ? 'Workload' : entity==='client' ? 'Client' : button.dataset.term, definition = ontology[term];
     $('detail-title').textContent = `Zoom 3 · ${term}`;
     $('definition').textContent = definition.meaning;
     const semanticOwner=node ? owner(node) : definition.owner;
@@ -160,30 +162,31 @@
     } else if (entity === 'selection') {
       const s = current().selection;
       const logits=make('button',`Inspect executed logits at position ${current().selection_position}`); logits.id='selection-logits';
-      logits.onclick=()=>{entity='projection';inspect({position:current().selection_position,observation_id:current().nodes.find(n=>n.operation.name==='logits').id});};body.append(logits);
+      logits.onclick=()=>{entity='projection';inspect({observation_id:current().nodes.find(n=>n.operation.name==='logits').id});};body.append(logits);
       body.append(make('p', `${s.decoding}. selected #${s.selected_id} ${label(s.selected_id)}. These scores come from final input position ${current().selection_position}.`));
       body.append(make('p', accepted().decoding_contract.explanation));
       body.append(table(['ID / token', 'Raw logit', 'Full-vocabulary probability'], accepted().vocabulary.map(t => [ `#${t.id} ${label(t.id)}`, number(s.raw_logits[t.id]), number(s.probabilities[t.id]) ])));
     } else {
       const selection=make('button','Inspect the prediction that produced this output');selection.id='response-selection';
       selection.onclick=()=>chooseEntity('selection');body.append(selection);
-      body.append(make('p', `Visible output through this pass: ${JSON.stringify(InspectionSession.publicationText(session.run,session.view.prediction))}`));
+      body.append(make('p', `Visible output through this pass: ${JSON.stringify(displayedOutput())}`));
       body.append(make('p', 'TURN_END stops generation. Every other ID is retained and published. This is a token display: control/byte/hex markers are not decoded text, and no spaces are inserted between word tokens.'));
-      body.append(json({selected_ids: accepted().output_ids.slice(0, session.view.prediction + 1), final_stop_reason: accepted().outcome.stop_reason, complete: accepted().outcome.complete}));
+      body.append(json({selected_ids: (session.step?.output_ids || accepted().output_ids.slice(0,current().step+1)), final_stop_reason: session.step ? session.step.stop_reason : accepted().outcome.stop_reason, complete: session.step ? session.step.stop_reason==='turn_end' : accepted().outcome.complete}));
     }
   }
   function renderPass() {
     const p = current();
     renderExecutionPath();
-    $('pass-caption').textContent = `Input IDs · ${p.input_ids.length} positions`;
-    $('sequence-strip').replaceChildren(...p.input_ids.map(tokenButton));
+    document.querySelector('.event-record').hidden=!!session.step;
+    $('source-label').textContent=session.step ? 'Source' : 'Input';
+    $('pass-caption').textContent = `Token sequence · ${sequence().length} positions`;
+    $('sequence-strip').replaceChildren(...sequence().map(tokenButton));
     const id = p.selection.selected_id;
     $('selected-token').textContent = label(id);
     $('output-label').textContent = accepted().checkpoint.provenance.kind === 'untrained'
       ? 'Published output · untrained' : 'Published output';
-    $('response-preview').textContent = InspectionSession.publicationText(session.run,session.view.prediction) || '—';
-    $('previous-pass').disabled = session.view.prediction === 0;
-    $('next-pass').disabled = session.view.prediction === accepted().passes.length - 1;
+    $('response-preview').textContent = displayedOutput() || '—';
+    renderStatus();
     renderDetail();
     configuration?.refresh();
   }
@@ -215,6 +218,11 @@
     for(const id of ['prompt','output-budget','execute']) $(id).disabled=!session.live || phase==='running';
     $('run-error').hidden=!session.error;
     $('run-error').textContent=session.error || '';
+    let unavailable='';
+    try { InspectionSession.nextRequest(session); } catch(error) { unavailable=error.message; }
+    $('next-token').disabled=!session.live || !['ready','failed'].includes(phase) || !!unavailable;
+    $('next-token').title=unavailable;
+    if(session.error) $('binding-status').textContent=session.error;
   }
   function renderRun() {
     const run=accepted(), binding=run.declaration, outcome=run.outcome;
@@ -240,11 +248,26 @@
   },renderStatus,[...current().nodes.map(owner),Declarations.schemas.TokenSelection['x-owner']]);
 
   document.querySelectorAll('[data-entity]').forEach(b => b.onclick = () => { chooseEntity(b.dataset.entity); $('numerical-inspector').scrollIntoView({behavior: 'smooth', block: 'start'}); });
+  $('edit-input').onclick=()=>{
+    const editor=$('inference-form'); editor.hidden=!editor.hidden;
+    $('edit-input').setAttribute('aria-expanded',String(!editor.hidden));
+    if(!editor.hidden) $('prompt').focus();
+  };
   $('selected-token').onclick=()=>chooseEntity('selection');
-  $('previous-pass').onclick=()=>{if(session.view.prediction>0) choosePass(session.view.prediction-1);};
-  $('next-pass').onclick=()=>{
-    const index=session.view.prediction+1;
-    if(index<accepted().passes.length) choosePass(index);
+  $('next-token').onclick=async()=>{
+    try {
+      session=InspectionSession.transition(session,{type:'STEP_SUBMIT'});renderPass();
+      const response=await fetch(Declarations.routes.tokenStep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(session.submitted_step)});
+      const source=await response.text(), result=JSON.parse(source);
+      if(!response.ok) throw new Error(result.error);
+      session=InspectionSession.transition(session,{type:'STEP_ACCEPT',result});
+      serializedRun=source;entity='selection';
+      $('run-identity').textContent=JSON.stringify({run_id:result.id,request:result.request});
+      $('run-outcome').textContent=`${result.output_ids.length} / ${result.request.generation.max_new_tokens} selections${result.stop_reason ? ' · '+(result.stop_reason==='turn_end'?'TURN_END':'token limit') : ''}`;
+      renderPass();
+    } catch(error) {
+      session=InspectionSession.transition(session,{type:'FAIL',message:error.message});renderPass();
+    }
   };
   $('inference-form').onsubmit=async event=>{
     event.preventDefault();
@@ -256,8 +279,9 @@
       serializedRun=source;renderRun();
       const editor=document.querySelector('.source-editor');
       const restoreFocus=editor.contains(document.activeElement);
-      editor.open=false;
-      if(restoreFocus) editor.querySelector('summary').focus();
+      editor.hidden=true;
+      $('edit-input').setAttribute('aria-expanded','false');
+      if(restoreFocus) $('edit-input').focus();
     } catch(error) {
       session=InspectionSession.transition(session,{type:'FAIL',message:error.message});renderStatus();
     }

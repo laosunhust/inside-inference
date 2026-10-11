@@ -1,13 +1,13 @@
 # Counter-proposal: diagnose missing spaces before changing the tokenizer
 
-Status: Step 1 completed after the owner's “let's start” instruction; later
-options remain proposed for review against the
-[byte-BPE spike proposal](tokenizer-spike-proposal.md). No training or migration
-was performed or authorized by this document.
+Status: Step 1 and the separately authorized Option 1 pilot are complete.
+See the [diagnosis](word-separator-diagnosis.md) and
+[multi-word result](multiword-checkpoint-2026-10-10.md). Option 2 and the
+[byte-BPE spike](tokenizer-spike-proposal.md) remain deferred; no tokenizer migration occurred.
 Date: 2026-10-10. Budget: thirty minutes of elapsed work for Step 1 after approval.
 
 Step 1 evidence: [missing-space diagnosis](word-separator-diagnosis.md).
-Later options remain proposed and were not executed.
+Option 1 used its own predeclared protocol; remaining alternatives were not executed.
 
 ## Question
 
@@ -33,7 +33,7 @@ disposable local inputs; Step 1 must regenerate them reproducibly.
 - **Multi-word answers exist but are unused.** Of 1,800 acceptable training
   answers, 1,000 have two or more words (for example `it is in the room.`); the
   supervised target is always the single-word form.
-- **The default page weights are untrained.** Nothing in random weights favors
+- **The default page weights at that revision were untrained.** Nothing in random weights favors
   SPACE, but one ID among 384 does not establish a selection probability: greedy
   decoding under a fixed seed is deterministic, and whether SPACE is selected
   depends on that checkpoint's logits. Read the recorded trace rather than assume.

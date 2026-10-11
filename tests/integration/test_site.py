@@ -116,7 +116,17 @@ class AtlasTests(unittest.TestCase):
     def test_kda_setup_follows_executed_trace(self):
         from unittest.mock import patch
         traces = {label: events[:2] for label, events in demo().items()}
-        with tempfile.TemporaryDirectory() as directory, patch('scripts.build.intro_page.demo', return_value=traces):
+        # This mutation tests KDA rendering. Reuse already-verified unrelated
+        # numerical artifacts instead of recomputing GPT and KV experiments.
+        def embedded(page, identifier):
+            source=(self.site/page).read_text()
+            return json.loads(re.search(r'<script id="'+identifier+r'" type="application/json">(.*?)</script>',source,re.S).group(1))
+        baseline=embedded('index.html','inference-data')
+        cache=embedded('kv-cache.html','cache-data')
+        with tempfile.TemporaryDirectory() as directory, \
+             patch('scripts.build.intro_page.demo', return_value=traces), \
+             patch('scripts.build.intro_page.run_workload', return_value=baseline), \
+             patch('scripts.build.intro_page.run_cache_experiment', return_value=cache):
             root = Path(directory)
             build(root)
             page = (root/'labs/kimi-delta-attention.html').read_text()

@@ -16,7 +16,7 @@ import torch
 from scripts import ROOT
 from inside_inference.model import canonical, identity, initialize, ModelArchitecture
 from inside_inference.preparation import (PreparationModel, prepare_examples, make_optimizer,
-    train_step, evaluate, save_state, load_state)
+    train_step, evaluate, readability_report, save_state, load_state)
 from inside_inference.tokenizer import Tokenizer
 
 CONFIG = ROOT / 'data/preparation/pilot.json'
@@ -34,7 +34,8 @@ def sources():
              'inside_inference/generation.py', 'inside_inference/declarations_generated.py',
              'scripts/experiments/prepare_checkpoint.py', 'data/corpus/recipe.json',
              'data/tokenizer/vocabulary.json', 'requirements-preparation.txt',
-             'docs/implementation/checkpoint-pilot.md']
+             'docs/implementation/checkpoint-pilot.md', 'docs/implementation/checkpoint-multiword.md',
+             'governance/evaluations/records/2026-10/readable-multiword-checkpoint.yaml']
     return {path: hashlib.sha256((ROOT/path).read_bytes()).hexdigest() for path in paths}
 
 
@@ -58,7 +59,8 @@ def main():
     torch.manual_seed(config['seed'])
     sampler = random.Random(config['seed'])
     tokenizer = Tokenizer()
-    examples = prepare_examples()
+    budget = config.get('evaluation_budget', 8)
+    examples = prepare_examples(config.get('target_policy', 'original'), budget)
     checkpoint = initialize(ModelArchitecture(), tokenizer.manifest_sha256, config['seed'])
     model = PreparationModel(checkpoint)
     optimizer = make_optimizer(model, config)
@@ -100,7 +102,9 @@ def main():
     pad = tokenizer.token_id('control','PAD')
     def checkpoint_and_evaluate():
         nonlocal best_loss
-        report = evaluate(model, examples['development'], tokenizer)
+        report = evaluate(model, examples['development'], tokenizer, budget)
+        if 'readability_criteria' in config:
+            report = readability_report(report, examples['development'], tokenizer, config['readability_criteria'])
         report.update(step=step, elapsed_seconds=time.monotonic()-began,
             peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024,
             token_presentations_this_segment=presented)

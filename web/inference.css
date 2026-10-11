@@ -1,93 +1,84 @@
-/* Landing presentation; execution and ontology bindings remain trace-owned. */
+/* Layout only. Shared appearance belongs to theme.css. */
 body:has(#control-plane) header{padding-top:14px;padding-bottom:14px}
 body:has(#control-plane) main{padding-top:8px}
-body:has(#control-plane) .landing-links{display:inline;font-size:12px;letter-spacing:0}
+body:has(#control-plane) .landing-links{display:inline}
 .play-heading{padding:10px 0 16px}
-.play-heading h1{font-size:clamp(28px,3.5vw,44px);margin:8px 0;max-width:none}
-.control-plane,.pass-panel,.numerical-inspector{padding:16px;background:#fff;border:1px solid #cfdcd3;border-radius:12px;margin:0 0 14px;min-width:0}
+.play-heading h1{margin:8px 0;max-width:none}
+.control-plane,.pass-panel,.numerical-inspector{padding:16px;margin:0 0 14px;min-width:0}
 .playground .panel-heading{gap:10px;flex-wrap:wrap}
-.playground .panel-heading h2{font-size:14px;margin:0}
-.binding-status,.run-outcome{font-size:12px;color:#53695d}
-.binding-status[data-phase="dirty"],.binding-status[data-phase="failed"],.binding-status[data-phase="running"]{color:#935714}
+.playground .panel-heading h2{margin:0}
 .inference-form{display:flex;gap:12px;align-items:end;margin:12px 0}
 #request-fields{display:grid;grid-template-columns:minmax(0,1fr) 160px;gap:12px;flex:1}
-#request-fields label{font-size:12px;display:grid;gap:5px}
-.inference-form textarea{width:100%;resize:vertical;min-height:52px;margin:0;font:14px/1.4 system-ui;padding:7px 10px;border:1px solid #bdcec3;border-radius:6px}
-#request-fields select{width:100%;font-size:14px}
-.playground #execute{background:#147d69;color:white;border-color:#147d69;min-height:40px}
-.system-settings{display:flex;gap:14px;align-items:start;flex-wrap:wrap;font-size:12px}
+#request-fields label{display:grid;gap:5px}
+.inference-form textarea{width:100%;resize:vertical;min-height:52px;margin:0;padding:7px 10px}
+#request-fields select{width:100%}
+.playground #execute{min-height:40px}
+.system-settings{display:flex;gap:14px;align-items:start;flex-wrap:wrap}
 .system-settings details{margin:4px 0;flex:1;min-width:120px}
 .system-settings .table-scroll{max-height:240px}
-.playground .request-preview{display:block;text-align:left;margin:12px 0;padding:7px 10px;max-width:100%;overflow-wrap:anywhere}
-.request-preview small{font-weight:400;margin-right:10px;color:#53695d}
-.token-strip{display:flex;gap:6px;flex-wrap:wrap}
-.playground .token-chip{background:#f4f7f1;padding:6px 9px}
-.token-chip{display:grid;gap:3px;min-width:42px}
-.token-chip small{font-size:10px;color:#597465}
-#pass-caption{font-size:11px;color:#53695d;margin:8px 0}
-.active,.selected-object{outline:2px solid #147d69;outline-offset:2px}
+.playground .request-preview{display:flex;align-items:center;gap:12px;text-align:left;margin:12px 0 16px;padding:8px 10px 8px 14px;max-width:100%;overflow-wrap:anywhere}
+.request-preview strong{flex:1;min-width:0}
+.playground #edit-input{flex:none;min-height:40px}
+.token-strip{display:flex;gap:4px;flex-wrap:wrap}
+.playground .token-chip{padding:4px 6px}
+.token-chip{display:grid;gap:2px;min-width:34px}
+#pass-caption{margin:8px 0}
 .output-row{display:flex;align-items:center;gap:12px;min-width:0}
-.playground .selected-token{background:#e1f0e6;overflow-wrap:anywhere}
+.playground .selected-token{overflow-wrap:anywhere}
 #inspect-response{display:grid;gap:3px;text-align:left;min-width:0;overflow-wrap:anywhere}
-.event-record,.model-notes{font-size:12px;margin:12px 0 0}
-.numerical-inspector .panel-heading>span{font-size:12px}
-#definition{font-size:13px;margin:10px 0}
-#inspection-context{font-size:11px;overflow-wrap:anywhere;color:#53695d}
-#run-error{color:#9f2b18;font-size:12px}
-button:disabled{opacity:.5;cursor:not-allowed}
-@media(max-width:700px){
- .control-plane,.pass-panel,.numerical-inspector{padding:12px}
- .inference-form{flex-wrap:wrap}
- #request-fields{grid-template-columns:minmax(0,1fr) 110px;flex-basis:100%}
- .output-row{flex-wrap:wrap}
-}
-.table-scroll{max-height:420px;overflow:auto;margin:1rem 0}.table-scroll table{border-collapse:collapse;width:100%;font-size:.85rem}.table-scroll th,.table-scroll td{text-align:left;padding:.5rem;border-bottom:1px solid #e3e8e1;white-space:pre-wrap;overflow-wrap:anywhere}.table-scroll th{position:sticky;top:0;background:#eff5ee}.raw-values,#run-identity,#parameter-values{max-height:320px;overflow:auto;font-size:.8rem;white-space:pre-wrap;overflow-wrap:anywhere}.attention-grid{display:grid;gap:2px;min-width:420px;width:max-content;max-width:100%}.heat-cell{width:22px;height:22px;padding:0;border:0;border-radius:2px}.heat-selected{outline:1px solid #0f5243;outline-offset:-1px}.equation{padding:1rem;background:#f2f6ef;font-family:monospace}
-.execution-journey{margin:1rem 0;padding:12px 16px;background:#fff;border:1px solid #cfdcd3;border-radius:12px}.execution-heading{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.execution-heading h2{font-size:18px;margin:0}.execution-heading>span{font-size:12px;color:#53695d}.execution-journey button{border:1px solid #bfd2c7;border-radius:8px;background:#f4f8f3;color:#19382e;padding:8px 10px;font-size:12px}.execution-scroll{overflow-x:auto}#execution-canvas{position:relative;height:220px}#execution-edges{position:absolute;inset:0;width:100%;height:220px;overflow:visible;pointer-events:none}#execution-edges path{fill:none;stroke:#749c8c;stroke-width:1.5;marker-end:url(#path-arrow)}#execution-edges polygon{fill:#749c8c}.execution-path{list-style:none;margin:0;padding:0}.execution-path>li{position:absolute;width:80px;height:50px}.execution-path>li>button{width:80px;height:50px;padding:5px;font-size:12px;line-height:1.2}.execution-path button span{display:none}@media(max-width:700px){.execution-journey{padding:10px}}
-/* Ontology-backed configuration opens from three compact navigation cards. */
+.event-record,.model-notes{margin:12px 0 0}
+#definition{margin:10px 0}
+#inspection-context{overflow-wrap:anywhere}
+@media(max-width:700px){.control-plane,.pass-panel,.numerical-inspector{padding:12px}
+.inference-form{flex-wrap:wrap}
+#request-fields{grid-template-columns:minmax(0,1fr) 110px;flex-basis:100%}
+.output-row{flex-wrap:wrap}}
+.table-scroll{max-height:420px;overflow:auto;margin:1rem 0}
+.table-scroll table{border-collapse:collapse;width:100%}
+.table-scroll th,.table-scroll td{text-align:left;padding:.5rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.table-scroll th{position:sticky;top:0}
+.raw-values,#run-identity,#parameter-values{max-height:320px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.attention-grid{display:grid;gap:2px;min-width:420px;width:max-content;max-width:100%}
+.heat-cell{width:22px;height:22px;padding:0}
+.equation{padding:1rem}
+.execution-journey{margin:1rem 0;padding:12px 16px}
+.execution-heading{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.execution-heading h2{margin:0}
+.execution-journey button{padding:8px 10px}
+.execution-scroll{overflow-x:auto}
+#execution-canvas{position:relative;height:220px}
+#execution-edges{position:absolute;inset:0;width:100%;height:220px;overflow:visible}
+.execution-path{margin:0;padding:0}
+.execution-path>li{position:absolute;width:80px;height:50px}
+.execution-path>li>button{width:80px;height:50px;padding:5px}
+.execution-path button span{display:none}
+@media(max-width:700px){.execution-journey{padding:10px}}
 .configuration-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px}
-.playground .configuration-card{display:grid;gap:10px;min-height:145px;padding:18px;text-align:left;border:0;border-radius:14px}
-.configuration-card>span{font-size:11px;opacity:.7}
-.configuration-card>strong{font-size:24px;line-height:1.15}
-.configuration-card>small{font-size:12px;font-weight:400}
-.playground .input-card{background:#cde9fb;color:#16465e}
-.playground .system-card{background:#d8d3fb;color:#3d316b}
-.playground .client-card{background:#f8dcb9;color:#704520}
-.playground .configuration-card:hover{filter:brightness(.97)}
-.playground dialog{width:min(720px,calc(100vw - 32px));max-height:85vh;overflow:auto;border:1px solid #cbd7cf;border-radius:16px;padding:22px;color:var(--ink)}
-.playground dialog::backdrop{background:#15293b80;backdrop-filter:blur(3px)}
+.playground .configuration-card{display:grid;gap:10px;min-height:145px;padding:18px;text-align:left}
+.playground dialog{width:min(720px,calc(100vw - 32px));max-height:85vh;overflow:auto;padding:22px}
 .playground dialog .panel-heading{margin-bottom:18px}
-.playground dialog h2{font-size:22px}
-.configuration-fields fieldset{min-width:0;border:1px solid #d5dfd8;border-radius:8px;padding:12px;margin:0 0 12px}
-.configuration-fields legend{font-size:14px;font-weight:650;color:#396657;padding:0 5px}
-.configuration-fields label{display:grid;gap:6px;font-size:13px;margin:10px 0}
+.configuration-fields fieldset{min-width:0;padding:12px;margin:0 0 12px}
+.configuration-fields legend{padding:0 5px}
+.configuration-fields label{display:grid;gap:6px;margin:10px 0}
 .configuration-fields label:has(input){grid-template-columns:minmax(0,1fr) 110px;align-items:center}
-.configuration-fields a{display:inline-block;font-size:12px;margin-top:8px}
-.configuration-fields select,.configuration-fields input{width:100%;font:14px system-ui;padding:8px;border:1px solid #98aaa7;border-radius:5px}
+.configuration-fields a{display:inline-block;margin-top:8px}
+.configuration-fields select,.configuration-fields input{width:100%;padding:8px}
 .unavailable-heading{margin:22px 0 10px}
 .unavailable-components{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.unavailable-components>div{display:grid;gap:4px;background:#f1f2f1;padding:10px;border:1px dashed #d4d7d4;border-radius:8px}
-.playground .unavailable-components button{color:#666;background:transparent;border:0;padding:0;text-align:left;opacity:1}
-.unavailable-components a{font-size:11px;color:#63756e}
+.unavailable-components>div{display:grid;gap:4px;padding:10px}
+.playground .unavailable-components button{padding:0;text-align:left}
 .configuration-actions{display:flex;gap:12px;align-items:center;margin-top:12px}
-#configuration-status,#configuration-detail{font-size:12px;padding:7px 10px;background:#fff3d9;border-left:3px solid #b17d2e;margin:12px 0}
-.execution-path>li.configuration-changed>button{border:2px solid #b17d2e;background:#fff3d9}
-.execution-path>li.configuration-changed::after{content:attr(data-configuration);position:absolute;top:54px;left:0;width:100%;text-align:center;font-size:11px;color:#805d26}
-#client-boundary{padding:5px;border-radius:8px}
-#client-boundary.configuration-changed{outline:2px solid #b17d2e;background:#fff3d9}
-#client-boundary.configuration-changed::after{content:attr(data-configuration);font-size:11px;color:#805d26}
-.source-editor{font-size:12px;margin:8px 0}
+#configuration-status,#configuration-detail{padding:7px 10px;margin:12px 0}
+.execution-path>li.configuration-changed::after{position:absolute;top:54px;left:0;width:100%;text-align:center}
+#client-boundary{padding:5px}
+.source-editor{margin:8px 0}
 .source-editor #request-fields{margin-top:8px;max-width:760px}
-.source-editor textarea{width:100%;font:14px system-ui;padding:8px;border:1px solid #bdcec3;border-radius:6px}
-#workload-boundary.configuration-changed{border-left:3px solid #b17d2e;padding-left:10px;background:#fffaf0}
-@media(max-width:650px){
- .configuration-cards{gap:8px}
- .playground .configuration-card{padding:12px;min-height:120px}
- .configuration-card>strong{font-size:17px}
- .configuration-card>small{font-size:10px}
- .configuration-actions,#client-boundary{flex-wrap:wrap}
- .unavailable-components{grid-template-columns:1fr}
-}
+.source-editor textarea{width:100%;padding:8px}
+#workload-boundary.configuration-changed{padding-left:10px}
+@media(max-width:650px){.configuration-cards{gap:8px}
+.playground .configuration-card{padding:12px;min-height:120px}
+.configuration-actions,#client-boundary{flex-wrap:wrap}
+.unavailable-components{grid-template-columns:1fr}}
 .prediction-controls{display:flex;gap:6px;margin-left:auto}
 .output-item{display:grid;gap:5px;min-width:0}
-.output-item>small{font-size:11px;color:#53695d}
 #response-preview{white-space:pre-wrap;overflow-wrap:anywhere}

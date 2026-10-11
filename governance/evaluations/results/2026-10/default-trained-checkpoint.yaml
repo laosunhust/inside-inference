@@ -1,0 +1,11 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/default-trained-checkpoint.yaml
+evaluation_sha256: c71f02b5429673180a020a28df0d3b9da43361b51845c20c6ea8ede8616c96e8
+outcome: passed
+summary: Shared trained default preserves the evaluated checkpoint identity. Unit
+  and integration workflows pass within budgets; live port-8000 output contains emitted
+  spaces. Superseded saved weights and temporary preview retired; historical evaluations
+  retained.
+evidence:
+- data/model/README.md
+- docs/research/multiword-checkpoint-2026-10-10.md

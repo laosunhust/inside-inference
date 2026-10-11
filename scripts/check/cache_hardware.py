@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 import torch
 
 from inside_inference.cuda_runtime import CudaRuntime
-from inside_inference.model import initialize,ModelArchitecture,identity,canonical
+from inside_inference.model import default_checkpoint,identity,canonical
 from inside_inference.tokenizer import Tokenizer
 from inside_inference.provenance import source_identity
 from scripts import ROOT
@@ -27,7 +27,7 @@ def main():
     if not torch.cuda.is_available():raise RuntimeError('CUDA is required; no fallback')
     torch.cuda.init();torch.cuda.reset_peak_memory_stats()
     before_swap=swap_bytes();rows=[]
-    checkpoint=initialize(ModelArchitecture(),Tokenizer().manifest_sha256)
+    checkpoint=default_checkpoint()
     for count in (4,32,120):
         runtime=CudaRuntime(checkpoint)
         try:

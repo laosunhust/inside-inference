@@ -1,0 +1,20 @@
+version: 1
+work_item: default-example-input-editor
+question: Can the landing example show a complete learned answer with one clear input editor?
+necessity: The owner wants an illustrative default and one editing control, not further training.
+baseline: Default input is incomplete; a request-inspection button competes with the source-editor disclosure.
+reuse:
+- source: Generated InferenceRequest defaults and existing draft/apply state machine
+  decision: Change the owning defaults and reuse the existing editor and apply behavior.
+criteria:
+- Default input is the requested Ann/Ben ownership question, with allowance for its complete answer.
+- Render applied input as text and expose one Edit input button; remove the competing request-inspection button.
+- Editor starts collapsed, opens from that button, collapses after successful apply, and remains open on failure.
+- Preview and computation stay on the accepted run until successful apply; generated declarations remain authoritative.
+- Unit and browser integration workflows pass within existing budgets.
+counterexamples:
+- New default answer is truncated by the old six-token allowance.
+- Editing preview text changes the displayed accepted run before execution succeeds.
+checks:
+- make test
+- make test-integration

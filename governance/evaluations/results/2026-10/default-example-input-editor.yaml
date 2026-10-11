@@ -1,0 +1,15 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/default-example-input-editor.yaml
+evaluation_sha256: adb764879ee49858ac96a4e67271aed3a77acd2df167af207b7d9d8d66f08b15
+outcome: passed
+summary: Generated defaults select the requested ownership prompt and eleven-token
+  allowance. One Edit input button replaces competing controls; browser checks cover
+  collapsed initial/success states, draft isolation and failure visibility. Unit workflow
+  passed in 8.12s; full integration passed in 97.04s. An earlier behavior-passing
+  run exceeded the time gate at 100.13s; explicit short stop-rule fixtures removed
+  unrelated prompt cost without dropping cases.
+evidence:
+- web/inference.html
+- scripts/check/browser_check.mjs
+- tests/integration/test_unrestricted_generation.py
+- data/model/README.md

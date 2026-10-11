@@ -1,0 +1,26 @@
+version: 1
+work_item: token-stepping-and-theme
+question: Can one selected token position govern genuine next-token execution and inspection, with shared visual controls?
+necessity: The owner rejects backward playback controls and requests real branching from the selected prefix and repo-wide style authority.
+baseline: Independent prediction/position cursors navigate completed runs; per-page CSS repeats button presentation.
+reuse:
+- source: Existing generated declarations, reference Model.forward, greedy selector, replay and browser parity harness
+  decision: Reuse numerical execution and contracts; add a stateless one-step interface without a second model engine.
+- source: Native CSS custom properties and shared stylesheet loading
+  decision: Centralize theme primitives and control variants without adding a UI framework.
+criteria:
+- Next Token executes one forward pass over exactly the selected prefix, using the bound checkpoint; no future suffix or reconstructed chat framing enters computation.
+- Selection alone performs no computation; earlier selections branch and replace the later continuation only on successful execution. Failed execution preserves accepted evidence.
+- One declared selected position governs token highlighting and the next submitted prefix; no backward-prediction control or independent seek cursor remains.
+- Raw argmax and TURN_END/budget rules remain intact; partial byte prefixes are allowed as token IDs without pretending they are decoded text.
+- Stepping is reproducible headlessly and by replay, and compared through the live browser/HTTP path. Foreign models, stale responses, exhausted budgets and invalid IDs fail explicitly.
+- Shared theme owns button typography, colors, states and variants; page styles retain layout and component-specific visualization.
+- Unit and integration workflows remain within their existing time budgets; desktop and narrow layouts remain usable.
+counterexamples:
+- A UI click displays the next recorded pass without calling the model.
+- Inspecting an operand silently changes the generation prefix.
+- Clicking a prompt token adds USER or ASSISTANT framing that was not selected.
+- A failed branch deletes the previous continuation or shifts the cursor.
+checks:
+- make test
+- make test-integration

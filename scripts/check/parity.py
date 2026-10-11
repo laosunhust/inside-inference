@@ -68,3 +68,43 @@ def verify_browser_exports(references,output):
             '--replay',str(browser_path),'--output',str(replay_path)],cwd=ROOT,
             check=True,capture_output=True,text=True,timeout=60)
         assert_same(browser,decode_json(replay_path.read_text()),case['id']+' browser replay')
+
+
+def prepare_steps(base, output, *, checkpoint_path=None):
+    """Small branching cases; same declarations through numerical, CLI and HTTP entry points."""
+    from inside_inference.generation import DEFAULT_REQUEST, run_token_step
+    from inside_inference.declarations_generated import LAB_BINDINGS
+    from inside_inference.model import default_checkpoint, identity
+    from inside_inference.tokenizer import Tokenizer, Turn
+    checkpoint=decode_json(checkpoint_path.read_text()) if checkpoint_path else default_checkpoint()
+    root=list(Tokenizer().encode_prompt([Turn(role='user',text=DEFAULT_REQUEST['text'])]).ids)
+    prior=[];cases=[]
+    for name in ('first','continue','branch'):
+        prefix=root[:3] if name=='branch' else root
+        if name=='branch':prior=[]
+        spec={'checkpoint_sha256':identity(checkpoint),'prefix_ids':prefix,'output_ids':prior,
+              'generation':DEFAULT_REQUEST['generation'],'ontology_binding':LAB_BINDINGS['naive-gpt']}
+        record=run_token_step(spec,checkpoint=checkpoint)
+        path=output/f'{name}.step-input.json';path.write_bytes(canonical(spec))
+        cli=output/f'{name}.step-cli.json'
+        subprocess.run([sys.executable,'-m','scripts.experiments.run_inference','--step',str(path),'--output',str(cli)]
+                       + (['--checkpoint',str(checkpoint_path)] if checkpoint_path else []),check=True,capture_output=True)
+        assert_same(record,decode_json(cli.read_text()),name+' step CLI')
+        request=Request(base+API_PATHS['tokenStep'],data=canonical(spec),headers={'Content-Type':'application/json'})
+        with urlopen(request) as response:remote=json.load(response)
+        assert_same(record,remote,name+' step HTTP')
+        cases.append({'name':name,'position':len(prefix)+len(prior)-1,'record':record})
+        prior=record['output_ids']
+    (output/'steps.json').write_bytes(canonical(cases))
+    return cases
+
+
+def verify_step_exports(cases,output):
+    for case in cases:
+        path=output/f"{case['name']}.step-browser.json"
+        record=decode_json(path.read_text())
+        assert_same(case['record'],record,case['name']+' step browser')
+        target=output/f"{case['name']}.step-replay.json"
+        subprocess.run([sys.executable,'-m','scripts.experiments.run_inference','--replay',str(path),'--output',str(target)],
+                       check=True,capture_output=True)
+        assert_same(record,decode_json(target.read_text()),case['name']+' step replay')

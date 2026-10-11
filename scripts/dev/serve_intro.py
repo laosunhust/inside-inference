@@ -7,6 +7,8 @@ from scripts.dev.responses_generated import DeclaredResponseHandler
 from scripts.dev.port import release_port
 
 from inside_inference.workload import run_workload
+from inside_inference.generation import run_token_step
+from inside_inference.declarations_generated import TokenStepResult
 from inside_inference.declarations_generated import CONTRACT_SHA256, API_PATHS, Capabilities, ApiError, CacheRun, RunRecord
 from inside_inference.contract_runtime import decode_json
 from inside_inference.cache_lab import run_cache_experiment, available_backends
@@ -28,7 +30,7 @@ class Handler(DeclaredResponseHandler):
         return super().do_GET()
 
     def do_POST(self):
-        if self.path not in (API_PATHS['run'], API_PATHS['cacheRun']):
+        if self.path not in (API_PATHS['run'], API_PATHS['cacheRun'], API_PATHS['tokenStep']):
             return self.send_declaration(404, ApiError(error='Unknown endpoint'))
         # This server is bound to loopback and accepts same-origin JSON only.
         origin = self.headers.get('Origin')
@@ -41,10 +43,13 @@ class Handler(DeclaredResponseHandler):
             if size <= 0:
                 raise ValueError('Request body must contain JSON')
             spec = decode_json(self.rfile.read(size).decode('utf-8'))
-            execute = run_cache_experiment if self.path == API_PATHS['cacheRun'] else run_workload
+            execute = (run_token_step if self.path == API_PATHS['tokenStep'] else
+                       run_cache_experiment if self.path == API_PATHS['cacheRun'] else run_workload)
             result = execute(spec, checkpoint=self.checkpoint)
         except (ValueError, TypeError, UnicodeError) as exc:
             return self.send_declaration(400, ApiError(error=str(exc)))
+        if self.path == API_PATHS['tokenStep']:
+            return self.send_declaration(200, TokenStepResult.from_dict(result))
         if self.path == API_PATHS['cacheRun']:
             return self.send_declaration(200, CacheRun.from_dict(result))
         return self.send_declaration(200, RunRecord.from_dict(result))
@@ -54,8 +59,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--checkpoint', type=Path, help='Use this explicit checkpoint for embedded and live runs')
     parser.add_argument('--port', type=int, default=8000)
+    parser.add_argument('--directory', type=Path, default=ROOT / 'out/intro-page',
+                        help='Disposable site directory; use a separate directory for checkpoint previews')
     args = parser.parse_args()
-    directory = ROOT / 'out/intro-page'
+    directory = args.directory.resolve()
+    if not directory.is_relative_to((ROOT / 'out').resolve()):
+        parser.error('Generated site directory must be under out/')
     checkpoint = decode_json(args.checkpoint.read_text()) if args.checkpoint else None
     build(directory, checkpoint=checkpoint)
     release_port(args.port)

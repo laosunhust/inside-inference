@@ -4,7 +4,7 @@ from inside_inference.declarations_generated import (
     InferenceSystem, ModelArtifactReference, RunRecord,
 )
 from inside_inference.generation import run_request, token_display
-from inside_inference.model import Model, ModelArchitecture, initialize, identity
+from inside_inference.model import Model, default_checkpoint, identity
 from inside_inference.tokenizer import Tokenizer
 from inside_inference.provenance import execution_provenance, stable_provenance, validate_provenance, reference_backend
 
@@ -46,7 +46,7 @@ def run_workload(workload=None, *, checkpoint=None):
     system = InferenceSystem()
     admit(workload, system)
     tokenizer = Tokenizer()
-    checkpoint = initialize(ModelArchitecture(), tokenizer.manifest_sha256) if checkpoint is None else checkpoint
+    checkpoint = default_checkpoint() if checkpoint is None else checkpoint
     model = Model(checkpoint)
     binding = RunBinding(model=ModelArtifactReference(checkpoint_sha256=model.sha256,
                          tokenizer_sha256=tokenizer.manifest_sha256, architecture=model.config),

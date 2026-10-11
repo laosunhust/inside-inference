@@ -7,7 +7,7 @@ import time
 
 from inside_inference.generation import run_request
 from inside_inference.provenance import execution_provenance
-from inside_inference.model import ModelArchitecture, Model, canonical, initialize
+from inside_inference.model import Model, canonical, default_checkpoint
 from inside_inference.tokenizer import Tokenizer
 
 
@@ -24,7 +24,7 @@ def main():
                     'json_bytes': len(payload), 'run_id': run['id'],
                     'checkpoint_sha256': run['declaration']['model']['checkpoint_sha256']})
     tokenizer = Tokenizer()
-    model = Model(initialize(ModelArchitecture(), tokenizer.manifest_sha256))
+    model = Model(default_checkpoint())
     # Stress the full allowed trace shape, independently of early stop decisions.
     # These are supplied continuations, not sampled model responses.
     ids = [tokenizer.words['cat']] * 128

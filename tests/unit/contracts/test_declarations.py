@@ -169,7 +169,7 @@ class DeclarationTests(unittest.TestCase):
         owners = ontology['terms']
         spec = read(ROOT/'data-model/inference.schema.json')
         expected = {
-            'InferenceRequest': ['InferenceRequest', 'RequestArrival'],
+            'InferenceRequest': ['InferenceRequest', 'RequestArrival', 'TokenStepRequest'],
             'InferenceSystem': ['InferenceSystem', 'KVResidencySystemConfig', 'SystemConfigurationPreview'],
             'InferenceResponse': ['TokenPublished', 'RequestFinished', 'RunOutcome'],
             'ExecutionCapabilities': ['Capabilities', 'CacheCapabilities'],
@@ -235,7 +235,7 @@ class DeclarationTests(unittest.TestCase):
         with self.assertRaises(ValueError): InferenceRequest(generation={})
         with self.assertRaises(ValueError): GenerationPolicy(max_new_tokens=True)
         with self.assertRaises(ValueError): GenerationPolicy(max_new_tokens=0)
-        with self.assertRaises(ValueError): run_request(InferenceRequest(generation=GenerationPolicy(max_new_tokens=9)).to_dict())
+        with self.assertRaises(ValueError): run_request(InferenceRequest(generation=GenerationPolicy(max_new_tokens=17)).to_dict())
 
     def test_preparation_provenance_is_artifact_owned_and_strict(self):
         from inside_inference.declarations_generated import TrainingProvenance, InitializationProvenance
@@ -260,11 +260,11 @@ class DeclarationTests(unittest.TestCase):
             run=run_request(request.to_dict()); results.append(run)
             self.assertEqual(run['declaration']['request'],request.to_dict())
             validate_result(run)
-        self.assertEqual([len(r['passes']) for r in results],[1,2,3,8])
-        self.assertEqual([r['outcome']['unused_budget'] for r in results],[0,0,0,0])
-        self.assertEqual([r['outcome']['stop_reason'] for r in results],['output_budget']*4)
+        self.assertEqual([len(r['passes']) for r in results],[1,2,3,3])
+        self.assertEqual([r['outcome']['unused_budget'] for r in results],[0,0,0,5])
+        self.assertEqual([r['outcome']['stop_reason'] for r in results],['output_budget','output_budget','turn_end','turn_end'])
         self.assertEqual(results[2]['output_ids'],results[3]['output_ids'][:3])
-        for key,value in [('unused_budget',1),('selected_tokens',3),('complete',True)]:
+        for key,value in [('unused_budget',1),('selected_tokens',8),('complete',False)]:
             bad=copy.deepcopy(results[3]);bad['outcome'][key]=value
             with self.assertRaises(ValueError): validate_result(bad)
 

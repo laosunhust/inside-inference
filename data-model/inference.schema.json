@@ -508,8 +508,8 @@
           "type": "integer",
           "title": "Supported new-token limit",
           "description": "Supported baseline value.",
-          "const": 8,
-          "default": 8
+          "const": 16,
+          "default": 16
         },
         "max_requests": {
           "type": "integer",
@@ -540,7 +540,7 @@
           "title": "Maximum new tokens",
           "description": "An upper bound on selected IDs, including TURN_END. Generation may stop earlier.",
           "minimum": 1,
-          "default": 6,
+          "default": 11,
           "x-maximum-from": "system.max_new_tokens_cap"
         },
         "selection": {
@@ -572,7 +572,7 @@
           "type": "string",
           "title": "Request input",
           "description": "Exact user text; no normalization or truncation.",
-          "default": "the ball is in"
+          "default": "ann has the cup. ben has the book. who has the cup?"
         },
         "generation": {
           "$ref": "#/$defs/GenerationPolicy"
@@ -655,8 +655,8 @@
         },
         "max_new_tokens_cap": {
           "type": "integer",
-          "const": 8,
-          "default": 8
+          "const": 16,
+          "default": 16
         },
         "model_execution": {
           "$ref": "#/$defs/CachedExecutionConfig"
@@ -863,6 +863,48 @@
           "default": 0
         }
       }
+    },
+    "TokenStepRequest": {
+      "type": "object",
+      "x-owner": "InferenceRequest",
+      "additionalProperties": false,
+      "required": [
+        "checkpoint_sha256",
+        "prefix_ids",
+        "output_ids",
+        "generation",
+        "ontology_binding"
+      ],
+      "properties": {
+        "checkpoint_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "prefix_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 383
+          },
+          "minItems": 1
+        },
+        "output_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 383
+          }
+        },
+        "generation": {
+          "$ref": "#/$defs/GenerationPolicy"
+        },
+        "ontology_binding": {
+          "$ref": "#/$defs/OntologyBinding"
+        }
+      },
+      "description": "One next-token invocation: exact raw prefix and supplied continuation, without chat framing. Generation budget counts the continuation, not the prefix."
     },
     "RequestBinding": {
       "type": "object",
@@ -2514,13 +2556,80 @@
         }
       }
     },
+    "TokenStepResult": {
+      "type": "object",
+      "x-owner": "ExperimentExecution",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "contract_sha256",
+        "request",
+        "checkpoint",
+        "provenance",
+        "output_ids",
+        "sequence_ids",
+        "remaining_tokens",
+        "stop_reason",
+        "computation"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "contract_sha256": {
+          "type": "string"
+        },
+        "request": {
+          "$ref": "#/$defs/TokenStepRequest"
+        },
+        "checkpoint": {
+          "$ref": "#/$defs/ModelArtifact"
+        },
+        "provenance": {
+          "$ref": "#/$defs/ExecutionProvenance"
+        },
+        "output_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 383
+          }
+        },
+        "sequence_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 383
+          }
+        },
+        "remaining_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stop_reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            null,
+            "turn_end",
+            "output_budget"
+          ]
+        },
+        "computation": {
+          "$ref": "#/$defs/NumericalPass"
+        }
+      }
+    },
     "InspectionState": {
       "type": "object",
       "x-owner": "InspectionState",
       "additionalProperties": false,
       "required": [
         "run_id",
-        "prediction",
         "position",
         "observation_id"
       ],
@@ -2531,16 +2640,10 @@
           "description": "SHA-256 identity of the exact artifact bytes or canonical checkpoint.",
           "pattern": "^[0-9a-f]{64}$"
         },
-        "prediction": {
-          "type": "integer",
-          "title": "Prediction index",
-          "description": "Zero-based cursor into actual passes.",
-          "minimum": 0
-        },
         "position": {
           "type": "integer",
           "title": "Sequence position",
-          "description": "Zero-based position within selected pass.",
+          "description": "Single selected position in the accepted sequence; determines the exact prefix for Next Token. The recorded computation is derived from this position.",
           "minimum": 0
         },
         "observation_id": {

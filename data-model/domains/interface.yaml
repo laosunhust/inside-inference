@@ -5,7 +5,6 @@ $defs:
     additionalProperties: false
     required:
     - run_id
-    - prediction
     - position
     - observation_id
     properties:
@@ -14,22 +13,20 @@ $defs:
         title: Observed run
         description: SHA-256 identity of the exact artifact bytes or canonical checkpoint.
         pattern: ^[0-9a-f]{64}$
-      prediction:
-        type: integer
-        title: Prediction index
-        description: Zero-based cursor into actual passes.
-        minimum: 0
       position:
         type: integer
         title: Sequence position
-        description: Zero-based position within selected pass.
+        description: Single selected position in the accepted sequence; determines
+          the exact prefix for Next Token. The recorded computation is derived from
+          this position.
         minimum: 0
       observation_id:
         type:
         - string
         - 'null'
         title: Executed observation
-        description: Exact observation ID within the selected pass, or null for request and output inspection.
+        description: Exact observation ID within the selected pass, or null for request
+          and output inspection.
         default: null
   Capabilities:
     type: object

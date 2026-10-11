@@ -1,4 +1,5 @@
 """Build a portable offline laboratory from admitted contracts and recorded execution."""
+from scripts.build.theme import check_theme
 import argparse
 import html
 import json
@@ -67,7 +68,7 @@ def shell(title, body, prefix='', *, landing=False):
     footer = '' if landing else '<footer>Mechanism → evidence → limits. An open laboratory, always incomplete.</footer>'
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{esc(title)} · Inside Inference</title><link rel="stylesheet" href="{prefix}style.css"></head>
+<title>{esc(title)} · Inside Inference</title><link rel="stylesheet" href="{prefix}theme.css"><link rel="stylesheet" href="{prefix}style.css"></head>
 <body><header><a href="{prefix}index.html">Inside Inference</a>{navigation}</header>
 <main>{body}</main>{footer}
 <script src="{prefix}app.js" defer></script></body></html>'''
@@ -94,11 +95,12 @@ def ontology_terms():
 
 
 def build(output, *, checkpoint=None):
+    check_theme(ROOT)
     generate(check=True)
     data = load_catalog()
     output.mkdir(parents=True, exist_ok=True)
     (output / 'labs').mkdir(exist_ok=True)
-    for name in ('style.css', 'app.js', 'journey.js', 'inference.js', 'configuration-preview.js', 'execution-path.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
+    for name in ('theme.css', 'style.css', 'app.js', 'journey.js', 'inference.js', 'configuration-preview.js', 'execution-path.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
         shutil.copyfile(ROOT / 'web' / name, output / name)
     layers = {x['id']: x for x in data['layers']}
     nav = ''.join(f'<a href="#layer-{x["id"]}">{i:02d} {esc(x["name"])}</a>'
@@ -144,7 +146,7 @@ Classify the actual changed boundary, and link the others.</p></section>
 <b>Compare</b> a stated baseline under controlled conditions. <b>Separate</b> mathematical properties,
 toy observations, simulated costs, and real measurements. <b>Declare</b> failure cases and what cannot transfer.</p>
 <p>Catalog entries: {sum(e["status"] == "mechanical-demo" for e in data["innovations"])} mechanical demo(s) and {sum(e["status"] == "planned" for e in data["innovations"])} planned lab(s).
-The landing page executes an inspectable GPT with identified checkpoint provenance; its default weights are untrained. A separate lab models bounded request costs. Neither path establishes production language quality or real-system performance.</p></section>'''
+The landing page executes an inspectable GPT with identified checkpoint provenance; its default weights are trained on a small synthetic task. A separate lab models bounded request costs. Neither path establishes production language quality or real-system performance.</p></section>'''
     (output / 'atlas.html').write_text(shell('Lab catalog', body))
     terms = ontology_terms()
     visual_source = (ROOT / 'web/inference.html').read_text()
@@ -286,6 +288,7 @@ if __name__ == '__main__':
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
     if args.check:
+        check_theme(ROOT)
         load_catalog()
         print('Catalog identities, layer references, and evidence statuses checked.')
     else:

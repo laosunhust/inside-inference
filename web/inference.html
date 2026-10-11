@@ -15,14 +15,14 @@
 <div class="panel-heading"><h2>2 · Data plane</h2><span id="run-outcome" class="run-outcome"></span></div>
 <p id="configuration-status" role="status" hidden></p>
 <div id="workload-boundary">
-<button id="inspect-request" data-entity="request" data-term="Request" class="request-preview"><small>Input</small> <strong id="request-preview"></strong> ↗</button>
-<details class="source-editor"><summary>Edit source request</summary><form id="inference-form"><div id="request-fields"></div>
+<div class="request-preview"><small id="source-label">Input</small> <strong id="request-preview"></strong><button id="edit-input" class="primary" type="button" aria-expanded="false" aria-controls="inference-form">Edit</button></div>
+<form id="inference-form" class="source-editor" hidden><div id="request-fields"></div>
 <div class="configuration-actions"><button id="execute" class="primary" disabled>Apply source · baseline →</button>
 </div>
-<p id="run-error" role="alert" hidden></p></form></details></div>
+<p id="run-error" role="alert" hidden></p></form></div>
 <p id="pass-caption"></p><div id="sequence-strip" class="token-strip" aria-label="Input positions for selected pass"></div>
 <section class="execution-journey" aria-label="Execution path">
-<div class="execution-heading"><h2>Computation</h2><span id="computation-caption"></span><div class="prediction-controls"><button id="previous-pass" aria-label="Previous prediction">←</button><button id="next-pass" aria-label="Next prediction">→</button></div></div>
+<div class="execution-heading"><h2>Computation</h2><span id="computation-caption"></span><div class="prediction-controls"><button id="next-token" class="primary" type="button" disabled>Next Token</button></div></div>
 <div class="execution-scroll"><div id="execution-canvas">
 <svg id="execution-edges" aria-hidden="true"><defs><marker id="path-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0,0 6,3 0,6"/></marker></defs></svg>
 <ol id="computation-path" class="execution-path" aria-label="Recorded computation stages"></ol>

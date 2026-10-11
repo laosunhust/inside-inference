@@ -4,7 +4,7 @@
     "spec": {
       "system": {
         "max_requests": 8,
-        "max_new_tokens_cap": 8,
+        "max_new_tokens_cap": 16,
         "kv_cache": {
           "device_kv_bytes": 16384,
           "host_kv_bytes": 32768,
@@ -74,7 +74,7 @@
     "spec": {
       "system": {
         "max_requests": 8,
-        "max_new_tokens_cap": 8,
+        "max_new_tokens_cap": 16,
         "kv_cache": {
           "device_kv_bytes": 1024,
           "host_kv_bytes": 32768,
@@ -157,7 +157,7 @@
     "spec": {
       "system": {
         "max_requests": 8,
-        "max_new_tokens_cap": 8,
+        "max_new_tokens_cap": 16,
         "kv_cache": {
           "device_kv_bytes": 1024,
           "host_kv_bytes": 0,
@@ -240,7 +240,7 @@
     "spec": {
       "system": {
         "max_requests": 8,
-        "max_new_tokens_cap": 8,
+        "max_new_tokens_cap": 16,
         "kv_cache": {
           "device_kv_bytes": 16384,
           "host_kv_bytes": 32768,

@@ -1,7 +1,7 @@
 # Naïve inference reference
 
-Status: implemented with seeded untrained defaults and explicit compatible checkpoint
-loading. Owns the baseline computation boundary. The first trained pilot and its
+Status: implemented with the [shipped trained checkpoint](../../data/model/README.md)
+and explicit compatible checkpoint loading. Owns the baseline computation boundary. The first trained pilot and its
 limits are recorded under [model preparation](model-preparation.md).
 See the [lab contract](../labs/naive-gpt.md) for evidence and limitations.
 [Milestones](../purpose/milestones.md) own build order and acceptance;

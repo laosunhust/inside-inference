@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 // Walk actual rendered dependencies from logits to inputs, not a test-only UI accessor.
 export async function checkInspection(evaluate, run, prediction) {
-  const pass=run.traces[0].passes[prediction];
+  const pass=run.computation || run.traces[0].passes[prediction];
   const observed=await evaluate(`(() => {
     const path=Array.from(document.querySelectorAll('#computation-path > li'),item=>({
       observations:JSON.parse(item.dataset.observations), inputs:JSON.parse(item.dataset.inputs),
@@ -77,7 +77,7 @@ export async function checkInspection(evaluate, run, prediction) {
     const row=node.shape.length===1 ? [node.values[pass.selection_position]] : node.values[pass.selection_position];
     assert.deepEqual(observed.rows[node.id],row.map(v=>typeof v==='number' ? v.toPrecision(6) : String(v)));
   }
-  for(const [name,value] of Object.entries(observed.parameters)) assert.deepEqual(value,run.traces[0].checkpoint.parameters[name]);
+  for(const [name,value] of Object.entries(observed.parameters)) assert.deepEqual(value,(run.checkpoint || run.traces[0].checkpoint).parameters[name]);
   const referenced=new Set(pass.nodes.flatMap(n=>n.inputs).filter(id=>id.startsWith('parameter:')).map(id=>id.slice(10)));
   assert.deepEqual(Object.keys(observed.parameters).sort(),[...referenced].sort());
   assert.equal(observed.position,pass.selection_position);

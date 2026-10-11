@@ -10,7 +10,7 @@ import torch
 
 from inside_inference.model import Model, ModelArchitecture, initialize, softmax, identity
 from inside_inference.preparation import (PreparationModel, batch_tensors, evaluate, generate,
-    load_state, make_optimizer, prepare_examples, response_loss, save_state, train_step)
+    load_state, make_optimizer, prepare_examples, response_loss, save_state, train_step, separated_response)
 from inside_inference.tokenizer import Tokenizer
 
 CONFIG = {'learning_rate': 0.003, 'betas': [0.9, 0.999], 'epsilon': 1e-8, 'weight_decay': 0.01}
@@ -25,6 +25,28 @@ class PreparationTests(unittest.TestCase):
         cls.checkpoint = initialize(ModelArchitecture(), cls.tokenizer.manifest_sha256)
         cls.pad = cls.tokenizer.token_id('control', 'PAD')
         cls.examples = prepare_examples()
+
+    def test_multiword_targets_and_readability_require_emitted_separators(self):
+        rows = prepare_examples('shortest-multiword-v1', 11)
+        for split, examples in rows.items():
+            for old, new in zip(self.examples[split], examples, strict=True):
+                self.assertEqual(new['prompt_ids'], old['prompt_ids'])
+                self.assertEqual(new['acceptable_answers'], old['acceptable_answers'])
+                choices = [a for a in old['acceptable_answers'] if len(a.split()) > 1]
+                expected = min(choices, key=lambda a:(len(self.tokenizer.encode(a).ids), a))
+                self.assertEqual(new['training_target'], expected)
+                self.assertEqual(self.tokenizer.decode(new['response_ids'][:-1]), expected)
+                self.assertLessEqual(len(new['response_ids']) + 2, 11)
+                self.assertTrue(separated_response(new['response_ids'], self.tokenizer))
+        end = self.tokenizer.token_id('control','TURN_END')
+        def check(text): return separated_response(list(self.tokenizer.encode(text).ids)+[end], self.tokenizer)
+        self.assertTrue(check('the ball.'))
+        for text in ('ball.', 'theball.', 'the  ball.', ' the ball.', 'the ball .', 'the ball', 'the ball. '):
+            self.assertFalse(check(text), text)
+        good = list(self.tokenizer.encode('the ball.').ids)+[end]
+        self.assertFalse(separated_response(good[:-1],self.tokenizer))
+        self.assertFalse(separated_response([i for i in good if i != self.tokenizer.token_id('space',' ')],self.tokenizer))
+        with self.assertRaises(ValueError): prepare_examples('invented')
 
     def test_full_logits_match_reference_and_future_tokens_do_not_change_prefix(self):
         model = PreparationModel(self.checkpoint)

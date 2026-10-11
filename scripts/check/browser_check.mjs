@@ -39,7 +39,7 @@ try {
   assert.equal(await evaluate(`document.querySelector('.play-heading').textContent.trim()`), 'What happens if you change this?');
   for (const [section, ids] of [
     ['control-plane', ['open-input', 'open-system', 'open-client', 'binding-status']],
-    ['data-plane', ['inference-form', 'execute', 'request-fields', 'inspect-request', 'previous-pass', 'next-pass', 'sequence-strip', 'computation-path', 'selected-token', 'inspect-response']],
+    ['data-plane', ['inference-form', 'execute', 'request-fields', 'edit-input', 'next-token', 'sequence-strip', 'computation-path', 'selected-token', 'inspect-response']],
     ['numerical-inspector', ['detail-body', 'run-identity', 'download-run']],
   ]) {
     for (const id of ids) assert.ok(await evaluate(`document.getElementById('${section}').contains(document.getElementById('${id}'))`));
@@ -52,8 +52,9 @@ try {
   }
   assert.ok(await evaluate(`document.querySelectorAll('#unavailable-system button:disabled').length>0 && Array.from(document.querySelectorAll('#unavailable-system button')).every(b=>Declarations.meanings[b.dataset.concept])`));
   assert.equal(await evaluate(`Array.from(document.querySelectorAll('#unavailable-system button')).some(b=>['ExperimentSpec','InferenceResponse'].includes(b.dataset.concept))`),false);
-  assert.equal(await evaluate(`document.querySelector('#inspect-system, #pass-tabs, #inspect-client, #response-status')`),null);
-  assert.equal(await evaluate(`document.querySelector('.source-editor').open`),false);
+  assert.equal(await evaluate(`document.querySelector('#inspect-system, #pass-tabs, #inspect-client, #response-status, #inspect-request')`),null);
+  assert.equal(await evaluate(`!document.getElementById('inference-form').hidden`),false);
+  assert.equal(await evaluate(`document.getElementById('edit-input').textContent`),'Edit');
   const initial = await evaluate(`JSON.parse(document.getElementById('inference-data').textContent)`);
   assert.equal(await evaluate(`document.querySelectorAll('#event-stream li').length`),initial.events.length);
   assert.equal(await evaluate(`document.getElementById('control-plane').contains(document.getElementById('prompt'))`),false);
@@ -67,14 +68,14 @@ try {
   assert.ok(await evaluate(`document.querySelector('#inspect-layers').parentElement.classList.contains('configuration-changed')`));
   assert.ok(await evaluate(`document.getElementById('configuration-detail').textContent.includes('KDA')`));
   assert.ok(await evaluate(`document.getElementById('configuration-status').textContent.includes('preview only') && !document.getElementById('execute').disabled`));
-  await click('next-pass');
+  await evaluate(`document.querySelectorAll('#sequence-strip button')[${initial.traces[0].passes[1].selection_position}].click()`);
   assert.ok(await evaluate(`document.querySelector('#inspect-layers').parentElement.dataset.configuration==='KDA'`));
   await evaluate(`document.getElementById('configure-client-consumption').value='paused';document.getElementById('configure-client-consumption').dispatchEvent(new Event('change'))`);
   assert.ok(await evaluate(`document.getElementById('client-boundary').classList.contains('configuration-changed')`));
   assert.equal(await evaluate(`document.getElementById('definition-link').getAttribute('href')`),'ontology.html#CustomerInteraction');
   assert.ok(await evaluate(`document.getElementById('configuration-detail').textContent.includes('Paused')`));
   assert.equal(await evaluate(`document.getElementById('run-identity').textContent`),previewRecord);
-  await evaluate(`for(const id of ['configure-system-attention-mechanism','configure-client-consumption']) {const field=document.getElementById(id);field.selectedIndex=0;field.dispatchEvent(new Event('change'));} document.getElementById('previous-pass').click()`);
+  await evaluate(`for(const id of ['configure-system-attention-mechanism','configure-client-consumption']) {const field=document.getElementById(id);field.selectedIndex=0;field.dispatchEvent(new Event('change'));} document.querySelectorAll('#sequence-strip button')[${initial.traces[0].passes[0].selection_position}].click()`);
   assert.equal(await evaluate(`document.getElementById('execute').disabled`),false);
   assert.equal(await evaluate(`document.querySelectorAll('.configuration-changed').length`),0);
   const firstDelivery=initial.events.filter(e=>e.payload.kind==='token-published' && e.payload.work_id===initial.traces[0].passes[0].id).map(e=>e.payload.display_delta).join('');
@@ -82,14 +83,12 @@ try {
   assert.equal(await evaluate(`document.getElementById('output-label').textContent`),
     initial.traces[0].checkpoint.provenance.kind==='untrained' ? 'Published output · untrained' : 'Published output');
   assert.ok(await evaluate(`document.getElementById('workload-summary').textContent.includes('execution order only')`));
-  assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`), initial.traces[0].passes[0].input_ids.length);
-  for (const id of ['inspect-request','inspect-embedding','inspect-layers','inspect-projection','selected-token','inspect-response']) {
+  assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`), initial.traces[0].sequence_ids.length);
+  for (const id of ['inspect-embedding','inspect-layers','inspect-projection','selected-token','inspect-response']) {
     await click(id);
     assert.ok(await evaluate(`document.getElementById('detail-body').textContent.length > 30`));
     assert.equal(await evaluate(`/[a-f0-9]{64}/.test(document.body.innerText)`),false,'Hashes must not appear in presentation');
   }
-  await click('inspect-request');
-  assert.ok(await evaluate(`document.getElementById('labs-link').hidden`));
   await click('inspect-layers');
   assert.equal(await evaluate(`document.getElementById('labs-link').hidden`),false);
   await evaluate(`document.getElementById('tensor-choice').value='attention'; document.getElementById('tensor-choice').dispatchEvent(new Event('change'))`);
@@ -100,11 +99,12 @@ try {
   assert.equal(await evaluate(`document.getElementById('inspection-context').dataset.position`),'0');
   assert.deepEqual(await evaluate(`Array.from(document.querySelectorAll('#detail-body table tr')).slice(1).map(tr=>tr.cells[1].textContent)`),initial.traces[0].passes[0].nodes.find(n=>n.operation.name==='embedding').values[0].map(v=>v.toPrecision(6)));
   await click('inspect-layers');
-  await click('next-pass');
-  assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`), initial.traces[0].passes[1].input_ids.length);
+  await evaluate(`document.querySelectorAll('#sequence-strip button')[${initial.traces[0].passes[1].selection_position}].click()`);
+  assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`), initial.traces[0].sequence_ids.length);
   await evaluate(`document.getElementById('numerical-inspector').scrollIntoView()`);
   let shot = await send('Page.captureScreenshot', {format:'png'});
   await writeFile(output+'/attention.png', Buffer.from(shot.data,'base64'));
+  await click('inspect-layers');
   const observedNode = await evaluate(`JSON.parse(document.querySelector('#detail-body details script').textContent)`);
   assert.deepEqual(observedNode, initial.traces[0].passes[1].nodes.find(n => n.operation.name === 'attention'));
   await checkInspection(evaluate,initial,1);
@@ -115,8 +115,8 @@ try {
   let changed;
   await evaluate(`document.getElementById('configure-system-attention-mechanism').value='kda';document.getElementById('configure-system-attention-mechanism').dispatchEvent(new Event('change'))`);
   for(const fixture of references) {
-    await evaluate(`document.querySelector('.source-editor > summary').click()`);
-    assert.ok(await evaluate(`document.querySelector('.source-editor').open`));
+    await evaluate(`document.getElementById('edit-input').click()`);
+    assert.ok(await evaluate(`!document.getElementById('inference-form').hidden && document.getElementById('edit-input').getAttribute('aria-expanded')==='true'`));
     const request=fixture.workload.requests[0].request;
     const expected=fixture.record, outcome=expected.traces[0].outcome;
     const budget=request.generation.max_new_tokens;
@@ -128,13 +128,13 @@ try {
     assert.equal(await evaluate(`document.getElementById('inspection-context').outerHTML`),cursorBefore);
     await evaluate(`document.getElementById('execute').click(); if(!document.getElementById('output-budget').disabled) throw new Error('controls must lock while executing')`);
     await until(`document.getElementById('binding-status').dataset.phase==='ready'`);
-    assert.equal(await evaluate(`document.querySelector('.source-editor').open`),false);
+    assert.equal(await evaluate(`!document.getElementById('inference-form').hidden`),false);
     changed=await evaluate(`JSON.parse(document.getElementById('run-identity').textContent)`);
     assert.deepEqual(changed.declaration.workload,fixture.workload);
     assert.ok(await evaluate(`document.querySelector('#inspect-layers').parentElement.dataset.configuration==='KDA' && document.getElementById('configuration-status').textContent.includes('preview only')`));
     assert.deepEqual(changed.outcome,outcome);
-    assert.ok(await evaluate(`document.getElementById('computation-caption').textContent.startsWith('Prediction 1 / ${expected.traces[0].passes.length}')`));
-    assert.ok(await evaluate(`document.getElementById('previous-pass').disabled`));
+    assert.ok(await evaluate(`document.getElementById('computation-caption').textContent.startsWith('Prediction 1 · prefill')`));
+    assert.equal(await evaluate(`document.querySelector('#previous-pass, #next-pass')`),null);
     assert.ok(await evaluate(`document.getElementById('run-outcome').textContent.includes('${outcome.selected_tokens} / ${budget}')`));
     const downloadPath=output+'/inference-run.json';
     await rm(downloadPath,{force:true});
@@ -150,9 +150,9 @@ try {
     assert.deepEqual(exported,expected,fixture.id+': browser export differs from headless/CLI/HTTP evidence');
     const visible=[];
     for(const [i,pass] of expected.traces[0].passes.entries()) {
-      if(i>0) await click('next-pass');
+      await evaluate(`document.querySelectorAll('#sequence-strip button')[${pass.selection_position}].click()`);
       const chips=await evaluate(`Array.from(document.querySelectorAll('#sequence-strip button small'),n=>Number(n.textContent.split('#')[1]))`);
-      assert.deepEqual(chips,pass.input_ids);
+      assert.deepEqual(chips,expected.traces[0].sequence_ids);
       if(i===0 || i===expected.traces[0].passes.length-1) {
         await checkInspection(evaluate,expected,i);
       }
@@ -172,18 +172,36 @@ try {
   }
   assert.notEqual(changed.run_id,initial.id);
   assert.equal(changed.declaration.model.checkpoint_sha256,initial.declaration.model.checkpoint_sha256);
-  await click('inspect-request');
-  assert.ok(await evaluate(`document.getElementById('detail-body').textContent.includes('BYTE')`));
   await evaluate(`document.getElementById('output-budget').value=1; document.getElementById('output-budget').dispatchEvent(new Event('change')); document.getElementById('prompt').value='cat '.repeat(62); document.getElementById('prompt').dispatchEvent(new Event('input')); document.getElementById('inference-form').requestSubmit()`);
   await until(`document.getElementById('binding-status').dataset.phase==='ready'`);
-  assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`), 128);
+  assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`), 129);
   await click('inspect-layers');
   assert.equal(await evaluate(`document.querySelectorAll('.heat-cell').length`), 128**2);
   const boundaryID = await evaluate(`JSON.parse(document.getElementById('run-identity').textContent).run_id`);
-  await evaluate(`document.querySelector('.source-editor').open=true; document.getElementById('prompt').value='cat '.repeat(200); document.getElementById('prompt').dispatchEvent(new Event('input')); document.getElementById('inference-form').requestSubmit()`);
+  await evaluate(`document.getElementById('edit-input').click(); document.getElementById('prompt').value='cat '.repeat(200); document.getElementById('prompt').dispatchEvent(new Event('input')); document.getElementById('inference-form').requestSubmit()`);
   await until(`!document.getElementById('run-error').hidden`);
-  assert.ok(await evaluate(`document.querySelector('.source-editor').open`));
+  assert.ok(await evaluate(`!document.getElementById('inference-form').hidden && document.getElementById('edit-input').getAttribute('aria-expanded')==='true'`));
   assert.equal(await evaluate(`JSON.parse(document.getElementById('run-identity').textContent).run_id`), boundaryID);
+  await send('Page.navigate', {url:base+'/index.html'});
+  await until(`document.getElementById('next-token') && !document.getElementById('next-token').disabled`);
+  const steps=JSON.parse(await readFile(output+'/steps.json','utf8'));
+  for(const fixture of steps) {
+    await evaluate(`document.querySelectorAll('#sequence-strip button')[${fixture.position}].click()`);
+    await click('next-token');
+    await until(`document.getElementById('binding-status').dataset.phase==='ready'`);
+    const selected=await evaluate(`Array.from(document.querySelectorAll('#sequence-strip button')).findIndex(b=>b.getAttribute('aria-pressed')==='true')`);
+    assert.equal(selected,fixture.record.sequence_ids.length-1);
+    assert.deepEqual(await evaluate(`Array.from(document.querySelectorAll('#sequence-strip button small'),n=>Number(n.textContent.split('#')[1]))`),fixture.record.sequence_ids);
+    const path=output+'/inference-run.json';await rm(path,{force:true});await click('download-run');
+    let source;
+    for(let i=0;i<100;i++){try{source=await readFile(path,'utf8');JSON.parse(source);break;}catch{await new Promise(r=>setTimeout(r,50));}}
+    assert.deepEqual(JSON.parse(source),fixture.record,'Next Token must export actual prefix computation');
+    await writeFile(output+'/'+fixture.name+'.step-browser.json',source);
+    if(fixture.name==='branch') {
+      await checkInspection(evaluate,fixture.record);
+      assert.equal(await evaluate(`Array.from(document.querySelectorAll('#sequence-strip button')).findIndex(b=>b.getAttribute('aria-pressed')==='true')`),selected,'Inspection must preserve the generation cursor');
+    }
+  }
   await send('Page.navigate', {url:file+'/index.html'});
   await until(`document.getElementById('binding-status')?.dataset.phase==='offline'`);
   assert.ok(await evaluate(`['execute','prompt','output-budget'].every(id=>document.getElementById(id).disabled)`));

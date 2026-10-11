@@ -15,8 +15,10 @@ from inside_inference.tokenizer import Tokenizer, Turn
 from inside_inference.tensor_model import TensorModel as PreparationModel
 
 
-def prepare_examples():
+def prepare_examples(target_policy="original", budget=8):
     """Explicit single-user projection; never select or evaluate test examples."""
+    if target_policy not in ('original', 'shortest-multiword-v1'):
+        raise ValueError('Unsupported training target policy')
     tokenizer = Tokenizer()
     examples = {'train': [], 'development': []}
     questions = {'location': 'where is ', 'correction': 'where is ',
@@ -29,9 +31,15 @@ def prepare_examples():
         if question_start < 0:
             raise ValueError('Task projection has no recognized final question')
         prompt = tokenizer.encode_prompt([Turn(role='user', text=text)], context_limit=128)
-        response = list(tokenizer.encode(case['turns'][-1]['text']).ids)
+        target = case['turns'][-1]['text']
+        if target_policy == 'shortest-multiword-v1':
+            candidates = [a for a in case['acceptable_answers'] if len(a.split()) > 1]
+            if not candidates:
+                raise ValueError('No existing multi-word acceptable answer')
+            target = min(candidates, key=lambda a: (len(tokenizer.encode(a).ids), a))
+        response = list(tokenizer.encode(target).ids)
         response.append(tokenizer.token_id('control', 'TURN_END'))
-        if len(prompt.ids) + max(len(response), 8) - 1 > 128:
+        if len(prompt.ids) + max(len(response), budget) - 1 > 128:
             raise ValueError('Complete example and evaluation budget must fit; no truncation')
         examples[case['split']].append({
             'id': case['id'], 'group_id': case['group_id'], 'family': case['family'],
@@ -40,6 +48,8 @@ def prepare_examples():
             'acceptable_answers': case['acceptable_answers'],
             'prompt_ids': list(prompt.ids), 'response_ids': response,
         })
+        if target_policy != 'original':
+            examples[case['split']][-1]['training_target'] = target
     for rows in examples.values():
         rows.sort(key=lambda item: item['id'])
     return examples
@@ -137,17 +147,17 @@ def generate(model, texts, tokenizer, budget=8):
 
 
 @torch.no_grad()
-def evaluate(model, examples, tokenizer):
+def evaluate(model, examples, tokenizer, budget=8):
     pad = tokenizer.token_id('control', 'PAD')
     loss = float(response_loss(model, examples, pad))
-    full = generate(model, [e['text'] for e in examples], tokenizer)
-    blind = generate(model, [e['question'] for e in examples], tokenizer)
+    full = generate(model, [e['text'] for e in examples], tokenizer, budget)
+    blind = generate(model, [e['question'] for e in examples], tokenizer, budget)
     rotated = {}
     for family in sorted({e['family'] for e in examples}):
         group = [e for e in examples if e['family'] == family]
         for index, item in enumerate(group):
             rotated[item['id']] = group[(index + 1) % len(group)]
-    swapped = generate(model, [rotated[e['id']]['context'] + ' ' + e['question'] for e in examples], tokenizer)
+    swapped = generate(model, [rotated[e['id']]['context'] + ' ' + e['question'] for e in examples], tokenizer, budget)
     records = []
     for e, answer, ablated, shuffled in zip(examples, full, blind, swapped):
         records.append({'id': e['id'], 'family': e['family'], 'text': e['text'], 'expected': e['answer'],
@@ -167,3 +177,40 @@ def evaluate(model, examples, tokenizer):
             and termination >= 0.9 and multiple >= 0.9
             and all(accuracy['full'] - accuracy[k] >= 0.2 for k in ('question_only', 'rotated_context')),
             'records': records}
+
+
+def separated_response(ids, tokenizer):
+    """Exact emitted WORD (SPACE WORD)+ PERIOD TURN_END, without text cleanup."""
+    if len(ids) < 5 or ids[-2:] != [tokenizer.token_id('punctuation', '.'), tokenizer.token_id('control', 'TURN_END')]:
+        return False
+    content = ids[:-2]
+    return (len(content) % 2 == 1 and all(
+        tokenizer.tokens[token].kind == 'word' if i % 2 == 0
+        else token == tokenizer.token_id('space', ' ')
+        for i, token in enumerate(content)))
+
+
+def readability_report(report, examples, tokenizer, criteria):
+    """Attach a distinct inspection screen; never reuse the historical pilot gate."""
+    report.pop('provisional_pass', None)
+    records = report['records']
+    for row, example in zip(records, examples, strict=True):
+        if row['id'] != example['id']:
+            raise ValueError('Readability examples differ from evaluated cases')
+        row['full']['separated'] = separated_response(row['full']['ids'], tokenizer)
+        row['full']['exact_target'] = row['full']['text'] == example['training_target']
+    counts = {
+        'separated_terminated': sum(r['full']['separated'] for r in records),
+        'correct_separated': sum(r['full']['correct'] and r['full']['separated'] for r in records),
+        'exact_target': sum(r['full']['exact_target'] for r in records),
+        'accepted_answer': sum(r['full']['correct'] for r in records),
+    }
+    controls = {k: sum(r[k]['correct'] for r in records) for k in ('question_only', 'rotated_context')}
+    counts['context_advantage'] = {k: counts['accepted_answer'] - v for k,v in controls.items()}
+    report['readability'] = counts
+    report['readability_pass'] = counts['separated_terminated'] >= criteria['separated_terminated']
+    report['task_pass'] = (counts['correct_separated'] >= criteria['correct_separated']
+        and report['correct_by_family']['negation'] >= criteria['negation_correct']
+        and report['correct_by_family']['correction'] >= criteria['correction_correct']
+        and all(v >= criteria['context_advantage'] for v in counts['context_advantage'].values()))
+    return report

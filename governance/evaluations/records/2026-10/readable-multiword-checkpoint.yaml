@@ -1,0 +1,42 @@
+version: 1
+work_item: readable-multiword-checkpoint
+question: Can existing weights architecture and tokenizer learn readable multi-word output for human inspection
+  from existing accepted answers?
+necessity: The owner needs spaces to read and judge numerical inference output; readability is the named consumer,
+  not KV equivalence.
+baseline: Untrained default and retained pilot; unchanged architecture, tokenizer, 400 train / 60 development
+  examples.
+reuse:
+- source: Existing preparation trainer, accepted answers, exported checkpoint verifier and browser parity harness
+  decision: Add a deterministic target-selection profile and separate readability evaluation; no new trainer
+    or tokenizer.
+criteria:
+- One seed-7 run, 4000 updates, original optimizer and loss, minimum-development-response-loss checkpoint selection;
+  stop by 2026-10-10T23:53:15Z. No sweeps or quality retries.
+- Choose the shortest multi-word acceptable answer by encoded content length, lexical tie-break. Exclude test
+  split and language seed. Preserve prompts and accepted-answer scorer.
+- Use 11 selections for all evaluation cases (maximum target length 9 including TURN_END, plus 2). No masks
+  or repair; stop only TURN_END or budget.
+- 'Readability gate: at least 54/60 outputs terminate and contain two or more lexical words separated by exactly
+  one emitted SPACE, ending with period.'
+- 'Task gate, separate from readability: at least 42/60 correct separated terminated outputs; at least 12/15
+  correct in each of negation/correction; full-context correctness exceeds question-only and rotated-context
+  by at least 12/60 each.'
+- Report accepted-answer accuracy and exact selected-target match separately; longer-target loss is not compared
+  numerically with the old pilot. A failed gate remains failed; no tuning follows.
+- Verify every development continuation against the reference engine at atol 1e-10 / rtol 1e-9 and raw argmax;
+  headless/browser checkpoint parity must pass.
+- Raise only declared landing generation cap to 16 so 11-token runs can be inspected; default weights and request
+  budget remain unchanged. Provide explicit trained-checkpoint preview.
+- Retain previous artifacts and record exact new sources, targets, criteria, config, deadline and result.
+checks:
+- make _test-preparation
+- make _prepare-checkpoint with multiword config and absolute deadline
+- make _verify-checkpoint with multiword config
+- make test-integration CHECKPOINT=<new artifact>
+counterexamples:
+- SPACE appears but words are wrong or output fails to terminate.
+- Correct bare one-word output passes answer scoring but fails readability.
+- Concatenated lexical IDs are displayed with invented spaces.
+- Template copying survives without relevant context.
+- Output budget truncates a complete ownership response.

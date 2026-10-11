@@ -3,7 +3,9 @@ import json
 import unittest
 
 from inside_inference.generation import DEFAULT_REQUEST, select_greedy, replay, run_request
-from inside_inference.model import ModelArchitecture, initialize
+from inside_inference.model import ModelArchitecture, initialize, default_checkpoint, identity
+from unittest.mock import patch
+from inside_inference.declarations_generated import LAB_BINDINGS
 from inside_inference.tokenizer import ContextOverflow, Tokenizer
 
 
@@ -33,7 +35,21 @@ class GenerationTests(unittest.TestCase):
             prefix.append(candidate)
         self.assertEqual(prefix, run['sequence_ids'])
         self.assertEqual(run['output_ids'], run_request(capture=False)['output_ids'])
-        self.assertEqual(run['outcome']['stop_reason'], 'output_budget')
+        self.assertEqual(run['outcome']['stop_reason'], 'turn_end')
+
+    def test_shipped_checkpoint_identity_and_no_fallback(self):
+        checkpoint = default_checkpoint()
+        self.assertEqual(identity(checkpoint),
+            'e19dea8d9a1e1b4b8c5e975bb615002138bf0990d132364fdda9932a00c0fc18')
+        self.assertEqual(checkpoint['provenance']['kind'], 'trained')
+        with patch('inside_inference.model.DEFAULT_CHECKPOINT') as path:
+            path.read_bytes.side_effect = FileNotFoundError('missing checkpoint')
+            with self.assertRaises(FileNotFoundError):
+                run_request(capture=False)
+            path.read_bytes.side_effect = None
+            path.read_bytes.return_value = b'corrupt'
+            with self.assertRaises(OSError):
+                run_request(capture=False)
 
     def test_every_id_is_eligible_and_ties_choose_lowest_id(self):
         self.assertEqual(select_greedy([0.]*384)['selected_id'],0)
@@ -81,3 +97,37 @@ class GenerationTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TokenStepTests(unittest.TestCase):
+    def test_exact_prefix_continuation_and_replay(self):
+        from inside_inference.generation import run_token_step, replay_token_step
+        from inside_inference.model import Model
+        checkpoint=default_checkpoint()
+        request={'checkpoint_sha256':identity(checkpoint),'prefix_ids':[0,3,7,14],
+                 'output_ids':[],'ontology_binding':LAB_BINDINGS['naive-gpt'],'generation':dict(DEFAULT_REQUEST['generation'],max_new_tokens=2)}
+        first=run_token_step(request)
+        self.assertEqual(first['computation']['input_ids'],request['prefix_ids'])
+        expected=Model(checkpoint).forward(request['prefix_ids'],capture=False)['logits'][-1]
+        self.assertEqual(first['computation']['selection']['raw_logits'],expected)
+        self.assertEqual(first,replay_token_step(first))
+        # A partial byte encoding is valid numerical input, not reconstructed text.
+        second=run_token_step(dict(request,output_ids=first['output_ids']))
+        self.assertEqual(second['computation']['input_ids'],first['sequence_ids'])
+        self.assertEqual(second['remaining_tokens'],0)
+        self.assertIn(second['stop_reason'],('turn_end','output_budget'))
+        with self.assertRaisesRegex(ValueError,'budget|TURN_END'):
+            run_token_step(dict(request,output_ids=second['output_ids']))
+        bad=copy.deepcopy(first);bad['computation']['selection']['raw_logits'][0]+=1
+        with self.assertRaisesRegex(ValueError,'differs'):replay_token_step(bad)
+
+    def test_admission_and_terminal_prefix_boundary(self):
+        from inside_inference.generation import run_token_step
+        request={'checkpoint_sha256':identity(default_checkpoint()),'prefix_ids':[0,3,5],
+                 'output_ids':[],'ontology_binding':LAB_BINDINGS['naive-gpt'],'generation':DEFAULT_REQUEST['generation']}
+        # A framing TURN_END in the prompt is different from a generated terminal.
+        run_token_step(request)
+        for patch in ({'checkpoint_sha256':'0'*64},{'prefix_ids':[]},
+                      {'prefix_ids':[384]},{'prefix_ids':[0]*129},{'output_ids':[5]}):
+            with self.subTest(patch=patch),self.assertRaises(ValueError):
+                run_token_step(dict(request,**patch))

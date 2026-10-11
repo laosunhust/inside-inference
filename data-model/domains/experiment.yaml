@@ -170,8 +170,8 @@ $defs:
           type: integer
       output_display:
         type: string
-        description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
-          as labeled markers.
+        description: Diagnostic token display; raw IDs are authoritative. Control,
+          byte, and hex IDs appear as labeled markers.
       passes:
         type: array
         items:
@@ -611,9 +611,9 @@ $defs:
     type: object
     x-owner: ExperimentSpec
     title: Configuration preview
-    description: Workload transformation, mechanism and client choices over separately supplied data-plane
-      input. Preview choices are not accepted execution settings; recorded evidence remains separately
-      bound.
+    description: Workload transformation, mechanism and client choices over separately
+      supplied data-plane input. Preview choices are not accepted execution settings;
+      recorded evidence remains separately bound.
     additionalProperties: false
     required:
     - input
@@ -626,3 +626,54 @@ $defs:
         $ref: '#/$defs/SystemConfigurationPreview'
       client:
         $ref: '#/$defs/ClientConfigurationPreview'
+  TokenStepResult:
+    type: object
+    x-owner: ExperimentExecution
+    additionalProperties: false
+    required:
+    - id
+    - contract_sha256
+    - request
+    - checkpoint
+    - provenance
+    - output_ids
+    - sequence_ids
+    - remaining_tokens
+    - stop_reason
+    - computation
+    properties:
+      id:
+        type: string
+      contract_sha256:
+        type: string
+      request:
+        $ref: '#/$defs/TokenStepRequest'
+      checkpoint:
+        $ref: '#/$defs/ModelArtifact'
+      provenance:
+        $ref: '#/$defs/ExecutionProvenance'
+      output_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+          maximum: 383
+      sequence_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+          maximum: 383
+      remaining_tokens:
+        type: integer
+        minimum: 0
+      stop_reason:
+        type:
+        - string
+        - 'null'
+        enum:
+        - null
+        - turn_end
+        - output_budget
+      computation:
+        $ref: '#/$defs/NumericalPass'

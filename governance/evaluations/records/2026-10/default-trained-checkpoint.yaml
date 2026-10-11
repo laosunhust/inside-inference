@@ -1,0 +1,21 @@
+version: 1
+work_item: default-trained-checkpoint
+question: Can every default inference entry point use the evaluated multiword weights without random fallback?
+necessity: The owner requests full cutover and removal of obsolete model defaults.
+baseline: Evaluated multiword checkpoint exists only under disposable output; runtime defaults initialize random weights.
+reuse:
+- source: Existing ModelCheckpoint format, multiword export and shared inference parity harness
+  decision: Ship the exact checkpoint in a compressed durable fixture and share one loader across runtime defaults.
+criteria:
+- Preserve the evaluated checkpoint identity and tokenizer identity without rounding weights.
+- Default request, workload, cache lab, CLI, embedded website and live server use the same trained weights.
+- Missing or corrupt default weights fail explicitly; random initialization remains only an explicit training/test operation.
+- Preserve historical evaluation records and model limitations; remove obsolete saved model weights and the temporary preview workflow.
+- Unit and integration harnesses pass within existing budgets; demonstrate real emitted spaces and unchanged raw selection/stop semantics.
+counterexamples:
+- Website embeds one model while live requests or KV execution use another.
+- Packaging rounds parameters or silently regenerates missing weights.
+- Readable output is mistaken for reliable language understanding.
+checks:
+- make test
+- make test-integration

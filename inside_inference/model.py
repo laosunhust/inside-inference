@@ -2,6 +2,8 @@
 from inside_inference.declarations_generated import operation_for
 from dataclasses import asdict
 from inside_inference.declarations_generated import ModelArchitecture, InitializationProvenance, TrainingProvenance, KVState
+import gzip
+from pathlib import Path
 import hashlib
 import json
 import math
@@ -15,6 +17,16 @@ def canonical(value):
 
 def identity(value):
     return hashlib.sha256(canonical(value)).hexdigest()
+
+
+DEFAULT_CHECKPOINT = Path(__file__).resolve().parents[1] / 'data/model/checkpoint.bin'
+
+
+def default_checkpoint():
+    """Load the shipped checkpoint (gzip JSON); never initialize replacement weights."""
+    checkpoint = json.loads(gzip.decompress(DEFAULT_CHECKPOINT.read_bytes()))
+    Model(checkpoint)
+    return checkpoint
 
 
 def parameter_shapes(c):

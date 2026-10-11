@@ -18,7 +18,7 @@ approval:
     \ for 100 seconds and explicitly request agent to check for efficiency, redundancy and ROI issues before asking\
     \ owner for relaxing this.\" Owner instruction on 2026-10-10: \"ok. let's proceed with what you suggested in\
     \ I\u2019d proceed in this order\", following the explicit proposal to preserve evaluation history and add protected\
-    \ checker/tests."
+    \ checker/tests. Owner response on 2026-10-11: \"Approve locking the theme check\"."
   scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile and
     ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content remains unlocked.
     Retain approved folder and file-size limits. This approval does not authorize future policy changes. Additional
@@ -43,7 +43,8 @@ approval:
     checks and regression tests. No other limits or public target names change. Replace single-record evaluation
     admission with preserved criteria/results, active reference and Git-history checks. Update evaluation.py, locks.py,
     test_governance.py and add/protect tests/integration/test_evaluation_history.py. Record the migration Git anchor;
-    no constitution, limits, or public workflow changes.'
+    no constitution, limits, or public workflow changes. Owner approval on 2026-10-11 adds scripts/build/theme.py
+    and tests/unit/test_theme.py to the protected inventory, updating only locks.py and this manifest for that scope.'
 files:
   AGENTS.md: 0d8ebe24d7cf93746fdc2825774d88980c1f135f7f9955bc9969f1669af7e151
   governance/limits.yaml: 6be775a37ca614960261a44ae07d13305bafb71195a84f9b3233af25601b784e
@@ -57,7 +58,7 @@ files:
   scripts/check/governance/__main__.py: 37dac7abbcf1195eb29f9c995766619948bddc9c8caaa33058aa3e1f62ef208b
   scripts/check/governance/evaluation.py: 3a2d46e5073e8d8c01fb58bc43bef52ff0c62c9a4726c50652d3261d23a09804
   scripts/check/governance/interfaces.py: c77bd3ba3350912007ca86f0f2d7ba7efc66d0519a6f7916254a4f4c26c2f0bc
-  scripts/check/governance/locks.py: a749e9bde5ca638df4783b3e5ae6fc11a08a51ec5599fbb2909ba5721c7d0e5c
+  scripts/check/governance/locks.py: 0fe496fb45867026692799a6c5afc5907e878b2e1fe00bcc4265c50ed25d9a79
   scripts/check/governance/structure.py: d1730cf1a43d2c3e1702bf06377fbdf2d8041a3e1365b26f6313d8eb8e8bad90
   scripts/check/layout.py: 54e53c43a5ce571375c049e9ebf740631ab24c14acdd1efaafca5eb2f63679e2
   scripts/check/make_interface.py: 298a6bd1e6f90becabbd0d12ba369c5a0d697f0b81f758fabf56423f01cd26b8
@@ -68,3 +69,5 @@ files:
   tests/unit/contracts/test_harness.py: 1ba20fd6e4e3a9a0bed83d99d8b1f3e87e50dc97f99deec7b1e30f8c08ae7de2
   scripts/check/governance/budget.py: d1c09b74ec64a35e5523d23658b1251e65499ed4cba6aeceb1de7e7c257e10ab
   tests/integration/test_evaluation_history.py: 9cf2f155cf3dd210dad2d7811ba89f268469470e0039a85a023254afe92f466e
+  scripts/build/theme.py: 09ae41862b4155fad25c2189c5a4253155ec55a59f70422de67d69fed2922639
+  tests/unit/test_theme.py: 96a198554b23d8a80230cbe4e62cdf18a02f0b1a81a8f65da8380a192f66eb07

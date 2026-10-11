@@ -1,10 +1,13 @@
 terms:
   InspectionState:
-    meaning: A cursor into an identified recorded run; moving it never executes inference.
+    meaning: One selected position in an identified accepted token sequence, with
+      an observation selection. Selection alone never executes inference.
     lifetime: Changes on inspection; reset when the bound run changes.
     owns:
-    - Run, prediction, sequence position, and executed observation selection; moving the cursor never
-      executes inference.
+    - Sequence position shared by token highlighting, derived recorded computation
+      and the next submitted raw prefix.
+    - Executed observation selection; inspecting an operand never changes the generation
+      prefix.
     excludes:
     - input text
     - model or generation configuration
@@ -14,8 +17,8 @@ terms:
     - InspectionState
   ApiError:
     meaning: An explicit transport admission or execution failure message.
-    lifetime: Produced for a rejected or failed service operation; a completed execution record need not
-      exist.
+    lifetime: Produced for a rejected or failed service operation; a completed execution
+      record need not exist.
     owns:
     - An explicit transport admission or execution failure message.
     excludes:
@@ -27,8 +30,10 @@ terms:
     schemas:
     - ApiError
   ExecutionCapabilities:
-    meaning: "The running service\u2019s advertised execution support and contract compatibility information."
-    lifetime: A service-discovery snapshot; refresh when connecting to or reconnecting with a service.
+    meaning: "The running service\u2019s advertised execution support and contract\
+      \ compatibility information."
+    lifetime: A service-discovery snapshot; refresh when connecting to or reconnecting
+      with a service.
     owns:
     - Engine and contract identity used to check client/service compatibility.
     - Numerical backends advertised as available by the service.

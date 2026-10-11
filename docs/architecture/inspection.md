@@ -3,8 +3,8 @@
 This document owns code boundaries and navigation for the connected instrument.
 [Purpose](../purpose/README.md) owns the fixed-vocabulary learning scope;
 [ontology](../ontology/README.md) owns shared meanings; the catalog owns lab
-placement. The naïve numerical path supports identified checkpoints, with seeded untrained
-weights by default. The [KV residency lab](../labs/kv-residency.md) adds cached
+placement. The naïve numerical path supports identified checkpoints, with the [shipped trained checkpoint](../../data/model/README.md)
+by default. The [KV residency lab](../labs/kv-residency.md) adds cached
 execution and a bounded resource scheduler alongside that explicit reference.
 
 ## One run, three views
@@ -165,3 +165,31 @@ fixtures and required datasets remain outside it. A static deployment can inspec
 recorded evidence; executing new inputs requires the local service or a future
 validated execution backend. Restart the local server after contract changes so
 its identity matches the page.
+
+## Prefix selection and live stepping
+
+`InspectionState.position` is the single sequence cursor. The token strip selects
+it; the recorded computation is derived from that position. Inspecting an operand
+never moves the prefix. The newest selected output has no embedding computation
+of its own yet; details identify the last computed row rather than inventing one.
+
+**Next Token** sends a generated `TokenStepRequest` through the declared token-step
+route. It computes one raw-prefix forward pass and returns a `TokenStepResult`.
+Selection alone does not execute. A successful earlier-position branch replaces
+the suffix; a failed call preserves it. Selecting within generated output retains
+the preceding continuation and its budget usage. Selecting within the prompt starts
+a new continuation from that exact prefix, without adding chat framing. Partial
+byte encodings are numerical inputs, not claims of text comprehension.
+
+The loaded baseline remains an inspectable completed reference run. Stepping makes
+new computations; it does not play its next recorded frame. Step exports retain
+the consumed request, checkpoint, provenance, tensors and raw-logit selection and
+use the CLI replay path. Prior continuation IDs are declared inputs, not evidence
+that this stateless call executed their earlier predictions. No KV reuse or
+hardware-performance claim is introduced by this interface.
+
+Shared appearance lives in `web/theme.css`; page stylesheets own layout. The site
+build and unit harness reject competing appearance rules and direct JavaScript
+paint assignments. `primary` is the common action-button variant; token-inspection
+controls retain a quieter shared variant. This build check does not parse arbitrary
+SVG drawing code or prove visual accessibility.

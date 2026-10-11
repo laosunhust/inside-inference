@@ -7,7 +7,7 @@ from time import perf_counter_ns
 from inside_inference.declarations_generated import OntologyBinding, LAB_BINDINGS, KVExperimentInput, KVRunBinding, ModelArtifactReference, CacheRun, RunOutcome
 from inside_inference.generation import select_greedy
 from inside_inference.kv_runtime import ReferenceRuntime, state_bytes
-from inside_inference.model import Model, ModelArchitecture, identity, initialize, parameter_shapes
+from inside_inference.model import Model, identity, default_checkpoint, parameter_shapes
 from inside_inference.tokenizer import Tokenizer, Turn
 from inside_inference.provenance import execution_provenance, stable_provenance, validate_provenance
 
@@ -60,7 +60,7 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
     if spec.ontology_binding.to_dict() != LAB_BINDINGS['prefix-cache']:
         raise ValueError('ontology_binding: this endpoint executes the prefix-cache experiment; binding differs')
     codec = Tokenizer()
-    checkpoint = initialize(ModelArchitecture(), codec.manifest_sha256) if checkpoint is None else checkpoint
+    checkpoint = default_checkpoint() if checkpoint is None else checkpoint
     model = Model(checkpoint)
     if model.checkpoint['manifest_sha256'] != codec.manifest_sha256:
         raise ValueError('Checkpoint tokenizer identity differs')

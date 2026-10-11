@@ -132,6 +132,53 @@
           }
         }
       }
+    },
+    "/api/token-step": {
+      "post": {
+        "operationId": "tokenStep",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./inference.schema.json#/$defs/TokenStepRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "TokenStepResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/TokenStepResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "x-unknown-route-response": {

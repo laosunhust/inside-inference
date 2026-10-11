@@ -36,7 +36,7 @@ _test: _governance-check _make-check _layout-check _data-models-check
 	@$(PYTHON) -m scripts.check.governance.harness
 
 # Optional CHECKPOINT=path.json binds both embedded and live execution for serve-intro
-# and runs browser parity on that artifact in test-integration (default stays untrained).
+# and runs browser parity on that artifact in test-integration (default is the shipped trained checkpoint).
 # Full harness runs unit checks once, then composition and real adapter/browser parity.
 # Component invariants belong in unit tests; integration compares complete records
 # against checked references and owns transport, export/replay and rendered wiring.
@@ -108,7 +108,7 @@ _prepare-checkpoint: _test-preparation
 .PHONY: _preparation-setup _test-preparation _prepare-checkpoint
 
 _verify-checkpoint: _data-models-check
-	@$(PYTHON) -m scripts.check.checkpoint --checkpoint "$(CHECKPOINT)" --output out/experiments/model-preparation/verification
+	@$(PYTHON) -m scripts.check.checkpoint --checkpoint "$(CHECKPOINT)" --output out/experiments/model-preparation/verification $(ARGS)
 
 .PHONY: _verify-checkpoint
 

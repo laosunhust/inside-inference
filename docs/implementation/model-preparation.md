@@ -11,8 +11,8 @@ interfaces; [milestones](../purpose/milestones.md) define inference acceptance.
 Build or obtain a compatible checkpoint for the fixed vocabulary and declared
 model architecture. A local trainer may be necessary to produce it. Keep its
 scope to reproducible checkpoint preparation: identified corpus/tokenizer, seed,
-configuration, precision, validation, and checkpoint identity. Do not add optimizer,
-training-algorithm, SFT, RLHF, or distillation studies as project goals.
+configuration, precision, validation, and checkpoint identity, within the
+[purpose’s training boundary](../purpose/README.md#inference-is-the-research-boundary).
 
 If we maintain a trainer, verify gradients, parameter updates, and checkpoint
 resume against independent calculations. Those checks ensure trustworthy model

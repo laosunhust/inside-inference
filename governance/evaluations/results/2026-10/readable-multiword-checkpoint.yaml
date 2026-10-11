@@ -1,0 +1,9 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/readable-multiword-checkpoint.yaml
+evaluation_sha256: fe5dc92e8b9082500b1a285ac15247e78b9288289409a76e2699cb0786fdcf5c
+outcome: passed
+summary: One 4000-update run; minimum-loss step 1800. Readability 60/60 and correct separated answers 45/60
+  pass predeclared screens. Location remains weak (5/15). Numerical export and trained-checkpoint browser/headless
+  parity pass. No default promotion or further training.
+evidence:
+- docs/research/multiword-checkpoint-2026-10-10.md

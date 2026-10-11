@@ -15,7 +15,7 @@ from scripts.check.governance.harness import run_suite
 
 from scripts.build.intro_page import ROOT, build
 from scripts.dev.serve_intro import Handler
-from scripts.check.parity import prepare, verify_browser_exports
+from scripts.check.parity import prepare, verify_browser_exports, prepare_steps, verify_step_exports
 from scripts.check import cache_parity
 
 
@@ -57,6 +57,7 @@ def main():
     try:
         base = f'http://127.0.0.1:{server.server_port}'
         references = prepare(base,output,checkpoint_path=args.checkpoint)
+        step_references = prepare_steps(base,output,checkpoint_path=args.checkpoint)
         cache_references = cache_parity.prepare(base,output,checkpoint_path=args.checkpoint)
         for case in references:
             (output / (case['id']+'.browser.json')).unlink(missing_ok=True)
@@ -76,6 +77,7 @@ def main():
                     subprocess.run([node, str(ROOT / 'scripts/check/browser_check.mjs'), str(port),
                         f'http://127.0.0.1:{server.server_port}', site.as_uri(), str(output)], check=True, timeout=120)
                     verify_browser_exports(references,output)
+                    verify_step_exports(step_references,output)
                     cache_parity.verify_browser_exports(cache_references,output)
                     result_path.write_text(json.dumps({'passed':True, 'scope':'local HTTP adapter, live and offline browser',
                         'cases':[{'id':c['id'],'run_id':c['record']['id']} for c in references],

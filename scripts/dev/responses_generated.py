@@ -3,7 +3,7 @@ from http.server import SimpleHTTPRequestHandler
 from inside_inference.declarations_generated import MODELS
 from inside_inference.model import canonical
 
-RESPONSES = {('/api/capabilities', 'GET', 200): 'Capabilities', ('/api/runs', 'POST', 200): 'RunRecord', ('/api/runs', 'POST', 400): 'ApiError', ('/api/runs', 'POST', 403): 'ApiError', ('/api/cache-runs', 'POST', 200): 'CacheRun', ('/api/cache-runs', 'POST', 400): 'ApiError', ('/api/cache-runs', 'POST', 403): 'ApiError', ('/api/cache-capabilities', 'GET', 200): 'CacheCapabilities'}
+RESPONSES = {('/api/capabilities', 'GET', 200): 'Capabilities', ('/api/runs', 'POST', 200): 'RunRecord', ('/api/runs', 'POST', 400): 'ApiError', ('/api/runs', 'POST', 403): 'ApiError', ('/api/cache-runs', 'POST', 200): 'CacheRun', ('/api/cache-runs', 'POST', 400): 'ApiError', ('/api/cache-runs', 'POST', 403): 'ApiError', ('/api/cache-capabilities', 'GET', 200): 'CacheCapabilities', ('/api/token-step', 'POST', 200): 'TokenStepResult', ('/api/token-step', 'POST', 400): 'ApiError', ('/api/token-step', 'POST', 403): 'ApiError'}
 UNKNOWN_RESPONSE = (404, 'ApiError')
 
 class DeclaredResponseHandler(SimpleHTTPRequestHandler):

@@ -3,8 +3,8 @@ from dataclasses import dataclass, field
 from typing import Any
 from inside_inference.contract_runtime import Declaration
 
-API_PATHS = {'capabilities': '/api/capabilities', 'run': '/api/runs', 'cacheRun': '/api/cache-runs', 'cacheCapabilities': '/api/cache-capabilities'}
-CONTRACT_SHA256 = '2d66e8c561d8b61bf3172b28461d0e0553bc0a6fbdb4f22e0dfea54bad95bee5'
+API_PATHS = {'capabilities': '/api/capabilities', 'run': '/api/runs', 'cacheRun': '/api/cache-runs', 'cacheCapabilities': '/api/cache-capabilities', 'tokenStep': '/api/token-step'}
+CONTRACT_SHA256 = '2505ac8538fed0d422e42db9c8103aacddbb3c54234acc18922ab686617f52f0'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -315,8 +315,8 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                            'description': 'Supported '
                                                                           'baseline '
                                                                           'value.',
-                                                           'const': 8,
-                                                           'default': 8},
+                                                           'const': 16,
+                                                           'default': 16},
                                     'max_requests': {'type': 'integer',
                                                      'title': 'Supported '
                                                               'request count',
@@ -348,7 +348,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                        'stop '
                                                                        'earlier.',
                                                         'minimum': 1,
-                                                        'default': 6,
+                                                        'default': 11,
                                                         'x-maximum-from': 'system.max_new_tokens_cap'},
                                      'selection': {'type': 'string',
                                                    'title': 'Selection rule',
@@ -373,7 +373,9 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                               'description': 'Exact user text; '
                                                              'no normalization '
                                                              'or truncation.',
-                                              'default': 'the ball is in'},
+                                              'default': 'ann has the cup. ben '
+                                                         'has the book. who '
+                                                         'has the cup?'},
                                      'generation': {'$ref': '#/$defs/GenerationPolicy'}}},
  'RequestArrival': {'type': 'object',
                     'x-owner': 'InferenceRequest',
@@ -423,8 +425,8 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                              'const': 8,
                                                              'default': 8},
                                             'max_new_tokens_cap': {'type': 'integer',
-                                                                   'const': 8,
-                                                                   'default': 8},
+                                                                   'const': 16,
+                                                                   'default': 16},
                                             'model_execution': {'$ref': '#/$defs/CachedExecutionConfig'},
                                             'scheduling': {'$ref': '#/$defs/RequestSchedulingConfig'},
                                             'kv_cache': {'$ref': '#/$defs/KVCacheConfig'},
@@ -591,6 +593,32 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                          'minimum': 0,
                                                                          'maximum': 9007199254740991,
                                                                          'default': 0}}},
+ 'TokenStepRequest': {'type': 'object',
+                      'x-owner': 'InferenceRequest',
+                      'additionalProperties': False,
+                      'required': ['checkpoint_sha256',
+                                   'prefix_ids',
+                                   'output_ids',
+                                   'generation',
+                                   'ontology_binding'],
+                      'properties': {'checkpoint_sha256': {'type': 'string',
+                                                           'pattern': '^[0-9a-f]{64}$'},
+                                     'prefix_ids': {'type': 'array',
+                                                    'items': {'type': 'integer',
+                                                              'minimum': 0,
+                                                              'maximum': 383},
+                                                    'minItems': 1},
+                                     'output_ids': {'type': 'array',
+                                                    'items': {'type': 'integer',
+                                                              'minimum': 0,
+                                                              'maximum': 383}},
+                                     'generation': {'$ref': '#/$defs/GenerationPolicy'},
+                                     'ontology_binding': {'$ref': '#/$defs/OntologyBinding'}},
+                      'description': 'One next-token invocation: exact raw '
+                                     'prefix and supplied continuation, '
+                                     'without chat framing. Generation budget '
+                                     'counts the continuation, not the '
+                                     'prefix.'},
  'RequestBinding': {'type': 'object',
                     'x-owner': 'ExperimentSpec',
                     'additionalProperties': False,
@@ -1189,13 +1217,43 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                           'properties': {'input': {'$ref': '#/$defs/WorkloadTransformationPreview'},
                                          'system': {'$ref': '#/$defs/SystemConfigurationPreview'},
                                          'client': {'$ref': '#/$defs/ClientConfigurationPreview'}}},
+ 'TokenStepResult': {'type': 'object',
+                     'x-owner': 'ExperimentExecution',
+                     'additionalProperties': False,
+                     'required': ['id',
+                                  'contract_sha256',
+                                  'request',
+                                  'checkpoint',
+                                  'provenance',
+                                  'output_ids',
+                                  'sequence_ids',
+                                  'remaining_tokens',
+                                  'stop_reason',
+                                  'computation'],
+                     'properties': {'id': {'type': 'string'},
+                                    'contract_sha256': {'type': 'string'},
+                                    'request': {'$ref': '#/$defs/TokenStepRequest'},
+                                    'checkpoint': {'$ref': '#/$defs/ModelArtifact'},
+                                    'provenance': {'$ref': '#/$defs/ExecutionProvenance'},
+                                    'output_ids': {'type': 'array',
+                                                   'items': {'type': 'integer',
+                                                             'minimum': 0,
+                                                             'maximum': 383}},
+                                    'sequence_ids': {'type': 'array',
+                                                     'items': {'type': 'integer',
+                                                               'minimum': 0,
+                                                               'maximum': 383}},
+                                    'remaining_tokens': {'type': 'integer',
+                                                         'minimum': 0},
+                                    'stop_reason': {'type': ['string', 'null'],
+                                                    'enum': [None,
+                                                             'turn_end',
+                                                             'output_budget']},
+                                    'computation': {'$ref': '#/$defs/NumericalPass'}}},
  'InspectionState': {'type': 'object',
                      'x-owner': 'InspectionState',
                      'additionalProperties': False,
-                     'required': ['run_id',
-                                  'prediction',
-                                  'position',
-                                  'observation_id'],
+                     'required': ['run_id', 'position', 'observation_id'],
                      'properties': {'run_id': {'type': 'string',
                                                'title': 'Observed run',
                                                'description': 'SHA-256 '
@@ -1205,20 +1263,22 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                               'canonical '
                                                               'checkpoint.',
                                                'pattern': '^[0-9a-f]{64}$'},
-                                    'prediction': {'type': 'integer',
-                                                   'title': 'Prediction index',
-                                                   'description': 'Zero-based '
-                                                                  'cursor into '
-                                                                  'actual '
-                                                                  'passes.',
-                                                   'minimum': 0},
                                     'position': {'type': 'integer',
                                                  'title': 'Sequence position',
-                                                 'description': 'Zero-based '
-                                                                'position '
-                                                                'within '
+                                                 'description': 'Single '
                                                                 'selected '
-                                                                'pass.',
+                                                                'position in '
+                                                                'the accepted '
+                                                                'sequence; '
+                                                                'determines '
+                                                                'the exact '
+                                                                'prefix for '
+                                                                'Next Token. '
+                                                                'The recorded '
+                                                                'computation '
+                                                                'is derived '
+                                                                'from this '
+                                                                'position.',
                                                  'minimum': 0},
                                     'observation_id': {'type': ['string',
                                                                 'null'],
@@ -1942,21 +2002,21 @@ class FullPrefixExecutionConfig(Declaration):
 
 @dataclass(frozen=True, kw_only=True)
 class InferenceSystem(Declaration):
-    max_new_tokens_cap: int = 8
+    max_new_tokens_cap: int = 16
     max_requests: int = 1
     model_execution: FullPrefixExecutionConfig = field(default_factory=FullPrefixExecutionConfig)
 
 
 @dataclass(frozen=True, kw_only=True)
 class GenerationPolicy(Declaration):
-    max_new_tokens: int = 6
+    max_new_tokens: int = 11
     selection: str = 'greedy-lowest-id-tie'
     stopping: str = 'turn-end-or-budget'
 
 
 @dataclass(frozen=True, kw_only=True)
 class InferenceRequest(Declaration):
-    text: str = 'the ball is in'
+    text: str = 'ann has the cup. ben has the book. who has the cup?'
     generation: GenerationPolicy = field(default_factory=GenerationPolicy)
 
 
@@ -2005,7 +2065,7 @@ class StateTransferConfig(Declaration):
 @dataclass(frozen=True, kw_only=True)
 class KVResidencySystemConfig(Declaration):
     max_requests: int = 8
-    max_new_tokens_cap: int = 8
+    max_new_tokens_cap: int = 16
     model_execution: CachedExecutionConfig = field(default_factory=CachedExecutionConfig)
     scheduling: RequestSchedulingConfig = field(default_factory=RequestSchedulingConfig)
     kv_cache: KVCacheConfig = field(default_factory=KVCacheConfig)
@@ -2065,6 +2125,15 @@ class WorkloadTransformationPreview(Declaration):
 class OntologyBinding(Declaration):
     primary: str
     related: tuple[str, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class TokenStepRequest(Declaration):
+    checkpoint_sha256: str
+    prefix_ids: tuple[int, ...]
+    output_ids: tuple[int, ...]
+    generation: GenerationPolicy = field(default_factory=GenerationPolicy)
+    ontology_binding: OntologyBinding
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -2388,9 +2457,22 @@ class ConfigurationPreview(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class TokenStepResult(Declaration):
+    id: str
+    contract_sha256: str
+    request: TokenStepRequest
+    checkpoint: ModelArtifact
+    provenance: ExecutionProvenance
+    output_ids: tuple[int, ...]
+    sequence_ids: tuple[int, ...]
+    remaining_tokens: int
+    stop_reason: str | None
+    computation: NumericalPass
+
+
+@dataclass(frozen=True, kw_only=True)
 class InspectionState(Declaration):
     run_id: str
-    prediction: int
     position: int
     observation_id: str | None = None
 
@@ -2471,7 +2553,7 @@ class CustomerInteraction(Declaration):
     actions: tuple[CustomerSubmission | CustomerConsumption | CustomerCancellation, ...]
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'FullPrefixExecutionConfig': FullPrefixExecutionConfig, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'CachedExecutionConfig': CachedExecutionConfig, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'TokenPublished': TokenPublished, 'RunOutcome': RunOutcome, 'RequestFinished': RequestFinished, 'DecodingContract': DecodingContract, 'AttentionConfiguration': AttentionConfiguration, 'SystemConfigurationPreview': SystemConfigurationPreview, 'WorkloadTransformationPreview': WorkloadTransformationPreview, 'OntologyBinding': OntologyBinding, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'ModelForwardCompleted': ModelForwardCompleted, 'TokenSelected': TokenSelected, 'RunEvent': RunEvent, 'Span': Span, 'Encoding': Encoding, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'CacheComputation': CacheComputation, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ClientConfigurationPreview': ClientConfigurationPreview, 'ConfigurationPreview': ConfigurationPreview, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction}
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'FullPrefixExecutionConfig': FullPrefixExecutionConfig, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'CachedExecutionConfig': CachedExecutionConfig, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'TokenPublished': TokenPublished, 'RunOutcome': RunOutcome, 'RequestFinished': RequestFinished, 'DecodingContract': DecodingContract, 'AttentionConfiguration': AttentionConfiguration, 'SystemConfigurationPreview': SystemConfigurationPreview, 'WorkloadTransformationPreview': WorkloadTransformationPreview, 'OntologyBinding': OntologyBinding, 'TokenStepRequest': TokenStepRequest, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'ModelForwardCompleted': ModelForwardCompleted, 'TokenSelected': TokenSelected, 'RunEvent': RunEvent, 'Span': Span, 'Encoding': Encoding, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'CacheComputation': CacheComputation, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ClientConfigurationPreview': ClientConfigurationPreview, 'ConfigurationPreview': ConfigurationPreview, 'TokenStepResult': TokenStepResult, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction}
 OPERATION_OWNERS = {'token_embedding': 'Embedding', 'embedding': 'Embedding', 'position_embedding': 'PositionEncoding', 'ln1_mean': 'Normalization', 'ln1_variance': 'Normalization', 'ln1': 'Normalization', 'ln2_mean': 'Normalization', 'ln2_variance': 'Normalization', 'ln2': 'Normalization', 'ln_final_mean': 'Normalization', 'ln_final_variance': 'Normalization', 'ln_final': 'Normalization', 'query': 'Attention', 'key': 'Attention', 'value': 'Attention', 'scores': 'Attention', 'causal_mask': 'Attention', 'attention': 'Attention', 'weighted_values': 'Attention', 'attention_output': 'Attention', 'attention_residual': 'ResidualAddition', 'ff_residual': 'ResidualAddition', 'ff_up': 'FeedForward', 'gelu': 'FeedForward', 'ff_down': 'FeedForward', 'logits': 'OutputProjection', 'input_ids': 'Tokenizer', 'retained_keys': 'KVState', 'retained_values': 'KVState'}
 LAB_BINDINGS = {'naive-gpt': {'primary': 'ModelExecution', 'related': ['Tokenizer', 'Embedding', 'PositionEncoding', 'Normalization', 'Attention', 'ResidualAddition', 'FeedForward', 'OutputProjection', 'Decoding']}, 'kimi-delta-attention': {'primary': 'Attention', 'related': []}, 'prefix-cache': {'primary': 'KVCache', 'related': ['KVState', 'RequestScheduling', 'StateTransfer', 'ComputeService']}, 'prefill-decode': {'primary': 'StateTransfer', 'related': ['KVState', 'ModelExecution']}, 'speculative-decoding': {'primary': 'Decoding', 'related': ['ModelExecution', 'KVState']}, 'positional-encoding': {'primary': 'PositionEncoding', 'related': ['Embedding', 'Attention']}}
 for model in MODELS.values():

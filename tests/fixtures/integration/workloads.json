@@ -71,7 +71,7 @@
     "expected": {
       "selected_tokens": 3,
       "unused_budget": 0,
-      "stop_reason": "output_budget"
+      "stop_reason": "turn_end"
     }
   },
   {
@@ -94,9 +94,34 @@
       ]
     },
     "expected": {
-      "selected_tokens": 8,
-      "unused_budget": 0,
-      "stop_reason": "output_budget"
+      "selected_tokens": 3,
+      "unused_budget": 5,
+      "stop_reason": "turn_end"
+    }
+  },
+  {
+    "id": "multiword-budget-11",
+    "workload": {
+      "kind": "fixed-arrivals",
+      "requests": [
+        {
+          "request_id": "r1",
+          "arrival_us": 0,
+          "request": {
+            "text": "ann has the cup. ben has the book. who has the cup?",
+            "generation": {
+              "max_new_tokens": 11,
+              "selection": "greedy-lowest-id-tie",
+              "stopping": "turn-end-or-budget"
+            }
+          }
+        }
+      ]
+    },
+    "expected": {
+      "selected_tokens": 9,
+      "unused_budget": 2,
+      "stop_reason": "turn_end"
     }
   },
   {

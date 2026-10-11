@@ -37,5 +37,13 @@ class GeneratedArtifactIntegrationTests(unittest.TestCase):
     def test_browser_state_contract_and_validator_parity(self):
         # Node runs the same generated consumers and pure transitions as the page.
         with tempfile.TemporaryDirectory() as directory:
-            path=Path(directory)/'run.json';path.write_text(json.dumps(run_workload()))
-            subprocess.run(['node',str(ROOT/'tests/integration/inspection_session.mjs'),str(path)],check=True,capture_output=True,text=True)
+            from inside_inference.generation import run_token_step
+            from tests.fixtures.execution import small_workload
+            run=small_workload();path=Path(directory)/'run.json';path.write_text(json.dumps(run))
+            trace=run['traces'][0]
+            spec={'checkpoint_sha256':trace['declaration']['model']['checkpoint_sha256'],
+                  'prefix_ids':trace['tokenizer']['ids'][:4],'output_ids':[],
+                  'generation':trace['declaration']['request']['generation'],
+                  'ontology_binding':trace['declaration']['ontology_binding']}
+            step=Path(directory)/'step.json';step.write_text(json.dumps(run_token_step(spec,checkpoint=trace['checkpoint'])))
+            subprocess.run(['node',str(ROOT/'tests/integration/inspection_session.mjs'),str(path),str(step)],check=True,capture_output=True,text=True)
