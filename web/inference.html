@@ -1,23 +1,22 @@
 <section class="playground" id="playground">
 <div class="play-heading"><h1>What happens if you <em>change this?</em></h1></div>
-<section id="control-plane" class="control-plane" aria-label="Zoom 1: control plane">
-<div class="panel-heading"><h2>1 · Control plane</h2><div id="binding-status" role="status" class="binding-status"></div></div>
+<section id="control-plane" class="control-plane" aria-label="Experiment configuration">
+<div id="binding-status" role="status" class="binding-status" hidden></div>
 <div class="configuration-cards">
-<button id="open-input" class="configuration-card input-card" type="button" aria-haspopup="dialog" aria-controls="input-dialog"><span>01</span><strong>Input</strong><small>Transform the workload ↗</small></button>
-<button id="open-system" class="configuration-card system-card" type="button" aria-haspopup="dialog" aria-controls="system-dialog"><span>02</span><strong>Inference system</strong><small>Configure the mechanisms ↗</small></button>
-<button id="open-client" class="configuration-card client-card" type="button" aria-haspopup="dialog" aria-controls="client-dialog"><span>03</span><strong>Output</strong><small>Configure the client ↗</small></button>
+<button id="open-input" class="configuration-card input-card" type="button" aria-haspopup="dialog" aria-controls="input-dialog"><strong>Input</strong><small>Reproduce a scenario</small></button>
+<button id="open-system" class="configuration-card system-card" type="button" aria-haspopup="dialog" aria-controls="system-dialog"><strong>Inference system</strong><small>Explore mechanisms</small></button>
+<button id="open-client" class="configuration-card client-card" type="button" aria-haspopup="dialog" aria-controls="client-dialog"><strong>Output</strong><small>Investigate user experience</small></button>
 </div>
 <dialog id="input-dialog" aria-labelledby="input-dialog-title"><div class="panel-heading"><h2 id="input-dialog-title">Input transformations</h2><button type="button" class="dialog-close" aria-label="Close input configuration">Done</button></div><div id="configure-input" class="configuration-fields"></div></dialog>
 <dialog id="system-dialog" aria-labelledby="system-dialog-title"><div class="panel-heading"><h2 id="system-dialog-title">Inference system</h2><button type="button" class="dialog-close" aria-label="Close system configuration">Done</button></div><div id="configure-system" class="configuration-fields"></div><h3 class="unavailable-heading">Not adjustable here yet</h3><div id="unavailable-system" class="unavailable-components"></div></dialog>
 <dialog id="client-dialog" aria-labelledby="client-dialog-title"><div class="panel-heading"><h2 id="client-dialog-title">Output · Client</h2><button type="button" class="dialog-close" aria-label="Close client configuration">Done</button></div><div id="configure-client" class="configuration-fields"></div></dialog>
 </section>
-<section id="data-plane" class="pass-panel" aria-label="Zoom 2: data plane">
-<div class="panel-heading"><h2>2 · Data plane</h2><span id="run-outcome" class="run-outcome"></span></div>
+<section id="data-plane" class="pass-panel" aria-label="Request and computation">
 <p id="configuration-status" role="status" hidden></p>
 <div id="workload-boundary">
 <div class="request-preview"><small id="source-label">Input</small> <strong id="request-preview"></strong><button id="edit-input" class="primary" type="button" aria-expanded="false" aria-controls="inference-form">Edit</button></div>
 <form id="inference-form" class="source-editor" hidden><div id="request-fields"></div>
-<div class="configuration-actions"><button id="execute" class="primary" disabled>Apply source · baseline →</button>
+<div class="configuration-actions"><button id="execute" class="primary" disabled>Apply</button>
 </div>
 <p id="run-error" role="alert" hidden></p></form></div>
 <p id="pass-caption"></p><div id="sequence-strip" class="token-strip" aria-label="Input positions for selected pass"></div>
@@ -50,8 +49,8 @@
 <button id="inspect-final-normalization" aria-label="Final layer normalization" data-entity="final-normalization" data-operation="ln_final" data-term="Normalization"><strong>Final norm</strong><span>Normalize channels before vocabulary projection</span></button>
 <button id="inspect-projection" data-entity="projection" data-operation="logits" data-term="Output projection"><strong>Vocabulary projection</strong><span>Vector → one logit per vocabulary ID</span></button>
 </template>
-<section class="numerical-inspector" id="numerical-inspector" aria-label="Zoom 3: actual computation">
-<div class="panel-heading"><h2 id="detail-title">3 · Details</h2><span><a id="definition-link" href="ontology.html">Ontology ↗</a> · <a id="labs-link" hidden>Labs ↗</a><span id="labs-empty">No primary lab yet</span></span></div><p id="definition"></p>
+<section class="numerical-inspector" id="numerical-inspector" aria-label="Computation details">
+<div class="panel-heading"><h2 id="detail-title">Details</h2><span><a id="definition-link" href="ontology.html">Ontology ↗</a> · <a id="labs-link" hidden>Labs ↗</a><span id="labs-empty">No primary lab yet</span></span></div><p id="definition"></p>
 <p id="configuration-detail" hidden></p><p id="inspection-context" role="status"></p><div id="detail-body"></div>
 <details class="model-notes"><summary>Run record &amp; parameters</summary><div>
 <p><a href="naive-gpt-contract.html">Evidence &amp; limits ↗</a></p><script id="run-identity" type="application/json"></script><button id="download-run">Download run + checkpoint</button>
@@ -65,6 +64,7 @@
 <script src="contract-runtime.js" defer></script>
 <script src="declarations.generated.js" defer></script>
 <script src="inspection-session.js" defer></script>
+<script src="evidence-client.js" defer></script>
 <script src="execution-path.js" defer></script>
 <script src="configuration-preview.js" defer></script>
 <script src="inference.js" defer></script>

@@ -1,0 +1,28 @@
+version: 1
+work_item: browser-execution-spike
+question: Can the shared Python reference engine and existing resource simulation execute in a browser worker with faithful evidence and no compute server?
+necessity: Browser execution is the primary hosting hypothesis; native-only tests cannot establish its feasibility.
+baseline: Native Python executes the model and KV simulation; the website currently calls HTTP for live computation.
+reuse:
+- source: Pyodide distribution and documented Web Worker execution
+  decision: Package the existing Python sources, validation dependencies and model assets; no numerical JavaScript rewrite.
+- source: Existing declared Workload, TokenStepRequest, KVExperimentInput and evidence/export interfaces
+  decision: Reuse these within a research harness; do not introduce a production worker protocol or migrate the UI in this spike.
+criteria:
+- Run the shipped default workload, a selected-prefix step, and bounded reference KV scenarios in actual Chromium Web Workers using identical Python source and model/tokenizer bytes as native execution.
+- Token IDs, selections and stopping agree exactly; all compared tensor values satisfy absolute tolerance 1e-10 plus relative tolerance 1e-10, declared before execution. Retain original records and measured differences.
+- Resource scenarios vary device capacity, compute rate, memory bandwidth and transfer rate; browser/native causal schedules and resource counts agree, with virtual timestamps within 1e-9 microseconds. Unsupported capacity fails explicitly.
+- Browser execution exports and reconstructs lossless evidence; replay within its own runtime succeeds. Runtime/provenance differences are retained rather than forcing whole-record identity across runtimes.
+- Browser network capture shows only static asset reads, no compute requests or prompt uploads. Execution still works after network access is disabled following initialization.
+- On this workstation, cold local-asset initialization stays below 20 seconds, each bounded case below 30 seconds, and WebAssembly linear memory below 512 MiB. These are feasibility thresholds, not public/mobile performance claims.
+- Main-page heartbeat gaps stay below 250 milliseconds during computation; worker termination cancels pending work, and a fresh worker can execute again without hidden retained state.
+- Missing runtime assets and malformed experiment input fail visibly; cold and repeat-worker initialization, static asset bytes and measured execution costs are reported.
+counterexamples:
+- Only native Python executes while the browser displays a recorded result.
+- Validation or provenance is monkey-patched away to make Pyodide run.
+- Browser elapsed time is reported as simulated accelerator time.
+- Passing the KV slice is claimed to validate arbitrary topology or MoE execution.
+checks:
+- make _browser-spike
+- make test
+- make test-integration

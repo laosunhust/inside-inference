@@ -53,7 +53,7 @@ body:has(#control-plane) .landing-links{display:inline}
 .execution-path>li>button{width:80px;height:50px;padding:5px}
 .execution-path button span{display:none}
 @media(max-width:700px){.execution-journey{padding:10px}}
-.configuration-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px}
+.configuration-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .playground .configuration-card{display:grid;gap:10px;min-height:145px;padding:18px;text-align:left}
 .playground dialog{width:min(720px,calc(100vw - 32px));max-height:85vh;overflow:auto;padding:22px}
 .playground dialog .panel-heading{margin-bottom:18px}

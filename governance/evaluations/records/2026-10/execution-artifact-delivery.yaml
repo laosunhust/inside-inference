@@ -1,0 +1,27 @@
+version: 1
+work_item: execution-artifact-delivery
+question: Can compute return a small receipt while separate storage preserves complete, losslessly deduplicated execution evidence across local and Lambda adapters?
+necessity: The default nine-pass record repeats full-prefix tensors and embeds reusable assets in every response; its 3.92 MiB JSON is unsuitable as the normal compute response.
+baseline: A compact full RunRecord embeds all passes, checkpoint and vocabulary. HTTP and browser exchange this full record; local serving and numerical execution share one handler.
+reuse:
+- source: Existing declared numerical records, generated routes, canonical serialization and replay
+  decision: Preserve their numerical semantics and self-contained export; introduce an explicitly typed storage representation rather than a second execution engine.
+- source: CNCRover cloud runtime and website separation
+  decision: Reuse the boundary pattern, with common execution and artifact services behind local HTTP and Lambda adapters; no infrastructure deployment in this slice.
+criteria:
+- Compute APIs return a receipt without tensors, checkpoint weights or vocabulary; default receipt is below 1 KiB.
+- Typed artifacts separate execution structure, tensor rows, checkpoint and vocabulary. Exact repeated rows and selection logits share stored values; execution steps remain distinct.
+- The default trained nine-pass run's total unique artifact bytes are less than half its expanded JSON size, without rounding or dropping evidence.
+- Reconstructed records equal the original canonical records and retain CLI replay, browser inspection and generation behavior.
+- File and in-memory object storage plus local HTTP and Lambda event adaptation agree; a Lambda-compatible remote object-store adapter uses the same bytes and keys.
+- Missing, malformed or corrupted artifacts fail explicitly. Retrieval cannot traverse outside the store.
+- Existing unit and full integration time budgets remain unchanged; artifact parity adds no repeated training or browser numerical oracle.
+counterexamples:
+- Identical stored rows are reported as KV reuse even though the engine recomputed them.
+- A successful compute receipt conceals failed artifact persistence.
+- Browser reconstruction rounds values or presents absent observations as zeros.
+- Remote adaptation uses a different model or bypasses declared validation.
+checks:
+- make test
+- make test-integration
+- Default trace payload inventory and exact round-trip comparison

@@ -3,6 +3,7 @@ import hashlib
 from pathlib import Path
 import platform
 import subprocess
+import sys
 from inside_inference.declarations_generated import ExecutionBackend, ExecutionProvenance
 from inside_inference.model import identity
 
@@ -25,11 +26,20 @@ def reference_backend():
     return ExecutionBackend(compute_device='CPU scalar reference',
         device_state_storage='No retained KV state; full-prefix recomputation',
         host_state_storage='Python objects in system DRAM',
-        library='Python '+platform.python_version(), precision='binary64').to_dict()
+        library='Python '+platform.python_version()+' ('+sys.platform+')', precision='binary64').to_dict()
+
+
+def packaged_revision(root):
+    # Release packaging supplies the label; source_inventory still hashes actual code.
+    value = (root/'build-revision.txt').read_text().strip()
+    if not value: raise ValueError('Packaged revision label is empty')
+    return value
 
 
 def revision():
-    return subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+    if (ROOT/'.git').exists():
+        return subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+    return packaged_revision(ROOT)
 
 
 def execution_provenance(backend=None):

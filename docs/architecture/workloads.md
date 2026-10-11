@@ -71,8 +71,9 @@ The implemented path records request arrival, input encoding, model forward
 completion, token selection, output publication, and request completion. The greedy
 baseline accepts each selection immediately; it has no separate commitment event.
 The `token-published` event means publication to the in-process output collector,
-not receipt across a network. HTTP returns the completed record in one response;
-network streaming and client acknowledgments are not implemented. A
+not receipt across a network. HTTP returns an execution receipt;
+[artifact delivery](delivery.md) supplies the completed evidence separately. Token
+streaming and client acknowledgments are not implemented. A
 control token can stop generation without being delivered as text. Client output
 is a projection of publication events, not a second maintained token array. The
 current display concatenates text pieces and labels control/byte/hex IDs; it does

@@ -1,0 +1,25 @@
+version: 1
+work_item: shared-http-interface
+question: Can one declared HTTP application serve socket and Lambda runtimes without policy drift or static exposure of evidence?
+necessity: Existing adapters duplicate routing and differ in origin admission; the socket server stores artifacts under the public site root.
+baseline: Shared numerical dispatch but separate HTTP policy, generated socket-only response writer, and evidence under the static directory.
+reuse:
+- source: Python WSGI and wsgiref standard interfaces
+  decision: Use an established application/server boundary; runtime translation contains no domain policy.
+- source: Existing OpenAPI declarations and generated-consumer admission
+  decision: Generate HTTP metadata and runtime bridges; keep one authored HTTP application.
+criteria:
+- OpenAPI owns routes, request and response schemas, origin admission and response headers; one WSGI application executes this policy in both runtimes.
+- Runtime bridges are generated and stale or handwritten competing handlers block governance.
+- Both runtimes agree on successful capability discovery, execution receipt and artifact retrieval, malformed requests, origin rejection, and unknown routes/methods.
+- Evidence is outside the static root; overlapping roots are rejected and artifacts cannot be retrieved as static website files.
+- Existing browser, headless, export/replay and numerical evidence remain unchanged under existing harness budgets.
+counterexamples:
+- Lambda accepts an origin rejected by the socket runtime.
+- An adapter dispatches domain operations or validates HTTP policy independently.
+- An unknown API request becomes static HTML.
+- Storage is placed beneath the static root through a symlink or path alias.
+checks:
+- make test
+- make test-integration
+- Mutation tests for generated runtimes and forbidden application bypasses

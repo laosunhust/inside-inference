@@ -18,7 +18,10 @@ approval:
     \ for 100 seconds and explicitly request agent to check for efficiency, redundancy and ROI issues before asking\
     \ owner for relaxing this.\" Owner instruction on 2026-10-10: \"ok. let's proceed with what you suggested in\
     \ I\u2019d proceed in this order\", following the explicit proposal to preserve evaluation history and add protected\
-    \ checker/tests. Owner response on 2026-10-11: \"Approve locking the theme check\"."
+    \ checker/tests. Owner response on 2026-10-11: \"Approve locking the theme check\". Owner instruction on 2026-10-11:\
+    \ add a clear AGENTS.md Development obligation for UI, \"Show, dont' tell\". Owner instruction on 2026-10-11:\
+    \ \"fix the interface, adapt implementation to interface, and add the interface to governance boundary ... only\
+    \ one HTTP, with two runtimes.\""
   scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile and
     ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content remains unlocked.
     Retain approved folder and file-size limits. This approval does not authorize future policy changes. Additional
@@ -44,21 +47,26 @@ approval:
     admission with preserved criteria/results, active reference and Git-history checks. Update evaluation.py, locks.py,
     test_governance.py and add/protect tests/integration/test_evaluation_history.py. Record the migration Git anchor;
     no constitution, limits, or public workflow changes. Owner approval on 2026-10-11 adds scripts/build/theme.py
-    and tests/unit/test_theme.py to the protected inventory, updating only locks.py and this manifest for that scope.'
+    and tests/unit/test_theme.py to the protected inventory, updating only locks.py and this manifest for that scope.
+    Additional owner authorization on 2026-10-11 adds the show-dont-tell UI obligation under Development in AGENTS.md
+    and refreshes only its recorded hash; no other enforcement or limit changes. Establish one OpenAPI-driven WSGI
+    application and generated socket/Lambda runtime bridges; extend generate_data_models.py, add/protect http_transport.py
+    and governance/http.py, wire __main__.py, protect test_http_boundary.py, and update locks.py. No constitution,
+    limits, or public workflow changes.'
 files:
-  AGENTS.md: 0d8ebe24d7cf93746fdc2825774d88980c1f135f7f9955bc9969f1669af7e151
+  AGENTS.md: 5586e3ec46d114c9b9097416d962bf668af52dc0418bfb4f11bac2d51066273c
   governance/limits.yaml: 6be775a37ca614960261a44ae07d13305bafb71195a84f9b3233af25601b784e
   scripts/__init__.py: 07cf2de9025005ac8dbafe1162d8cd39cf4f99dab454bd0388b597a5585db2ea
   scripts/build/compile_validators.mjs: 8d226d90bad36a219aa69af05a511b665f2b7149b6ba50557b778e51c6a52795
   scripts/build/contracts.py: fca886ce74f82593a921b318535a6731ddf71124a70f1942f5f43f419742e63e
-  scripts/build/generate_data_models.py: 95c32f165a61ddad8dcb8288fe85ef49357eb6d7b34cf903c38108cf0a61d4de
+  scripts/build/generate_data_models.py: 772724755e37eaef7b2f4fbeef47b3ee011a606e871daf646bbf9adb5bfa4c9d
   scripts/build/ontology.py: 9f5271f975a3c877906abad76fba1eb58496bf4399691e77c3bfa4bba7e35454
   scripts/build/structured.py: 5e630f42c1a43bc187bea9dbf4073690615a7c1da2c95f35596a0d50ff42046c
   scripts/check/governance/__init__.py: f90f2f4c5a46fe4fa0deb54d71f7a463cc6368400b54fee101c89aab7e6aba50
-  scripts/check/governance/__main__.py: 37dac7abbcf1195eb29f9c995766619948bddc9c8caaa33058aa3e1f62ef208b
+  scripts/check/governance/__main__.py: a0c2e0ab3c08e90a315850795278f89e30b7c6bfd5f9f2d246c4421638fae137
   scripts/check/governance/evaluation.py: 3a2d46e5073e8d8c01fb58bc43bef52ff0c62c9a4726c50652d3261d23a09804
   scripts/check/governance/interfaces.py: c77bd3ba3350912007ca86f0f2d7ba7efc66d0519a6f7916254a4f4c26c2f0bc
-  scripts/check/governance/locks.py: 0fe496fb45867026692799a6c5afc5907e878b2e1fe00bcc4265c50ed25d9a79
+  scripts/check/governance/locks.py: b49a82dd34f4f6da2261226fecc277fffb8465f64c32e97f73a1601bfc2fdc75
   scripts/check/governance/structure.py: d1730cf1a43d2c3e1702bf06377fbdf2d8041a3e1365b26f6313d8eb8e8bad90
   scripts/check/layout.py: 54e53c43a5ce571375c049e9ebf740631ab24c14acdd1efaafca5eb2f63679e2
   scripts/check/make_interface.py: 298a6bd1e6f90becabbd0d12ba369c5a0d697f0b81f758fabf56423f01cd26b8
@@ -71,3 +79,6 @@ files:
   tests/integration/test_evaluation_history.py: 9cf2f155cf3dd210dad2d7811ba89f268469470e0039a85a023254afe92f466e
   scripts/build/theme.py: 09ae41862b4155fad25c2189c5a4253155ec55a59f70422de67d69fed2922639
   tests/unit/test_theme.py: 96a198554b23d8a80230cbe4e62cdf18a02f0b1a81a8f65da8380a192f66eb07
+  scripts/build/http_transport.py: 901c7b015086ae5c8dac69e1780cf408a498e166157014ba2952e7708d7d1acf
+  scripts/check/governance/http.py: df816bde7592c5ce99b816290b8192e017bc5836b15f61b5cb38db4aec635ec5
+  tests/unit/contracts/test_http_boundary.py: c790fc50ab824199caaf8ec9ffebfd3f8dd64a5c72835ce15412f49a992b9398

@@ -1,7 +1,5 @@
 """Exercise the actual page in installed Chrome using Node's built-in CDP transport."""
 import argparse
-from functools import partial
-from http.server import ThreadingHTTPServer
 import json
 from pathlib import Path
 import shutil
@@ -14,7 +12,8 @@ import unittest
 from scripts.check.governance.harness import run_suite
 
 from scripts.build.intro_page import ROOT, build
-from scripts.dev.serve_intro import Handler
+from scripts.dev.http_runtimes_generated import socket_server
+from inside_inference.delivery.store import MemoryStore
 from scripts.check.parity import prepare, verify_browser_exports, prepare_steps, verify_step_exports
 from scripts.check import cache_parity
 
@@ -49,9 +48,7 @@ def main():
         if not run_suite(suite, output/'integration-timing.json'):
             result_path.write_text(json.dumps({'passed':False,'status':'integration tests failed'}))
             raise SystemExit(1)
-    class QuietHandler(Handler):
-        def log_message(self, *args): pass
-    server = ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=str(site), checkpoint=checkpoint))
+    server = socket_server(('127.0.0.1', 0), directory=site, store=MemoryStore(), checkpoint=checkpoint)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
@@ -79,7 +76,7 @@ def main():
                     verify_browser_exports(references,output)
                     verify_step_exports(step_references,output)
                     cache_parity.verify_browser_exports(cache_references,output)
-                    result_path.write_text(json.dumps({'passed':True, 'scope':'local HTTP adapter, live and offline browser',
+                    result_path.write_text(json.dumps({'passed':True, 'scope':'shared HTTP application on socket runtime, live and offline browser',
                         'cases':[{'id':c['id'],'run_id':c['record']['id']} for c in references],
                         'cache_cases':[{'id':c['id'],'run_id':c['record']['id']} for c in cache_references],
                         'contract_sha256':references[0]['record']['contract_sha256'],

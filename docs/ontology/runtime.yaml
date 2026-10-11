@@ -54,3 +54,5 @@ terms:
     - TokenSelection
     - TokenSelected
     - NumericalPass
+    - StoredTokenSelection
+    - StoredNumericalPass

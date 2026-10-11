@@ -87,6 +87,12 @@ The root Makefile owns development workflows. Shared procedures and command deta
 belong there; documents link to their authority instead of maintaining parallel
 instructions. Keep documentation focused and progressively disclosed.
 
+Show, don't tell in the UI. Every visible phrase must justify its role in helping
+users act, understand evidence, or recognize a consequential state. Prefer direct
+interaction and progressive disclosure; remove redundant labels, narration, and
+internal terminology. Review rendered desktop and narrow layouts for every UI
+change; passing behavioral tests alone does not establish presentation quality.
+
 `make test` is the light contract and correctness harness. Changes to contracts,
 execution, transport, or interactive behavior require `make test-integration`, the
 full harness. Each supported interactive experiment must be reproducible headlessly

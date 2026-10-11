@@ -8,6 +8,7 @@ from scripts.check.governance.interfaces import audit_interfaces
 from scripts.check.governance.evaluation import audit_evaluation
 from scripts.check.governance.frontend import audit_frontend
 from scripts.check.governance.harness import audit_scope
+from scripts.check.governance.http import audit_http
 
 
 def audit(root=ROOT, *, warnings=None):
@@ -26,6 +27,7 @@ def audit(root=ROOT, *, warnings=None):
     policy = load_limits(root)
     failures.extend(audit_structure(root, policy, generated, warnings=warnings))
     paths = inventory(root, policy)
+    failures.extend(audit_http(root, paths, generated))
     try: failures.extend(audit_interfaces(root, paths, generated))
     except (ValueError,FileNotFoundError) as exc: failures.append(str(exc))
     try: failures.extend(audit_frontend(root, generated))

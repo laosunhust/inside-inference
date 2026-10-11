@@ -1,6 +1,7 @@
 """Actual numerical execution and memory residency, separate from virtual scheduling."""
 from time import perf_counter_ns
 import platform
+import sys
 
 from inside_inference.model import Model, identity
 from inside_inference.declarations_generated import KVState
@@ -32,7 +33,7 @@ class ReferenceRuntime:
     def describe(self):
         return dict(compute_device='CPU scalar reference', device_state_storage='Logical pool in system DRAM',
             host_state_storage='Separate logical pool in system DRAM; Python objects',
-            library='Python '+platform.python_version(), precision='binary64')
+            library='Python '+platform.python_version()+' ('+sys.platform+')', precision='binary64')
 
     def compute(self, ids, state, **trace):
         key = identity(state.to_dict())

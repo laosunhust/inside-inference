@@ -195,11 +195,6 @@ def outputs(root=ROOT):
     bundled['components'] = {'schemas':definitions_for_api}
     validate_openapi(bundled)
     routes = {operation['operationId']: path for path, methods in api['paths'].items() for operation in methods.values()}
-    responses = {(path,method.upper(),int(status)):response['content']['application/json']['schema']['$ref'].split('/')[-1]
-                 for path,methods in api['paths'].items() for method,operation in methods.items()
-                 for status,response in operation['responses'].items()}
-    unknown = api['x-unknown-route-response']
-    unknown_response = (unknown['status'],unknown['schema']['$ref'].split('/')[-1])
     order = admit(ontology, spec)
     definitions = spec['$defs']
     bindings = lab_bindings(root, ontology, spec)
@@ -257,27 +252,9 @@ def outputs(root=ROOT):
     compiled = subprocess.run(['node', str(ROOT/'scripts/build/compile_validators.mjs'),
                                '-'], input=json.dumps(spec),
                               cwd=ROOT, check=True, capture_output=True, text=True).stdout
-    transport = header + '''from http.server import SimpleHTTPRequestHandler
-from inside_inference.declarations_generated import MODELS
-from inside_inference.model import canonical
+    from scripts.build.http_transport import generate as http_outputs
+    return {'data-model/inference.schema.json':json.dumps(spec,indent=2)+'\n', 'data-model/openapi.json':json.dumps(api,indent=2)+'\n', 'web/contract-validators.generated.js':compiled, 'inside_inference/declarations_generated.py':py.rstrip()+'\n', 'web/declarations.generated.js':js, **http_outputs(api)}
 
-'''+f'RESPONSES = {responses!r}\nUNKNOWN_RESPONSE = {unknown_response!r}\n\n'+'''class DeclaredResponseHandler(SimpleHTTPRequestHandler):
-    def send_declaration(self, status, value):
-        expected = RESPONSES.get((self.path, self.command, status))
-        if expected is None and self.path not in {path for path, _, _ in RESPONSES} and status == UNKNOWN_RESPONSE[0]:
-            expected = UNKNOWN_RESPONSE[1]
-        if expected is None or type(value) is not MODELS[expected]:
-            raise TypeError('Response type/status is not declared for this operation')
-        value.validate_shape(value.to_dict())
-        raw = canonical(value.to_dict())
-        self.send_response(status)
-        self.send_header('Content-Type', 'application/json; charset=utf-8')
-        self.send_header('Content-Length', str(len(raw)))
-        self.send_header('Cache-Control', 'no-store')
-        self.end_headers()
-        self.wfile.write(raw)
-'''
-    return {'data-model/inference.schema.json':json.dumps(spec,indent=2)+'\n', 'data-model/openapi.json':json.dumps(api,indent=2)+'\n', 'web/contract-validators.generated.js':compiled, 'inside_inference/declarations_generated.py':py.rstrip()+'\n', 'web/declarations.generated.js':js, 'scripts/dev/responses_generated.py':transport}
 
 
 def generate(root=ROOT, *, check=False):

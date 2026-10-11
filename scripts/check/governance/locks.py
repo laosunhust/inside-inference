@@ -15,6 +15,7 @@ PROTECTED = (
     'scripts/__init__.py', 'scripts/build/contracts.py', 'scripts/build/ontology.py',
     'scripts/build/structured.py', 'scripts/build/generate_data_models.py',
     'scripts/build/theme.py', 'tests/unit/test_theme.py',
+    'scripts/build/http_transport.py', 'tests/unit/contracts/test_http_boundary.py',
     'scripts/build/compile_validators.mjs', 'scripts/check/layout.py',
     'scripts/check/make_interface.py',
     'scripts/check/governance/__init__.py', 'scripts/check/governance/__main__.py',

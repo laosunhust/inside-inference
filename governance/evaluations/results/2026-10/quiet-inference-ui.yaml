@@ -1,0 +1,20 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/quiet-inference-ui.yaml
+evaluation_sha256: 4f59b9962bf8d3aa9cd2b73ee0148f35f6782a97db01962364891574cc595f68
+outcome: passed
+summary: 'Removed plane headings, card ordinals and redundant subtitles, ready-state Applied text, run-outcome
+  counter, and numerical detail numbering. Configuration cards and Apply retain concise action labels.
+  Browser checks reject these duplicated default surfaces and verify visible draft state, all configuration
+  dialogs, real token stepping and export/replay parity. Execution metadata remains in exported records.
+  Reviewed desktop and 390px screenshots; no page overflow. Unit suite: 97 tests; integration suite: 25
+  tests plus browser parity. test-integration: 98.24s / 100s wall-time budget. Added owner-authorized
+  show-dont-tell and rendered-review obligations to AGENTS.md; refreshed only its approval hash. These
+  focused checks do not prove arbitrary future copy is useful. Follow-up owner review identified the
+  subtitle removal as excessive: restored brief scenario/mechanism/user-experience explanations and
+  corrected the browser assertion to require explanations alongside headings. Desktop and narrow
+  layouts reviewed; full integration rerun passed in 87.28s.'
+evidence:
+- web/inference.html
+- web/inference.js
+- scripts/check/browser_check.mjs
+- AGENTS.md

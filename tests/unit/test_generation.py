@@ -74,8 +74,9 @@ class GenerationTests(unittest.TestCase):
             run_request(request_with(text='cat'), checkpoint=checkpoint)
 
     def test_counterfactual_and_invalid_requests(self):
-        a = run_request(request_with(text='cat'))
-        b = run_request(request_with(text='dog'))
+        # This case compares first-pass logits and rejection, not continuation length.
+        a = run_request(request_with(text='cat',max_new_tokens=1))
+        b = run_request(request_with(text='dog',max_new_tokens=1))
         self.assertEqual(a['declaration']['model']['checkpoint_sha256'], b['declaration']['model']['checkpoint_sha256'])
         self.assertNotEqual(a['id'], b['id'])
         self.assertNotEqual(a['passes'][0]['selection']['raw_logits'], b['passes'][0]['selection']['raw_logits'])

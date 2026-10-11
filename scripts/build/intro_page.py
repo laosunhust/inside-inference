@@ -10,6 +10,7 @@ import shutil
 from inside_inference.labs.kda import demo
 from inside_inference.labs.journey import scenarios, simulate
 from inside_inference.workload import run_workload
+from inside_inference.delivery.codec import bundle
 from inside_inference.cache_lab import run_cache_experiment
 from inside_inference.tokenizer import Tokenizer
 from scripts.build.generate_data_models import admit, generate, read
@@ -100,7 +101,7 @@ def build(output, *, checkpoint=None):
     data = load_catalog()
     output.mkdir(parents=True, exist_ok=True)
     (output / 'labs').mkdir(exist_ok=True)
-    for name in ('theme.css', 'style.css', 'app.js', 'journey.js', 'inference.js', 'configuration-preview.js', 'execution-path.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
+    for name in ('evidence-client.js', 'theme.css', 'style.css', 'app.js', 'journey.js', 'inference.js', 'configuration-preview.js', 'execution-path.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
         shutil.copyfile(ROOT / 'web' / name, output / name)
     layers = {x['id']: x for x in data['layers']}
     nav = ''.join(f'<a href="#layer-{x["id"]}">{i:02d} {esc(x["name"])}</a>'
@@ -182,7 +183,7 @@ The landing page executes an inspectable GPT with identified checkpoint provenan
         '__STEP_LABS__', json.dumps(step_labs).replace('<', '\\u003c'))
     (output / 'request-cost.html').write_text(shell('Request cost simulation', landing))
     numerical = (ROOT / 'web/inference.html').read_text().replace(
-        '__INFERENCE_DATA__', json.dumps(run_workload(checkpoint=checkpoint), allow_nan=False).replace('<', '\\u003c')).replace(
+        '__INFERENCE_DATA__', json.dumps(bundle(run_workload(checkpoint=checkpoint)), allow_nan=False).replace('<', '\\u003c')).replace(
         '__ONTOLOGY_DATA__', json.dumps(terms).replace('<', '\\u003c'))
     numerical = '<link rel="stylesheet" href="inference.css">' + numerical
     (output / 'index.html').write_text(shell('What happens if you change this?', numerical, landing=True))
@@ -286,10 +287,12 @@ kernel measurements at representative shapes. No universal winner follows from t
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
+    parser.add_argument('--checkpoint', type=Path)
     args = parser.parse_args()
     if args.check:
         check_theme(ROOT)
         load_catalog()
         print('Catalog identities, layer references, and evidence statuses checked.')
     else:
-        print(build(ROOT / 'out/intro-page'))
+        checkpoint = json.loads(args.checkpoint.read_text()) if args.checkpoint else None
+        print(build(ROOT / 'out/intro-page', checkpoint=checkpoint))

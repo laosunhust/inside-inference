@@ -1,0 +1,34 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/browser-execution-spike.yaml
+evaluation_sha256: 421d6e927a530cc02135dcb4e2b2a8731e587fc1bfd348ba69b0796061f06701
+outcome: passed
+summary: 'Browser feasibility established for nine bounded cases in desktop Chromium 144 with Pyodide 0.27.7/Python
+  3.12.7 versus native Python 3.12.3. Identical engine sources/model/tokenizer bytes execute in a Web Worker;
+  no numerical rewrite or validation/provenance monkey-patching. All selected IDs agree; maximum difference
+  among 260041 compared numeric fields is 3.552713678800501e-15. Native/browser resource schedules and causal
+  structure agree; reducing capacity changes a local hit to a transferred hit and reduced compute/memory/link
+  rates increase simulated costs. Invalid workload and capacity fail. Browser export/reconstruction and runtime-local
+  replay pass. CDP captures 32 static GETs including worker requests; no requests during execution with static
+  serving disabled. Cancellation, restart equivalence and missing-asset rejection pass. Local fresh/repeat
+  initialization 1.73/1.55 seconds; observed linear memory 59.9 MiB; heartbeat max 10.5ms. Static assets 14346484
+  bytes. Workload execution 2.76s, roundtrip 1.72s and replay 5.64s; step execution 0.15s. Model provenance
+  now supports an explicit packaged revision label and identifies its actual platform. Missing/empty packaged
+  labels fail. Unit test initially hit the harness''s deliberate Git-label mock; the pure packaged-label reader
+  is now tested directly. A later all-assertions-passing unit run exceeded budget at 10.03s; profiling identified
+  unnecessary full continuations in a first-logit counterfactual test. Restricting that test to one token preserved
+  its assertions and restored budget compliance without relaxing limits. Final make test: 104 tests, 9.64s.
+  Final make test-integration: 104 unit tests, 27 integration tests plus browser/headless parity, 88.55s. Spike
+  comparison-driver nesting/null-selection mistakes were corrected without changing criteria. This is not a
+  production worker protocol/UI migration, mobile qualification, topology/MoE implementation, CUDA evidence
+  or accelerator performance calibration. Dependency versions differ and are explicitly inventoried.'
+evidence:
+- docs/research/browser-execution-spike.md
+- docs/architecture/website.md
+- scripts/experiments/browser_spike/cases.py
+- scripts/experiments/browser_spike/prepare.py
+- scripts/experiments/browser_spike/run.py
+- scripts/experiments/browser_spike/driver.mjs
+- scripts/experiments/browser_spike/worker.mjs
+- scripts/experiments/browser_spike/compare.py
+- inside_inference/provenance.py
+- tests/unit/test_packaged_provenance.py

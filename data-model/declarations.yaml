@@ -12,3 +12,4 @@ modules:
 - domains/runtime.yaml
 - domains/serving.yaml
 - domains/interaction.yaml
+- domains/delivery.yaml

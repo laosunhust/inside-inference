@@ -173,7 +173,7 @@ class DeclarationTests(unittest.TestCase):
             'InferenceSystem': ['InferenceSystem', 'KVResidencySystemConfig', 'SystemConfigurationPreview'],
             'InferenceResponse': ['TokenPublished', 'RequestFinished', 'RunOutcome'],
             'ExecutionCapabilities': ['Capabilities', 'CacheCapabilities'],
-            'Tokenizer': ['Token', 'Turn', 'Span', 'Encoding', 'TokenizerOperation'],
+            'Tokenizer': ['Token', 'Turn', 'Span', 'Encoding', 'TokenizerOperation', 'VocabularyArtifact'],
             'ExecutionBackend': ['ExecutionBackend'],
         }
         # These intended semantic mappings remain independent of generic admission.

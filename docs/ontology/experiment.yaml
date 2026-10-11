@@ -1,13 +1,11 @@
 terms:
   ExperimentSpec:
     meaning: The declared inputs, configuration, and assumptions for an experiment.
-    lifetime: Editable before execution; the consumed specification is frozen in the
-      execution record.
+    lifetime: Editable before execution; the consumed specification is frozen in the execution record.
     owns:
-    - Submitted experiment input, and resolved bindings identifying the model, inference
-      system, and request or workload actually consumed.
-    - Primary and related ontology subjects, resolved against admitted concepts and
-      preserved in execution.
+    - Submitted experiment input, and resolved bindings identifying the model, inference system, and request
+      or workload actually consumed.
+    - Primary and related ontology subjects, resolved against admitted concepts and preserved in execution.
     - Unexecuted configuration previews, kept distinct from resolved execution bindings.
     excludes:
     - Observed outcomes and execution identity
@@ -22,15 +20,13 @@ terms:
     - OntologyBinding
     - ConfigurationPreview
   ExperimentExecution:
-    meaning: One identified execution of an experiment specification, retaining its
-      events and observations for inspection and replay.
+    meaning: One identified execution of an experiment specification, retaining its events and observations
+      for inspection and replay.
     lifetime: Evidence accumulates during execution; the completed record is immutable.
     owns:
-    - Execution records joining the consumed specification, events, observations,
-      and request outcomes.
-    - Numerical traces and shared execution provenance identifying source bytes, Python/Git
-      version, and the actual backend; provenance is distinct from requested system
-      settings.
+    - Execution records joining the consumed specification, events, observations, and request outcomes.
+    - Numerical traces and shared execution provenance identifying source bytes, Python/Git version, and
+      the actual backend; provenance is distinct from requested system settings.
     excludes:
     - Editable experiment drafts
     - Inspection cursor or playback position
@@ -43,15 +39,22 @@ terms:
     - NumericalTrace
     - ExecutionProvenance
     - TokenStepResult
+    - ArtifactReference
+    - ExecutionReceipt
+    - ArtifactResponse
+    - StoredNumericalTrace
+    - StoredRunRecord
+    - StoredTokenStepResult
+    - ExecutionArchive
+    - ExecutionBundle
   ExperimentEvent:
-    meaning: An occurrence within an execution, with explicit order, causal links,
-      and the applicable clock interpretation.
+    meaning: An occurrence within an execution, with explicit order, causal links, and the applicable
+      clock interpretation.
     lifetime: Recorded when an occurrence happens; earlier events are not rewritten.
     owns:
-    - Causal event envelopes, request arrival and input-encoding payloads, and the
-      declared event clock.
-    - The current cache event envelope records cross-mechanism scheduling, cache and
-      service transitions; it is not their semantic owner.
+    - Causal event envelopes, request arrival and input-encoding payloads, and the declared event clock.
+    - The current cache event envelope records cross-mechanism scheduling, cache and service transitions;
+      it is not their semantic owner.
     excludes:
     - A global sequential step shared by concurrent requests
     - Inferring causality from adjacency or equal timestamps
@@ -60,9 +63,8 @@ terms:
     capability_reads: []
     projections:
       Event:
-        meaning: An occurrence linked to its causes and affected entities. The execution
-          declares whether order alone or virtual time is available; neither establishes
-          measured duration.
+        meaning: An occurrence linked to its causes and affected entities. The execution declares whether
+          order alone or virtual time is available; neither establishes measured duration.
         fields:
           RunEvent:
           - event_id
@@ -75,8 +77,8 @@ terms:
     - RequestArrived
     - InputEncoded
   ExperimentObservation:
-    meaning: Recorded tensors or local measurements attached to executed work; mechanism-specific
-      decisions and computations have separate owners.
+    meaning: Recorded tensors or local measurements attached to executed work; mechanism-specific decisions
+      and computations have separate owners.
     lifetime: Captured during execution and retained unchanged with its evidence.
     owns:
     - Recorded intermediate tensors and their dependencies.
@@ -90,3 +92,5 @@ terms:
     schemas:
     - TensorObservation
     - CacheMeasurement
+    - TensorTable
+    - StoredTensorObservation

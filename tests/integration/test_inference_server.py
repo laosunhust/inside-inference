@@ -1,5 +1,3 @@
-from functools import partial
-from http.server import ThreadingHTTPServer
 import json
 from pathlib import Path
 import tempfile
@@ -8,12 +6,15 @@ import unittest
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+from inside_inference.delivery.codec import restore
+from inside_inference.delivery.http import HttpStore
 from inside_inference.generation import DEFAULT_REQUEST
 from inside_inference.model import canonical
 from inside_inference.workload import default_workload, run_workload
 from inside_inference.declarations_generated import API_PATHS, ApiError
 from scripts.build.intro_page import build
-from scripts.dev.serve_intro import Handler
+from scripts.dev.http_runtimes_generated import socket_server
+from inside_inference.delivery.store import MemoryStore
 
 
 class ServerTests(unittest.TestCase):
@@ -25,9 +26,7 @@ class ServerTests(unittest.TestCase):
                 build(Path(directory))
             else:
                 directory = str(self.shared_site)
-            class QuietHandler(Handler):
-                def log_message(self, *args): pass
-            server = ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=directory))
+            server = socket_server(('127.0.0.1', 0), directory=directory, store=MemoryStore())
             thread = threading.Thread(target=server.serve_forever, daemon=True)
             thread.start()
             base = f'http://127.0.0.1:{server.server_port}'
@@ -45,7 +44,7 @@ class ServerTests(unittest.TestCase):
                 request=Request(base+API_PATHS['run'],data=json.dumps(workload).encode(),
                                 headers={'Content-Type':'application/json; charset=utf-8'})
                 with urlopen(request) as response:
-                    self.assertEqual(canonical(json.load(response)),canonical(run_workload(workload)))
+                    self.assertEqual(canonical(restore(json.load(response),HttpStore(base))),canonical(run_workload(workload)))
                 for spec, origin, code in [(dict(DEFAULT_REQUEST, text='cat ' * 200), None, 400), (DEFAULT_REQUEST, 'http://unrelated.example', 403), ({}, None, 400)]:
                     with self.assertRaises(HTTPError) as caught:
                         post(spec, origin)

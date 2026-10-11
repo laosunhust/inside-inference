@@ -173,7 +173,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #execution-edges polygon{fill:#749c8c}
 .execution-path>li>button{font-size:12px;line-height:1.2}
 .playground .configuration-card{border:0;border-radius:14px}
-.configuration-card>span{font-size:11px;opacity:.7}
 .configuration-card>strong{font-size:24px;line-height:1.15}
 .configuration-card>small{font-size:12px;font-weight:400}
 .playground .input-card{background:#cde9fb;color:#16465e}

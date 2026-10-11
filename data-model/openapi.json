@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Inside Inference local execution",
+    "title": "Inside Inference execution and artifact delivery",
     "version": "1.0.0"
   },
   "paths": {
@@ -15,6 +15,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "./inference.schema.json#/$defs/Capabilities"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Shared HTTP admission or execution failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Shared HTTP admission or execution failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Shared HTTP admission or execution failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
                 }
               }
             }
@@ -37,11 +67,11 @@
         },
         "responses": {
           "200": {
-            "description": "RunRecord",
+            "description": "ExecutionReceipt",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./inference.schema.json#/$defs/RunRecord"
+                  "$ref": "./inference.schema.json#/$defs/ExecutionReceipt"
                 }
               }
             }
@@ -58,6 +88,16 @@
           },
           "403": {
             "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Shared HTTP admission or execution failure",
             "content": {
               "application/json": {
                 "schema": {
@@ -112,6 +152,16 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Shared HTTP admission or execution failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -126,6 +176,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "./inference.schema.json#/$defs/CacheCapabilities"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Shared HTTP admission or execution failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Shared HTTP admission or execution failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Shared HTTP admission or execution failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
                 }
               }
             }
@@ -148,11 +228,11 @@
         },
         "responses": {
           "200": {
-            "description": "TokenStepResult",
+            "description": "ExecutionReceipt",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./inference.schema.json#/$defs/TokenStepResult"
+                  "$ref": "./inference.schema.json#/$defs/ExecutionReceipt"
                 }
               }
             }
@@ -176,6 +256,83 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Shared HTTP admission or execution failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/artifacts": {
+      "post": {
+        "operationId": "artifact",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./inference.schema.json#/$defs/ArtifactReference"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ArtifactResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ArtifactResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Shared HTTP admission or execution failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -185,6 +342,15 @@
     "status": 404,
     "schema": {
       "$ref": "./inference.schema.json#/$defs/ApiError"
+    }
+  },
+  "x-http-policy": {
+    "api-prefix": "/api/",
+    "request-content-type": "application/json",
+    "origin": "same-origin-if-present",
+    "response-headers": {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store"
     }
   }
 }

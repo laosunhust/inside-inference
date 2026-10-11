@@ -3,8 +3,8 @@ from dataclasses import dataclass, field
 from typing import Any
 from inside_inference.contract_runtime import Declaration
 
-API_PATHS = {'capabilities': '/api/capabilities', 'run': '/api/runs', 'cacheRun': '/api/cache-runs', 'cacheCapabilities': '/api/cache-capabilities', 'tokenStep': '/api/token-step'}
-CONTRACT_SHA256 = '2505ac8538fed0d422e42db9c8103aacddbb3c54234acc18922ab686617f52f0'
+API_PATHS = {'capabilities': '/api/capabilities', 'run': '/api/runs', 'cacheRun': '/api/cache-runs', 'cacheCapabilities': '/api/cache-capabilities', 'tokenStep': '/api/token-step', 'artifact': '/api/artifacts'}
+CONTRACT_SHA256 = 'c8c0e51f36391b73ae8921cbbdd27ed365feb9bc7d49bf5afcaef9b3445806bb'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -1907,7 +1907,307 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                           'title': 'Reading'},
                                                                          {'type': 'string',
                                                                           'const': 'paused',
-                                                                          'title': 'Paused'}]}}}}
+                                                                          'title': 'Paused'}]}}},
+ 'ArtifactReference': {'type': 'object',
+                       'x-owner': 'ExperimentExecution',
+                       'additionalProperties': False,
+                       'required': ['schema', 'sha256'],
+                       'properties': {'schema': {'type': 'string',
+                                                 'enum': ['ExecutionArchive',
+                                                          'TensorTable',
+                                                          'ModelArtifact',
+                                                          'VocabularyArtifact']},
+                                      'sha256': {'type': 'string',
+                                                 'pattern': '^[0-9a-f]{64}$'}}},
+ 'ExecutionReceipt': {'type': 'object',
+                      'x-owner': 'ExperimentExecution',
+                      'additionalProperties': False,
+                      'required': ['execution_id', 'archive'],
+                      'properties': {'execution_id': {'type': 'string'},
+                                     'archive': {'$ref': '#/$defs/ArtifactReference'}}},
+ 'ArtifactResponse': {'type': 'object',
+                      'x-owner': 'ExperimentExecution',
+                      'additionalProperties': False,
+                      'required': ['reference', 'content'],
+                      'properties': {'reference': {'$ref': '#/$defs/ArtifactReference'},
+                                     'content': {'type': 'string',
+                                                 'description': 'Canonical '
+                                                                'JSON bytes '
+                                                                'decoded as '
+                                                                'UTF-8; must '
+                                                                'match the '
+                                                                'referenced '
+                                                                'digest and '
+                                                                'declared '
+                                                                'schema before '
+                                                                'consumption.'}}},
+ 'TensorTable': {'type': 'object',
+                 'x-owner': 'ExperimentObservation',
+                 'additionalProperties': False,
+                 'required': ['rows'],
+                 'properties': {'rows': {'type': 'array',
+                                         'items': {'type': 'array',
+                                                   'items': {'type': ['number',
+                                                                      'boolean']}}}}},
+ 'VocabularyArtifact': {'type': 'object',
+                        'x-owner': 'Tokenizer',
+                        'additionalProperties': False,
+                        'required': ['tokens'],
+                        'properties': {'tokens': {'type': 'array',
+                                                  'items': {'$ref': '#/$defs/Token'}}}},
+ 'StoredTensorObservation': {'type': 'object',
+                             'properties': {'axes': {'type': 'array',
+                                                     'items': {'type': 'string'}},
+                                            'dtype': {'type': 'string'},
+                                            'formula': {'type': 'string'},
+                                            'id': {'type': 'string'},
+                                            'inputs': {'type': 'array',
+                                                       'items': {'type': 'string'}},
+                                            'layer': {'type': ['integer',
+                                                               'null']},
+                                            'positions': {'type': 'array',
+                                                          'items': {'type': 'integer'}},
+                                            'request_id': {'type': 'string'},
+                                            'run_id': {'type': 'string'},
+                                            'shape': {'type': 'array',
+                                                      'items': {'type': 'integer'}},
+                                            'step': {'type': 'integer'},
+                                            'values': {'type': 'array',
+                                                       'items': {'type': 'integer',
+                                                                 'minimum': 0}},
+                                            'operation': {'anyOf': [{'$ref': '#/$defs/EmbeddingOperation'},
+                                                                    {'$ref': '#/$defs/PositionEncodingOperation'},
+                                                                    {'$ref': '#/$defs/NormalizationOperation'},
+                                                                    {'$ref': '#/$defs/AttentionOperation'},
+                                                                    {'$ref': '#/$defs/ResidualAdditionOperation'},
+                                                                    {'$ref': '#/$defs/FeedForwardOperation'},
+                                                                    {'$ref': '#/$defs/OutputProjectionOperation'},
+                                                                    {'$ref': '#/$defs/TokenizerOperation'},
+                                                                    {'$ref': '#/$defs/KVStateOperation'}]}},
+                             'required': ['axes',
+                                          'dtype',
+                                          'formula',
+                                          'id',
+                                          'inputs',
+                                          'layer',
+                                          'positions',
+                                          'request_id',
+                                          'run_id',
+                                          'shape',
+                                          'step',
+                                          'values',
+                                          'operation'],
+                             'additionalProperties': False,
+                             'x-owner': 'ExperimentObservation'},
+ 'StoredTokenSelection': {'type': 'object',
+                          'properties': {'decoding': {'type': 'string'},
+                                         'probabilities': {'type': 'integer',
+                                                           'minimum': 0},
+                                         'raw_logits': {'type': 'integer',
+                                                        'minimum': 0},
+                                         'rng_state': {'type': 'null'},
+                                         'rule': {'type': 'string',
+                                                  'const': 'unmasked-greedy-v1'},
+                                         'selected_id': {'type': 'integer'}},
+                          'required': ['decoding',
+                                       'probabilities',
+                                       'raw_logits',
+                                       'rng_state',
+                                       'rule',
+                                       'selected_id'],
+                          'additionalProperties': False,
+                          'x-owner': 'Decoding'},
+ 'StoredNumericalPass': {'type': 'object',
+                         'properties': {'display_so_far': {'type': 'string',
+                                                           'description': 'Diagnostic '
+                                                                          'token '
+                                                                          'display; '
+                                                                          'raw '
+                                                                          'IDs '
+                                                                          'are '
+                                                                          'authoritative. '
+                                                                          'Control, '
+                                                                          'byte, '
+                                                                          'and '
+                                                                          'hex '
+                                                                          'IDs '
+                                                                          'appear '
+                                                                          'as '
+                                                                          'labeled '
+                                                                          'markers.'},
+                                        'execution': {'type': 'string'},
+                                        'id': {'type': 'string'},
+                                        'input_ids': {'type': 'array',
+                                                      'items': {'type': 'integer'}},
+                                        'nodes': {'type': 'array',
+                                                  'items': {'$ref': '#/$defs/StoredTensorObservation'}},
+                                        'output_position': {'type': 'integer'},
+                                        'phase': {'type': 'string'},
+                                        'positions': {'type': 'array',
+                                                      'items': {'type': 'integer'}},
+                                        'request_id': {'type': 'string'},
+                                        'run_id': {'type': 'string'},
+                                        'selection': {'$ref': '#/$defs/StoredTokenSelection'},
+                                        'selection_position': {'type': 'integer'},
+                                        'step': {'type': 'integer'}},
+                         'required': ['display_so_far',
+                                      'execution',
+                                      'id',
+                                      'input_ids',
+                                      'nodes',
+                                      'output_position',
+                                      'phase',
+                                      'positions',
+                                      'request_id',
+                                      'run_id',
+                                      'selection',
+                                      'selection_position',
+                                      'step'],
+                         'additionalProperties': False,
+                         'x-owner': 'Decoding'},
+ 'StoredNumericalTrace': {'type': 'object',
+                          'properties': {'checkpoint': {'$ref': '#/$defs/ArtifactReference'},
+                                         'provenance': {'$ref': '#/$defs/ExecutionProvenance'},
+                                         'contract_sha256': {'type': 'string'},
+                                         'declaration': {'$ref': '#/$defs/RequestBinding'},
+                                         'decoding_contract': {'$ref': '#/$defs/DecodingContract'},
+                                         'evidence': {'type': 'string'},
+                                         'format': {'type': 'string',
+                                                    'const': 'naive-gpt-run-v2'},
+                                         'id': {'type': 'string'},
+                                         'outcome': {'$ref': '#/$defs/RunOutcome'},
+                                         'output_ids': {'type': 'array',
+                                                        'items': {'type': 'integer'}},
+                                         'output_display': {'type': 'string',
+                                                            'description': 'Diagnostic '
+                                                                           'token '
+                                                                           'display; '
+                                                                           'raw '
+                                                                           'IDs '
+                                                                           'are '
+                                                                           'authoritative. '
+                                                                           'Control, '
+                                                                           'byte, '
+                                                                           'and '
+                                                                           'hex '
+                                                                           'IDs '
+                                                                           'appear '
+                                                                           'as '
+                                                                           'labeled '
+                                                                           'markers.'},
+                                         'passes': {'type': 'array',
+                                                    'items': {'$ref': '#/$defs/StoredNumericalPass'}},
+                                         'precision': {'$ref': '#/$defs/NumericalPrecision'},
+                                         'request_id': {'type': 'string'},
+                                         'sequence_ids': {'type': 'array',
+                                                          'items': {'type': 'integer'}},
+                                         'tokenizer': {'$ref': '#/$defs/Encoding'},
+                                         'vocabulary': {'$ref': '#/$defs/ArtifactReference'}},
+                          'required': ['checkpoint',
+                                       'provenance',
+                                       'contract_sha256',
+                                       'declaration',
+                                       'decoding_contract',
+                                       'evidence',
+                                       'format',
+                                       'id',
+                                       'outcome',
+                                       'output_ids',
+                                       'output_display',
+                                       'passes',
+                                       'precision',
+                                       'request_id',
+                                       'sequence_ids',
+                                       'tokenizer',
+                                       'vocabulary'],
+                          'additionalProperties': False,
+                          'x-owner': 'ExperimentExecution'},
+ 'StoredRunRecord': {'type': 'object',
+                     'x-owner': 'ExperimentExecution',
+                     'additionalProperties': False,
+                     'required': ['format',
+                                  'id',
+                                  'contract_sha256',
+                                  'declaration',
+                                  'clock',
+                                  'events',
+                                  'traces'],
+                     'properties': {'format': {'type': 'string',
+                                               'title': 'Run format',
+                                               'description': 'Run format',
+                                               'const': 'workload-run-v1',
+                                               'default': 'workload-run-v1'},
+                                    'id': {'type': 'string',
+                                           'title': 'Run identity',
+                                           'description': 'Run identity',
+                                           'pattern': '^[0-9a-f]{64}$'},
+                                    'contract_sha256': {'type': 'string',
+                                                        'title': 'Contract '
+                                                                 'identity',
+                                                        'description': 'Contract '
+                                                                       'identity',
+                                                        'pattern': '^[0-9a-f]{64}$'},
+                                    'declaration': {'$ref': '#/$defs/RunBinding'},
+                                    'clock': {'$ref': '#/$defs/EventClock'},
+                                    'events': {'type': 'array',
+                                               'title': 'Ordered execution '
+                                                        'events',
+                                               'description': 'Ordered '
+                                                              'execution '
+                                                              'events',
+                                               'items': {'$ref': '#/$defs/RunEvent'},
+                                               'minItems': 1},
+                                    'traces': {'type': 'array',
+                                               'minItems': 1,
+                                               'items': {'$ref': '#/$defs/StoredNumericalTrace'}}}},
+ 'StoredTokenStepResult': {'type': 'object',
+                           'x-owner': 'ExperimentExecution',
+                           'additionalProperties': False,
+                           'required': ['id',
+                                        'contract_sha256',
+                                        'request',
+                                        'checkpoint',
+                                        'provenance',
+                                        'output_ids',
+                                        'sequence_ids',
+                                        'remaining_tokens',
+                                        'stop_reason',
+                                        'computation'],
+                           'properties': {'id': {'type': 'string'},
+                                          'contract_sha256': {'type': 'string'},
+                                          'request': {'$ref': '#/$defs/TokenStepRequest'},
+                                          'checkpoint': {'$ref': '#/$defs/ArtifactReference'},
+                                          'provenance': {'$ref': '#/$defs/ExecutionProvenance'},
+                                          'output_ids': {'type': 'array',
+                                                         'items': {'type': 'integer',
+                                                                   'minimum': 0,
+                                                                   'maximum': 383}},
+                                          'sequence_ids': {'type': 'array',
+                                                           'items': {'type': 'integer',
+                                                                     'minimum': 0,
+                                                                     'maximum': 383}},
+                                          'remaining_tokens': {'type': 'integer',
+                                                               'minimum': 0},
+                                          'stop_reason': {'type': ['string',
+                                                                   'null'],
+                                                          'enum': [None,
+                                                                   'turn_end',
+                                                                   'output_budget']},
+                                          'computation': {'$ref': '#/$defs/StoredNumericalPass'}}},
+ 'ExecutionArchive': {'type': 'object',
+                      'x-owner': 'ExperimentExecution',
+                      'additionalProperties': False,
+                      'required': ['record', 'tensors'],
+                      'properties': {'record': {'oneOf': [{'$ref': '#/$defs/StoredRunRecord'},
+                                                          {'$ref': '#/$defs/StoredTokenStepResult'}]},
+                                     'tensors': {'$ref': '#/$defs/ArtifactReference'}}},
+ 'ExecutionBundle': {'type': 'object',
+                     'x-owner': 'ExperimentExecution',
+                     'additionalProperties': False,
+                     'required': ['receipt', 'objects'],
+                     'properties': {'receipt': {'$ref': '#/$defs/ExecutionReceipt'},
+                                    'objects': {'type': 'object',
+                                                'additionalProperties': {'$ref': '#/$defs/ArtifactResponse'}}}}}
 
 @dataclass(frozen=True, kw_only=True)
 class ModelArchitecture(Declaration):
@@ -2553,7 +2853,137 @@ class CustomerInteraction(Declaration):
     actions: tuple[CustomerSubmission | CustomerConsumption | CustomerCancellation, ...]
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'FullPrefixExecutionConfig': FullPrefixExecutionConfig, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'CachedExecutionConfig': CachedExecutionConfig, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'TokenPublished': TokenPublished, 'RunOutcome': RunOutcome, 'RequestFinished': RequestFinished, 'DecodingContract': DecodingContract, 'AttentionConfiguration': AttentionConfiguration, 'SystemConfigurationPreview': SystemConfigurationPreview, 'WorkloadTransformationPreview': WorkloadTransformationPreview, 'OntologyBinding': OntologyBinding, 'TokenStepRequest': TokenStepRequest, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'ModelForwardCompleted': ModelForwardCompleted, 'TokenSelected': TokenSelected, 'RunEvent': RunEvent, 'Span': Span, 'Encoding': Encoding, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'CacheComputation': CacheComputation, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ClientConfigurationPreview': ClientConfigurationPreview, 'ConfigurationPreview': ConfigurationPreview, 'TokenStepResult': TokenStepResult, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction}
+@dataclass(frozen=True, kw_only=True)
+class ArtifactReference(Declaration):
+    schema: str
+    sha256: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class ExecutionReceipt(Declaration):
+    execution_id: str
+    archive: ArtifactReference
+
+
+@dataclass(frozen=True, kw_only=True)
+class ArtifactResponse(Declaration):
+    reference: ArtifactReference
+    content: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class TensorTable(Declaration):
+    rows: tuple[tuple[float | bool, ...], ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class VocabularyArtifact(Declaration):
+    tokens: tuple[Token, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class StoredTensorObservation(Declaration):
+    axes: tuple[str, ...]
+    dtype: str
+    formula: str
+    id: str
+    inputs: tuple[str, ...]
+    layer: int | None
+    positions: tuple[int, ...]
+    request_id: str
+    run_id: str
+    shape: tuple[int, ...]
+    step: int
+    values: tuple[int, ...]
+    operation: EmbeddingOperation | PositionEncodingOperation | NormalizationOperation | AttentionOperation | ResidualAdditionOperation | FeedForwardOperation | OutputProjectionOperation | TokenizerOperation | KVStateOperation
+
+
+@dataclass(frozen=True, kw_only=True)
+class StoredTokenSelection(Declaration):
+    decoding: str
+    probabilities: int
+    raw_logits: int
+    rng_state: None
+    rule: str
+    selected_id: int
+
+
+@dataclass(frozen=True, kw_only=True)
+class StoredNumericalPass(Declaration):
+    display_so_far: str
+    execution: str
+    id: str
+    input_ids: tuple[int, ...]
+    nodes: tuple[StoredTensorObservation, ...]
+    output_position: int
+    phase: str
+    positions: tuple[int, ...]
+    request_id: str
+    run_id: str
+    selection: StoredTokenSelection
+    selection_position: int
+    step: int
+
+
+@dataclass(frozen=True, kw_only=True)
+class StoredNumericalTrace(Declaration):
+    checkpoint: ArtifactReference
+    provenance: ExecutionProvenance
+    contract_sha256: str
+    declaration: RequestBinding
+    decoding_contract: DecodingContract
+    evidence: str
+    format: str
+    id: str
+    outcome: RunOutcome
+    output_ids: tuple[int, ...]
+    output_display: str
+    passes: tuple[StoredNumericalPass, ...]
+    precision: NumericalPrecision
+    request_id: str
+    sequence_ids: tuple[int, ...]
+    tokenizer: Encoding
+    vocabulary: ArtifactReference
+
+
+@dataclass(frozen=True, kw_only=True)
+class StoredRunRecord(Declaration):
+    format: str = 'workload-run-v1'
+    id: str
+    contract_sha256: str
+    declaration: RunBinding
+    clock: EventClock = field(default_factory=EventClock)
+    events: tuple[RunEvent, ...]
+    traces: tuple[StoredNumericalTrace, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class StoredTokenStepResult(Declaration):
+    id: str
+    contract_sha256: str
+    request: TokenStepRequest
+    checkpoint: ArtifactReference
+    provenance: ExecutionProvenance
+    output_ids: tuple[int, ...]
+    sequence_ids: tuple[int, ...]
+    remaining_tokens: int
+    stop_reason: str | None
+    computation: StoredNumericalPass
+
+
+@dataclass(frozen=True, kw_only=True)
+class ExecutionArchive(Declaration):
+    record: StoredRunRecord | StoredTokenStepResult
+    tensors: ArtifactReference
+
+
+@dataclass(frozen=True, kw_only=True)
+class ExecutionBundle(Declaration):
+    receipt: ExecutionReceipt
+    objects: dict[str, Any]
+
+
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'FullPrefixExecutionConfig': FullPrefixExecutionConfig, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'CachedExecutionConfig': CachedExecutionConfig, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'TokenPublished': TokenPublished, 'RunOutcome': RunOutcome, 'RequestFinished': RequestFinished, 'DecodingContract': DecodingContract, 'AttentionConfiguration': AttentionConfiguration, 'SystemConfigurationPreview': SystemConfigurationPreview, 'WorkloadTransformationPreview': WorkloadTransformationPreview, 'OntologyBinding': OntologyBinding, 'TokenStepRequest': TokenStepRequest, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'ModelForwardCompleted': ModelForwardCompleted, 'TokenSelected': TokenSelected, 'RunEvent': RunEvent, 'Span': Span, 'Encoding': Encoding, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'CacheComputation': CacheComputation, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ClientConfigurationPreview': ClientConfigurationPreview, 'ConfigurationPreview': ConfigurationPreview, 'TokenStepResult': TokenStepResult, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ArtifactReference': ArtifactReference, 'ExecutionReceipt': ExecutionReceipt, 'ArtifactResponse': ArtifactResponse, 'TensorTable': TensorTable, 'VocabularyArtifact': VocabularyArtifact, 'StoredTensorObservation': StoredTensorObservation, 'StoredTokenSelection': StoredTokenSelection, 'StoredNumericalPass': StoredNumericalPass, 'StoredNumericalTrace': StoredNumericalTrace, 'StoredRunRecord': StoredRunRecord, 'StoredTokenStepResult': StoredTokenStepResult, 'ExecutionArchive': ExecutionArchive, 'ExecutionBundle': ExecutionBundle}
 OPERATION_OWNERS = {'token_embedding': 'Embedding', 'embedding': 'Embedding', 'position_embedding': 'PositionEncoding', 'ln1_mean': 'Normalization', 'ln1_variance': 'Normalization', 'ln1': 'Normalization', 'ln2_mean': 'Normalization', 'ln2_variance': 'Normalization', 'ln2': 'Normalization', 'ln_final_mean': 'Normalization', 'ln_final_variance': 'Normalization', 'ln_final': 'Normalization', 'query': 'Attention', 'key': 'Attention', 'value': 'Attention', 'scores': 'Attention', 'causal_mask': 'Attention', 'attention': 'Attention', 'weighted_values': 'Attention', 'attention_output': 'Attention', 'attention_residual': 'ResidualAddition', 'ff_residual': 'ResidualAddition', 'ff_up': 'FeedForward', 'gelu': 'FeedForward', 'ff_down': 'FeedForward', 'logits': 'OutputProjection', 'input_ids': 'Tokenizer', 'retained_keys': 'KVState', 'retained_values': 'KVState'}
 LAB_BINDINGS = {'naive-gpt': {'primary': 'ModelExecution', 'related': ['Tokenizer', 'Embedding', 'PositionEncoding', 'Normalization', 'Attention', 'ResidualAddition', 'FeedForward', 'OutputProjection', 'Decoding']}, 'kimi-delta-attention': {'primary': 'Attention', 'related': []}, 'prefix-cache': {'primary': 'KVCache', 'related': ['KVState', 'RequestScheduling', 'StateTransfer', 'ComputeService']}, 'prefill-decode': {'primary': 'StateTransfer', 'related': ['KVState', 'ModelExecution']}, 'speculative-decoding': {'primary': 'Decoding', 'related': ['ModelExecution', 'KVState']}, 'positional-encoding': {'primary': 'PositionEncoding', 'related': ['Embedding', 'Attention']}}
 for model in MODELS.values():

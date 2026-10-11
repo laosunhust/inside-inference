@@ -1,0 +1,25 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/execution-artifact-delivery.yaml
+evaluation_sha256: 9376f194931099d9c6423f7971848c14be6c66f6d24d9bb089cd4f72901a5a06
+outcome: passed
+summary: 'Default nine-pass record: 4,107,312 expanded JSON bytes; 1,272,892 unique artifact bytes across
+  four objects and 1,785 unique tensor rows; 199-byte compute receipt. Repeated projection/selection logits
+  share stored rows, and model/vocabulary are separate assets. Browser reconstructs and losslessly exports
+  the original record for CLI replay. Missing bytes, corruption, invalid row references, boolean selection
+  scores, caller mutation of validated objects, and failed persistence are rejected. Local HTTP and Lambda
+  v2 adapters share the execution service; file persistence and an injected S3-compatible client are exercised.
+  Last standalone unit workflow: 100 tests, 9.60s; final full workflow: 100 unit tests, 26 integration
+  tests and browser parity, 89.83s. An earlier correctness-passing full run exceeded budget at 112.50s;
+  exact-byte validation caching, validation at artifact/selection boundaries, and reuse of unrelated presentation
+  fixtures removed redundant work without relaxing limits. Desktop and narrow renders reviewed. No live
+  AWS deployment was performed; S3 tests use a client double. The current UI still reconstructs all unique
+  evidence and the cache lab retains its existing direct response; lazy tensor retrieval and independent
+  frontend deployment remain subsequent work.'
+evidence:
+- docs/architecture/delivery.md
+- data-model/domains/delivery.yaml
+- tests/unit/test_delivery.py
+- tests/integration/test_artifact_delivery.py
+- tests/integration/test_site.py
+- scripts/check/parity.py
+- scripts/check/browser_check.mjs

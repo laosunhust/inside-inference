@@ -140,7 +140,8 @@ an advanced-attention plugin framework before the baseline.
 
 ## Browser execution and offline replay
 
-The generated `index.html` embeds one actual run for inspection without a server.
+The generated `index.html` embeds a compact [artifact bundle](delivery.md) for
+inspection of one actual run without a server.
 `make serve-intro` adds live prompt/budget changes through the canonical Python
 engine. Offline controls never pretend to execute. Live failures keep the prior
 run visible with an explicit error. The cost simulator lives at `request-cost.html`;
@@ -161,10 +162,13 @@ actual tensors. The uncached adapter has no queue or service-time model. `kv-cac
 KV lab contract.
 
 Generated pages and experiment outputs under `out/` are disposable. Maintained
-fixtures and required datasets remain outside it. A static deployment can inspect
-recorded evidence; executing new inputs requires the local service or a future
-validated execution backend. Restart the local server after contract changes so
-its identity matches the page.
+fixtures and required datasets remain outside it. Today a static deployment can inspect
+recorded evidence; executing new inputs currently requires the native service.
+The [primary architectural hypothesis](website.md) is execution of the same Python
+engine in the browser, preserving declared execution and evidence interfaces. A separate
+[feasibility spike](../research/browser-execution-spike.md) passed for the reference
+model and KV simulation; the product UI has not yet adopted that execution path.
+Restart the native service after contract changes so its identity matches the page.
 
 ## Prefix selection and live stepping
 

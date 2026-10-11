@@ -1,5 +1,3 @@
-from functools import partial
-from http.server import ThreadingHTTPServer
 import json
 import tempfile
 import threading
@@ -9,16 +7,15 @@ from urllib.error import HTTPError
 
 from inside_inference.model import canonical
 from inside_inference.declarations_generated import API_PATHS,CacheCapabilities,ApiError
-from scripts.dev.serve_intro import Handler
+from scripts.dev.http_runtimes_generated import socket_server
+from inside_inference.delivery.store import MemoryStore
 from tests.fixtures.execution import cache_scenario as scenario
 
 
 class CacheServerTests(unittest.TestCase):
     def test_cache_capabilities_and_http_error_translation(self):
-        class QuietHandler(Handler):
-            def log_message(self,*args):pass
         with tempfile.TemporaryDirectory() as directory:
-            server=ThreadingHTTPServer(('127.0.0.1',0),partial(QuietHandler,directory=directory))
+            server=socket_server(('127.0.0.1',0),directory=directory,store=MemoryStore())
             thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
             base=f'http://127.0.0.1:{server.server_port}'
             try:

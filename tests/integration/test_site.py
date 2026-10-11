@@ -1,3 +1,4 @@
+from inside_inference.delivery.codec import restore_bundle
 import copy
 from html.parser import HTMLParser
 import json
@@ -64,7 +65,15 @@ class AtlasTests(unittest.TestCase):
         page = (root / 'index.html').read_text()
         def embedded(identifier):
             return json.loads(re.search(r'<script id="' + identifier + r'" type="application/json">(.*?)</script>', page, re.S).group(1))
-        self.assertEqual(embedded('inference-data'), json.loads(json.dumps(run_workload())))
+        snapshot=embedded('inference-data')
+        expected=run_workload()
+        self.assertEqual(restore_bundle(snapshot), json.loads(json.dumps(expected)))
+        # A real default run, not a synthetic object count: guard total stored
+        # bytes as well as the small receipt so transport cannot hide duplication.
+        from inside_inference.model import canonical
+        unique_bytes=sum(len(a['content'].encode()) for a in snapshot['objects'].values())
+        self.assertLess(unique_bytes, len(canonical(expected))/2)
+        self.assertLess(len(canonical(snapshot['receipt'])), 1024)
         self.assertEqual(embedded('ontology-data'), ontology_terms())
         self.assertNotIn('journey-data', page)
         self.assertIn('journey-data', (root / 'request-cost.html').read_text())
@@ -121,11 +130,13 @@ class AtlasTests(unittest.TestCase):
         def embedded(page, identifier):
             source=(self.site/page).read_text()
             return json.loads(re.search(r'<script id="'+identifier+r'" type="application/json">(.*?)</script>',source,re.S).group(1))
-        baseline=embedded('index.html','inference-data')
+        snapshot=embedded('index.html','inference-data')
+        baseline=restore_bundle(snapshot)
         cache=embedded('kv-cache.html','cache-data')
         with tempfile.TemporaryDirectory() as directory, \
              patch('scripts.build.intro_page.demo', return_value=traces), \
              patch('scripts.build.intro_page.run_workload', return_value=baseline), \
+             patch('scripts.build.intro_page.bundle', return_value=snapshot), \
              patch('scripts.build.intro_page.run_cache_experiment', return_value=cache):
             root = Path(directory)
             build(root)

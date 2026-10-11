@@ -39,3 +39,4 @@ terms:
     - Span
     - Encoding
     - TokenizerOperation
+    - VocabularyArtifact

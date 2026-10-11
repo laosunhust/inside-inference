@@ -19,9 +19,9 @@ setup: ## Install locked Python and build-tool dependencies locally.
 	@npm ci --ignore-scripts
 
 _intro-page: _governance-check _data-models-check
-	@$(PYTHON) -m scripts.build.intro_page
+	@$(PYTHON) -m scripts.build.intro_page $(if $(CHECKPOINT),--checkpoint "$(CHECKPOINT)",)
 
-serve-intro: _governance-check _data-models-check ## Replace the listener on port 8000 and serve live inference locally.
+serve-intro: _intro-page ## Replace the listener on port 8000 and serve live inference locally.
 	@$(PYTHON) -m scripts.dev.serve_intro $(if $(CHECKPOINT),--checkpoint "$(CHECKPOINT)",)
 
 _check: _governance-check _make-check _layout-check _data-models-check
@@ -146,3 +146,9 @@ _references:
 	@$(PYTHON) -m scripts.dev.references nano-vllm https://github.com/GeeeekExplorer/nano-vllm.git bb823b3e06983d71485a8e1f23715ebd87d98ef8
 
 .PHONY: _references
+
+# Bounded research harness; downloads pinned Pyodide assets under out/, then tests static-only execution.
+_browser-spike: _governance-check _data-models-check
+	@$(PYTHON) -m scripts.experiments.browser_spike.prepare
+	@$(PYTHON) -m scripts.experiments.browser_spike.run
+.PHONY: _browser-spike

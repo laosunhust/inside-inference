@@ -10,6 +10,8 @@ from inside_inference.contract_runtime import decode_json
 from inside_inference.declarations_generated import API_PATHS, Capabilities, CONTRACT_SHA256
 from inside_inference.model import canonical
 from inside_inference.workload import run_workload
+from inside_inference.delivery.codec import restore
+from inside_inference.delivery.http import HttpStore
 
 
 def assert_same(expected, actual, label):
@@ -50,7 +52,7 @@ def prepare(base, output, *, checkpoint_path=None):
         assert_same(expected,decode_json(cli_path.read_text()),name+' CLI')
         request=Request(base+API_PATHS['run'],data=canonical(workload),headers={'Content-Type':'application/json'})
         with urlopen(request,timeout=60) as response:
-            remote=decode_json(response.read().decode())
+            remote=restore(decode_json(response.read().decode()),HttpStore(base))
         (output/f'{name}.http.json').write_bytes(canonical(remote)+b'\n')
         assert_same(expected,remote,name+' HTTP')
         references.append({'id':name,'workload':workload,'record':expected})
@@ -91,7 +93,7 @@ def prepare_steps(base, output, *, checkpoint_path=None):
                        + (['--checkpoint',str(checkpoint_path)] if checkpoint_path else []),check=True,capture_output=True)
         assert_same(record,decode_json(cli.read_text()),name+' step CLI')
         request=Request(base+API_PATHS['tokenStep'],data=canonical(spec),headers={'Content-Type':'application/json'})
-        with urlopen(request) as response:remote=json.load(response)
+        with urlopen(request) as response:remote=restore(json.load(response),HttpStore(base))
         assert_same(record,remote,name+' step HTTP')
         cases.append({'name':name,'position':len(prefix)+len(prior)-1,'record':record})
         prior=record['output_ids']

@@ -1,11 +1,11 @@
 /* Presentation only. Every displayed model value comes from the Python execution record. */
-(() => {
+(async () => {
   'use strict';
   const $ = id => document.getElementById(id);
   if (!$('inference-data')) return;
   // Preserve the execution record's numerical representation for exact replay.
-  let serializedRun = $('inference-data').textContent;
-  let session = InspectionSession.create(JSON.parse(serializedRun));
+  let receipt = EvidenceClient.seed(JSON.parse($('inference-data').textContent));
+  let session = InspectionSession.create(await EvidenceClient.restore(receipt));
   let entity = 'request';
   let configuration;
   const accepted = () => session.run.traces[0];
@@ -135,7 +135,7 @@
     context.textContent=`Selected p${position()} · #${sequence()[position()]} ${label(sequence()[position()])} · computed row p${observedPosition()}${node ? ' → '+node.operation.name : ''}`;
     const button = document.querySelector(`[data-entity="${entity}"]`);
     const term = entity==='request' ? 'Request' : entity==='workload' ? 'Workload' : entity==='client' ? 'Client' : button.dataset.term, definition = ontology[term];
-    $('detail-title').textContent = `Zoom 3 · ${term}`;
+    $('detail-title').textContent = term;
     $('definition').textContent = definition.meaning;
     const semanticOwner=node ? owner(node) : definition.owner;
     configuration?.detail(semanticOwner);
@@ -212,7 +212,7 @@
   }
   function renderStatus() {
     const phase=session.phase;
-    const messages={offline:'Recorded run · offline',ready:'Applied',dirty:'Unapplied changes · showing previous run',running:'Computing… · showing previous run',failed:'Failed · showing previous run'};
+    const messages={offline:'Recorded run · offline',ready:'',dirty:'Unapplied changes · showing previous run',running:'Computing… · showing previous run',failed:'Failed · showing previous run'};
     $('binding-status').textContent=phase==='ready' && configuration && !configuration.executable() ? 'Configuration preview' : messages[phase];
     $('binding-status').dataset.phase=phase;
     for(const id of ['prompt','output-budget','execute']) $(id).disabled=!session.live || phase==='running';
@@ -223,13 +223,13 @@
     $('next-token').disabled=!session.live || !['ready','failed'].includes(phase) || !!unavailable;
     $('next-token').title=unavailable;
     if(session.error) $('binding-status').textContent=session.error;
+    $('binding-status').hidden=!$('binding-status').textContent;
   }
   function renderRun() {
     const run=accepted(), binding=run.declaration, outcome=run.outcome;
     entity='request';
     $('prompt').value=draftRequest().text; $('output-budget').value=draftRequest().generation.max_new_tokens;
     $('request-preview').textContent=binding.request.text || '(empty user turn)';
-    $('run-outcome').textContent=`${outcome.selected_tokens} / ${binding.request.generation.max_new_tokens} selections · ${outcome.stop_reason === 'turn_end' ? 'TURN_END' : 'token limit'}`;
     const arrival=session.run.declaration.workload.requests[0];
     $('workload-summary').textContent=`${arrival.request_id} · declared arrival ${arrival.arrival_us} µs · execution order only; no latency simulation`;
     $('event-stream').replaceChildren(...session.run.events.map(e=>make('li',`${e.sequence} · ${e.payload.kind}${e.payload.token_ids ? ' · '+e.payload.token_ids.map(label).join(' ') : ''}`)));
@@ -258,12 +258,12 @@
     try {
       session=InspectionSession.transition(session,{type:'STEP_SUBMIT'});renderPass();
       const response=await fetch(Declarations.routes.tokenStep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(session.submitted_step)});
-      const source=await response.text(), result=JSON.parse(source);
-      if(!response.ok) throw new Error(result.error);
+      const delivered=await response.json();
+      if(!response.ok) throw new Error(delivered.error);
+      const result=await EvidenceClient.restore(delivered);
       session=InspectionSession.transition(session,{type:'STEP_ACCEPT',result});
-      serializedRun=source;entity='selection';
+      receipt=delivered;entity='selection';
       $('run-identity').textContent=JSON.stringify({run_id:result.id,request:result.request});
-      $('run-outcome').textContent=`${result.output_ids.length} / ${result.request.generation.max_new_tokens} selections${result.stop_reason ? ' · '+(result.stop_reason==='turn_end'?'TURN_END':'token limit') : ''}`;
       renderPass();
     } catch(error) {
       session=InspectionSession.transition(session,{type:'FAIL',message:error.message});renderPass();
@@ -274,9 +274,10 @@
     try {
       session=InspectionSession.transition(session,{type:'SUBMIT'});renderStatus();
       const response=await fetch(Declarations.routes.run,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(session.submitted.workload)});
-      const source=await response.text(), result=JSON.parse(source);if(!response.ok) throw new Error(result.error);
+      const delivered=await response.json();if(!response.ok) throw new Error(delivered.error);
+      const result=await EvidenceClient.restore(delivered);
       session=InspectionSession.transition(session,{type:'ACCEPT',run:result});
-      serializedRun=source;renderRun();
+      receipt=delivered;renderRun();
       const editor=document.querySelector('.source-editor');
       const restoreFocus=editor.contains(document.activeElement);
       editor.hidden=true;
@@ -286,7 +287,7 @@
       session=InspectionSession.transition(session,{type:'FAIL',message:error.message});renderStatus();
     }
   };
-  $('download-run').onclick=()=>{const a=make('a');const url=URL.createObjectURL(new Blob([serializedRun],{type:'application/json'}));a.href=url;a.download='inference-run.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+  $('download-run').onclick=async()=>{try { const serializedRun=await EvidenceClient.export(receipt);const a=make('a');const url=URL.createObjectURL(new Blob([serializedRun],{type:'application/json'}));a.href=url;a.download='inference-run.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000); } catch(error) { session={...session,error:error.message};renderStatus(); } };
   renderRun();
   if(location.protocol!=='file:') fetch(Declarations.routes.capabilities).then(async response=>{
     if(!response.ok) return;
@@ -297,4 +298,4 @@
   if (location.hash) {
     const target = $(location.hash.slice(1)); if (target && target.dataset.entity) chooseEntity(target.dataset.entity);
   }
-})();
+})().catch(error=>{const status=document.getElementById('binding-status');status.hidden=false;status.textContent=error.message;status.dataset.phase='failed';});

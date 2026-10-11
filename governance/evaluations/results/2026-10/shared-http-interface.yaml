@@ -1,0 +1,29 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/shared-http-interface.yaml
+evaluation_sha256: c16b8afc01052baab8fdddd4de140a1bab6e726ffa435f651c8828dfe0a89dd3
+outcome: passed
+summary: 'One WSGI HTTP application consumes generated OpenAPI request/response metadata and policy. Generated
+  socket and Lambda bridges only adapt runtime envelopes. Both runtimes share capabilities, origin admission,
+  JSON validation, numerical dispatch, artifact retrieval and failure responses. Governance rejects stale generated
+  HTTP boundaries, direct dispatcher imports, handwritten server construction and runtime-local HTTP policy;
+  generator/checker/regressions are approval-locked under explicit owner authorization. Disjoint resolved website/evidence
+  roots are enforced; static traversal and symlink/index escapes are rejected. Same-corpus integration covers
+  encoded paths, query strings, capabilities, run and token-step receipts, artifact retrieval, malformed requests,
+  unknown paths/methods, cross-origin rejection and failed persistence. Existing browser/headless/CLI/export
+  parity passes. Standalone make test: 103 tests, 9.90s. Final make test-integration: 103 unit tests, 27 integration
+  tests and browser/replay, 86.89s. A first governance run caught an overly broad Origin-literal rule on Git
+  remote management; the rule now applies to runtime consumers, with general server/dispatcher import checks
+  retained. Four existing preview evidence objects were preserved outside the static root; live smoke checks
+  returned 200 for capabilities/artifact retrieval and 404 for static artifact access. No AWS deployment, packaged
+  Lambda runtime or real S3 service was tested. Website generation still prepares an offline numerical snapshot;
+  independent frontend assembly remains future work.'
+evidence:
+- docs/architecture/website.md
+- data-model/openapi.yaml
+- scripts/build/http_transport.py
+- inside_inference/delivery/application.py
+- inside_inference/delivery/site.py
+- scripts/check/governance/http.py
+- tests/unit/contracts/test_http_boundary.py
+- tests/integration/test_http_runtimes.py
+- scripts/check/browser_check.py

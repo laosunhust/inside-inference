@@ -1,0 +1,20 @@
+version: 1
+work_item: quiet-inference-ui
+question: Can the landing UI expose actions and computation without redundant section jargon or success counters?
+necessity: The owner requests show-dont-tell governance and removal of control/data-plane headings, card ordinals, Applied, and selection totals.
+baseline: The landing page repeats internal plane names, ordinal labels, successful application status, and generation metadata above actionable content.
+reuse:
+- source: Existing configuration cards, inspection controls, run export, and browser parity harness
+  decision: Remove redundant presentation while retaining execution evidence and checking the existing browser flow.
+criteria:
+- Configuration cards retain clear accessible names and working dialogs without ordinals or duplicate subtitles.
+- Internal plane headings, Applied status, and the standalone run-outcome counter are absent from the landing presentation.
+- Busy, offline, preview, draft and failure states remain distinguishable; removing success text does not hide errors.
+- Source editing, token stepping, numerical inspection, and exported outcomes retain their existing behavior.
+- Desktop and narrow layouts keep actions discoverable; unit and integration workflows stay within declared budgets.
+counterexamples:
+- The page hides a failed or pending execution to achieve fewer words.
+- Metadata is deleted from execution evidence rather than removed from the summary presentation.
+checks:
+- make test-integration
+- Desktop and narrow browser inspection
