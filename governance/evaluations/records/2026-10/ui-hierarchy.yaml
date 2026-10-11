@@ -1,0 +1,24 @@
+version: 1
+work_item: ui-hierarchy
+question: Can a shared visual hierarchy make configuration, execution and inspection easier to distinguish without adding narration?
+necessity: Equal primary buttons and unrelated configuration colors obscure action importance; Output is separated from Input.
+baseline: All four landing controls use primary green, configuration panels use blue/purple/orange, and Output follows the graph.
+reuse:
+- source: web/theme.css and existing layout stylesheets
+  decision: Refine shared tokens and existing components; no UI framework, fonts or asset dependencies.
+- source: https://github.com/anthropics/skills/tree/main/skills/frontend-design
+  decision: Use its plan/build/visual-critique process with the owner's preference for restraint and inspectable evidence.
+criteria:
+- Output follows Input in DOM and rendered reading order; the single combined token disclosure remains intact.
+- Next Token is the prominent execution action; Token Journey is secondary; Edit and Details share a neutral supporting style.
+- Configuration cards share one visual language, remain visibly interactive and retain their existing explanatory subtitles.
+- Shared appearance stays in theme.css; changes do not introduce independent page palettes or numerical authorities.
+- Desktop and 390px layouts, disclosures, dialogs and keyboard focus remain readable and usable, with no page overflow.
+- Existing integration parity passes within its declared budget; rendered review includes the landing page, lab catalog, ontology and cache lab.
+counterexamples:
+- New coloring implies unsupported execution or distinguishes categories with no explained meaning.
+- Muted controls become undiscoverable, or secondary text becomes unreadable.
+- Moving Output duplicates state or breaks selection, stepping or playback.
+checks:
+- make test-integration
+- Rendered desktop and narrow review, computed contrast and control-state checks

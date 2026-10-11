@@ -1,6 +1,6 @@
 """Common API application. HTTP and Lambda only adapt envelopes around this code."""
 from inside_inference.declarations_generated import API_PATHS, CONTRACT_SHA256, Capabilities, CacheCapabilities
-from inside_inference.workload import run_workload
+from inside_inference.workload import run_workload, prepare_input
 from inside_inference.generation import run_token_step
 from inside_inference.cache_lab import run_cache_experiment, available_backends
 from inside_inference.delivery.codec import publish
@@ -15,6 +15,7 @@ def dispatch(method, route, payload, store, *, checkpoint=None):
     if method != 'POST': return 404, {'error': 'Unknown endpoint'}
     try:
         if route == API_PATHS['artifact']: return 200, response(store, payload)
+        if route == API_PATHS['prepareInput']: return 200, prepare_input(payload, checkpoint=checkpoint)
         if route == API_PATHS['run']:
             return 200, publish(run_workload(payload, checkpoint=checkpoint), store)
         if route == API_PATHS['tokenStep']:

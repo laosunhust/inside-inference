@@ -64,7 +64,11 @@ def verify_browser_exports(references,output):
     for case in references:
         browser_path=output/f"{case['id']}.browser.json"
         browser=decode_json(browser_path.read_text())
-        assert_same(case['record'],browser,case['id']+' browser export')
+        from inside_inference.generation import run_token_step
+        expected=run_token_step(browser['request'],checkpoint=case['record']['traces'][0]['checkpoint'])
+        assert_same(expected,browser,case['id']+' browser step export')
+        if browser['output_ids'] != case['record']['traces'][0]['output_ids']:
+            raise AssertionError('Stepped output differs from complete workload')
         replay_path=output/f"{case['id']}.replayed.json"
         subprocess.run([sys.executable,'-m','scripts.experiments.run_inference',
             '--replay',str(browser_path),'--output',str(replay_path)],cwd=ROOT,

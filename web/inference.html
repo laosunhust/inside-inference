@@ -1,11 +1,11 @@
 <section class="playground" id="playground">
-<div class="play-heading"><h1>What happens if you <em>change this?</em></h1></div>
+<div class="play-heading"><h1>What happens if you change this?</h1></div>
 <section id="control-plane" class="control-plane" aria-label="Experiment configuration">
 <div id="binding-status" role="status" class="binding-status" hidden></div>
 <div class="configuration-cards">
-<button id="open-input" class="configuration-card input-card" type="button" aria-haspopup="dialog" aria-controls="input-dialog"><strong>Input</strong><small>Reproduce a scenario</small></button>
-<button id="open-system" class="configuration-card system-card" type="button" aria-haspopup="dialog" aria-controls="system-dialog"><strong>Inference system</strong><small>Explore mechanisms</small></button>
-<button id="open-client" class="configuration-card client-card" type="button" aria-haspopup="dialog" aria-controls="client-dialog"><strong>Output</strong><small>Investigate user experience</small></button>
+<button id="open-input" class="configuration-card input-card" type="button" aria-haspopup="dialog" aria-controls="input-dialog"><strong>Input</strong><small>Reproduce a scenario</small><span class="configuration-indicator" aria-hidden="true">›</span></button>
+<button id="open-system" class="configuration-card system-card" type="button" aria-haspopup="dialog" aria-controls="system-dialog"><strong>Inference system</strong><small>Explore mechanisms</small><span class="configuration-indicator" aria-hidden="true">›</span></button>
+<button id="open-client" class="configuration-card client-card" type="button" aria-haspopup="dialog" aria-controls="client-dialog"><strong>Output</strong><small>Investigate user experience</small><span class="configuration-indicator" aria-hidden="true">›</span></button>
 </div>
 <dialog id="input-dialog" aria-labelledby="input-dialog-title"><div class="panel-heading"><h2 id="input-dialog-title">Input transformations</h2><button type="button" class="dialog-close" aria-label="Close input configuration">Done</button></div><div id="configure-input" class="configuration-fields"></div></dialog>
 <dialog id="system-dialog" aria-labelledby="system-dialog-title"><div class="panel-heading"><h2 id="system-dialog-title">Inference system</h2><button type="button" class="dialog-close" aria-label="Close system configuration">Done</button></div><div id="configure-system" class="configuration-fields"></div><h3 class="unavailable-heading">Not adjustable here yet</h3><div id="unavailable-system" class="unavailable-components"></div></dialog>
@@ -14,13 +14,15 @@
 <section id="data-plane" class="pass-panel" aria-label="Request and computation">
 <p id="configuration-status" role="status" hidden></p>
 <div id="workload-boundary">
-<div class="request-preview"><small id="source-label">Input</small> <strong id="request-preview"></strong><button id="edit-input" class="primary" type="button" aria-expanded="false" aria-controls="inference-form">Edit</button></div>
+<div class="request-preview"><small id="source-label">Input</small> <strong id="request-preview"></strong><button id="edit-input" type="button" aria-expanded="false" aria-controls="inference-form">Edit</button></div>
 <form id="inference-form" class="source-editor" hidden><div id="request-fields"></div>
 <div class="configuration-actions"><button id="execute" class="primary" disabled>Apply</button>
 </div>
 <p id="run-error" role="alert" hidden></p></form></div>
+<div id="client-boundary" class="request-preview"><small>Output</small><strong id="response-preview"></strong><span class="request-actions"><button id="reset" type="button" disabled>Reset</button><button id="output-details" type="button" data-entity="response" data-term="Response" aria-expanded="false" aria-controls="sequence-details">Details</button></span></div>
+<div id="sequence-details" hidden><p id="pass-caption"></p><div id="sequence-strip" class="token-strip" aria-label="Combined input and output tokens"></div></div>
 <section class="execution-journey" aria-label="Execution path">
-<div class="execution-heading"><h2>Request journey</h2><span id="computation-caption"></span><div class="prediction-controls"><button id="token-journey" class="primary" type="button" aria-pressed="false" title="Replay this prediction’s recorded stages">Token Journey</button><button id="next-token" class="primary" type="button" disabled>Next Token</button></div></div>
+<div class="execution-heading"><h2>Request journey</h2><span id="computation-caption"></span><div class="prediction-controls"><button id="token-journey" class="secondary" type="button" aria-pressed="false" title="Replay this prediction’s recorded stages">Token Journey</button><button id="next-token" class="primary" type="button" disabled>Next Token</button></div></div>
 <div class="system-route"><button id="journey-request" type="button" data-entity="request" data-term="Request">Request</button><span aria-hidden="true">→</span><button id="journey-dispatch" type="button" data-entity="system" data-term="Inference system"><span id="dispatch-label"></span></button><span aria-hidden="true">↓</span></div>
 <fieldset class="execution-endpoint"><legend>Execution endpoint</legend>
 <div class="execution-scroll"><div id="execution-canvas">
@@ -28,10 +30,8 @@
 <ol id="computation-path" class="execution-path" aria-label="Recorded computation stages"></ol>
 </div></div>
 </fieldset>
-<div id="client-boundary" class="request-preview"><small>Output</small><strong id="response-preview"></strong><button id="output-details" class="primary" type="button" data-entity="response" data-term="Response" aria-expanded="false" aria-controls="sequence-details">Details</button></div>
-<div id="sequence-details" hidden><p id="pass-caption"></p><div id="sequence-strip" class="token-strip" aria-label="Combined input and output tokens"></div></div>
+
 </section>
-<details class="event-record"><summary>Events</summary><p id="workload-summary"></p><ol id="event-stream"></ol></details>
 </section>
 <!-- Display labels and declared bindings only. Trace observations determine order and repetition. -->
 <template id="operation-labels">

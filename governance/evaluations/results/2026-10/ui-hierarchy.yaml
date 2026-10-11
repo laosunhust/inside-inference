@@ -1,0 +1,24 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/ui-hierarchy.yaml
+evaluation_sha256: 84266051ddd0b2d9babf7eb25cd40c63f31d639e68072ecfff57f06d7391a979
+outcome: passed
+summary: Moved Output immediately after Input, preserving the one combined token disclosure and accepted evidence.
+  Established neutral configuration cards with chevrons, a primary execution button, secondary replay button and
+  quiet Edit/Details controls. Shared palette and navigation extend to cache, catalog and ontology pages; cache
+  timeline appearance now derives from theme.css rather than JavaScript colors. Two rendered review passes covered
+  1280px and 390px pages, edit/disclosure/dialog states and no page overflow. The first pass exposed faint cache
+  labels and static-looking configuration cards; both corrected. Sampled normal-state text contrast ranges from
+  5.69:1 to 13.66:1. Keyboard Tab focus and replay pressed state checked; an initial programmatic-focus check was
+  replaced with actual keyboard input. This is sampled accessibility evidence, not a full accessibility audit. Full
+  integration passed 104 unit tests, 27 integration tests and browser parity in 90.37s, within 100s. Existing layout/appearance
+  enforcement remains unchanged. No numerical behavior, fonts, UI framework or asset dependencies were added. Remaining
+  legacy page-specific selectors and catalog content organization are not claimed to be a completed design system.
+evidence:
+- web/theme.css
+- web/inference.html
+- web/inference.css
+- web/style.css
+- web/cache.js
+- web/cache.html
+- scripts/build/intro_page.py
+- scripts/check/inspection_browser_check.mjs

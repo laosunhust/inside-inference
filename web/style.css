@@ -40,7 +40,7 @@ footer{margin-top:40px}
 nav{position:static;display:flex;flex-wrap:wrap;gap:8px}
 nav a{padding:5px 8px}
 #trace{grid-template-columns:repeat(2,minmax(0,1fr))}
-header span{display:none}
+header span:not(.landing-links){display:none}
 .featured{padding:22px}}
 @media(max-width:440px){#trace{grid-template-columns:1fr}
 .layer{grid-template-columns:30px minmax(0,1fr)}}
@@ -157,3 +157,10 @@ body:has(.playground) footer{margin-top:10px}
 .computation-path{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
 .computation-stage{display:flex;flex-direction:column;gap:10px;text-align:left;padding:18px}
 @media(max-width:650px){.computation-path{grid-template-columns:1fr}}
+
+.reference-index{max-width:900px}
+.reference-index>section{padding:20px 0;scroll-margin-top:20px}
+.reference-index>section>h2{margin:0 0 10px}
+.reference-index article{padding:16px;margin:12px 0}
+.reference-index article p:last-child{margin-bottom:0}
+header .landing-links{display:block;white-space:nowrap;align-self:center}

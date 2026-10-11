@@ -1,0 +1,28 @@
+version: 1
+work_item: interactive-execution-lifecycle
+question: Can one current interactive execution begin without generated output and reset without retaining stale numerical evidence?
+necessity: The landing page initializes a completed RunRecord, so an answer and computations exist before the user asks to execute.
+baseline: Applying input executes a complete answer; initial output and inspection come from embedded completed evidence; no reset exists.
+reuse:
+- source: Existing tokenizer, RunBinding, TokenStepRequest/Result and shared HTTP application
+  decision: Prepare validated input without model.forward, then use the existing numerical stepping interface. Keep full workload runs for headless consumers.
+- source: web/inspection-session.js and shared theme
+  decision: Replace completed-run initialization, preserve one prefix/observation cursor, and express idle/executing/completed states without invented evidence.
+criteria:
+- The initial page contains validated input/model preparation, no generated answer, execution receipt, logits or tensor observations.
+- Applying valid edited input clears output, receipt and inspection; invalid input fails explicitly without making old output look like a result of the new input.
+- Next Token executes exactly one actual forward pass from the selected prefix, appends its selected token, and replaces previous computation evidence.
+- Reset belongs to Output; absence of execution is derived from the single accepted request, with no independent idle-state authority.
+- Reset retains accepted input and settings while clearing output, selected observations and replay; no stale callback can restore cleared evidence.
+- Selection and Token Journey inspect the current computation without changing output; stepping still respects TURN_END and the token budget and supports branching.
+- Preparation has a declared ontology-owned data model and HTTP interface; native and remote preparation agree and preparation never calls model.forward.
+- Existing numerical, CLI, HTTP and browser export/replay parity remains covered with the new interactive lifecycle.
+- Desktop and narrow views before execution, during execution, after completion, edits and reset are reviewed; subtle related tints preserve readable contrast and primary/secondary action hierarchy.
+counterexamples:
+- Hiding precomputed output instead of removing completed-run initialization.
+- Applying input generates a full answer in the background.
+- Reset leaves stale logits, download receipts, highlights or playback timers visible.
+- A failed or late request is accepted as a different prefix or input.
+checks:
+- make test-integration
+- Rendered desktop and narrow lifecycle review

@@ -1,0 +1,36 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/interactive-execution-lifecycle.yaml
+evaluation_sha256: 71d5edbf16c30404af547ab32713f26e63c7ee00ea9d743c4eaa3891014e6725
+outcome: passed
+summary: Replaced embedded completed RunRecord with ontology-owned PreparedInput and a generated preparation HTTP
+  operation. Preparation validates the binding and tokenizes without model.forward; a unit test rejects accidental
+  numerical execution. The single accepted request and optional current token step govern output, sequence, numerical
+  inspection and export. There is no independent idle-state authority. Applying input clears previous execution;
+  Next Token computes one real step; Reset beside Output Details clears continuation, receipt, cursor and replay
+  while retaining input/settings. Pending operations lock reset/inspection and mismatched or late responses are
+  rejected. Full workload execution remains available headlessly; browser stepping compares every numerical pass
+  against workload references, then exports and replays real TokenStepResult artifacts. The first integration attempt
+  exposed an obsolete site fixture expecting the old completed bundle; updated that fixture to preparation without
+  weakening parity. Owner review moved Reset from Request journey to Output and removed the proposed idle display
+  enum/label. Desktop and 390px renders verified empty initial output, ann then ann-space after two steps, reset
+  and edited input, with no page overflow. Related green tints restore color without arbitrary category palettes.
+  Final make test passed 105 tests in 9.92s within 10s; make test-integration passed 105 unit tests, 27 integration
+  tests and browser parity in 90.53s within 100s. Browser-native execution remains a separate feasibility spike;
+  the product still requires the native service for computation.
+evidence:
+- data-model/domains/experiment.yaml
+- data-model/domains/interface.yaml
+- data-model/openapi.yaml
+- inside_inference/workload.py
+- inside_inference/delivery/service.py
+- web/inspection-session.js
+- web/inference.js
+- web/inference.html
+- web/theme.css
+- tests/unit/test_workload.py
+- tests/integration/inspection_session.mjs
+- tests/integration/test_http_runtimes.py
+- tests/integration/test_site.py
+- scripts/check/browser_check.mjs
+- scripts/check/parity.py
+- docs/architecture/declarations.md

@@ -16,6 +16,18 @@ class WorkloadTests(unittest.TestCase):
     def setUp(self):
         self.record = copy.deepcopy(self.baseline)
 
+    def test_prepare_input_does_not_execute_model(self):
+        from unittest.mock import patch
+        from inside_inference.workload import prepare_input
+        from inside_inference.model import Model
+        from tests.fixtures.execution import small_checkpoint
+        with patch.object(Model, 'forward', side_effect=AssertionError('Preparation executed inference')):
+            result = prepare_input(checkpoint=small_checkpoint())
+        self.assertNotIn('output_ids', result)
+        self.assertNotIn('passes', result)
+        self.assertTrue(result['tokenizer']['ids'])
+
+
     def test_arrivals_are_structural_but_unsupported_scheduling_is_rejected_before_compute(self):
         original = default_workload().to_dict()
         cases = []

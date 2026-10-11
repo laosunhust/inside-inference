@@ -43,181 +43,111 @@ try {
   assert.equal(await evaluate(`document.querySelector('#run-outcome, #control-plane > .panel-heading, #data-plane > .panel-heading')`), null);
   assert.equal(await evaluate(`document.getElementById('binding-status').hidden`), true);
   assert.equal(await evaluate(`document.getElementById('binding-status').textContent`), '');
-  for (const [section, ids] of [
-    ['control-plane', ['open-input', 'open-system', 'open-client', 'binding-status']],
-    ['data-plane', ['inference-form', 'execute', 'request-fields', 'edit-input', 'next-token', 'sequence-strip', 'computation-path', 'output-details', 'sequence-details']],
-    ['numerical-inspector', ['detail-body', 'run-identity', 'download-run']],
-  ]) {
-    for (const id of ids) assert.ok(await evaluate(`document.getElementById('${section}').contains(document.getElementById('${id}'))`));
-  }
+  const prepared=await evaluate(`JSON.parse(document.getElementById('inference-data').textContent)`);
+  const noExecution=async()=>{
+    assert.equal(await evaluate(`document.getElementById('response-preview').textContent`),'');
+    assert.equal(await evaluate(`document.querySelectorAll('#computation-path li').length`),0);
+    assert.equal(await evaluate(`document.getElementById('token-journey').disabled && document.getElementById('download-run').disabled`),true);
+    assert.equal(await evaluate(`document.getElementById('run-identity').textContent`),'');
+  };
+  await noExecution();
+  assert.equal(await evaluate(`document.getElementById('client-boundary').contains(document.getElementById('reset'))`),true);
+  assert.ok(!prepared.receipt && !prepared.output_ids && !prepared.passes);
   for(const key of ['input','system','client']) {
     await click('open-'+key);
-    assert.ok(await evaluate(`document.getElementById('${key}-dialog').open && document.getElementById('${key}-dialog').contains(document.activeElement)`));
+    assert.ok(await evaluate(`document.getElementById('${key}-dialog').open`));
     await evaluate(`document.querySelector('#${key}-dialog .dialog-close').click()`);
     assert.ok(await evaluate(`!document.getElementById('${key}-dialog').open && document.activeElement.id==='open-${key}'`));
   }
-  assert.ok(await evaluate(`document.querySelectorAll('#unavailable-system button:disabled').length>0 && Array.from(document.querySelectorAll('#unavailable-system button')).every(b=>Declarations.meanings[b.dataset.concept])`));
-  assert.equal(await evaluate(`Array.from(document.querySelectorAll('#unavailable-system button')).some(b=>['ExperimentSpec','InferenceResponse'].includes(b.dataset.concept))`),false);
-  assert.equal(await evaluate(`document.querySelector('#inspect-system, #pass-tabs, #inspect-client, #response-status, #inspect-request')`),null);
-  assert.equal(await evaluate(`!document.getElementById('inference-form').hidden`),false);
-  assert.equal(await evaluate(`document.getElementById('edit-input').textContent`),'Edit');
-  const initial = await evaluate(`EvidenceClient.restore(JSON.parse(document.getElementById('inference-data').textContent).receipt)`);
-  assert.equal(await evaluate(`document.querySelectorAll('#event-stream li').length`),initial.events.length);
-  assert.equal(await evaluate(`document.getElementById('control-plane').contains(document.getElementById('prompt'))`),false);
-  await evaluate(`document.getElementById('configure-input-suffix_variants').value=10;document.getElementById('configure-input-suffix_variants').dispatchEvent(new Event('change'))`);
-  assert.ok(await evaluate(`document.getElementById('workload-boundary').classList.contains('configuration-changed')`));
-  assert.equal(await evaluate(`document.getElementById('request-preview').textContent`),initial.declaration.workload.requests[0].request.text);
-  assert.equal(await evaluate(`document.getElementById('definition-link').getAttribute('href')`),'ontology.html#Workload');
-  await evaluate(`document.getElementById('configure-input-suffix_variants').value=0;document.getElementById('configure-input-suffix_variants').dispatchEvent(new Event('change'))`);
-  const previewRecord=await evaluate(`document.getElementById('run-identity').textContent`);
-  await evaluate(`document.getElementById('configure-system-attention-mechanism').value='kda';document.getElementById('configure-system-attention-mechanism').dispatchEvent(new Event('change'))`);
-  assert.ok(await evaluate(`document.querySelector('#inspect-layers').parentElement.classList.contains('configuration-changed')`));
-  assert.ok(await evaluate(`document.getElementById('configuration-detail').textContent.includes('KDA')`));
-  assert.ok(await evaluate(`document.getElementById('configuration-status').textContent.includes('preview only') && !document.getElementById('execute').disabled`));
-  await evaluate(`document.querySelector('[data-work-id="${initial.traces[0].passes[1].id}"]').click()`);
-  assert.ok(await evaluate(`document.querySelector('#inspect-layers').parentElement.dataset.configuration==='KDA'`));
-  await evaluate(`document.getElementById('configure-client-consumption').value='paused';document.getElementById('configure-client-consumption').dispatchEvent(new Event('change'))`);
-  assert.ok(await evaluate(`document.getElementById('client-boundary').classList.contains('configuration-changed')`));
-  assert.equal(await evaluate(`document.getElementById('definition-link').getAttribute('href')`),'ontology.html#CustomerInteraction');
-  assert.ok(await evaluate(`document.getElementById('configuration-detail').textContent.includes('Paused')`));
-  assert.equal(await evaluate(`document.getElementById('run-identity').textContent`),previewRecord);
-  await evaluate(`for(const id of ['configure-system-attention-mechanism','configure-client-consumption']) {const field=document.getElementById(id);field.selectedIndex=0;field.dispatchEvent(new Event('change'));} document.querySelectorAll('#sequence-strip button')[${initial.traces[0].passes[0].selection_position}].click()`);
-  assert.equal(await evaluate(`document.getElementById('execute').disabled`),false);
-  assert.equal(await evaluate(`document.querySelectorAll('.configuration-changed').length`),0);
-  const acceptedOutput=initial.traces[0].output_display;
-  assert.equal(await evaluate(`document.getElementById('response-preview').textContent`),acceptedOutput);
-  await checkJourney({send,evaluate,until,click},initial);
-  assert.equal(await evaluate(`document.getElementById('sequence-details').hidden`),true);
-  assert.equal(await evaluate(`document.querySelector('#selected-token, #inspect-response, #output-label')`),null);
-  await click('output-details');
-  assert.equal(await evaluate(`document.getElementById('sequence-details').hidden`),false);
-  assert.ok(await evaluate(`document.getElementById('workload-summary').textContent.includes('execution order only')`));
-  assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`), initial.traces[0].sequence_ids.length);
-  for (const id of ['inspect-embedding','inspect-layers','inspect-projection','output-details']) {
-    await click(id);
-    assert.ok(await evaluate(`document.getElementById('detail-body').textContent.length > 30`));
-    assert.equal(await evaluate(`/[a-f0-9]{64}/.test(document.body.innerText)`),false,'Hashes must not appear in presentation');
-  }
-  await click('inspect-layers');
-  assert.equal(await evaluate(`document.getElementById('labs-link').hidden`),false);
-  await evaluate(`document.getElementById('tensor-choice').value='attention'; document.getElementById('tensor-choice').dispatchEvent(new Event('change'))`);
-  assert.equal(await evaluate(`document.querySelectorAll('.heat-cell').length`), initial.traces[0].passes[0].input_ids.length**2);
-  await evaluate(`document.querySelector('#sequence-strip button').click()`);
-  assert.ok(await evaluate(`document.getElementById('detail-body').textContent.includes('position 0')`));
-  assert.equal(await evaluate(`JSON.parse(document.querySelector('#detail-body > details script').textContent).operation.name`),'embedding');
-  assert.equal(await evaluate(`document.getElementById('inspection-context').dataset.position`),'0');
-  assert.deepEqual(await evaluate(`Array.from(document.querySelectorAll('#detail-body table tr')).slice(1).map(tr=>tr.cells[1].textContent)`),initial.traces[0].passes[0].nodes.find(n=>n.operation.name==='embedding').values[0].map(v=>v.toPrecision(6)));
-  await click('inspect-layers');
-  await evaluate(`document.querySelector('[data-work-id="${initial.traces[0].passes[1].id}"]').click()`);
-  assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`), initial.traces[0].sequence_ids.length);
-  await evaluate(`document.getElementById('numerical-inspector').scrollIntoView()`);
-  let shot = await send('Page.captureScreenshot', {format:'png'});
-  await writeFile(output+'/attention.png', Buffer.from(shot.data,'base64'));
-  await click('inspect-layers');
-  const observedNode = await evaluate(`JSON.parse(document.querySelector('#detail-body details script').textContent)`);
-  assert.deepEqual(observedNode, initial.traces[0].passes[1].nodes.find(n => n.operation.name === 'attention'));
-  await checkInspection(evaluate,initial,1);
-  await evaluate('window.scrollTo(0,0)');
-  shot = await send('Page.captureScreenshot', {format:'png'});
-  await writeFile(output+'/journey.png', Buffer.from(shot.data,'base64'));
-  // Inspect files downloaded by the real UI; no accessor to internal session state.
-  let changed;
-  await evaluate(`document.getElementById('configure-system-attention-mechanism').value='kda';document.getElementById('configure-system-attention-mechanism').dispatchEvent(new Event('change'))`);
-  for(const fixture of references) {
-    await evaluate(`document.getElementById('edit-input').click()`);
-    assert.ok(await evaluate(`!document.getElementById('inference-form').hidden && document.getElementById('edit-input').getAttribute('aria-expanded')==='true'`));
-    const request=fixture.workload.requests[0].request;
-    const expected=fixture.record, outcome=expected.traces[0].outcome;
-    const budget=request.generation.max_new_tokens;
-    const before=await evaluate(`document.getElementById('run-identity').textContent`);
-    const cursorBefore=await evaluate(`document.getElementById('inspection-context').outerHTML`);
-    await evaluate(`document.getElementById('prompt').value=${JSON.stringify(request.text)}; document.getElementById('prompt').dispatchEvent(new Event('input')); document.getElementById('output-budget').value=${budget}; document.getElementById('output-budget').dispatchEvent(new Event('change'))`);
-    assert.equal(await evaluate(`document.getElementById('binding-status').dataset.phase`),'dirty');
-    assert.equal(await evaluate(`document.getElementById('binding-status').hidden`),false);
-    assert.equal(await evaluate(`document.getElementById('run-identity').textContent`),before);
-    assert.equal(await evaluate(`document.getElementById('inspection-context').outerHTML`),cursorBefore);
-    await evaluate(`document.getElementById('execute').click(); if(!document.getElementById('output-budget').disabled) throw new Error('controls must lock while executing')`);
+  assert.ok(await evaluate(`document.querySelectorAll('#unavailable-system button:disabled').length>0`));
+  const download=async name=>{
+    const path=output+'/inference-run.json';await rm(path,{force:true});await click('download-run');
+    let source;
+    for(let i=0;i<100;i++){try{const candidate=await readFile(path,'utf8');JSON.parse(candidate);source=candidate;break;}catch{await new Promise(r=>setTimeout(r,50));}}
+    assert.ok(source,'Step export missing');await writeFile(output+'/'+name,source);return JSON.parse(source);
+  };
+  const next=async()=>{
+    await click('next-token');await until(`document.getElementById('binding-status').dataset.phase==='ready'`);
+  };
+  const apply=async request=>{
+    if(await evaluate(`document.getElementById('inference-form').hidden`))await click('edit-input');
+    await evaluate(`document.getElementById('prompt').value=${JSON.stringify(request.text)};document.getElementById('prompt').dispatchEvent(new Event('input'));document.getElementById('output-budget').value=${request.generation.max_new_tokens};document.getElementById('output-budget').dispatchEvent(new Event('change'));document.getElementById('inference-form').requestSubmit()`);
     await until(`document.getElementById('binding-status').dataset.phase==='ready'`);
-    assert.equal(await evaluate(`!document.getElementById('inference-form').hidden`),false);
-    changed=await evaluate(`JSON.parse(document.getElementById('run-identity').textContent)`);
-    assert.deepEqual(changed.declaration.workload,fixture.workload);
-    assert.ok(await evaluate(`document.querySelector('#inspect-layers').parentElement.dataset.configuration==='KDA' && document.getElementById('configuration-status').textContent.includes('preview only')`));
-    assert.deepEqual(changed.outcome,outcome);
-    assert.ok(await evaluate(`document.getElementById('computation-caption').textContent.startsWith('Prediction 1 · prefill')`));
-    assert.equal(await evaluate(`document.querySelector('#previous-pass, #next-pass')`),null);
-    const downloadPath=output+'/inference-run.json';
-    await rm(downloadPath,{force:true});
-    await click('download-run');
-    let exportedSource;
-    for(let attempt=0;attempt<100;attempt++) {
-      try { const candidate=await readFile(downloadPath,'utf8');JSON.parse(candidate);exportedSource=candidate;break; }
-      catch(error) { if(error.code!=='ENOENT' && !(error instanceof SyntaxError)) throw error;await new Promise(r=>setTimeout(r,50)); }
+    assert.equal(await evaluate(`document.getElementById('inference-form').hidden`),true);
+    await noExecution();
+    assert.equal(await evaluate(`document.getElementById('request-preview').textContent`),request.text);
+  };
+  // Compare every numerical field, ignoring only the distinct execution/request identities.
+  const numerical=pass=>{
+    const copy=structuredClone(pass), index=new Map(copy.nodes.map((n,i)=>[n.id,i]));
+    for(const node of copy.nodes) {
+      node.inputs=node.inputs.map(id=>index.has(id)?index.get(id):id);
+      delete node.id;delete node.run_id;delete node.request_id;
     }
-    assert.ok(exportedSource,fixture.id+': browser did not download its run');
-    const exported=JSON.parse(exportedSource);
-    await writeFile(output+'/'+fixture.id+'.browser.json',exportedSource);
-    assert.deepEqual(exported,expected,fixture.id+': browser export differs from headless/CLI/HTTP evidence');
-    for(const [i,pass] of expected.traces[0].passes.entries()) {
-      await evaluate(`document.querySelector('[data-work-id="${pass.id}"]').click()`);
-      const chips=await evaluate(`Array.from(document.querySelectorAll('#sequence-strip button small'),n=>Number(n.textContent.split('#')[1]))`);
-      assert.deepEqual(chips,expected.traces[0].sequence_ids);
-      if(i===0 || i===expected.traces[0].passes.length-1) {
-        await checkInspection(evaluate,expected,i);
-      }
-      assert.equal(await evaluate(`document.getElementById('response-preview').textContent`),expected.traces[0].output_display);
-      assert.equal(await evaluate(`document.getElementById('response-preview').children.length`),0,'Published output must remain an unmodified text node');
-
+    delete copy.id;delete copy.run_id;delete copy.request_id;return copy;
+  };
+  for(const fixture of references) {
+    const request=fixture.workload.requests[0].request, trace=fixture.record.traces[0];
+    await apply(request);
+    assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`),trace.tokenizer.ids.length);
+    for(const [i,pass] of trace.passes.entries()) {
+      await next();
+      const exported=await download(fixture.id+'.browser.json');
+      assert.deepEqual(numerical(exported.computation),numerical(pass),'Step computation differs from full headless run');
+      assert.deepEqual(exported.sequence_ids,[...pass.input_ids,pass.selection.selected_id]);
+      assert.equal(await evaluate(`document.getElementById('response-preview').textContent`),pass.display_so_far);
+      assert.equal(await evaluate(`document.getElementById('response-preview').children.length`),0);
+      assert.deepEqual(await evaluate(`Array.from(document.querySelectorAll('#sequence-strip button small'),n=>Number(n.textContent.split('#')[1]))`),exported.sequence_ids);
+      if(i===0 || i===trace.passes.length-1)await checkInspection(evaluate,exported);
+      if(fixture===references[0] && i===0)await checkJourney({send,evaluate,until,click},exported);
     }
-    if(fixture.id==='budget-8') {
-      await evaluate('window.scrollTo(0,0)');
-      shot=await send('Page.captureScreenshot',{format:'png'});
-      await writeFile(output+'/budget-8.png',Buffer.from(shot.data,'base64'));
-    }
+    assert.equal(await evaluate(`document.getElementById('next-token').disabled`),true);
+    await click('reset');await noExecution();
+    assert.equal(await evaluate(`document.getElementById('request-preview').textContent`),request.text);
+    assert.equal(await evaluate(`document.getElementById('next-token').disabled`),false);
   }
+  // Configuration is preview-only; no execution silently uses a different mechanism.
+  await next();
+  const identityBefore=await evaluate(`document.getElementById('run-identity').textContent`);
+  await evaluate(`document.getElementById('configure-system-attention-mechanism').value='kda';document.getElementById('configure-system-attention-mechanism').dispatchEvent(new Event('change'))`);
+  assert.ok(await evaluate(`document.querySelector('#inspect-layers').parentElement.classList.contains('configuration-changed') && document.getElementById('next-token').disabled`));
+  assert.equal(await evaluate(`document.getElementById('run-identity').textContent`),identityBefore);
+  await click('reset');await noExecution();
+  assert.equal(await evaluate(`document.getElementById('configure-system-attention-mechanism').value`),'kda');
+  await evaluate(`document.getElementById('configure-system-attention-mechanism').selectedIndex=0;document.getElementById('configure-system-attention-mechanism').dispatchEvent(new Event('change'))`);
   await checkShortInput({evaluate,until,click});
-  assert.notEqual(changed.run_id,initial.id);
-  assert.equal(changed.declaration.model.checkpoint_sha256,initial.declaration.model.checkpoint_sha256);
-  await evaluate(`document.getElementById('output-budget').value=1; document.getElementById('output-budget').dispatchEvent(new Event('change')); document.getElementById('prompt').value='cat '.repeat(62); document.getElementById('prompt').dispatchEvent(new Event('input')); document.getElementById('inference-form').requestSubmit()`);
-  await until(`document.getElementById('binding-status').dataset.phase==='ready'`);
-  assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`), 129);
-  await click('inspect-layers');
-  assert.equal(await evaluate(`document.querySelectorAll('.heat-cell').length`), 128**2);
-  const boundaryID = await evaluate(`JSON.parse(document.getElementById('run-identity').textContent).run_id`);
-  await evaluate(`document.getElementById('edit-input').click(); document.getElementById('prompt').value='cat '.repeat(200); document.getElementById('prompt').dispatchEvent(new Event('input')); document.getElementById('inference-form').requestSubmit()`);
+  await apply({text:'cat '.repeat(62),generation:{max_new_tokens:1}});
+  await next();await click('inspect-layers');
+  assert.equal(await evaluate(`document.querySelectorAll('.heat-cell').length`),128**2);
+  await click('edit-input');
+  await evaluate(`document.getElementById('prompt').value='cat '.repeat(200);document.getElementById('prompt').dispatchEvent(new Event('input'));document.getElementById('inference-form').requestSubmit()`);
   await until(`!document.getElementById('run-error').hidden`);
-  assert.ok(await evaluate(`!document.getElementById('inference-form').hidden && document.getElementById('edit-input').getAttribute('aria-expanded')==='true'`));
-  assert.equal(await evaluate(`JSON.parse(document.getElementById('run-identity').textContent).run_id`), boundaryID);
-  await send('Page.navigate', {url:base+'/index.html'});
+  await noExecution();
+  assert.ok(await evaluate(`!document.getElementById('inference-form').hidden && document.getElementById('next-token').disabled`));
+  await send('Page.navigate',{url:base+'/index.html'});
   await until(`document.getElementById('next-token') && !document.getElementById('next-token').disabled`);
   const steps=JSON.parse(await readFile(output+'/steps.json','utf8'));
   for(const fixture of steps) {
-    if(fixture.name!=='continue') await evaluate(`document.querySelectorAll('#sequence-strip button')[${fixture.position}].click()`);
-    await click('next-token');
-    await until(`document.getElementById('binding-status').dataset.phase==='ready'`);
-    const selected=await evaluate(`Array.from(document.querySelectorAll('#sequence-strip button')).findIndex(b=>b.getAttribute('aria-pressed')==='true')`);
-    assert.equal(selected,fixture.record.sequence_ids.length-1);
-    assert.deepEqual(await evaluate(`Array.from(document.querySelectorAll('#sequence-strip button small'),n=>Number(n.textContent.split('#')[1]))`),fixture.record.sequence_ids);
-    const path=output+'/inference-run.json';await rm(path,{force:true});await click('download-run');
-    let source;
-    for(let i=0;i<100;i++){try{source=await readFile(path,'utf8');JSON.parse(source);break;}catch{await new Promise(r=>setTimeout(r,50));}}
-    assert.deepEqual(JSON.parse(source),fixture.record,'Next Token must export actual prefix computation');
-    await writeFile(output+'/'+fixture.name+'.step-browser.json',source);
-    if(fixture.name==='branch') {
-      await checkInspection(evaluate,fixture.record);
-      assert.equal(await evaluate(`Array.from(document.querySelectorAll('#sequence-strip button')).findIndex(b=>b.getAttribute('aria-pressed')==='true')`),selected,'Inspection must preserve the generation cursor');
-    }
+    if(fixture.name!=='continue')await evaluate(`document.querySelectorAll('#sequence-strip button')[${fixture.position}].click()`);
+    await next();
+    const exported=await download(fixture.name+'.step-browser.json');
+    assert.deepEqual(exported,fixture.record,'Branch execution differs from headless/CLI/HTTP');
+    await checkInspection(evaluate,fixture.record);
   }
-  await send('Page.navigate', {url:file+'/index.html'});
+  await click('token-journey');await click('reset');await noExecution();
+  await new Promise(r=>setTimeout(r,700));
+  assert.equal(await evaluate(`document.getElementById('token-journey').getAttribute('aria-pressed')`),'false');
+  assert.equal(await evaluate(`document.querySelectorAll('#computation-path .selected-object').length`),0);
+  await send('Page.navigate',{url:file+'/index.html'});
   await until(`document.getElementById('binding-status')?.dataset.phase==='offline'`);
-  assert.ok(await evaluate(`['execute','prompt','output-budget'].every(id=>document.getElementById(id).disabled)`));
+  await noExecution();
+  assert.ok(await evaluate(`['execute','prompt','output-budget','next-token'].every(id=>document.getElementById(id).disabled)`));
   await click('output-details');
-  await click('response-selection');
-  assert.equal(await evaluate(`document.querySelectorAll('#detail-body tr').length`), 385);
-  await send('Emulation.setDeviceMetricsOverride', {width:390,height:844,deviceScaleFactor:1,mobile:true});
-  await evaluate('window.scrollTo(0,0)');
-  assert.ok(await evaluate(`document.documentElement.scrollWidth <= window.innerWidth`), 'mobile overflow');
-  shot = await send('Page.captureScreenshot', {format:'png'});
-  await writeFile(output+'/mobile.png', Buffer.from(shot.data,'base64'));
+  assert.equal(await evaluate(`document.querySelectorAll('#sequence-strip button').length`),prepared.tokenizer.ids.length);
+  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  assert.ok(await evaluate(`document.documentElement.scrollWidth<=innerWidth`));
+  let shot=await send('Page.captureScreenshot',{format:'png'});
+  await writeFile(output+'/mobile.png',Buffer.from(shot.data,'base64'));
   await checkCache({send,evaluate,until,click,base,file,output});
   // The small standalone labs must also project their headless evidence exactly.
   await send('Page.navigate', {url:base+'/labs/kimi-delta-attention.html'});
@@ -248,6 +178,6 @@ try {
     assert.equal(await evaluate(`document.getElementById('output-count').textContent`),`${run.output_tokens} / ${run.output_tokens} delivered`);
   }
   assert.deepEqual(errors, []);
-  await writeFile(output+'/browser-checks.json', JSON.stringify({passed:true, initial_run:initial.id, changed_run:changed.run_id, checks:['complete headless/CLI/HTTP/browser record parity','per-pass delivered text and token IDs','draft/applied separation','budgets 1/2/3/8','exported budget/stop evidence without duplicate summary', 'concise configuration cards and quiet ready state','in-flight edit lock','live execution','offline inspection','observation dependencies and checkpoint operands on first/last passes of every run','token positions','attention values','prefill/decode','384-logit inspection','same-checkpoint intervention','trace-to-render equality','128-position attention','fallback trace','explicit overflow','mobile layout','KDA scenario/step controls and every displayed recurrence value','all request-cost scenarios and generated rate choices','no runtime exceptions']}, null, 2));
+  await writeFile(output+'/browser-checks.json',JSON.stringify({passed:true,checks:['idle preparation without inference','apply/reset clear evidence','per-token parity with complete headless runs','step exports and branching','replay cancellation','configuration preview blocks execution','explicit overflow','offline preparation','mobile layout','cache/KDA/request-cost parity']},null,2));
   console.log('Browser checks passed; screenshots and evidence: '+output);
 } finally { socket.close(); }

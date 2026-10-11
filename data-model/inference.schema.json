@@ -2632,6 +2632,43 @@
         }
       }
     },
+    "PreparedInput": {
+      "type": "object",
+      "x-owner": "ExperimentSpec",
+      "description": "Validated model and workload binding with encoded input; no forward pass, selected output or execution identity.",
+      "additionalProperties": false,
+      "required": [
+        "declaration",
+        "tokenizer",
+        "checkpoint",
+        "vocabulary",
+        "decoding_contract",
+        "contract_sha256"
+      ],
+      "properties": {
+        "declaration": {
+          "$ref": "#/$defs/RunBinding"
+        },
+        "tokenizer": {
+          "$ref": "#/$defs/Encoding"
+        },
+        "checkpoint": {
+          "$ref": "#/$defs/ModelArtifact"
+        },
+        "vocabulary": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Token"
+          }
+        },
+        "decoding_contract": {
+          "$ref": "#/$defs/DecodingContract"
+        },
+        "contract_sha256": {
+          "type": "string"
+        }
+      }
+    },
     "InspectionState": {
       "type": "object",
       "x-owner": "InspectionState",
@@ -2644,9 +2681,12 @@
       ],
       "properties": {
         "run_id": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "title": "Observed run",
-          "description": "SHA-256 identity of the exact artifact bytes or canonical checkpoint.",
+          "description": "Current accepted computation identity; null before the first step or after reset.",
           "pattern": "^[0-9a-f]{64}$"
         },
         "position": {

@@ -9,8 +9,7 @@ import shutil
 
 from inside_inference.labs.kda import demo
 from inside_inference.labs.journey import scenarios, simulate
-from inside_inference.workload import run_workload
-from inside_inference.delivery.codec import bundle
+from inside_inference.workload import prepare_input
 from inside_inference.cache_lab import run_cache_experiment
 from inside_inference.tokenizer import Tokenizer
 from scripts.build.generate_data_models import admit, generate, read
@@ -64,8 +63,8 @@ def esc(value):
 
 
 def shell(title, body, prefix='', *, landing=False):
-    navigation = ('<span class="landing-links"><a href="labs-by-concept.html">Labs</a> · '
-                  '<a href="ontology.html">Ontology</a></span>' if landing else '<span>THE INFERENCE ATLAS</span>')
+    navigation = (f'<span class="landing-links"><a href="{prefix}labs-by-concept.html">Labs</a> · '
+                  f'<a href="{prefix}ontology.html">Ontology</a></span>')
     footer = '' if landing else '<footer>Mechanism → evidence → limits. An open laboratory, always incomplete.</footer>'
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -171,8 +170,8 @@ The landing page executes an inspectable GPT with identified checkpoint provenan
     for owner, definition in load_declarations()['terms'].items():
         lab_link = f' · <a href="labs-by-concept.html#{owner}">Labs ↗</a>' if owner in subjects else ''
         ontology_body += f'<section id="{owner}"><h2>{esc(owner)}</h2><p>{esc(definition["meaning"])}</p><p>{esc(definition["lifetime"])}</p><p>Owns: {esc("; ".join(definition["owns"]))}</p><p>Excludes: {esc("; ".join(definition["excludes"]))}</p><a href="declarations.html#{owner}">Owned declarations ↗</a>{lab_link}</section>'
-    (output / 'labs-by-concept.html').write_text(shell('Explore inference concepts', labs_body))
-    (output / 'ontology.html').write_text(shell('Inference ontology', ontology_body))
+    (output / 'labs-by-concept.html').write_text(shell('Explore inference concepts', '<div class="reference-index">' + labs_body + '</div>'))
+    (output / 'ontology.html').write_text(shell('Inference ontology', '<div class="reference-index">' + ontology_body + '</div>'))
     step_labs = {step: [dict(id=e['id'], name=e['name'], status=STATUS[e['status']])
                         for e in data['innovations'] if step in e['journey_steps']]
                  for step in ('prefill', 'decode')}
@@ -183,7 +182,7 @@ The landing page executes an inspectable GPT with identified checkpoint provenan
         '__STEP_LABS__', json.dumps(step_labs).replace('<', '\\u003c'))
     (output / 'request-cost.html').write_text(shell('Request cost simulation', landing))
     numerical = (ROOT / 'web/inference.html').read_text().replace(
-        '__INFERENCE_DATA__', json.dumps(bundle(run_workload(checkpoint=checkpoint)), allow_nan=False).replace('<', '\\u003c')).replace(
+        '__INFERENCE_DATA__', json.dumps(prepare_input(checkpoint=checkpoint), allow_nan=False).replace('<', '\\u003c')).replace(
         '__ONTOLOGY_DATA__', json.dumps(terms).replace('<', '\\u003c'))
     numerical = '<link rel="stylesheet" href="inference.css">' + numerical
     (output / 'index.html').write_text(shell('What happens if you change this?', numerical, landing=True))

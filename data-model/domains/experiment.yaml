@@ -170,8 +170,8 @@ $defs:
           type: integer
       output_display:
         type: string
-        description: Diagnostic token display; raw IDs are authoritative. Control,
-          byte, and hex IDs appear as labeled markers.
+        description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
+          as labeled markers.
       passes:
         type: array
         items:
@@ -611,9 +611,9 @@ $defs:
     type: object
     x-owner: ExperimentSpec
     title: Configuration preview
-    description: Workload transformation, mechanism and client choices over separately
-      supplied data-plane input. Preview choices are not accepted execution settings;
-      recorded evidence remains separately bound.
+    description: Workload transformation, mechanism and client choices over separately supplied data-plane
+      input. Preview choices are not accepted execution settings; recorded evidence remains separately
+      bound.
     additionalProperties: false
     required:
     - input
@@ -677,3 +677,31 @@ $defs:
         - output_budget
       computation:
         $ref: '#/$defs/NumericalPass'
+  PreparedInput:
+    type: object
+    x-owner: ExperimentSpec
+    description: Validated model and workload binding with encoded input; no forward pass, selected output
+      or execution identity.
+    additionalProperties: false
+    required:
+    - declaration
+    - tokenizer
+    - checkpoint
+    - vocabulary
+    - decoding_contract
+    - contract_sha256
+    properties:
+      declaration:
+        $ref: '#/$defs/RunBinding'
+      tokenizer:
+        $ref: '#/$defs/Encoding'
+      checkpoint:
+        $ref: '#/$defs/ModelArtifact'
+      vocabulary:
+        type: array
+        items:
+          $ref: '#/$defs/Token'
+      decoding_contract:
+        $ref: '#/$defs/DecodingContract'
+      contract_sha256:
+        type: string

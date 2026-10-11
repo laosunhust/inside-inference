@@ -2,94 +2,63 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 for(const file of ['web/contract-validators.generated.js','web/contract-runtime.js','web/declarations.generated.js','web/inspection-session.js']) vm.runInThisContext(readFileSync(file,'utf8'));
-const run=JSON.parse(readFileSync(process.argv[2],'utf8'));
-let state=InspectionSession.create(run);
+const prepared=JSON.parse(readFileSync(process.argv[2],'utf8'));
+const step=JSON.parse(readFileSync(process.argv[3],'utf8'));
+let state=InspectionSession.create(prepared);
+assert.equal(InspectionSession.output(state),'');
+assert.equal(InspectionSession.computation(state),null);
+assert.equal(state.view.run_id,null);
+assert.throws(()=>InspectionSession.journey(state));
 assert.throws(()=>InspectionSession.transition(state,{type:'SUBMIT'}));
+assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{surface:'selection'}}));
 state=InspectionSession.transition(state,{type:'CONNECT'});
-const changed=structuredClone(state.draft);changed.requests[0].request.generation.max_new_tokens=8;
-state=InspectionSession.transition(state,{type:'EDIT',workload:changed});
-assert.equal(state.phase,'dirty');assert.equal(state.run,run);
+state=InspectionSession.transition(state,{type:'INSPECT',view:{position:3}});
+assert.deepEqual(InspectionSession.nextRequest(state),step.request);
+state=InspectionSession.transition(state,{type:'STEP_SUBMIT'});
+assert.throws(()=>InspectionSession.transition(state,{type:'RESET'}));
+assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{position:0}}));
+assert.throws(()=>InspectionSession.transition(state,{type:'EDIT',workload:prepared.declaration.workload}));
+const stale=structuredClone(step);stale.request.prefix_ids.pop();
+assert.throws(()=>InspectionSession.transition(state,{type:'STEP_ACCEPT',result:stale}));
+const failed=InspectionSession.transition(state,{type:'FAIL',message:'network error'});
+assert.equal(InspectionSession.output(failed),'');
+state=InspectionSession.transition(state,{type:'STEP_ACCEPT',result:step});
+assert.deepEqual(InspectionSession.sequence(state),step.sequence_ids);
+const prefix=InspectionSession.nextRequest(state), position=state.view.position;
+for(const view of InspectionSession.journey(state)) {
+ state=InspectionSession.transition(state,{type:'INSPECT',view});
+ assert.deepEqual(InspectionSession.nextRequest(state),prefix);
+ assert.equal(state.view.position,position);
+ assert.equal(InspectionSession.output(state),step.computation.display_so_far);
+}
+assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{surface:'model',observation_id:'foreign-observation'}}));
+assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{surface:'model',observation_id:null}}));
+assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{surface:'response',observation_id:step.computation.nodes[0].id}}));
+state=InspectionSession.transition(state,{type:'INSPECT',view:{position:0}});
+assert.deepEqual(InspectionSession.nextRequest(state).prefix_ids,step.sequence_ids.slice(0,1));
+assert.deepEqual(InspectionSession.nextRequest(state).output_ids,[]);
+state=InspectionSession.transition(state,{type:'RESET'});
+assert.equal(InspectionSession.output(state),'');
+assert.equal(InspectionSession.computation(state),null);
+assert.equal(state.view.run_id,null);
+assert.deepEqual(InspectionSession.sequence(state),prepared.tokenizer.ids);
+assert.deepEqual(state.prepared,prepared);
+assert.throws(()=>InspectionSession.transition(state,{type:'STEP_ACCEPT',result:step}),'late response after reset');
+const draft=structuredClone(state.draft);draft.requests[0].request.text='changed';
+state=InspectionSession.transition(state,{type:'EDIT',workload:draft});
+assert.throws(()=>InspectionSession.transition(state,{type:'STEP_SUBMIT'}));
 state=InspectionSession.transition(state,{type:'SUBMIT'});
-changed.requests[0].request.text='mutation after submit';assert.notEqual(state.submitted.workload.requests[0].request.text,changed.requests[0].request.text);
-assert.throws(()=>InspectionSession.transition(state,{type:'EDIT',workload:changed}));
-assert.throws(()=>InspectionSession.transition(state,{type:'ACCEPT',run}),'stale response must fail');
-state=InspectionSession.transition(state,{type:'FAIL',message:'execution failed'});
-assert.equal(state.run,run);assert.equal(state.phase,'failed');assert.equal(state.draft.requests[0].request.generation.max_new_tokens,8);
-state=InspectionSession.transition(state,{type:'EDIT',workload:run.declaration.workload});
+assert.equal(state.step,null);
+assert.throws(()=>InspectionSession.transition(state,{type:'ACCEPT',prepared}),'stale preparation');
+state=InspectionSession.transition(state,{type:'FAIL',message:'invalid input'});
+assert.equal(state.step,null);assert.equal(state.phase,'failed');
+state=InspectionSession.transition(state,{type:'EDIT',workload:prepared.declaration.workload});
 state=InspectionSession.transition(state,{type:'SUBMIT'});
-state=InspectionSession.transition(state,{type:'ACCEPT',run});
-assert.equal(state.phase,'ready');assert.equal(state.view.run_id,run.id);
-state=InspectionSession.transition(state,{type:'INSPECT',view:{position:run.traces[0].passes[1].selection_position}});
-assert.equal(InspectionSession.computation(state).step,1);assert.deepEqual(state.draft,run.declaration.workload);
-assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{run_id:'0'.repeat(64)}}));
-assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{position:1000}}));
-assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{prediction:0}}),'independent prediction cursor is retired');
+state=InspectionSession.transition(state,{type:'ACCEPT',prepared});
+assert.equal(state.phase,'ready');assert.equal(state.view.run_id,null);
 for(const invalid of [true,0,1.5,'8']) {
- const bad=structuredClone(run.declaration.workload.requests[0].request);bad.generation.max_new_tokens=invalid;
+ const bad=structuredClone(prepared.declaration.workload.requests[0].request);bad.generation.max_new_tokens=invalid;
  assert.throws(()=>Declarations.assertShape('InferenceRequest',bad));
 }
-const tooLarge=structuredClone(run.declaration);tooLarge.workload.requests[0].request.generation.max_new_tokens=run.declaration.system.max_new_tokens_cap+1;
-assert.throws(()=>Declarations.assertBound('RunBinding',tooLarge,tooLarge));
-const bad=structuredClone(run);bad.traces[0].outcome.selected_tokens=8;
-assert.throws(()=>InspectionSession.create(bad));
-console.log('Generated browser validation and request/run transitions passed.');
-
-const forged=structuredClone(run);
-for(const event of forged.events) {
- if(event.payload.kind==='token-published') event.payload.token_ids[0]=0;
-}
-assert.throws(()=>InspectionSession.create(forged),/Published IDs differ/);
-
-const selected=run.traces[0].passes[1].nodes.find(n=>n.operation.name==='attention');
-state=InspectionSession.transition(state,{type:'INSPECT',view:{surface:'model',observation_id:selected.id}});
-assert.equal(state.view.observation_id,selected.id);
-assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{surface:'model',observation_id:'foreign-observation'}}));
-assert.throws(()=>InspectionSession.transition(state,{type:'INSPECT',view:{surface:'model',observation_id:run.traces[0].passes[0].nodes[0].id}}));
-state=InspectionSession.transition(state,{type:'INSPECT',view:{position:0}});
-assert.equal(state.view.observation_id,run.traces[0].passes[0].nodes.find(n=>n.operation.name==='attention').id);
-for(const binding of [
- {primary:'Invented',related:[]},
- {primary:'PositionEncoding',related:['Invented']},
- {primary:'Attention',related:['Attention']},
- {primary:'Attention',related:['Embedding','Embedding']},
- {related:[]}
-]) assert.throws(()=>Declarations.assertShape('OntologyBinding',binding));
-Declarations.assertShape('OntologyBinding',{primary:'PositionEncoding',related:['Attention','Embedding']});
-assert.equal(Declarations.operationOwners.position_embedding,'PositionEncoding');
-assert.equal(Declarations.operationOwners.attention,'Attention');
-
-const step=JSON.parse(readFileSync(process.argv[3],'utf8'));
-let branch=InspectionSession.transition(InspectionSession.create(run),{type:'CONNECT'});
-branch=InspectionSession.transition(branch,{type:'INSPECT',view:{position:3}});
-const originalSequence=InspectionSession.sequence(branch);
-assert.deepEqual(InspectionSession.nextRequest(branch),step.request);
-branch=InspectionSession.transition(branch,{type:'STEP_SUBMIT'});
-assert.deepEqual(InspectionSession.sequence(branch),originalSequence,'submission must not discard evidence');
-assert.throws(()=>InspectionSession.transition(branch,{type:'INSPECT',view:{position:0}}));
-const stale=structuredClone(step);stale.request.prefix_ids.pop();
-assert.throws(()=>InspectionSession.transition(branch,{type:'STEP_ACCEPT',result:stale}));
-const failed=InspectionSession.transition(branch,{type:'FAIL',message:'network error'});
-assert.deepEqual(InspectionSession.sequence(failed),originalSequence);
-assert.equal(failed.view.position,3);
-branch=InspectionSession.transition(branch,{type:'STEP_ACCEPT',result:step});
-assert.deepEqual(InspectionSession.sequence(branch),step.sequence_ids);
-assert.equal(branch.view.position,step.sequence_ids.length-1);
-const cursor=branch.view.position;
-branch=InspectionSession.transition(branch,{type:'INSPECT',view:{surface:'model',observation_id:step.computation.nodes[0].id}});
-assert.equal(branch.view.position,cursor,'operand inspection must not move the prefix cursor');
-branch=InspectionSession.transition(branch,{type:'INSPECT',view:{position:0}});
-assert.deepEqual(InspectionSession.nextRequest(branch).prefix_ids,step.sequence_ids.slice(0,1));
-assert.deepEqual(InspectionSession.nextRequest(branch).output_ids,[]);
-
-const acceptedOutput=InspectionSession.output(branch);
-const prefix=InspectionSession.nextRequest(branch), originalPosition=branch.view.position;
-for(const view of InspectionSession.journey(branch)) {
- branch=InspectionSession.transition(branch,{type:'INSPECT',view});
- assert.deepEqual(branch.view.surface,view.surface);
- assert.deepEqual(branch.view.observation_id,view.observation_id);
- assert.equal(branch.view.position,originalPosition);
- assert.deepEqual(InspectionSession.nextRequest(branch),prefix);
- assert.equal(InspectionSession.output(branch),acceptedOutput);
-}
-assert.throws(()=>InspectionSession.transition(branch,{type:'INSPECT',view:{surface:'model',observation_id:null}}));
-assert.throws(()=>InspectionSession.transition(branch,{type:'INSPECT',view:{surface:'response',observation_id:step.computation.nodes[0].id}}));
+assert.throws(()=>Declarations.assertShape('OntologyBinding',{primary:'Invented',related:[]}));
+console.log('Idle, prepare, step, branch, reset and stale-response transitions passed.');

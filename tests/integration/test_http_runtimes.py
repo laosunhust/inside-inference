@@ -57,6 +57,10 @@ class HttpRuntimeTests(unittest.TestCase):
                 workload=default_workload({'text':'cat','generation':{'max_new_tokens':1,
                     'selection':'greedy-lowest-id-tie','stopping':'turn-end-or-budget'}}).to_dict()
                 headers={'Content-Type':'application/json; charset=utf-8','Origin':origin}
+                from inside_inference.workload import prepare_input
+                status,prepared=compare('POST',API_PATHS['prepareInput'],canonical(workload),headers)
+                self.assertEqual(status,200)
+                self.assertEqual(prepared,prepare_input(workload,checkpoint=checkpoint))
                 status,receipt=compare('POST',API_PATHS['run'],canonical(workload),headers,encoded=True)
                 self.assertEqual(status,200)
                 step={'checkpoint_sha256':identity(checkpoint),'prefix_ids':[0,3], 'output_ids':[],

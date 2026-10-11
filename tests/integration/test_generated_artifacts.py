@@ -39,7 +39,9 @@ class GeneratedArtifactIntegrationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             from inside_inference.generation import run_token_step
             from tests.fixtures.execution import small_workload
-            run=small_workload();path=Path(directory)/'run.json';path.write_text(json.dumps(run))
+            run=small_workload();path=Path(directory)/'run.json'
+            from inside_inference.workload import prepare_input
+            path.write_text(json.dumps(prepare_input(run['declaration']['workload'],checkpoint=run['traces'][0]['checkpoint'])))
             trace=run['traces'][0]
             spec={'checkpoint_sha256':trace['declaration']['model']['checkpoint_sha256'],
                   'prefix_ids':trace['tokenizer']['ids'][:4],'output_ids':[],

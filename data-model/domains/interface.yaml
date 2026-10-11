@@ -10,24 +10,24 @@ $defs:
     - surface
     properties:
       run_id:
-        type: string
+        type:
+        - string
+        - 'null'
         title: Observed run
-        description: SHA-256 identity of the exact artifact bytes or canonical checkpoint.
+        description: Current accepted computation identity; null before the first step or after reset.
         pattern: ^[0-9a-f]{64}$
       position:
         type: integer
         title: Sequence position
-        description: Single selected position in the accepted sequence; determines
-          the exact prefix for Next Token. The recorded computation is derived from
-          this position.
+        description: Single selected position in the accepted sequence; determines the exact prefix for
+          Next Token. The recorded computation is derived from this position.
         minimum: 0
       observation_id:
         type:
         - string
         - 'null'
         title: Executed observation
-        description: Exact observation ID within the selected pass, or null for request
-          and output inspection.
+        description: Exact observation ID within the selected pass, or null for request and output inspection.
         default: null
       surface:
         type: string

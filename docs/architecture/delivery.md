@@ -20,6 +20,11 @@ production browser transport is not yet implemented.
 | Runtime bridges | Adapt sockets or Lambda Function URL events to the same WSGI application. |
 | Frontend | Resolve declared artifacts, validate identity and shape, and inspect the resulting evidence. |
 
+Input preparation is separate: PreparedInput returns a validated workload binding,
+model artifact and tokenizer result without running a forward pass or issuing an
+execution receipt. The landing page embeds this preparation and uses the same
+declared preparation operation when applying input edits.
+
 The compute response identifies the execution and its archive. It carries no model
 weights or numerical tensors. Artifact retrieval is a separate declared API. File,
 in-memory and S3-backed stores share canonical bytes and keys. Storage here is

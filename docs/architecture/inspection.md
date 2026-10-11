@@ -140,14 +140,12 @@ an advanced-attention plugin framework before the baseline.
 
 ## Browser execution and offline replay
 
-The generated `index.html` embeds a compact [artifact bundle](delivery.md) for
-inspection of one actual run without a server.
-`make serve-intro` adds live prompt/budget changes through the canonical Python
-engine. Offline controls never pretend to execute. Live failures keep the prior
-run visible with an explicit error. The cost simulator lives at `request-cost.html`;
-its schedules are not attached to the numerical run or presented as its timing.
-Parameter tensors, source hashes, masks, and complete intermediate tensors remain
-available in the exported record even when the UI shows only one position.
+The generated `index.html` embeds PreparedInput: validated configuration, model weights
+and actual tokenizer output, without a forward pass or generated answer.
+`make serve-intro` enables input preparation and individual token computations through
+the canonical Python engine. Offline controls never pretend to execute. The cost
+simulator remains at `request-cost.html`; its schedules are not numerical execution timings.
+Step exports retain complete intermediate tensors and checkpoint provenance.
 
 Declaration and interaction governance lives in [declarations](declarations.md).
 Every run binds the generated model, system, and workload declarations. The browser
@@ -156,14 +154,14 @@ share a run-bound inspection cursor. A model card presents the identified artifa
 it does not own request policy or duplicate executable configuration.
 
 The [workload boundary](workloads.md) defines the ordered arrivals and recorded
-events. Client token display is projected from delivery events; numerical passes retain
-actual tensors. The uncached adapter has no queue or service-time model. `kv-cache.html` consumes
+events. Full workload runs retain publication events; the interactive page displays the current
+token step’s published output and actual tensors. The uncached adapter has no queue or service-time model. `kv-cache.html` consumes
 `CacheRun` evidence with virtual times and separate host measurements, under the
 KV lab contract.
 
 Generated pages and experiment outputs under `out/` are disposable. Maintained
-fixtures and required datasets remain outside it. Today a static deployment can inspect
-recorded evidence; executing new inputs currently requires the native service.
+fixtures and required datasets remain outside it. The static landing page exposes prepared
+input; token execution currently requires the native service.
 The [primary architectural hypothesis](website.md) is execution of the same Python
 engine in the browser, preserving declared execution and evidence interfaces. A separate
 [feasibility spike](../research/browser-execution-spike.md) passed for the reference
@@ -175,10 +173,9 @@ Restart the native service after contract changes so its identity matches the pa
 `InspectionState.position` is the single sequence cursor. The Output row shows the
 accepted execution's output; its Details button reveals
 the single combined input/output token sequence. Both text and tokens derive from
-the same accepted run or step. Inspection never changes that output. The token
+the same accepted request and its optional current step. Inspection never changes that output. The token
 panel selects a prefix; successful execution replaces the accepted continuation.
-Event inspection may select a recorded prediction, and successful live stepping
-advances the cursor to its new output position. Inspecting an operand
+Successful live stepping advances the cursor to its new output position. Inspecting an operand
 never moves the prefix. The newest selected output has no embedding computation
 of its own yet; details identify the last computed row rather than inventing one.
 
@@ -205,8 +202,8 @@ Future MoE placement, P/D separation and parallelism must enter through resolved
 system configuration and execution evidence, then project into this view. Neither
 hardcoded frontend topology nor a configuration preview establishes executed work.
 
-The loaded baseline remains an inspectable completed reference run. Stepping makes
-new computations; it does not play its next recorded frame. Step exports retain
+There is no completed reference run loaded into the interactive session. Reset, beside
+Output Details, clears the continuation and computation while retaining input and settings. Step exports retain
 the consumed request, checkpoint, provenance, tensors and raw-logit selection and
 use the CLI replay path. Prior continuation IDs are declared inputs, not evidence
 that this stateless call executed their earlier predictions. No KV reuse or

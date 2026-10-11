@@ -336,6 +336,63 @@
           }
         }
       }
+    },
+    "/api/prepare-input": {
+      "post": {
+        "operationId": "prepareInput",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./inference.schema.json#/$defs/Workload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Prepared input without inference",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/PreparedInput"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Shared HTTP admission or execution failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./inference.schema.json#/$defs/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "x-unknown-route-response": {

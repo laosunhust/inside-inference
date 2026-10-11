@@ -3,8 +3,8 @@ from dataclasses import dataclass, field
 from typing import Any
 from inside_inference.contract_runtime import Declaration
 
-API_PATHS = {'capabilities': '/api/capabilities', 'run': '/api/runs', 'cacheRun': '/api/cache-runs', 'cacheCapabilities': '/api/cache-capabilities', 'tokenStep': '/api/token-step', 'artifact': '/api/artifacts'}
-CONTRACT_SHA256 = '54445cd9033ad0f720a3dddb77714220828467b75300492a8012436f197c317d'
+API_PATHS = {'capabilities': '/api/capabilities', 'run': '/api/runs', 'cacheRun': '/api/cache-runs', 'cacheCapabilities': '/api/cache-capabilities', 'tokenStep': '/api/token-step', 'artifact': '/api/artifacts', 'prepareInput': '/api/prepare-input'}
+CONTRACT_SHA256 = 'f9ed5090ea4a1a9d796a3a020c41a4bcf2933bc589458880f936121e385df03d'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -1264,6 +1264,25 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                              'turn_end',
                                                              'output_budget']},
                                     'computation': {'$ref': '#/$defs/NumericalPass'}}},
+ 'PreparedInput': {'type': 'object',
+                   'x-owner': 'ExperimentSpec',
+                   'description': 'Validated model and workload binding with '
+                                  'encoded input; no forward pass, selected '
+                                  'output or execution identity.',
+                   'additionalProperties': False,
+                   'required': ['declaration',
+                                'tokenizer',
+                                'checkpoint',
+                                'vocabulary',
+                                'decoding_contract',
+                                'contract_sha256'],
+                   'properties': {'declaration': {'$ref': '#/$defs/RunBinding'},
+                                  'tokenizer': {'$ref': '#/$defs/Encoding'},
+                                  'checkpoint': {'$ref': '#/$defs/ModelArtifact'},
+                                  'vocabulary': {'type': 'array',
+                                                 'items': {'$ref': '#/$defs/Token'}},
+                                  'decoding_contract': {'$ref': '#/$defs/DecodingContract'},
+                                  'contract_sha256': {'type': 'string'}}},
  'InspectionState': {'type': 'object',
                      'x-owner': 'InspectionState',
                      'additionalProperties': False,
@@ -1271,14 +1290,15 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                   'position',
                                   'observation_id',
                                   'surface'],
-                     'properties': {'run_id': {'type': 'string',
+                     'properties': {'run_id': {'type': ['string', 'null'],
                                                'title': 'Observed run',
-                                               'description': 'SHA-256 '
-                                                              'identity of the '
-                                                              'exact artifact '
-                                                              'bytes or '
-                                                              'canonical '
-                                                              'checkpoint.',
+                                               'description': 'Current '
+                                                              'accepted '
+                                                              'computation '
+                                                              'identity; null '
+                                                              'before the '
+                                                              'first step or '
+                                                              'after reset.',
                                                'pattern': '^[0-9a-f]{64}$'},
                                     'position': {'type': 'integer',
                                                  'title': 'Sequence position',
@@ -2810,8 +2830,18 @@ class TokenStepResult(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class PreparedInput(Declaration):
+    declaration: RunBinding
+    tokenizer: Encoding
+    checkpoint: ModelArtifact
+    vocabulary: tuple[Token, ...]
+    decoding_contract: DecodingContract
+    contract_sha256: str
+
+
+@dataclass(frozen=True, kw_only=True)
 class InspectionState(Declaration):
-    run_id: str
+    run_id: str | None
     position: int
     observation_id: str | None = None
     surface: str = 'request'
@@ -3023,7 +3053,7 @@ class ExecutionBundle(Declaration):
     objects: dict[str, Any]
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'FullPrefixExecutionConfig': FullPrefixExecutionConfig, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'CachedExecutionConfig': CachedExecutionConfig, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'TokenPublished': TokenPublished, 'RunOutcome': RunOutcome, 'RequestFinished': RequestFinished, 'DecodingContract': DecodingContract, 'AttentionConfiguration': AttentionConfiguration, 'SystemConfigurationPreview': SystemConfigurationPreview, 'WorkloadTransformationPreview': WorkloadTransformationPreview, 'OntologyBinding': OntologyBinding, 'TokenStepRequest': TokenStepRequest, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'ModelForwardCompleted': ModelForwardCompleted, 'TokenSelected': TokenSelected, 'RunEvent': RunEvent, 'Span': Span, 'Encoding': Encoding, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'CacheComputation': CacheComputation, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ClientConfigurationPreview': ClientConfigurationPreview, 'ConfigurationPreview': ConfigurationPreview, 'TokenStepResult': TokenStepResult, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ArtifactReference': ArtifactReference, 'ExecutionReceipt': ExecutionReceipt, 'ArtifactResponse': ArtifactResponse, 'TensorTable': TensorTable, 'VocabularyArtifact': VocabularyArtifact, 'StoredTensorObservation': StoredTensorObservation, 'StoredTokenSelection': StoredTokenSelection, 'StoredNumericalPass': StoredNumericalPass, 'StoredNumericalTrace': StoredNumericalTrace, 'StoredRunRecord': StoredRunRecord, 'StoredTokenStepResult': StoredTokenStepResult, 'ExecutionArchive': ExecutionArchive, 'ExecutionBundle': ExecutionBundle}
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'FullPrefixExecutionConfig': FullPrefixExecutionConfig, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'CachedExecutionConfig': CachedExecutionConfig, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'TokenPublished': TokenPublished, 'RunOutcome': RunOutcome, 'RequestFinished': RequestFinished, 'DecodingContract': DecodingContract, 'AttentionConfiguration': AttentionConfiguration, 'SystemConfigurationPreview': SystemConfigurationPreview, 'WorkloadTransformationPreview': WorkloadTransformationPreview, 'OntologyBinding': OntologyBinding, 'TokenStepRequest': TokenStepRequest, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'ModelForwardCompleted': ModelForwardCompleted, 'TokenSelected': TokenSelected, 'RunEvent': RunEvent, 'Span': Span, 'Encoding': Encoding, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'CacheComputation': CacheComputation, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ClientConfigurationPreview': ClientConfigurationPreview, 'ConfigurationPreview': ConfigurationPreview, 'TokenStepResult': TokenStepResult, 'PreparedInput': PreparedInput, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ArtifactReference': ArtifactReference, 'ExecutionReceipt': ExecutionReceipt, 'ArtifactResponse': ArtifactResponse, 'TensorTable': TensorTable, 'VocabularyArtifact': VocabularyArtifact, 'StoredTensorObservation': StoredTensorObservation, 'StoredTokenSelection': StoredTokenSelection, 'StoredNumericalPass': StoredNumericalPass, 'StoredNumericalTrace': StoredNumericalTrace, 'StoredRunRecord': StoredRunRecord, 'StoredTokenStepResult': StoredTokenStepResult, 'ExecutionArchive': ExecutionArchive, 'ExecutionBundle': ExecutionBundle}
 OPERATION_OWNERS = {'token_embedding': 'Embedding', 'embedding': 'Embedding', 'position_embedding': 'PositionEncoding', 'ln1_mean': 'Normalization', 'ln1_variance': 'Normalization', 'ln1': 'Normalization', 'ln2_mean': 'Normalization', 'ln2_variance': 'Normalization', 'ln2': 'Normalization', 'ln_final_mean': 'Normalization', 'ln_final_variance': 'Normalization', 'ln_final': 'Normalization', 'query': 'Attention', 'key': 'Attention', 'value': 'Attention', 'scores': 'Attention', 'causal_mask': 'Attention', 'attention': 'Attention', 'weighted_values': 'Attention', 'attention_output': 'Attention', 'attention_residual': 'ResidualAddition', 'ff_residual': 'ResidualAddition', 'ff_up': 'FeedForward', 'gelu': 'FeedForward', 'ff_down': 'FeedForward', 'logits': 'OutputProjection', 'input_ids': 'Tokenizer', 'retained_keys': 'KVState', 'retained_values': 'KVState'}
 LAB_BINDINGS = {'naive-gpt': {'primary': 'ModelExecution', 'related': ['Tokenizer', 'Embedding', 'PositionEncoding', 'Normalization', 'Attention', 'ResidualAddition', 'FeedForward', 'OutputProjection', 'Decoding']}, 'kimi-delta-attention': {'primary': 'Attention', 'related': []}, 'prefix-cache': {'primary': 'KVCache', 'related': ['KVState', 'RequestScheduling', 'StateTransfer', 'ComputeService']}, 'prefill-decode': {'primary': 'StateTransfer', 'related': ['KVState', 'ModelExecution']}, 'speculative-decoding': {'primary': 'Decoding', 'related': ['ModelExecution', 'KVState']}, 'positional-encoding': {'primary': 'PositionEncoding', 'related': ['Embedding', 'Attention']}}
 for model in MODELS.values():

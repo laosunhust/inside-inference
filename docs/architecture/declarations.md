@@ -24,7 +24,8 @@ RequestBinding → the resolved request context and the same ontology binding wi
 OntologyBinding → one primary subject and distinct related concepts from admitted ontology.
 RunRecord → the bound workload, typed events, and linked numerical traces.
 RunOutcome → observed counts and termination; it is not a requested configuration.
-InspectionState → a cursor into that run's evidence; it cannot configure execution.
+PreparedInput → validated binding, tokenizer output and model artifact, without inference.
+InspectionState → one prefix/observation cursor; execution identity is null until a token step exists.
 
 Architecture constraints come from generated ModelArchitecture. Runtime capability
 limits belong to InferenceSystem, while a request's maximum new tokens references
@@ -46,33 +47,37 @@ controls; declaration ownership joins those controls to data-plane highlights an
 Zoom 3 details. Adding a supported field must not require a parallel UI registry.
 
 This is currently an interface preview. Nondefault transformations, KDA and paused
-consumption cannot execute in the landing engine; they mark the affected boundary
-without replacing the recorded baseline or fabricating tensors, messages or timing.
-The data-plane Apply source action runs only the declared baseline, independently of
-preview choices. Its returned binding is verified; preview highlights persist. Recorded
-evidence remains inspectable and exportable. SHA identities remain in machine records, not visible presentation.
+consumption cannot execute in the landing engine. They mark their declared boundary;
+Next Token is unavailable until the executable baseline is restored. Applying input
+only prepares the baseline input; it never generates an answer. SHA identities remain
+in machine records, not visible presentation.
 
 ## Interaction lifecycle
 
-The page holds one editable workload draft (currently one request), one submitted binding while executing,
-and one accepted run. These have distinct authority, not competing versions of
-current truth. Inspection state always names the accepted run.
+One accepted prepared request and its current optional token-step result govern
+the page. The editable workload is a draft until Apply succeeds. There is no separate
+idle-state authority: an absent step means no generated output or computation.
 
-- An edit enters `dirty`: results are immediately marked as belonging to the prior
-  submitted request, alongside its actual settings. A success message is cleared.
-- Submit validates and snapshots the draft and selected model/system binding.
-  Controls are locked while executing; inspection of the previous run remains
-  explicitly previous evidence.
-- Success validates the returned binding and outcome, then replaces the accepted
-  run and resets its inspection cursor together. A response for a different binding
-  is an error, not a usable substitute.
-- Failure preserves the previous evidence, labels it as such, and retains the draft.
-- Offline inspection locks execution controls; no edits imply computation.
+- Opening the page loads PreparedInput: the model binding and actual tokenizer result.
+  It contains no answer, forward pass or execution receipt.
+- Apply snapshots and validates the draft, clears prior execution and calls the
+  declared preparation interface. Preparation tokenizes without model.forward.
+  Invalid input remains an explicit error; cleared evidence is not restored.
+- Next Token snapshots the selected prefix and executes one forward pass. Its accepted
+  result supplies the combined tokens, output, diagram, inspection and download.
+  A selected earlier prefix replaces the continuation only upon successful computation.
+  While a step is pending, inspection is unavailable; a failure retains the prior
+  accepted step with an explicit error, never a fabricated replacement.
+- Reset belongs to Output. It discards generated continuation, computation, receipt
+  and inspection selection, retaining accepted input, generation policy and configuration.
+- Input edits, execution and Reset cancel Token Journey. Reset is unavailable while
+  a request is pending; mismatched or late responses are rejected by the transitions.
+- Offline pages expose their prepared input with execution controls disabled.
 
-All three zoom levels, the submitted settings summary, actual/allowed counts,
-termination explanation, and download derive from the same accepted run. No tab
-is created for an unexecuted prediction. An explicit empty allowance is displayed
-as unused budget, not fabricated decode steps.
+The current step is the only numerical inspection authority. Selecting a token chooses
+the next prefix; it does not retrieve a previous prediction or run inference. An
+output token has no embedding in the pass that selected it; inspection uses the last
+computed position. Full workload runs remain available to headless consumers.
 
 ## Behavioral evidence
 

@@ -84,12 +84,12 @@ function timeline(){
  svg.setAttribute('viewBox',`0 0 700 ${req.length*56+24}`);svg.setAttribute('role','img');svg.setAttribute('aria-label','Recorded virtual request timelines');
  const element=(tag,attrs,text)=>{const e=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text)e.textContent=text;svg.append(e);return e;};
  req.forEach((r,i)=>{
-  const y=i*56+18;element('text',{x:0,y:y+12,fill:'#bbcfdf','font-size':12},r.request_id);
+  const y=i*56+18;element('text',{x:0,y:y+12,class:'timeline-label'},r.request_id);
   const arrived=run.events.find(e=>e.request_id===r.request_id&&e.kind==='arrived'),admitted=run.events.find(e=>e.request_id===r.request_id&&e.kind==='admitted');
-  const block=(start,end,color,label,index)=>{const rect=element('rect',{x:65+start/total*620,y,width:Math.max(2,(end-start)/total*620),height:23,rx:4,fill:color});const title=document.createElementNS(ns,'title');title.textContent=`${label}: ${number(start)} → ${number(end)} µs`;rect.append(title);rect.addEventListener('click',()=>{cursor=index;inspect();});};
-  if(arrived&&admitted&&admitted.time_us>arrived.time_us)block(arrived.time_us,admitted.time_us,'#66778a','Admission wait',run.events.indexOf(admitted));
-  run.events.forEach((e,j)=>{if(e.request_id!==r.request_id||!['compute-start','transfer-start','retention-start'].includes(e.kind))return;const end=run.events.slice(j+1).find(x=>x.kind===(e.kind==='retention-start'?'retained':e.kind.replace('start','end')));if(end)block(e.time_us,end.time_us,e.kind==='compute-start'?'#5ac9bd':e.kind==='retention-start'?'#e1b46c':'#9aaafa',e.phase||e.transfer_direction||e.detail,j);});
- });element('text',{x:65,y:req.length*56+15,fill:'#a2b8ca','font-size':11},`0 → ${number(total)} virtual µs`);$('cache-timeline').replaceChildren(svg);
+  const block=(start,end,kind,label,index)=>{const rect=element('rect',{x:65+start/total*620,y,width:Math.max(2,(end-start)/total*620),height:23,rx:4,class:kind});const title=document.createElementNS(ns,'title');title.textContent=`${label}: ${number(start)} → ${number(end)} µs`;rect.append(title);rect.addEventListener('click',()=>{cursor=index;inspect();});};
+  if(arrived&&admitted&&admitted.time_us>arrived.time_us)block(arrived.time_us,admitted.time_us,'admission','Admission wait',run.events.indexOf(admitted));
+  run.events.forEach((e,j)=>{if(e.request_id!==r.request_id||!['compute-start','transfer-start','retention-start'].includes(e.kind))return;const end=run.events.slice(j+1).find(x=>x.kind===(e.kind==='retention-start'?'retained':e.kind.replace('start','end')));if(end)block(e.time_us,end.time_us,e.kind==='compute-start'?'compute':e.kind==='retention-start'?'retention':'transfer',e.phase||e.transfer_direction||e.detail,j);});
+ });element('text',{x:65,y:req.length*56+15,class:'timeline-axis'},`0 → ${number(total)} virtual µs`);$('cache-timeline').replaceChildren(svg);
 }
 function render(){
  timeline();$('cache-events').replaceChildren();run.events.forEach((e,i)=>{const b=make('button',`${e.request_id} ${e.kind}`);b.dataset.kind=e.kind;b.onclick=()=>{cursor=i;inspect();};$('cache-events').append(b);});

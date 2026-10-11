@@ -145,7 +145,7 @@ remain separate claims even when all checks pass.
 
 ## Current implementation and retained native interface
 
-Today the product UI inspects recorded evidence and submits live execution through
+Today the product UI starts from prepared input, then submits token execution and inspects its evidence through
 HTTP to native Python. A separate feasibility harness executes the same Python in
 Pyodide, with in-memory evidence and export/replay. A production worker transport,
 UI integration and persistent browser storage are not implemented. The builder still

@@ -2630,6 +2630,43 @@ globalThis.Declarations = (() => {
       }
     }
   },
+  "PreparedInput": {
+    "type": "object",
+    "x-owner": "ExperimentSpec",
+    "description": "Validated model and workload binding with encoded input; no forward pass, selected output or execution identity.",
+    "additionalProperties": false,
+    "required": [
+      "declaration",
+      "tokenizer",
+      "checkpoint",
+      "vocabulary",
+      "decoding_contract",
+      "contract_sha256"
+    ],
+    "properties": {
+      "declaration": {
+        "$ref": "#/$defs/RunBinding"
+      },
+      "tokenizer": {
+        "$ref": "#/$defs/Encoding"
+      },
+      "checkpoint": {
+        "$ref": "#/$defs/ModelArtifact"
+      },
+      "vocabulary": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/Token"
+        }
+      },
+      "decoding_contract": {
+        "$ref": "#/$defs/DecodingContract"
+      },
+      "contract_sha256": {
+        "type": "string"
+      }
+    }
+  },
   "InspectionState": {
     "type": "object",
     "x-owner": "InspectionState",
@@ -2642,9 +2679,12 @@ globalThis.Declarations = (() => {
     ],
     "properties": {
       "run_id": {
-        "type": "string",
+        "type": [
+          "string",
+          "null"
+        ],
         "title": "Observed run",
-        "description": "SHA-256 identity of the exact artifact bytes or canonical checkpoint.",
+        "description": "Current accepted computation identity; null before the first step or after reset.",
         "pattern": "^[0-9a-f]{64}$"
       },
       "position": {
@@ -4685,6 +4725,7 @@ globalThis.Declarations = (() => {
     "schemas": [
       "RequestBinding",
       "RunBinding",
+      "PreparedInput",
       "KVExperimentInput",
       "KVRunBinding",
       "OntologyBinding",
@@ -4778,7 +4819,7 @@ globalThis.Declarations = (() => {
   },
   "InspectionState": {
     "meaning": "One selected position in an identified accepted token sequence, with one shared diagram/detail surface and observation selection. Selection and journey replay never execute inference.",
-    "lifetime": "Changes on inspection; reset when the bound run changes.",
+    "lifetime": "Changes on inspection; reset when input is applied or output is reset. Execution identity is null until a computation exists.",
     "owns": [
       "Sequence position shared by token highlighting, derived recorded computation and the next submitted raw prefix.",
       "Shared diagram/detail focus and recorded-journey replay selection.",
@@ -5308,8 +5349,8 @@ globalThis.Declarations = (() => {
 };
   const operationOwners = {"token_embedding": "Embedding", "embedding": "Embedding", "position_embedding": "PositionEncoding", "ln1_mean": "Normalization", "ln1_variance": "Normalization", "ln1": "Normalization", "ln2_mean": "Normalization", "ln2_variance": "Normalization", "ln2": "Normalization", "ln_final_mean": "Normalization", "ln_final_variance": "Normalization", "ln_final": "Normalization", "query": "Attention", "key": "Attention", "value": "Attention", "scores": "Attention", "causal_mask": "Attention", "attention": "Attention", "weighted_values": "Attention", "attention_output": "Attention", "attention_residual": "ResidualAddition", "ff_residual": "ResidualAddition", "ff_up": "FeedForward", "gelu": "FeedForward", "ff_down": "FeedForward", "logits": "OutputProjection", "input_ids": "Tokenizer", "retained_keys": "KVState", "retained_values": "KVState"};
   const labs = [{"id": "naive-gpt", "name": "Na\u00efve GPT computation", "status": "mechanical-demo", "ontology_binding": {"primary": "ModelExecution", "related": ["Tokenizer", "Embedding", "PositionEncoding", "Normalization", "Attention", "ResidualAddition", "FeedForward", "OutputProjection", "Decoding"]}}, {"id": "kimi-delta-attention", "name": "Kimi Delta Attention (KDA)", "status": "mechanical-demo", "ontology_binding": {"primary": "Attention", "related": []}}, {"id": "prefix-cache", "name": "Exact prefix caching", "status": "mechanical-demo", "ontology_binding": {"primary": "KVCache", "related": ["KVState", "RequestScheduling", "StateTransfer", "ComputeService"]}}, {"id": "prefill-decode", "name": "Prefill/decode KV handoff", "status": "planned", "ontology_binding": {"primary": "StateTransfer", "related": ["KVState", "ModelExecution"]}}, {"id": "speculative-decoding", "name": "Speculative decoding", "status": "planned", "ontology_binding": {"primary": "Decoding", "related": ["ModelExecution", "KVState"]}}, {"id": "positional-encoding", "name": "Positional encoding", "status": "planned", "ontology_binding": {"primary": "PositionEncoding", "related": ["Embedding", "Attention"]}}];
-  const routes = {"capabilities": "/api/capabilities", "run": "/api/runs", "cacheRun": "/api/cache-runs", "cacheCapabilities": "/api/cache-capabilities", "tokenStep": "/api/token-step", "artifact": "/api/artifacts"};
-  const hash = "54445cd9033ad0f720a3dddb77714220828467b75300492a8012436f197c317d";
+  const routes = {"capabilities": "/api/capabilities", "run": "/api/runs", "cacheRun": "/api/cache-runs", "cacheCapabilities": "/api/cache-capabilities", "tokenStep": "/api/token-step", "artifact": "/api/artifacts", "prepareInput": "/api/prepare-input"};
+  const hash = "f9ed5090ea4a1a9d796a3a020c41a4bcf2933bc589458880f936121e385df03d";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

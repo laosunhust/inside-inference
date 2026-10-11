@@ -87,7 +87,7 @@ globalThis.ConfigurationPreview = (() => {
       }
       const status=document.getElementById('configuration-status');
       status.hidden=!changes.length;
-      status.textContent=changes.length ? changes.map(label).join(' · ')+' — preview only; recorded baseline below' : '';
+      status.textContent=changes.length ? changes.map(label).join(' · ')+' — preview only; baseline execution available after restoring settings' : '';
     }
     function detail(owner) {
       const panel=document.getElementById('configuration-detail');

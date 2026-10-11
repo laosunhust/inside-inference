@@ -15,6 +15,7 @@ terms:
     schemas:
     - RequestBinding
     - RunBinding
+    - PreparedInput
     - KVExperimentInput
     - KVRunBinding
     - OntologyBinding

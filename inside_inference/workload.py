@@ -1,9 +1,11 @@
 """Admit fixed arrivals and record causal events from the numerical engine."""
 from inside_inference.declarations_generated import (
     OntologyBinding, LAB_BINDINGS, CONTRACT_SHA256, Workload, RequestArrival, InferenceRequest, RunBinding,
-    InferenceSystem, ModelArtifactReference, RunRecord,
+    InferenceSystem, ModelArtifactReference, RunRecord, PreparedInput,
 )
-from inside_inference.generation import run_request, token_display
+from inside_inference.generation import run_request, token_display, DECODING_CONTRACT
+from dataclasses import asdict
+from inside_inference.tokenizer import Turn
 from inside_inference.model import Model, default_checkpoint, identity
 from inside_inference.tokenizer import Tokenizer
 from inside_inference.provenance import execution_provenance, stable_provenance, validate_provenance, reference_backend
@@ -41,7 +43,7 @@ def event_causes(events, payload):
     return [last(prerequisite)]
 
 
-def run_workload(workload=None, *, checkpoint=None):
+def prepare_input(workload=None, *, checkpoint=None):
     workload = default_workload() if workload is None else Workload.from_dict(workload)
     system = InferenceSystem()
     admit(workload, system)
@@ -53,6 +55,24 @@ def run_workload(workload=None, *, checkpoint=None):
                          system=system, workload=workload,
                          ontology_binding=OntologyBinding.from_dict(LAB_BINDINGS['naive-gpt']))
     binding.validate_bound(binding.to_dict())
+    if checkpoint['manifest_sha256'] != tokenizer.manifest_sha256:
+        raise ValueError('Checkpoint vocabulary identity does not match tokenizer')
+    request = workload.requests[0].request
+    encoding = tokenizer.encode_prompt([Turn(role='user', text=request.text)], context_limit=model.config.context)
+    required = len(encoding.ids) + request.generation.max_new_tokens - 1
+    if required > model.config.context:
+        raise ValueError(f'Prompt plus token budget requires {required} positions; capacity is {model.config.context}. Reduce the prompt or token budget.')
+    result = {'declaration':binding.to_dict(), 'tokenizer':encoding.to_dict(),
+              'checkpoint':checkpoint, 'vocabulary':[asdict(t) for t in tokenizer.tokens],
+              'decoding_contract':DECODING_CONTRACT, 'contract_sha256':CONTRACT_SHA256}
+    PreparedInput.validate_shape(result)
+    return result
+
+
+def run_workload(workload=None, *, checkpoint=None):
+    prepared = prepare_input(workload, checkpoint=checkpoint)
+    binding = RunBinding.from_dict(prepared['declaration'])
+    workload, checkpoint = binding.workload, prepared['checkpoint']
     run_id = identity({'declaration':binding.to_dict(), 'contract':CONTRACT_SHA256,
                        'provenance':stable_provenance(execution_provenance())})
     events, traces = [], []

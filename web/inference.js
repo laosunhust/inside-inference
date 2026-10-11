@@ -4,10 +4,10 @@
   const $ = id => document.getElementById(id);
   if (!$('inference-data')) return;
   // Preserve the execution record's numerical representation for exact replay.
-  let receipt = EvidenceClient.seed(JSON.parse($('inference-data').textContent));
-  let session = InspectionSession.create(await EvidenceClient.restore(receipt));
+  let receipt=null;
+  let session=InspectionSession.create(JSON.parse($('inference-data').textContent));
   let configuration;
-  const accepted = () => session.run.traces[0];
+  const accepted = () => session.prepared;
   const draftRequest = () => session.draft.requests[0].request;
   const ontology = JSON.parse($('ontology-data').textContent);
   const owner = node => Declarations.operationOwners[node.operation.name];
@@ -19,8 +19,8 @@
   };
   const current = () => InspectionSession.computation(session);
   const sequence = () => InspectionSession.sequence(session);
-  const executionId = () => session.step?.id || session.run.id;
-  const observedPosition = () => Math.min(position(),current().selection_position);
+  const executionId = () => session.step?.id || '';
+  const observedPosition = () => Math.min(position(),current()?.selection_position ?? position());
   const displayedOutput = () => InspectionSession.output(session);
   const position = () => session.view.position;
   const playback = ExecutionPath.playback(() => renderStatus());
@@ -60,20 +60,30 @@
     b.setAttribute('aria-pressed',String(active));
     b.onclick = () => {
       const pass=InspectionSession.computation({...session,view:{...session.view,position:pos}});
-      inspect({position:pos,surface:'model',observation_id:pass.nodes.find(n=>n.operation.name==='embedding').id});
+      inspect({position:pos,surface:pass?'model':'request',observation_id:pass?.nodes.find(n=>n.operation.name==='embedding').id || null});
     };
     return b;
   }
   function chooseEntity(value) {
     const operation=document.querySelector(`[data-entity="${value}"]`)?.dataset.operation;
-    const node=operation ? current().nodes.find(n=>n.operation.name===operation) : null;
-    inspect({surface:node ? 'model' : value,observation_id:node?.id || null});
+    const node=operation ? current()?.nodes.find(n=>n.operation.name===operation) : null;
+    inspect({surface:node ? 'model' : operation ? 'system' : value,observation_id:node?.id || null});
   }
   function openObservation(node) {
     inspect({surface:'model',observation_id:node.id});
   }
   function renderExecutionPath() {
     const pass=current(), path=$('computation-path');
+    $('dispatch-label').textContent=Declarations.schemas.InferenceSystem.properties.dispatch.title;
+    document.querySelector('.execution-endpoint').hidden=!pass;
+    document.querySelector('.system-route').hidden=!pass;
+    document.querySelector('.execution-scroll').hidden=!pass;
+    if(!pass) {
+      path.replaceChildren();delete path.dataset.passId;delete path.dataset.runId;
+      $('execution-edges').querySelectorAll('path').forEach(p=>p.remove());
+      $('computation-caption').textContent=session.phase==='running'?'Computing…':'';
+      return;
+    }
     if(path.dataset.passId===pass.id && path.dataset.runId===executionId()) return;
     ExecutionPath.render(pass,executionId(),ontology,(selected,node)=>{
       inspect({surface:'model',observation_id:node.id});
@@ -137,13 +147,19 @@
     dependencies(body,node);
   }
   function renderDetail() {
+    $('numerical-inspector').hidden=session.phase==='running';
+    if(session.phase==='running') {
+      $('detail-body').replaceChildren();$('inspection-context').textContent='';
+      for(const key of ['runId','passId','surface','observationId','position']) delete $('inspection-context').dataset[key];
+      return;
+    }
     document.querySelectorAll('[data-entity]').forEach(el=>el.classList.toggle('selected-object',el.dataset.entity===entity()));
-    const node=current().nodes.find(n=>n.id===session.view.observation_id);
+    const node=current()?.nodes.find(n=>n.id===session.view.observation_id);
     const context=$('inspection-context');
-    context.dataset.runId=executionId(); context.dataset.passId=current().id;
+    context.dataset.runId=executionId(); context.dataset.passId=current()?.id || '';
     context.dataset.surface=session.view.surface;
     context.dataset.observationId=node?.id || ''; context.dataset.position=observedPosition();
-    context.textContent=`Selected p${position()} · #${sequence()[position()]} ${label(sequence()[position()])} · computed row p${observedPosition()}${node ? ' → '+node.operation.name : ''}`;
+    context.textContent=`Selected p${position()} · #${sequence()[position()]} ${label(sequence()[position()])}${current() ? ' · computed row p'+observedPosition() : ''}${node ? ' → '+node.operation.name : ''}`;
     const button = document.querySelector(`[data-entity="${entity()}"]`);
     const term = entity()==='selection' ? 'Token selection' : entity()==='request' ? 'Request' : entity()==='workload' ? 'Workload' : entity()==='client' ? 'Client' : button.dataset.term, definition = ontology[term];
     $('detail-title').textContent = term;
@@ -162,17 +178,17 @@
       tensorView(body,n=>owner(n)===owner(node));
     } else if (entity() === 'system') {
       body.append(make('p',Declarations.schemas.InferenceSystem.properties.dispatch.description));
-      body.append(json(session.run.declaration.system));
+      body.append(json(session.prepared.declaration.system));
     } else if (entity() === 'request' && session.step) {
       body.append(make('p','Raw-prefix execution; no new tokenization.'));
       body.append(json({prefix_ids:session.step.request.prefix_ids,output_ids:session.step.request.output_ids}));
     } else if (entity() === 'request') {
-      body.append(make('p', `Original user text: ${JSON.stringify(accepted().declaration.request.text)}`));
+      body.append(make('p', `Original user text: ${JSON.stringify(accepted().declaration.workload.requests[0].request.text)}`));
       body.append(table(['Byte offsets in user turn', 'Decision', 'Bytes', 'Emitted IDs'], accepted().tokenizer.spans.map(s => [s.byte_start === null ? 'framing' : `${s.byte_start}…${s.byte_end}`, s.reason, s.raw_bytes.join(' '), s.ids.map(id => `#${id} ${label(id)}`).join(' · ')])));
       body.append(make('p', 'Offsets are half-open UTF-8 byte ranges. Role markers are framing, not text. Unknown input is encoded reversibly; it is not evidence of understanding.'));
     } else if (entity() === 'workload') {
       body.append(make('p',Declarations.schemas.WorkloadTransformationPreview.description));
-      body.append(table(['Request','Arrival (µs)','Source'],session.run.declaration.workload.requests.map(r=>[r.request_id,r.arrival_us,r.request.text])));
+      body.append(table(['Request','Arrival (µs)','Source'],session.prepared.declaration.workload.requests.map(r=>[r.request_id,r.arrival_us,r.request.text])));
     } else if (entity() === 'client') {
       body.append(make('p', Declarations.schemas.ClientConfigurationPreview.description));
       const response=make('button','Inspect published response');response.onclick=()=>chooseEntity('response');body.append(response);
@@ -184,16 +200,20 @@
       body.append(make('p', accepted().decoding_contract.explanation));
       body.append(table(['ID / token', 'Raw logit', 'Full-vocabulary probability'], accepted().vocabulary.map(t => [ `#${t.id} ${label(t.id)}`, number(s.raw_logits[t.id]), number(s.probabilities[t.id]) ])));
     } else {
-      const selection=make('button','Inspect selected prediction');selection.id='response-selection';
-      selection.onclick=()=>chooseEntity('selection');body.append(selection);
+      if(current()) {
+        const selection=make('button','Inspect selected prediction');selection.id='response-selection';
+        selection.onclick=()=>chooseEntity('selection');body.append(selection);
+      }
       body.append(make('p', `Accepted output: ${JSON.stringify(displayedOutput())}`));
       body.append(make('p', 'TURN_END stops generation. Every other ID is retained and published. This is a token display: control/byte/hex markers are not decoded text, and no spaces are inserted between word tokens.'));
-      body.append(json({selected_ids: (session.step?.output_ids || accepted().output_ids), final_stop_reason: session.step ? session.step.stop_reason : accepted().outcome.stop_reason, complete: session.step ? session.step.stop_reason==='turn_end' : accepted().outcome.complete}));
+      body.append(json({selected_ids: (session.step?.output_ids || []), final_stop_reason: session.step?.stop_reason || null, complete: session.step?.stop_reason==='turn_end'}));
     }
   }
   function renderPass() {
     renderExecutionPath();
-    document.querySelector('.event-record').hidden=!!session.step;
+    $('download-run').disabled=!receipt || !session.step || session.phase==='running';
+    $('run-identity').textContent=session.step && session.phase!=='running' ? JSON.stringify({run_id:session.step.id,request:session.step.request}) : '';
+    $('client-boundary').classList.toggle('has-output',!!session.step?.output_ids.length);
     $('source-label').textContent='Input';
     $('pass-caption').textContent = `Input + output · ${sequence().length} positions`;
     $('sequence-strip').replaceChildren(...sequence().map(tokenButton));
@@ -225,7 +245,7 @@
   }
   function renderStatus() {
     const phase=session.phase;
-    const messages={offline:'Recorded run · offline',ready:'',dirty:'Unapplied changes · showing previous run',running:'Computing… · showing previous run',failed:'Failed · showing previous run'};
+    const messages={offline:'Execution unavailable offline',ready:'',dirty:'Unapplied input changes',running:'',failed:'Operation failed'};
     $('binding-status').textContent=phase==='ready' && configuration && !configuration.executable() ? 'Configuration preview' : messages[phase];
     $('binding-status').dataset.phase=phase;
     for(const id of ['prompt','output-budget','execute']) $(id).disabled=!session.live || phase==='running';
@@ -233,34 +253,21 @@
     $('run-error').textContent=session.error || '';
     let unavailable='';
     try { InspectionSession.nextRequest(session); } catch(error) { unavailable=error.message; }
-    $('next-token').disabled=!session.live || !['ready','failed'].includes(phase) || !!unavailable;
+    $('next-token').disabled=!session.live || !['ready','failed'].includes(phase) || !!unavailable || phase==='failed' || !!(configuration && !configuration.executable());
     $('next-token').title=unavailable;
-    $('token-journey').disabled=phase==='running' || phase==='dirty' || !!(configuration && !configuration.executable());
+    $('reset').disabled=phase==='running' || !session.step;
+    $('token-journey').disabled=!current() || phase==='running' || phase==='dirty' || !!(configuration && !configuration.executable());
     $('token-journey').textContent=playback.running() ? 'Pause Journey' : 'Token Journey';
     $('token-journey').setAttribute('aria-pressed',String(playback.running()));
     if(session.error) $('binding-status').textContent=session.error;
     $('binding-status').hidden=!$('binding-status').textContent;
   }
   function renderRun() {
-    const run=accepted(), binding=run.declaration, outcome=run.outcome;
+    const run=accepted();
     playback.stop();
     $('sequence-details').hidden=true;$('output-details').setAttribute('aria-expanded','false');
     $('prompt').value=draftRequest().text; $('output-budget').value=draftRequest().generation.max_new_tokens;
-    $('request-preview').textContent=binding.request.text || '(empty user turn)';
-    const arrival=session.run.declaration.workload.requests[0];
-    $('workload-summary').textContent=`${arrival.request_id} · declared arrival ${arrival.arrival_us} µs · execution order only; no latency simulation`;
-    $('event-stream').replaceChildren(...session.run.events.map(e=>{
-      const row=make('li');
-      const text=`${e.sequence} · ${e.payload.kind}`;
-      if(e.payload.kind==='model-forward-completed') {
-        const button=make('button',text), pass=run.passes.find(p=>p.id===e.payload.work_id);
-        button.dataset.workId=pass.id;
-        button.onclick=()=>inspect({position:pass.selection_position,surface:'model',observation_id:pass.nodes[0].id});
-        row.append(button);
-      } else row.textContent=text;
-      return row;
-    }));
-    $('run-identity').textContent=JSON.stringify({run_id:run.id,request_id:run.request_id,declaration:session.run.declaration,clock:session.run.clock,outcome,contract_sha256:run.contract_sha256,provenance:run.provenance,evidence:run.evidence},null,2);
+    $('request-preview').textContent=run.declaration.workload.requests[0].request.text || '(empty user turn)';
     const selector=$('parameter-name');selector.replaceChildren(...Object.keys(run.checkpoint.parameters).map(name=>{const o=make('option',name);o.value=name;return o;}));
     selector.onchange=()=>{$('parameter-values').textContent=JSON.stringify(run.checkpoint.parameters[selector.value],null,2);};selector.onchange();
     renderPass();renderStatus();
@@ -271,8 +278,8 @@
   configuration=ConfigurationPreview.mount(semanticOwner=>{
     const stage=[...$('computation-path').querySelectorAll('[data-configuration-owner]')].find(el=>el.dataset.configurationOwner===semanticOwner);
     if(stage) chooseEntity(stage.querySelector('[data-entity]').dataset.entity);
-    else chooseEntity(semanticOwner===Declarations.schemas.WorkloadTransformationPreview['x-owner'] ? 'workload' : 'client');
-  },()=>{playback.stop();renderStatus();},[...current().nodes.map(owner),Declarations.schemas.TokenSelection['x-owner']]);
+    else chooseEntity(semanticOwner===Declarations.schemas.WorkloadTransformationPreview['x-owner'] ? 'workload' : semanticOwner===Declarations.schemas.ClientConfigurationPreview['x-owner'] ? 'client' : 'system');
+  },()=>{playback.stop();renderStatus();},[...new Set(Object.values(Declarations.operationOwners)),Declarations.schemas.TokenSelection['x-owner']]);
 
   document.querySelectorAll('[data-entity]').forEach(b => b.onclick = () => { chooseEntity(b.dataset.entity); $('numerical-inspector').scrollIntoView({behavior: 'smooth', block: 'start'}); });
   $('edit-input').onclick=()=>{
@@ -284,6 +291,10 @@
     const panel=$('sequence-details');panel.hidden=!panel.hidden;
     $('output-details').setAttribute('aria-expanded',String(!panel.hidden));
     chooseEntity('response');
+  };
+  $('reset').onclick=()=>{
+    playback.stop();
+    session=InspectionSession.transition(session,{type:'RESET'});receipt=null;renderRun();
   };
   $('token-journey').onclick=()=>{
     if(playback.running()) return playback.stop();
@@ -308,19 +319,18 @@
   $('inference-form').onsubmit=async event=>{
     event.preventDefault();playback.stop();
     try {
-      session=InspectionSession.transition(session,{type:'SUBMIT'});renderStatus();
-      const response=await fetch(Declarations.routes.run,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(session.submitted.workload)});
+      session=InspectionSession.transition(session,{type:'SUBMIT'});receipt=null;renderPass();
+      const response=await fetch(Declarations.routes.prepareInput,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(session.submitted.workload)});
       const delivered=await response.json();if(!response.ok) throw new Error(delivered.error);
-      const result=await EvidenceClient.restore(delivered);
-      session=InspectionSession.transition(session,{type:'ACCEPT',run:result});
-      receipt=delivered;renderRun();
+      session=InspectionSession.transition(session,{type:'ACCEPT',prepared:delivered});
+      renderRun();
       const editor=document.querySelector('.source-editor');
       const restoreFocus=editor.contains(document.activeElement);
       editor.hidden=true;
       $('edit-input').setAttribute('aria-expanded','false');
       if(restoreFocus) $('edit-input').focus();
     } catch(error) {
-      session=InspectionSession.transition(session,{type:'FAIL',message:error.message});renderStatus();
+      session=InspectionSession.transition(session,{type:'FAIL',message:error.message});renderPass();
     }
   };
   $('download-run').onclick=async()=>{try { const serializedRun=await EvidenceClient.export(receipt);const a=make('a');const url=URL.createObjectURL(new Blob([serializedRun],{type:'application/json'}));a.href=url;a.download='inference-run.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000); } catch(error) { session={...session,error:error.message};renderStatus(); } };

@@ -87,6 +87,12 @@ export async function checkInspection(evaluate, run, prediction) {
 // Exercise actual timed replay; virtual browser time avoids adding presentation delays to the harness.
 export async function checkJourney({send,evaluate,until,click},run) {
   await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  assert.equal(await evaluate(`(() => {
+    const input=document.getElementById('workload-boundary'),output=document.getElementById('client-boundary');
+    return input.nextElementSibling===output && output.nextElementSibling.id==='sequence-details' &&
+      output.nextElementSibling.nextElementSibling.classList.contains('execution-journey') &&
+      document.documentElement.scrollWidth<=innerWidth;
+  })()`),true,'Input, Output and token details precede the journey without mobile page overflow');
   const before=await evaluate(`document.getElementById('inspection-context').dataset.position`);
   const output=await evaluate(`document.getElementById('response-preview').textContent`);
   await evaluate(`window.journeyVisits=[]; window.journeyObserver=new MutationObserver(()=>{
@@ -113,7 +119,7 @@ export async function checkJourney({send,evaluate,until,click},run) {
   await send('Emulation.setVirtualTimePolicy',{policy:'advance'});
   const visits=await evaluate(`window.journeyObserver.disconnect(); window.journeyVisits`);
   const tensors=visits.filter(v=>v.surface==='model');
-  assert.deepEqual(tensors.map(v=>v.tensor),run.traces[0].passes[0].nodes);
+  assert.deepEqual(tensors.map(v=>v.tensor),(run.computation || run.traces[0].passes[0]).nodes);
   tensors.forEach(v=>{assert.equal(v.id,v.tensor.id);assert.ok(v.highlighted.includes(v.id));assert.ok(v.visible,'Replay stage must stay visible on narrow screens');});
   assert.deepEqual(visits.map(v=>v.surface),['request','system',...tensors.map(()=>'model'),'selection','response']);
   visits.forEach(v=>{assert.equal(v.position,before,'Replay must preserve the generation prefix');assert.equal(v.output,output,'Inspection must not rewrite accepted output');});
@@ -127,7 +133,9 @@ export async function checkShortInput({evaluate,until,click}) {
   await until(`document.getElementById('binding-status').dataset.phase==='ready'`);
   const ids=await evaluate(`Array.from(document.querySelectorAll('#sequence-strip button small'),n=>Number(n.textContent.split('#')[1]))`);
   assert.deepEqual(ids.slice(0,8),[0,3,331,6,131,6,5,4]);
-  assert.equal(ids.length,10,'Combined panel includes the two actually selected output IDs');
+  assert.equal(ids.length,8,'Applying input performs tokenization without inference');
+  assert.equal(await evaluate(`document.getElementById('response-preview').textContent`),'');
+  await click('next-token');await until(`document.getElementById('binding-status').dataset.phase==='ready'`);
   assert.equal(await evaluate(`document.getElementById('sequence-details').hidden`),true);
   assert.equal(await evaluate(`document.getElementById('request-preview').textContent`),'ann has ');
   await click('token-journey');
