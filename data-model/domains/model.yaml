@@ -46,9 +46,10 @@ $defs:
       layers:
         type: integer
         title: Blocks
-        description: Supported baseline value.
-        const: 1
+        description: Executed decoder blocks; each owns its weights and KV state.
         default: 1
+        minimum: 1
+        maximum: 2
       heads:
         type: integer
         title: Attention heads
@@ -142,7 +143,9 @@ $defs:
         minimum: 1
       selection:
         type: string
-        const: minimum-development-response-loss
+        enum:
+        - minimum-development-response-loss
+        - minimum-development-token-loss
       development_loss:
         type: number
         minimum: 0
@@ -196,22 +199,32 @@ $defs:
           maximum: 383
       keys:
         type: array
-        maxItems: 128
+        minItems: 1
+        maxItems: 2
+        description: Layer, prefix position, channel.
         items:
           type: array
-          minItems: 2
-          maxItems: 32
+          maxItems: 128
           items:
-            type: number
+            type: array
+            minItems: 2
+            maxItems: 32
+            items:
+              type: number
       values:
         type: array
-        maxItems: 128
+        minItems: 1
+        maxItems: 2
+        description: Layer, prefix position, channel.
         items:
           type: array
-          minItems: 2
-          maxItems: 32
+          maxItems: 128
           items:
-            type: number
+            type: array
+            minItems: 2
+            maxItems: 32
+            items:
+              type: number
   ModelArtifact:
     type: object
     properties:
@@ -219,6 +232,7 @@ $defs:
         $ref: '#/$defs/ModelArchitecture'
       format:
         type: string
+        const: naive-gpt-checkpoint-v2
       manifest_sha256:
         type: string
       parameters:
@@ -240,44 +254,84 @@ $defs:
     properties:
       attention_output:
         type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
           type: array
           items:
-            type: number
+            type: array
+            items:
+              type: number
       attention_output_bias:
         type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
-          type: number
+          type: array
+          items:
+            type: number
       ff_down:
         type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
           type: array
           items:
-            type: number
+            type: array
+            items:
+              type: number
       ff_down_bias:
         type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
-          type: number
+          type: array
+          items:
+            type: number
       ff_up:
         type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
           type: array
           items:
-            type: number
+            type: array
+            items:
+              type: number
       ff_up_bias:
         type: array
-        items:
-          type: number
-      key:
-        type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
           type: array
           items:
             type: number
+      key:
+        type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
+        items:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
       key_bias:
         type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
-          type: number
+          type: array
+          items:
+            type: number
       lm_bias:
         type: array
         items:
@@ -290,20 +344,40 @@ $defs:
             type: number
       ln1_bias:
         type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
-          type: number
+          type: array
+          items:
+            type: number
       ln1_scale:
         type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
-          type: number
+          type: array
+          items:
+            type: number
       ln2_bias:
         type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
-          type: number
+          type: array
+          items:
+            type: number
       ln2_scale:
         type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
-          type: number
+          type: array
+          items:
+            type: number
       ln_final_bias:
         type: array
         items:
@@ -320,14 +394,24 @@ $defs:
             type: number
       query:
         type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
+        items:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+      query_bias:
+        type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
           type: array
           items:
             type: number
-      query_bias:
-        type: array
-        items:
-          type: number
       token_embedding:
         type: array
         items:
@@ -336,14 +420,24 @@ $defs:
             type: number
       value:
         type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
+        items:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+      value_bias:
+        type: array
+        minItems: 1
+        maxItems: 2
+        description: Layer-indexed block tensor.
         items:
           type: array
           items:
             type: number
-      value_bias:
-        type: array
-        items:
-          type: number
     required:
     - attention_output
     - attention_output_bias

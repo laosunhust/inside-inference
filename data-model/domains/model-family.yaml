@@ -1,0 +1,654 @@
+$defs:
+  ModelAsset:
+    type: object
+    x-owner: ModelArtifact
+    additionalProperties: false
+    required:
+    - path
+    - sha256
+    - bytes
+    properties:
+      path:
+        type: string
+        pattern: ^[a-zA-Z0-9][a-zA-Z0-9._/-]*$
+      sha256:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      bytes:
+        type: integer
+        minimum: 1
+  ModelStorage:
+    type: object
+    x-owner: ModelArtifact
+    additionalProperties: false
+    required:
+    - base_url
+    properties:
+      base_url:
+        type: string
+        description: Relative URL or HTTP(S) object-storage prefix; identical fetch protocol locally and
+          remotely.
+        pattern: '[\s\S]+'
+  LlamaArchitecture:
+    type: object
+    x-owner: ModelArchitecture
+    additionalProperties: false
+    required:
+    - vocabulary
+    - width
+    - ffn
+    - context
+    - layers
+    - heads
+    - position
+    - normalization
+    - activation
+    - precision
+    properties:
+      vocabulary:
+        type: integer
+        const: 4096
+      width:
+        type: integer
+        enum:
+        - 64
+        - 256
+      ffn:
+        type: integer
+        enum:
+        - 192
+        - 704
+      context:
+        type: integer
+        const: 512
+      layers:
+        type: integer
+        const: 4
+      heads:
+        type: integer
+        enum:
+        - 2
+        - 8
+      position:
+        type: string
+        const: rope
+      normalization:
+        type: string
+        const: rmsnorm
+      activation:
+        type: string
+        const: silu-gated
+      precision:
+        type: string
+        const: binary32
+  ModelDescriptor:
+    type: object
+    x-owner: ModelArtifact
+    additionalProperties: false
+    required:
+    - id
+    - label
+    - role
+    - parameters
+    - architecture
+    - runtime
+    - weights
+    - tokenizer
+    - seed
+    - inspection
+    - stop_ids
+    - normalization
+    - provenance
+    properties:
+      id:
+        type: string
+        pattern: ^[a-z0-9-]+$
+      label:
+        type: string
+        pattern: '[\s\S]+'
+      role:
+        type: string
+        enum:
+        - inspection
+        - comparison
+        - continuation
+      parameters:
+        type: integer
+        minimum: 1
+      architecture:
+        oneOf:
+        - $ref: '#/$defs/ModelArchitecture'
+        - $ref: '#/$defs/LlamaArchitecture'
+      runtime:
+        type: string
+        enum:
+        - naive-python
+        - llama2c-wasm
+      weights:
+        $ref: '#/$defs/ModelAsset'
+      tokenizer:
+        $ref: '#/$defs/ModelAsset'
+      seed:
+        type: integer
+        minimum: 0
+      inspection:
+        type: string
+        enum:
+        - tensors
+        - logits
+      stop_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+        minItems: 1
+      normalization:
+        type: string
+        enum:
+        - exact
+        - sentencepiece-identity-collapse-spaces
+      provenance:
+        type: string
+        pattern: '[\s\S]+'
+  ModelCatalog:
+    type: object
+    x-owner: ModelArtifact
+    additionalProperties: false
+    required:
+    - storage
+    - models
+    properties:
+      storage:
+        $ref: '#/$defs/ModelStorage'
+      models:
+        type: array
+        items:
+          $ref: '#/$defs/ModelDescriptor'
+        minItems: 1
+  ModelSelection:
+    type: object
+    x-owner: ModelArtifact
+    additionalProperties: false
+    required:
+    - model_id
+    properties:
+      model_id:
+        type: string
+        pattern: '[\s\S]+'
+  ModelLoadResult:
+    type: object
+    x-owner: ModelArtifact
+    additionalProperties: false
+    required:
+    - model
+    - load_ms
+    - token_pieces
+    - parameters
+    properties:
+      model:
+        $ref: '#/$defs/ModelDescriptor'
+      load_ms:
+        type: number
+        minimum: 0
+      token_pieces:
+        type: array
+        minItems: 384
+        maxItems: 4096
+        items:
+          type: string
+      parameters:
+        oneOf:
+        - $ref: '#/$defs/ModelWeights'
+        - type: 'null'
+  GenerationInput:
+    type: object
+    x-owner: InferenceRequest
+    additionalProperties: false
+    required:
+    - experiment
+    - workload
+    properties:
+      experiment:
+        $ref: '#/$defs/GenerationExperiment'
+      workload:
+        $ref: '#/$defs/Workload'
+  GenerationPrepared:
+    type: object
+    x-owner: InferenceRequest
+    additionalProperties: false
+    required:
+    - prompt_ids
+    - pieces
+    - input
+    - encoding
+    properties:
+      prompt_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+        minItems: 1
+        maxItems: 512
+      pieces:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        maxItems: 512
+      input:
+        $ref: '#/$defs/GenerationInput'
+      encoding:
+        oneOf:
+        - $ref: '#/$defs/Encoding'
+        - type: 'null'
+  GenerationStep:
+    type: object
+    x-owner: InferenceRequest
+    additionalProperties: false
+    required:
+    - experiment
+    - prefix_ids
+    - output_ids
+    - generation
+    properties:
+      experiment:
+        $ref: '#/$defs/GenerationExperiment'
+      prefix_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+        minItems: 1
+        maxItems: 512
+      output_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+        maxItems: 128
+      generation:
+        $ref: '#/$defs/GenerationPolicy'
+  GenerationPrediction:
+    type: object
+    x-owner: ExperimentObservation
+    additionalProperties: false
+    required:
+    - model_id
+    - weights_sha256
+    - tokenizer_sha256
+    - sequence_ids
+    - output_ids
+    - text
+    - pieces
+    - logits
+    - selected_id
+    - stop_reason
+    - compute_ms
+    - nodes
+    - decoding_note
+    - request
+    - id
+    - contract_sha256
+    - probabilities
+    properties:
+      model_id:
+        type: string
+      weights_sha256:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      tokenizer_sha256:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      sequence_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+        minItems: 2
+        maxItems: 513
+      output_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+        minItems: 1
+        maxItems: 128
+      text:
+        type: string
+      pieces:
+        type: array
+        items:
+          type: string
+        minItems: 2
+        maxItems: 513
+      logits:
+        type: array
+        items:
+          type: number
+        minItems: 384
+        maxItems: 4096
+      selected_id:
+        type: integer
+        minimum: 0
+      stop_reason:
+        type:
+        - string
+        - 'null'
+        enum:
+        - null
+        - end_token
+        - output_budget
+        - context_capacity
+      compute_ms:
+        type: number
+        minimum: 0
+      nodes:
+        type: array
+        items:
+          $ref: '#/$defs/TensorObservation'
+      decoding_note:
+        type:
+        - string
+        - 'null'
+      request:
+        $ref: '#/$defs/GenerationStep'
+      id:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      contract_sha256:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      probabilities:
+        type: array
+        items:
+          type: number
+          minimum: 0
+          maximum: 1
+        minItems: 384
+        maxItems: 4096
+  ModelSource:
+    type: object
+    x-owner: ModelArtifact
+    additionalProperties: false
+    required:
+    - id
+    - role
+    - runtime
+    - seed
+    - provenance
+    - weights
+    - tokenizer
+    properties:
+      id:
+        type: string
+        pattern: ^[a-z0-9-]+$
+      role:
+        type: string
+        enum:
+        - inspection
+        - comparison
+        - continuation
+      runtime:
+        type: string
+        enum:
+        - naive-python
+        - llama2c-wasm
+      seed:
+        type: integer
+        minimum: 0
+      provenance:
+        type: string
+        pattern: '[\s\S]+'
+      weights:
+        type: string
+        pattern: ^[a-z0-9][a-z0-9.-]*\.bin$
+      tokenizer:
+        type: string
+        pattern: ^[a-z0-9][a-z0-9.-]*\.bin$
+  ModelSources:
+    type: object
+    x-owner: ModelArtifact
+    additionalProperties: false
+    required:
+    - storage
+    - models
+    properties:
+      storage:
+        $ref: '#/$defs/ModelStorage'
+      models:
+        type: array
+        minItems: 1
+        items:
+          $ref: '#/$defs/ModelSource'
+  GenerationExperiment:
+    type: object
+    x-owner: ExperimentSpec
+    additionalProperties: false
+    required:
+    - model_id
+    - ontology_binding
+    properties:
+      model_id:
+        type: string
+        pattern: ^[a-z0-9-]+$
+      ontology_binding:
+        $ref: '#/$defs/OntologyBinding'
+  GenerationDefaults:
+    type: object
+    x-owner: ExperimentSpec
+    additionalProperties: false
+    required:
+    - model_id
+    - workload
+    properties:
+      model_id:
+        type: string
+        pattern: ^[a-z0-9-]+$
+      workload:
+        $ref: '#/$defs/Workload'
+  GenerationEvidence:
+    type: object
+    x-owner: ExperimentExecution
+    additionalProperties: false
+    required:
+    - input
+    - model
+    - prediction
+    properties:
+      input:
+        $ref: '#/$defs/GenerationInput'
+      model:
+        $ref: '#/$defs/ModelDescriptor'
+      prediction:
+        $ref: '#/$defs/GenerationPrediction'
+  ArchitectureWalkthrough:
+    type: object
+    x-owner: ModelArchitecture
+    additionalProperties: false
+    required:
+    - runtime
+    - stages
+    properties:
+      runtime:
+        type: string
+        enum:
+        - naive-python
+        - llama2c-wasm
+      stages:
+        type: array
+        items:
+          $ref: '#/$defs/ArchitectureStage'
+    oneOf:
+    - const:
+        runtime: naive-python
+        stages:
+        - owner: Tokenizer
+          label: Token IDs
+          scope: prefix
+          detail: Token IDs
+          inputs: []
+        - owner: Embedding
+          label: Token embedding
+          scope: prefix
+          detail: Token embedding
+          inputs:
+          - 0
+        - owner: PositionEncoding
+          label: Position embedding
+          scope: prefix
+          detail: Position embedding
+          inputs:
+          - 0
+        - owner: Embedding
+          label: +
+          scope: prefix
+          detail: Add embeddings
+          inputs:
+          - 1
+          - 2
+        - owner: Normalization
+          label: Normalize
+          scope: layer
+          detail: Layer norm
+          inputs:
+          - 3
+        - owner: Attention
+          label: Attention
+          scope: layer
+          detail: Q/K/V projections → causal attention → output projection.
+          inputs:
+          - 4
+        - owner: ResidualAddition
+          label: +
+          scope: layer
+          detail: Residual addition
+          inputs:
+          - 3
+          - 5
+        - owner: Normalization
+          label: Normalize
+          scope: layer
+          detail: Layer norm
+          inputs:
+          - 6
+        - owner: FeedForward
+          label: Feed-forward
+          scope: layer
+          detail: GELU feed-forward
+          inputs:
+          - 7
+        - owner: ResidualAddition
+          label: +
+          scope: layer
+          detail: Residual addition
+          inputs:
+          - 6
+          - 8
+        - owner: Normalization
+          label: Final norm
+          scope: suffix
+          detail: Final norm
+          inputs:
+          - 9
+        - owner: OutputProjection
+          label: Vocabulary projection
+          scope: suffix
+          detail: Vocabulary projection
+          inputs:
+          - 10
+    - const:
+        runtime: llama2c-wasm
+        stages:
+        - owner: Tokenizer
+          label: Token IDs
+          scope: prefix
+          detail: Token IDs
+          inputs: []
+        - owner: Embedding
+          label: Token embedding
+          scope: prefix
+          detail: Token embedding
+          inputs:
+          - 0
+        - owner: Normalization
+          label: Normalize
+          scope: layer
+          detail: RMSNorm
+          inputs:
+          - 1
+        - owner: Attention
+          label: Attention
+          scope: layer
+          detail: Q/K/V projections → RoPE on Q/K → causal attention → output projection.
+          inputs:
+          - 2
+        - owner: ResidualAddition
+          label: +
+          scope: layer
+          detail: Residual addition
+          inputs:
+          - 1
+          - 3
+        - owner: Normalization
+          label: Normalize
+          scope: layer
+          detail: RMSNorm
+          inputs:
+          - 4
+        - owner: FeedForward
+          label: Feed-forward
+          scope: layer
+          detail: SiLU gated feed-forward
+          inputs:
+          - 5
+        - owner: ResidualAddition
+          label: +
+          scope: layer
+          detail: Residual addition
+          inputs:
+          - 4
+          - 6
+        - owner: Normalization
+          label: Final norm
+          scope: suffix
+          detail: Final RMSNorm
+          inputs:
+          - 7
+        - owner: OutputProjection
+          label: Vocabulary projection
+          scope: suffix
+          detail: Vocabulary projection
+          inputs:
+          - 8
+  ArchitectureStage:
+    type: object
+    x-owner: ModelArchitecture
+    additionalProperties: false
+    required:
+    - owner
+    - label
+    - scope
+    - detail
+    - inputs
+    properties:
+      owner:
+        type: string
+        x-ontology-reference: true
+      label:
+        type: string
+        pattern: '[\s\S]+'
+      scope:
+        type: string
+        enum:
+        - prefix
+        - layer
+        - suffix
+      detail:
+        type: string
+        pattern: '[\s\S]+'
+      inputs:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+        description: Earlier stage indices in this single-block schematic; residual branches remain explicit.

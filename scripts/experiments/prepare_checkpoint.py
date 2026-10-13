@@ -28,7 +28,7 @@ def write_json(path, value):
     temporary.replace(path)
 
 
-def sources():
+def sources(config):
     paths = ['inside_inference/preparation.py', 'inside_inference/tensor_model.py', 'inside_inference/model.py',
              'inside_inference/tokenizer.py', 'inside_inference/corpus.py',
              'inside_inference/generation.py', 'inside_inference/declarations_generated.py',
@@ -36,6 +36,8 @@ def sources():
              'data/tokenizer/vocabulary.json', 'requirements-preparation.txt',
              'docs/implementation/checkpoint-pilot.md', 'docs/implementation/checkpoint-multiword.md',
              'governance/evaluations/records/2026-10/readable-multiword-checkpoint.yaml']
+    if 'evaluation_record' in config:
+        paths.append(config['evaluation_record'])
     return {path: hashlib.sha256((ROOT/path).read_bytes()).hexdigest() for path in paths}
 
 
@@ -61,12 +63,13 @@ def main():
     tokenizer = Tokenizer()
     budget = config.get('evaluation_budget', 8)
     examples = prepare_examples(config.get('target_policy', 'original'), budget)
-    checkpoint = initialize(ModelArchitecture(), tokenizer.manifest_sha256, config['seed'])
+    architecture = ModelArchitecture.from_dict(config['architecture']) if 'architecture' in config else ModelArchitecture()
+    checkpoint = initialize(architecture, tokenizer.manifest_sha256, config['seed'])
     model = PreparationModel(checkpoint)
     optimizer = make_optimizer(model, config)
     metadata = {'config':config, 'architecture':checkpoint['config'],
         'tokenizer_sha256':tokenizer.manifest_sha256, 'data_sha256':identity(examples),
-        'source_sha256':sources(), 'python':platform.python_version(), 'torch':str(torch.__version__)}
+        'source_sha256':sources(config), 'python':platform.python_version(), 'torch':str(torch.__version__)}
     run_identity = identity(metadata)
     output = args.output.resolve()
     if not output.is_relative_to((ROOT/'out/experiments').resolve()):
@@ -93,7 +96,7 @@ def main():
         target = output/'sources'/name
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(raw)
-    write_json(output/'sources/pilot.json', config)
+    write_json(output/'sources/config.json', config)
     stop_requested = []
     def stop(signum, _frame): stop_requested.append(signum)
     signal.signal(signal.SIGTERM, stop)

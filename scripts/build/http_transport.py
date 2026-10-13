@@ -60,7 +60,8 @@ CLIENT = """(() => {
 })();
 """
 
-WORKER = """import {loadPyodide} from './runtime/pyodide.mjs';
+WORKER = """import {executeModelOperation,handlesModelOperation} from './model-service.js';
+import {loadPyodide} from './runtime/pyodide.mjs';
 const ready=(async()=>{
   const py=await loadPyodide({indexURL:new URL('./runtime/',import.meta.url).href});
   await py.loadPackage('jsonschema');
@@ -78,7 +79,13 @@ onmessage=({data,ports})=>{
       const py=await ready;
       py.globals.set('operation_name',data.operation);
       py.globals.set('operation_input',data.input);
-      const json=await py.runPythonAsync('execute_json(operation_name, operation_input, evidence_store)');
+      let json;
+      if(handlesModelOperation(data.operation)) {
+        await py.runPythonAsync('from inside_inference.delivery.service import validate_operation_input; validate_operation_input(operation_name, operation_input)');
+        json=JSON.stringify(await executeModelOperation(data.operation,JSON.parse(data.input),py));
+        py.globals.set('operation_output',json);
+        await py.runPythonAsync('from inside_inference.delivery.service import validate_operation_output; validate_operation_output(operation_name, operation_output)');
+      } else json=await py.runPythonAsync('execute_json(operation_name, operation_input, evidence_store)');
       port.postMessage({json});
     } catch(error) {port.postMessage({error:String(error)});}
     finally {port.close();}
@@ -93,6 +100,15 @@ from pathlib import Path
 
 
 class StaticHandler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, cors_origin=None, **kwargs):
+        self.cors_origin = cors_origin
+        super().__init__(*args, **kwargs)
+
+    def end_headers(self):
+        if self.cors_origin is not None:
+            self.send_header('Access-Control-Allow-Origin', self.cors_origin)
+        super().end_headers()
+
     def log_message(self, *args): pass
 
     def send_head(self):
@@ -105,6 +121,6 @@ class StaticHandler(SimpleHTTPRequestHandler):
         return super().send_head()
 
 
-def socket_server(address, *, directory):
-    return ThreadingHTTPServer(address, partial(StaticHandler,directory=str(directory)))
+def socket_server(address, *, directory, cors_origin=None):
+    return ThreadingHTTPServer(address, partial(StaticHandler,directory=str(directory),cors_origin=cors_origin))
 '''

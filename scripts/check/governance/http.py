@@ -10,6 +10,10 @@ WORKER = 'web/execution/worker.generated.js'
 def check_source(path, source):
     failures = []
     if path.suffix in ('.js','.mjs','.html'):
+        if path.as_posix() == 'web/execution/model-storage.js':
+            if re.search(r'\b(?:XMLHttpRequest|WebSocket|Worker|postMessage)\b', source):
+                failures.append(f'{path}: asset storage cannot create execution transports')
+            return failures
         if re.search(r'\b(?:fetch|XMLHttpRequest|WebSocket|Worker|postMessage)\b|Declarations\s*\.\s*routes|ExecutionClient\s*\.\s*(?:http|create)',source):
             failures.append(f'{path}: presentation must use the generated execution client')
         return failures

@@ -6,6 +6,15 @@ from pathlib import Path
 
 
 class StaticHandler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, cors_origin=None, **kwargs):
+        self.cors_origin = cors_origin
+        super().__init__(*args, **kwargs)
+
+    def end_headers(self):
+        if self.cors_origin is not None:
+            self.send_header('Access-Control-Allow-Origin', self.cors_origin)
+        super().end_headers()
+
     def log_message(self, *args): pass
 
     def send_head(self):
@@ -18,5 +27,5 @@ class StaticHandler(SimpleHTTPRequestHandler):
         return super().send_head()
 
 
-def socket_server(address, *, directory):
-    return ThreadingHTTPServer(address, partial(StaticHandler,directory=str(directory)))
+def socket_server(address, *, directory, cors_origin=None):
+    return ThreadingHTTPServer(address, partial(StaticHandler,directory=str(directory),cors_origin=cors_origin))

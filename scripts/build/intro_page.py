@@ -9,7 +9,6 @@ import shutil
 
 from inside_inference.labs.kda import demo
 from inside_inference.labs.journey import scenarios, simulate
-from inside_inference.workload import prepare_input
 from inside_inference.cache_lab import default_experiment
 from inside_inference.tokenizer import Tokenizer
 from scripts.build.generate_data_models import admit, generate, read
@@ -94,17 +93,30 @@ def ontology_terms():
     return terms
 
 
-def build(output, *, checkpoint=None):
+def initial_generation():
+    from inside_inference.declarations_generated import GenerationDefaults, GenerationInput, LAB_BINDINGS
+    from scripts.build.structured import read_yaml
+    defaults=read_yaml(ROOT/'data/models/initial.yaml')
+    GenerationDefaults.validate_shape(defaults)
+    result={'experiment':{'model_id':defaults['model_id'],'ontology_binding':LAB_BINDINGS['naive-gpt']},'workload':defaults['workload']}
+    GenerationInput.validate_shape(result)
+    return result
+
+
+def build(output, *, checkpoint=None, model_storage=None):
     check_theme(ROOT)
     generate(check=True)
     from scripts.build.browser_runtime import package
-    package(output,checkpoint)
+    package(output,checkpoint,model_storage=model_storage)
     data = load_catalog()
     output.mkdir(parents=True, exist_ok=True)
     (output / 'labs').mkdir(exist_ok=True)
-    for name in ('execution/evidence-client.js', 'execution/client.generated.js', 'execution/worker.generated.js', 'theme.css', 'style.css', 'app.js', 'journey.js', 'inference.js', 'configuration-preview.js', 'execution-path.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
+    for name in ('inspection/details.js', 'execution/model-service.js', 'execution/model-storage.js', 'execution/client.generated.js', 'execution/worker.generated.js', 'theme.css', 'style.css', 'app.js', 'journey.js', 'inference.js', 'configuration-preview.js', 'execution-path.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
         (output / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / 'web' / name, output / name)
+    # Retired generated pages must not survive an incremental build.
+    for retired in ('model-size.html','models/page.js','labs/model-size-quality.html','execution/evidence-client.js'):
+        (output/retired).unlink(missing_ok=True)
     layers = {x['id']: x for x in data['layers']}
     nav = ''.join(f'<a href="#layer-{x["id"]}">{i:02d} {esc(x["name"])}</a>'
                   for i, x in enumerate(data['layers'], 1))
@@ -149,7 +161,7 @@ Classify the actual changed boundary, and link the others.</p></section>
 <b>Compare</b> a stated baseline under controlled conditions. <b>Separate</b> mathematical properties,
 toy observations, simulated costs, and real measurements. <b>Declare</b> failure cases and what cannot transfer.</p>
 <p>Catalog entries: {sum(e["status"] == "mechanical-demo" for e in data["innovations"])} mechanical demo(s) and {sum(e["status"] == "planned" for e in data["innovations"])} planned lab(s).
-The landing page executes an inspectable GPT with identified checkpoint provenance; its default weights are trained on a small synthetic task. A separate lab models bounded request costs. Neither path establishes production language quality or real-system performance.</p></section>'''
+The landing page executes the selected model in the browser; the 8K model exposes numerical tensors and larger models expose logits. A separate lab models bounded request costs. Neither path establishes production language quality or real-system performance.</p></section>'''
     (output / 'atlas.html').write_text(shell('Lab catalog', body))
     terms = ontology_terms()
     visual_source = (ROOT / 'web/inference.html').read_text()
@@ -185,7 +197,7 @@ The landing page executes an inspectable GPT with identified checkpoint provenan
         '__STEP_LABS__', json.dumps(step_labs).replace('<', '\\u003c'))
     (output / 'request-cost.html').write_text(shell('Request cost simulation', landing))
     numerical = (ROOT / 'web/inference.html').read_text().replace(
-        '__INFERENCE_DATA__', json.dumps(prepare_input(checkpoint=checkpoint), allow_nan=False).replace('<', '\\u003c')).replace(
+        '__INFERENCE_DATA__', json.dumps(initial_generation(), allow_nan=False).replace('<', '\\u003c')).replace(
         '__ONTOLOGY_DATA__', json.dumps(terms).replace('<', '\\u003c'))
     numerical = '<link rel="stylesheet" href="inference.css">' + numerical
     (output / 'index.html').write_text(shell('What happens if you change this?', numerical, landing=True))
@@ -287,6 +299,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     parser.add_argument('--checkpoint', type=Path)
+    parser.add_argument('--model-asset-base', help='Relative or HTTPS model asset URL prefix')
     args = parser.parse_args()
     if args.check:
         check_theme(ROOT)
@@ -294,4 +307,4 @@ if __name__ == '__main__':
         print('Catalog identities, layer references, and evidence statuses checked.')
     else:
         checkpoint = json.loads(args.checkpoint.read_text()) if args.checkpoint else None
-        print(build(ROOT / 'out/intro-page', checkpoint=checkpoint))
+        print(build(ROOT / 'out/intro-page', checkpoint=checkpoint, model_storage={'base_url':args.model_asset_base} if args.model_asset_base else None))

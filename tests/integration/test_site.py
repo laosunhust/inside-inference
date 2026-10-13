@@ -32,6 +32,7 @@ class PageParser(HTMLParser):
 
 class AtlasTests(unittest.TestCase):
     shared_site = None
+    shared_checkpoint = None
 
     @classmethod
     def setUpClass(cls):
@@ -41,7 +42,7 @@ class AtlasTests(unittest.TestCase):
         cls.directory = tempfile.TemporaryDirectory()
         cls.addClassCleanup(cls.directory.cleanup)
         cls.site = Path(cls.directory.name)
-        build(cls.site)
+        build(cls.site, checkpoint=cls.shared_checkpoint)
 
     def test_rejects_invalid_catalog(self):
         original = load_catalog()
@@ -64,9 +65,9 @@ class AtlasTests(unittest.TestCase):
         page = (root / 'index.html').read_text()
         def embedded(identifier):
             return json.loads(re.search(r'<script id="' + identifier + r'" type="application/json">(.*?)</script>', page, re.S).group(1))
-        from inside_inference.workload import prepare_input
+        from scripts.build.intro_page import initial_generation
         snapshot=embedded('inference-data')
-        self.assertEqual(snapshot, json.loads(json.dumps(prepare_input())))
+        self.assertEqual(snapshot, json.loads(json.dumps(initial_generation())))
         self.assertNotIn('receipt',snapshot)
         self.assertNotIn('output_ids',snapshot)
         self.assertNotIn('passes',snapshot)
@@ -130,10 +131,10 @@ class AtlasTests(unittest.TestCase):
         cache=embedded('kv-cache.html','cache-data')
         with tempfile.TemporaryDirectory() as directory, \
              patch('scripts.build.intro_page.demo', return_value=traces), \
-             patch('scripts.build.intro_page.prepare_input', return_value=snapshot), \
+             patch('scripts.build.intro_page.initial_generation', return_value=snapshot), \
              patch('scripts.build.intro_page.default_experiment', return_value=cache):
             root = Path(directory)
-            build(root)
+            build(root, checkpoint=self.shared_checkpoint)
             page = (root/'labs/kimi-delta-attention.html').read_text()
             self.assertIn('id="step-count">2</span>', page)
             self.assertIn('max="1" value="0"', page)
@@ -160,7 +161,7 @@ class AtlasTests(unittest.TestCase):
             if entry['status'] == 'planned':
                 self.assertIn('No experiment or measured result', page)
         before = {p.relative_to(root): p.read_bytes() for p in root.rglob('*') if p.is_file()}
-        build(root)
+        build(root, checkpoint=self.shared_checkpoint)
         self.assertEqual(before, {p.relative_to(root): p.read_bytes() for p in root.rglob('*') if p.is_file()})
 
 

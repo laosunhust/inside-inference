@@ -1,0 +1,30 @@
+[
+  {
+    "phase": "startup",
+    "milliseconds": 2711.042156
+  },
+  {
+    "phase": "per-token parity and inspection",
+    "milliseconds": 25262.481964000002
+  },
+  {
+    "phase": "configuration and context boundary",
+    "milliseconds": 7980.170437000001
+  },
+  {
+    "phase": "branching and reset",
+    "milliseconds": 4808.2534469999955
+  },
+  {
+    "phase": "offline and narrow layout",
+    "milliseconds": 203.68359000000055
+  },
+  {
+    "phase": "cache lab",
+    "milliseconds": 28014.365711000006
+  },
+  {
+    "phase": "standalone labs and missing-worker failure",
+    "milliseconds": 378.8122199999925
+  }
+]

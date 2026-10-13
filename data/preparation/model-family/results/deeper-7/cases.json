@@ -1,0 +1,4436 @@
+{
+  "loss": 0.11251935665263016,
+  "accuracy": {
+    "full": 0.6705882352941176,
+    "question_only": 0.0,
+    "rotated_context": 0.16470588235294117
+  },
+  "correct_by_family": {
+    "correction": 22,
+    "location": 10,
+    "negation": 10,
+    "ownership": 15
+  },
+  "termination_rate": 1.0,
+  "multi_token_termination_rate": 1.0,
+  "records": [
+    {
+      "id": "correction-07e82c4c3c52c120-v1",
+      "family": "correction",
+      "text": "the cup is on the bed. now the cup is in the box. the bear is in the room. where is the cup now?",
+      "expected": "box",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          210,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the room.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": true
+      },
+      "rotated_source_id": "correction-0fbc1bfd41132ee5-v1",
+      "rotated_source_answer_matches": true
+    },
+    {
+      "id": "correction-0fbc1bfd41132ee5-v1",
+      "family": "correction",
+      "text": "the toy is in the house. now the toy is in the box. the bear is on the bed. where is the toy now?",
+      "expected": "box",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          191,
+          6,
+          242,
+          6,
+          54,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "on the bed.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-16c6214b00c838d4-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-16c6214b00c838d4-v1",
+      "family": "correction",
+      "text": "the toy is in the room. now the toy is on the bed. the ball is in the house. where is the toy now?",
+      "expected": "bed",
+      "full": {
+        "ids": [
+          191,
+          6,
+          242,
+          6,
+          54,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "on the bed.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          210,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the room.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-1a0b097636b0aac6-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-1a0b097636b0aac6-v0",
+      "family": "correction",
+      "text": "the bear is in the box. the ball is in the house. now the bear is in the room. where is the bear now?",
+      "expected": "room",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          210,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the room.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-1f9db6bb041e1b38-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-1f9db6bb041e1b38-v0",
+      "family": "correction",
+      "text": "the cup is in the box. the toy is in the park. now the cup is in the house. where is the cup now?",
+      "expected": "house",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-267f835c8077677e-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-267f835c8077677e-v0",
+      "family": "correction",
+      "text": "the bear is in the room. the toy is in the house. now the bear is in the box. where is the bear now?",
+      "expected": "box",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-40f6a17217a689d1-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-40f6a17217a689d1-v1",
+      "family": "correction",
+      "text": "the bear is in the room. now the bear is in the house. the toy is in the box. where is the bear now?",
+      "expected": "house",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          210,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the room.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-49e6c67b5293695a-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-49e6c67b5293695a-v0",
+      "family": "correction",
+      "text": "the book is in the house. the toy is on the bed. now the book is in the room. where is the book now?",
+      "expected": "room",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          210,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the room.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-72a504f3ca2d0ac1-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-72a504f3ca2d0ac1-v1",
+      "family": "correction",
+      "text": "the toy is in the room. now the toy is in the park. the bear is in the box. where is the toy now?",
+      "expected": "park",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          191,
+          6,
+          242,
+          6,
+          54,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "on the bed.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-78c523d81260ce8e-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-78c523d81260ce8e-v0",
+      "family": "correction",
+      "text": "the book is in the box. the cup is in the room. now the book is on the bed. where is the book now?",
+      "expected": "bed",
+      "full": {
+        "ids": [
+          191,
+          6,
+          242,
+          6,
+          54,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "on the bed.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-8587b031fb7265af-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-8587b031fb7265af-v1",
+      "family": "correction",
+      "text": "the book is on the bed. now the book is in the park. the toy is in the room. where is the book now?",
+      "expected": "park",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          191,
+          6,
+          242,
+          6,
+          54,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "on the bed.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-8a2768026245e740-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-8a2768026245e740-v0",
+      "family": "correction",
+      "text": "the toy is in the box. the ball is in the house. now the toy is on the bed. where is the toy now?",
+      "expected": "bed",
+      "full": {
+        "ids": [
+          191,
+          6,
+          242,
+          6,
+          54,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "on the bed.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          210,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the room.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-90d7f4da4685f643-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-90d7f4da4685f643-v1",
+      "family": "correction",
+      "text": "the toy is in the box. now the toy is in the room. the ball is on the bed. where is the toy now?",
+      "expected": "room",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          210,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the room.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-9739cd8ee39ab2f3-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-9739cd8ee39ab2f3-v0",
+      "family": "correction",
+      "text": "the book is in the park. the bear is in the room. now the book is in the house. where is the book now?",
+      "expected": "house",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true
+      },
+      "rotated_source_id": "correction-9a9d32b698211b3d-v0",
+      "rotated_source_answer_matches": true
+    },
+    {
+      "id": "correction-9a9d32b698211b3d-v0",
+      "family": "correction",
+      "text": "the bear is in the box. the ball is on the bed. now the bear is in the house. where is the bear now?",
+      "expected": "house",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true
+      },
+      "rotated_source_id": "correction-a3f0d7b5f743ca36-v1",
+      "rotated_source_answer_matches": true
+    },
+    {
+      "id": "correction-a3f0d7b5f743ca36-v1",
+      "family": "correction",
+      "text": "the cup is on the bed. now the cup is in the house. the book is in the park. where is the cup now?",
+      "expected": "house",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true
+      },
+      "rotated_source_id": "correction-adad6283fae91629-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-adad6283fae91629-v1",
+      "family": "correction",
+      "text": "the ball is in the box. now the ball is in the room. the toy is in the house. where is the ball now?",
+      "expected": "room",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          191,
+          6,
+          242,
+          6,
+          54,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "on the bed.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-af3c8f61c0838d5a-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-af3c8f61c0838d5a-v1",
+      "family": "correction",
+      "text": "the toy is in the box. now the toy is on the bed. the cup is in the room. where is the toy now?",
+      "expected": "bed",
+      "full": {
+        "ids": [
+          191,
+          6,
+          242,
+          6,
+          54,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "on the bed.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-bdfdd3d18540ff8f-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-bdfdd3d18540ff8f-v1",
+      "family": "correction",
+      "text": "the ball is on the bed. now the ball is in the box. the cup is in the park. where is the ball now?",
+      "expected": "box",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-c40d47d0f3d5b5cf-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-c40d47d0f3d5b5cf-v0",
+      "family": "correction",
+      "text": "the bear is in the room. the ball is in the box. now the bear is in the park. where is the bear now?",
+      "expected": "park",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-c9ba788e0ffc2d53-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-c9ba788e0ffc2d53-v0",
+      "family": "correction",
+      "text": "the toy is in the park. the cup is in the house. now the toy is in the box. where is the toy now?",
+      "expected": "box",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          191,
+          6,
+          242,
+          6,
+          54,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "on the bed.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-cb7dc7d62dcf206b-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-cb7dc7d62dcf206b-v0",
+      "family": "correction",
+      "text": "the book is in the park. the cup is in the house. now the book is on the bed. where is the book now?",
+      "expected": "bed",
+      "full": {
+        "ids": [
+          191,
+          6,
+          242,
+          6,
+          54,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "on the bed.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          210,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the room.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-ccc4ba80fce3edda-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-ccc4ba80fce3edda-v0",
+      "family": "correction",
+      "text": "the bear is on the bed. the toy is in the park. now the bear is in the room. where is the bear now?",
+      "expected": "room",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          210,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the room.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-e7cbec719059121f-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "correction-e7cbec719059121f-v0",
+      "family": "correction",
+      "text": "the book is in the house. the toy is on the bed. now the book is in the park. where is the book now?",
+      "expected": "park",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": true
+      },
+      "rotated_source_id": "correction-f33df614bdc871ed-v1",
+      "rotated_source_answer_matches": true
+    },
+    {
+      "id": "correction-f33df614bdc871ed-v1",
+      "family": "correction",
+      "text": "the toy is in the house. now the toy is in the park. the cup is in the box. where is the toy now?",
+      "expected": "park",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "on",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          210,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the room.",
+        "correct": false
+      },
+      "rotated_source_id": "correction-07e82c4c3c52c120-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-1826c57384d7a70b-v0",
+      "family": "location",
+      "text": "the bear is on the bed. the ball is in the house. where is the bear?",
+      "expected": "bed",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false
+      },
+      "rotated_source_id": "location-1ea2e0f84d1d21e8-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-1ea2e0f84d1d21e8-v1",
+      "family": "location",
+      "text": "the cup is in the room. the bear is in the house. where is the bear?",
+      "expected": "house",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true
+      },
+      "rotated_source_id": "location-210994980929c4c5-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-210994980929c4c5-v1",
+      "family": "location",
+      "text": "the book is in the house. the ball is on the bed. where is the ball?",
+      "expected": "bed",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": false
+      },
+      "rotated_source_id": "location-2937bdf448bc99bf-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-2937bdf448bc99bf-v0",
+      "family": "location",
+      "text": "the cup is in the box. the toy is on the bed. where is the cup?",
+      "expected": "box",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": true
+      },
+      "rotated_source_id": "location-35735470627f8f86-v1",
+      "rotated_source_answer_matches": true
+    },
+    {
+      "id": "location-35735470627f8f86-v1",
+      "family": "location",
+      "text": "the ball is in the room. the toy is in the box. where is the toy?",
+      "expected": "box",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "onannon",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          210,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the room.",
+        "correct": false
+      },
+      "rotated_source_id": "location-395c1df66132fcbb-v0",
+      "rotated_source_answer_matches": true
+    },
+    {
+      "id": "location-395c1df66132fcbb-v0",
+      "family": "location",
+      "text": "the book is in the box. the bear is in the park. where is the book?",
+      "expected": "box",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": true
+      },
+      "rotated_source_id": "location-41f29f951c9d2114-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-41f29f951c9d2114-v0",
+      "family": "location",
+      "text": "the cup is on the bed. the ball is in the room. where is the cup?",
+      "expected": "bed",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": false
+      },
+      "rotated_source_id": "location-49a33487b9598472-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-49a33487b9598472-v1",
+      "family": "location",
+      "text": "the bear is in the box. the ball is in the room. where is the ball?",
+      "expected": "room",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false
+      },
+      "rotated_source_id": "location-540d23088a7cca01-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-540d23088a7cca01-v1",
+      "family": "location",
+      "text": "the cup is on the bed. the book is in the house. where is the book?",
+      "expected": "house",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false
+      },
+      "rotated_source_id": "location-56b48104ffd8edd5-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-56b48104ffd8edd5-v0",
+      "family": "location",
+      "text": "the bear is in the park. the toy is on the bed. where is the bear?",
+      "expected": "park",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false
+      },
+      "rotated_source_id": "location-58449e6a853b85fc-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-58449e6a853b85fc-v0",
+      "family": "location",
+      "text": "the book is in the house. the bear is on the bed. where is the book?",
+      "expected": "house",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true
+      },
+      "rotated_source_id": "location-5f7609e26477f8f4-v1",
+      "rotated_source_answer_matches": true
+    },
+    {
+      "id": "location-5f7609e26477f8f4-v1",
+      "family": "location",
+      "text": "the bear is in the box. the toy is in the house. where is the toy?",
+      "expected": "house",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "onannon",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": false
+      },
+      "rotated_source_id": "location-7200f3b1a6bb4ac4-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-7200f3b1a6bb4ac4-v1",
+      "family": "location",
+      "text": "the cup is in the box. the bear is in the room. where is the bear?",
+      "expected": "room",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false
+      },
+      "rotated_source_id": "location-75ee5d3695fcf4db-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-75ee5d3695fcf4db-v1",
+      "family": "location",
+      "text": "the book is in the box. the ball is in the park. where is the ball?",
+      "expected": "park",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": true
+      },
+      "rotated_source_id": "location-79c2fa4ec1f11d3e-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-79c2fa4ec1f11d3e-v1",
+      "family": "location",
+      "text": "the toy is in the park. the bear is in the box. where is the bear?",
+      "expected": "box",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false
+      },
+      "rotated_source_id": "location-875302400ceb06df-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-875302400ceb06df-v1",
+      "family": "location",
+      "text": "the toy is in the park. the bear is on the bed. where is the bear?",
+      "expected": "bed",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false
+      },
+      "rotated_source_id": "location-8a778ccbda9c7b89-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-8a778ccbda9c7b89-v1",
+      "family": "location",
+      "text": "the cup is in the box. the ball is in the park. where is the ball?",
+      "expected": "park",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false
+      },
+      "rotated_source_id": "location-8c3c6d75c73978eb-v0",
+      "rotated_source_answer_matches": true
+    },
+    {
+      "id": "location-8c3c6d75c73978eb-v0",
+      "family": "location",
+      "text": "the cup is in the park. the book is in the house. where is the cup?",
+      "expected": "park",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false
+      },
+      "rotated_source_id": "location-97ee225eb6f178d4-v0",
+      "rotated_source_answer_matches": true
+    },
+    {
+      "id": "location-97ee225eb6f178d4-v0",
+      "family": "location",
+      "text": "the ball is in the park. the toy is in the house. where is the ball?",
+      "expected": "park",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false
+      },
+      "rotated_source_id": "location-bec7caaf3f5dc354-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-bec7caaf3f5dc354-v0",
+      "family": "location",
+      "text": "the bear is in the room. the book is in the house. where is the bear?",
+      "expected": "room",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false
+      },
+      "rotated_source_id": "location-c130c8910e9b99e8-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-c130c8910e9b99e8-v1",
+      "family": "location",
+      "text": "the cup is in the house. the ball is on the bed. where is the ball?",
+      "expected": "bed",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the park.",
+        "correct": false
+      },
+      "rotated_source_id": "location-cae110be97a0b9c0-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-cae110be97a0b9c0-v0",
+      "family": "location",
+      "text": "the toy is in the box. the bear is in the park. where is the toy?",
+      "expected": "box",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          210,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the room.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          5
+        ],
+        "stopped": true,
+        "text": "onannon",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false
+      },
+      "rotated_source_id": "location-e23b6d3aa787aff1-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-e23b6d3aa787aff1-v0",
+      "family": "location",
+      "text": "the ball is in the room. the bear is in the house. where is the ball?",
+      "expected": "room",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": false
+      },
+      "rotated_source_id": "location-edb775a792ebcce1-v1",
+      "rotated_source_answer_matches": true
+    },
+    {
+      "id": "location-edb775a792ebcce1-v1",
+      "family": "location",
+      "text": "the ball is on the bed. the cup is in the room. where is the cup?",
+      "expected": "room",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the box.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": false
+      },
+      "rotated_source_id": "location-ff7814fbf984cf1e-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "location-ff7814fbf984cf1e-v0",
+      "family": "location",
+      "text": "the bear is in the house. the ball is in the box. where is the bear?",
+      "expected": "house",
+      "full": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          51,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonballbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          152,
+          6,
+          242,
+          6,
+          146,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "in the house.",
+        "correct": true
+      },
+      "rotated_source_id": "location-1826c57384d7a70b-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "negation-1fb2e7c1382fba16-v0",
+      "family": "negation",
+      "text": "ben would like the bear, not the toy. what does ben want?",
+      "expected": "bear",
+      "full": {
+        "ids": [
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the bear.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          329,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "onmia box.",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the toy.",
+        "correct": false
+      },
+      "rotated_source_id": "negation-221c1c0d8dc761ae-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "negation-221c1c0d8dc761ae-v0",
+      "family": "negation",
+      "text": "ben would like the toy, not the book. what does ben want?",
+      "expected": "toy",
+      "full": {
+        "ids": [
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the toy.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          329,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "onmia box.",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the cup.",
+        "correct": false
+      },
+      "rotated_source_id": "negation-301b0bab9b39ebd9-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "negation-301b0bab9b39ebd9-v0",
+      "family": "negation",
+      "text": "ben would like the cup, not the toy. what does ben want?",
+      "expected": "cup",
+      "full": {
+        "ids": [
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the cup.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          329,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "onmia box.",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the bear.",
+        "correct": false
+      },
+      "rotated_source_id": "negation-37170fcc3de82cd1-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "negation-37170fcc3de82cd1-v1",
+      "family": "negation",
+      "text": "sam does not want the book. sam would like the bear. what does sam want?",
+      "expected": "bear",
+      "full": {
+        "ids": [
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the bear.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          329,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "onmia box.",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the cup.",
+        "correct": false
+      },
+      "rotated_source_id": "negation-52a62326c98b6043-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "negation-52a62326c98b6043-v1",
+      "family": "negation",
+      "text": "sam does not want the ball. sam would like the cup. what does sam want?",
+      "expected": "cup",
+      "full": {
+        "ids": [
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the cup.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          329,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "onmia box.",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          242,
+          6,
+          51,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the ball.",
+        "correct": false
+      },
+      "rotated_source_id": "negation-5e8be5e2764eae9f-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "negation-5e8be5e2764eae9f-v1",
+      "family": "negation",
+      "text": "mia does not want the toy. mia would like the ball. what does mia want?",
+      "expected": "ball",
+      "full": {
+        "ids": [
+          242,
+          6,
+          51,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the ball.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          329,
+          6,
+          68,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "onmia boxpark.",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          242,
+          6,
+          65,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the book.",
+        "correct": false
+      },
+      "rotated_source_id": "negation-a4759bab8e1068fe-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "negation-a4759bab8e1068fe-v1",
+      "family": "negation",
+      "text": "ann does not want the cup. ann would like the book. what does ann want?",
+      "expected": "book",
+      "full": {
+        "ids": [
+          242,
+          6,
+          65,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the book.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          329,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "onmia box.",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          242,
+          6,
+          51,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the ball.",
+        "correct": false
+      },
+      "rotated_source_id": "negation-cc6c0241b4c4daf4-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "negation-cc6c0241b4c4daf4-v0",
+      "family": "negation",
+      "text": "ann would like the ball, not the cup. what does ann want?",
+      "expected": "ball",
+      "full": {
+        "ids": [
+          242,
+          6,
+          51,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the ball.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          329,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "onmia box.",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          242,
+          6,
+          65,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the book.",
+        "correct": false
+      },
+      "rotated_source_id": "negation-da5d024c7637a444-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "negation-da5d024c7637a444-v0",
+      "family": "negation",
+      "text": "ben would like the book, not the ball. what does ben want?",
+      "expected": "book",
+      "full": {
+        "ids": [
+          242,
+          6,
+          65,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the book.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          329,
+          6,
+          68,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "onmia box.",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the toy.",
+        "correct": false
+      },
+      "rotated_source_id": "negation-e5b0f807ce794162-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "negation-e5b0f807ce794162-v1",
+      "family": "negation",
+      "text": "mia does not want the bear. mia would like the toy. what does mia want?",
+      "expected": "toy",
+      "full": {
+        "ids": [
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the toy.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          329,
+          6,
+          68,
+          198,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "onmia boxpark.",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "the bear.",
+        "correct": false
+      },
+      "rotated_source_id": "negation-1fb2e7c1382fba16-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-0450d4f871f55c62-v0",
+      "family": "ownership",
+      "text": "ben has the bear. tom has the book. who has the bear?",
+      "expected": "ben",
+      "full": {
+        "ids": [
+          330,
+          6,
+          131,
+          6,
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ben has the bear.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          6,
+          330,
+          191,
+          330,
+          54,
+          328,
+          191,
+          330,
+          330,
+          330,
+          330
+        ],
+        "stopped": false,
+        "text": " benonbenbedtomonbenbenbenben",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          331,
+          6,
+          131,
+          6,
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ann has the bear.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-0f93ad99bf4d8e4b-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-0f93ad99bf4d8e4b-v1",
+      "family": "ownership",
+      "text": "sam has the bear. ann has the ball. who has the ball?",
+      "expected": "ann",
+      "full": {
+        "ids": [
+          331,
+          6,
+          131,
+          6,
+          242,
+          6,
+          51,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ann has the ball.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          214,
+          6,
+          54,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onsam bedbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          51,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the ball.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-123d2aabfcf0e528-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-123d2aabfcf0e528-v1",
+      "family": "ownership",
+      "text": "sam has the ball. mia has the cup. who has the cup?",
+      "expected": "mia",
+      "full": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the cup.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          330,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonbenbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          331,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ann has the cup.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-1ef9c3d1ff65cd85-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-1ef9c3d1ff65cd85-v0",
+      "family": "ownership",
+      "text": "ann has the ball. tom has the bear. who has the ball?",
+      "expected": "ann",
+      "full": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          51,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the ball.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          214,
+          6,
+          54,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onsam bedbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          51,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the ball.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-21cf435155e17bcf-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-21cf435155e17bcf-v1",
+      "family": "ownership",
+      "text": "sam has the toy. tom has the bear. who has the bear?",
+      "expected": "tom",
+      "full": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the bear.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          6,
+          330,
+          191,
+          330,
+          54,
+          328,
+          191,
+          330,
+          330,
+          330,
+          330
+        ],
+        "stopped": false,
+        "text": " benonbenbedtomonbenbenbenben",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the bear.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-2901ecedc4384ab6-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-2901ecedc4384ab6-v1",
+      "family": "ownership",
+      "text": "mia has the ball. sam has the cup. who has the cup?",
+      "expected": "sam",
+      "full": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the cup.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          330,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonbenbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          330,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ben has the cup.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-2af78e6f5651274f-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-2af78e6f5651274f-v1",
+      "family": "ownership",
+      "text": "ann has the book. ben has the toy. who has the toy?",
+      "expected": "ben",
+      "full": {
+        "ids": [
+          330,
+          6,
+          131,
+          6,
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ben has the toy.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          330,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonbenbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the toy.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-30df4642ee49c2ca-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-30df4642ee49c2ca-v0",
+      "family": "ownership",
+      "text": "sam has the cup. tom has the toy. who has the cup?",
+      "expected": "sam",
+      "full": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the cup.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          330,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonbenbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the cup.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-35965af681148efb-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-35965af681148efb-v0",
+      "family": "ownership",
+      "text": "tom has the book. mia has the bear. who has the book?",
+      "expected": "tom",
+      "full": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          65,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the book.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          214,
+          6,
+          54,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onsam bedbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          331,
+          6,
+          131,
+          6,
+          242,
+          6,
+          65,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ann has the book.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-36eeab16a1bff5d9-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-36eeab16a1bff5d9-v0",
+      "family": "ownership",
+      "text": "sam has the book. ann has the bear. who has the book?",
+      "expected": "sam",
+      "full": {
+        "ids": [
+          331,
+          6,
+          131,
+          6,
+          242,
+          6,
+          65,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ann has the book.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          214,
+          6,
+          54,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onsam bedbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          65,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the book.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-3f05e77181c94896-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-3f05e77181c94896-v1",
+      "family": "ownership",
+      "text": "mia has the ball. ann has the cup. who has the cup?",
+      "expected": "ann",
+      "full": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the cup.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          330,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonbenbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the cup.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-43b8e1b505258ed9-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-43b8e1b505258ed9-v0",
+      "family": "ownership",
+      "text": "tom has the ball. mia has the toy. who has the ball?",
+      "expected": "tom",
+      "full": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          51,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the ball.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          214,
+          6,
+          54,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onsam bedbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          51,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the ball.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-4516f8cba33f5735-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-4516f8cba33f5735-v1",
+      "family": "ownership",
+      "text": "sam has the toy. mia has the book. who has the book?",
+      "expected": "mia",
+      "full": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          65,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the book.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          214,
+          6,
+          54,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onsam bedbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          330,
+          6,
+          131,
+          6,
+          242,
+          6,
+          65,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ben has the book.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-4b716261b53dd7f8-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-4b716261b53dd7f8-v0",
+      "family": "ownership",
+      "text": "ben has the cup. tom has the book. who has the cup?",
+      "expected": "ben",
+      "full": {
+        "ids": [
+          330,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ben has the cup.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          330,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonbenbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the cup.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-6232376928dbe668-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-6232376928dbe668-v0",
+      "family": "ownership",
+      "text": "ann has the cup. tom has the ball. who has the cup?",
+      "expected": "ann",
+      "full": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the cup.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          330,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonbenbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the cup.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-91cb94e40a69280e-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-91cb94e40a69280e-v1",
+      "family": "ownership",
+      "text": "mia has the cup. tom has the bear. who has the bear?",
+      "expected": "tom",
+      "full": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the bear.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          6,
+          330,
+          191,
+          330,
+          54,
+          328,
+          191,
+          330,
+          330,
+          330,
+          330
+        ],
+        "stopped": false,
+        "text": " benonbenbedtomonbenbenbenben",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          331,
+          6,
+          131,
+          6,
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ann has the bear.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-a40828e2ac7fcfdb-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-a40828e2ac7fcfdb-v1",
+      "family": "ownership",
+      "text": "sam has the ball. ann has the bear. who has the bear?",
+      "expected": "ann",
+      "full": {
+        "ids": [
+          331,
+          6,
+          131,
+          6,
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ann has the bear.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          6,
+          330,
+          191,
+          330,
+          54,
+          328,
+          191,
+          330,
+          330,
+          330,
+          330
+        ],
+        "stopped": false,
+        "text": " benonbenbedtomonbenbenbenben",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the bear.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-a782f452ad3b61ef-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-a782f452ad3b61ef-v1",
+      "family": "ownership",
+      "text": "mia has the book. sam has the bear. who has the bear?",
+      "expected": "sam",
+      "full": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the bear.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          6,
+          330,
+          191,
+          330,
+          54,
+          328,
+          191,
+          330,
+          330,
+          330,
+          330
+        ],
+        "stopped": false,
+        "text": " benonbenbedtomonbenbenbenben",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          330,
+          6,
+          131,
+          6,
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ben has the bear.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-bc443ce08a8031e0-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-bc443ce08a8031e0-v1",
+      "family": "ownership",
+      "text": "ben has the book. tom has the cup. who has the cup?",
+      "expected": "tom",
+      "full": {
+        "ids": [
+          330,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ben has the cup.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          330,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonbenbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          89,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the cup.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-c79b4f4172c35838-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-c79b4f4172c35838-v1",
+      "family": "ownership",
+      "text": "sam has the cup. mia has the toy. who has the toy?",
+      "expected": "mia",
+      "full": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the toy.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          330,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonbenbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the toy.",
+        "correct": true
+      },
+      "rotated_source_id": "ownership-d58819f4d35f6b26-v0",
+      "rotated_source_answer_matches": true
+    },
+    {
+      "id": "ownership-d58819f4d35f6b26-v0",
+      "family": "ownership",
+      "text": "mia has the bear. ben has the book. who has the bear?",
+      "expected": "mia",
+      "full": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the bear.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          6,
+          330,
+          191,
+          330,
+          54,
+          328,
+          191,
+          330,
+          330,
+          330,
+          330
+        ],
+        "stopped": false,
+        "text": " benonbenbedtomonbenbenbenben",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          330,
+          6,
+          131,
+          6,
+          242,
+          6,
+          52,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ben has the bear.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-dd81615d475c817d-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-dd81615d475c817d-v0",
+      "family": "ownership",
+      "text": "ben has the toy. tom has the bear. who has the toy?",
+      "expected": "ben",
+      "full": {
+        "ids": [
+          330,
+          6,
+          131,
+          6,
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ben has the toy.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          330,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonbenbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the toy.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-e3cea1c43da234d3-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-e3cea1c43da234d3-v0",
+      "family": "ownership",
+      "text": "sam has the toy. tom has the ball. who has the toy?",
+      "expected": "sam",
+      "full": {
+        "ids": [
+          328,
+          6,
+          131,
+          6,
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "tom has the toy.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          330,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonbenbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the toy.",
+        "correct": false
+      },
+      "rotated_source_id": "ownership-e95913f07f34562f-v0",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-e95913f07f34562f-v0",
+      "family": "ownership",
+      "text": "mia has the ball. ann has the toy. who has the ball?",
+      "expected": "mia",
+      "full": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          51,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the ball.",
+        "correct": true,
+        "readable": true,
+        "correct_readable": true,
+        "exact_target": true
+      },
+      "question_only": {
+        "ids": [
+          191,
+          214,
+          6,
+          54,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onsam bedbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          51,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the ball.",
+        "correct": true
+      },
+      "rotated_source_id": "ownership-f3f535831768b2fd-v1",
+      "rotated_source_answer_matches": false
+    },
+    {
+      "id": "ownership-f3f535831768b2fd-v1",
+      "family": "ownership",
+      "text": "mia has the bear. ben has the toy. who has the toy?",
+      "expected": "ben",
+      "full": {
+        "ids": [
+          329,
+          6,
+          131,
+          6,
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "mia has the toy.",
+        "correct": false,
+        "readable": true,
+        "correct_readable": false,
+        "exact_target": false
+      },
+      "question_only": {
+        "ids": [
+          191,
+          331,
+          191,
+          330,
+          54,
+          5
+        ],
+        "stopped": true,
+        "text": "onannonbenbed",
+        "correct": false
+      },
+      "rotated_context": {
+        "ids": [
+          330,
+          6,
+          131,
+          6,
+          242,
+          6,
+          256,
+          24,
+          5
+        ],
+        "stopped": true,
+        "text": "ben has the toy.",
+        "correct": true
+      },
+      "rotated_source_id": "ownership-0450d4f871f55c62-v0",
+      "rotated_source_answer_matches": true
+    }
+  ],
+  "counts": {
+    "correct": 57,
+    "readable": 85,
+    "correct_readable": 57,
+    "exact_target": 57
+  },
+  "correct_readable_by_family": {
+    "ownership": 15,
+    "location": 10,
+    "negation": 10,
+    "correction": 22
+  }
+}

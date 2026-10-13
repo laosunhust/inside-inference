@@ -98,6 +98,8 @@ class GovernanceTests(unittest.TestCase):
     def test_evaluation_history_references_and_result_binding(self):
         active=read_yaml(ROOT/'governance/evaluations.yaml')['active']
         original=read_yaml(ROOT/active)
+        # The isolated fixture starts its own chain; exercise supersession below.
+        original.pop("supersedes", None)
         def write(root, name, value):
             path=root/name;path.parent.mkdir(parents=True,exist_ok=True)
             path.write_text(yaml.safe_dump(value))
@@ -153,6 +155,23 @@ class GovernanceTests(unittest.TestCase):
         with patch('scripts.check.governance.evaluation.git',return_value=b'true\n'):
             with self.assertRaisesRegex(ValueError,'non-shallow'):
                 committed_evaluations(ROOT)
+
+    def test_binary_model_allowance_is_narrow_and_bounded(self):
+        policy = load_limits(ROOT)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root/'data/models/artifacts/model.bin'
+            path.parent.mkdir(parents=True)
+            with path.open('wb') as f: f.truncate(policy['model_artifact_file_bytes'])
+            self.assertEqual(audit_structure(root, policy, {}), [])
+            with path.open('ab') as f: f.write(b'x')
+            self.assertTrue(audit_structure(root, policy, {}))
+            path.unlink()
+            for name in ('data/models/artifacts/model.json', 'data/model/other.bin'):
+                path = root/name; path.parent.mkdir(parents=True, exist_ok=True)
+                with path.open('wb') as f: f.truncate(policy['fixture_file_bytes']+1)
+                self.assertTrue(audit_structure(root, policy, {}))
+                path.unlink()
 
     def test_ignored_source_and_nested_output_names_cannot_escape_limits(self):
         policy=load_limits(ROOT)

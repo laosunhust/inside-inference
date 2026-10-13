@@ -1,0 +1,20 @@
+version: 1
+seed: 7
+architecture: {vocabulary: 384, width: 8, ffn: 16, context: 128, layers: 1, heads: 1, epsilon: 0.00001, position: learned-absolute, normalization: pre-layernorm, activation: gelu-tanh, precision: binary64}
+dataset: karpathy/tinystories-gpt4-clean
+revision: 0397e27157956705a0260709da3095bb9c43d6a7
+# Exact local source digest is recorded before use; authoritative publisher revision is
+# recorded by the independent study manifest and checked by preparation.
+train_rows: [20000, 22000]
+development_rows: [10000, 10100]
+steps: 4000
+batch: 32
+sequence_length: 128
+learning_rate: 0.003
+weight_decay: 0.01
+clip_gradient: 1.0
+validation_interval: 200
+validation_windows: 32
+selection: minimum-development-token-loss
+framing: BOS + unmodified story text + EOS
+quality_gate: none

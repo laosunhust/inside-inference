@@ -42,6 +42,11 @@ they are not capabilities already implemented here.
 
 ## Start exploring
 
+Choose the model on the main experiment page: 4M for story continuation, 8K for
+numerical inspection, or the intermediate model. Model size is experiment setup,
+not a separate lab. The [artifact inventory](data/models/README.md) owns model
+roles, provenance and limits.
+
 Each topic has one documentation owner. Other pages introduce it or link to it;
 they do not redefine its mission, scope, or rules. Historical plans and research
 reports preserve their original context, not current policy.

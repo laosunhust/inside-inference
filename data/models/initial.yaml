@@ -1,0 +1,12 @@
+model_id: tinyllm-4m
+workload:
+  requests:
+  - request_id: r1
+    arrival_us: 0
+    request:
+      text: a little cat had a red ball.
+      generation:
+        max_new_tokens: 32
+        selection: greedy-lowest-id-tie
+        stopping: model-end-or-budget
+  kind: fixed-arrivals

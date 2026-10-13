@@ -8,13 +8,15 @@ import subprocess
 from urllib.request import urlopen
 import zipfile
 from scripts import ROOT
+from scripts.build.model_assets.catalog import package as package_models
 
 VERSION = '0.27.7'
 CACHE = ROOT/'out/browser-runtime'
 
 
-def package(output, checkpoint=None, *, download=False):
+def package(output, checkpoint=None, *, download=False, model_storage=None):
     runtime=output/'execution/runtime';runtime.mkdir(parents=True,exist_ok=True)
+    package_models(output, model_storage)
     CACHE.mkdir(parents=True,exist_ok=True)
     def asset(name, expected=None):
         path=CACHE/name

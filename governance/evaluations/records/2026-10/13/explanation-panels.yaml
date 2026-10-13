@@ -1,0 +1,34 @@
+version: 1
+work_item: explanation-panels
+question: Can users generate in Interaction and follow the selected architecture in Explanation without
+  confusing a walkthrough with captured tensors?
+necessity: Disabling all journeys for larger models hides useful architecture; generation controls and
+  explanation currently share a panel.
+baseline: Main-page model selection with tiny-only journey and a separate Change Model button.
+reuse:
+- source: Existing ExecutionPath, inspection cursor, generated declarations and shared theme
+  decision: Extend the same cursor and rendering rather than create a second model or playback state.
+criteria:
+- Name the panels Experiment, Interaction and Explanation; place generation controls in Interaction and
+  all journey/detail controls in Explanation.
+- Edit contains model selection and request settings; selection preserves input/settings and clears prior
+  results through the existing execution path.
+- Next Token and Generate run the same declared generation interface; Stop remains available during generation.
+- All three models support Token Journey. Larger architecture stages derive from declared runtime structure
+  and selected layer count, including RoPE, RMSNorm and gated feed-forward.
+- Architecture focus is distinct from captured observations in the single declared inspection cursor.
+  Never fabricate intermediate tensors, observations or timing.
+- Existing tiny captured tensors, branching, reset, replay cancellation and headless parity remain covered;
+  review desktop and narrow layouts.
+- Unit and integration remain within existing 10s and 100s budgets.
+- 'Owner refinement: retain a compact generic transformer schematic, not an expanded chain of every layer.
+  Layer selection shares the explanation cursor; normalization/position/activation variants belong in
+  step details. Never bake KV reuse or other optional optimizations into the architecture diagram.'
+checks:
+- make test
+- make test-integration
+- Desktop and narrow rendered review
+counterexamples:
+- Larger models show learned position embeddings or GELU from the tiny model.
+- Playback creates output or implies recorded timing for uncaptured steps.
+- Reset or model change leaves an old architecture selection active.

@@ -95,9 +95,22 @@ Prefer cohesive modules and simple interfaces. Invalid or unsupported input must
 fail explicitly. Defaults initialize valid configurations; they must not repair
 failures or conceal alternate execution paths.
 
+Local development and the public website are one product. Share implementation,
+contracts, model artifacts and interaction semantics; only declared runtime and
+infrastructure configuration may differ. Test the release artifact locally and
+promote those same bytes. Do not create local-only feature paths or ask owners to
+choose between local and public implementations. Close missing development tooling,
+context or runtime-parity coverage before extending the affected feature; report
+hosted properties that still require verification at the deployed origin.
+
 The root Makefile owns development workflows. Shared procedures and command details
 belong there; documents link to their authority instead of maintaining parallel
 instructions. Keep documentation focused and progressively disclosed.
+
+Proposals are temporary review artifacts. Delete completed, superseded, or otherwise
+closed proposals once durable decisions and results live with their proper owners;
+update incoming links. Preserve evaluation criteria, failures, and evidence, not
+duplicate plans. Git history retains the retired proposal.
 
 Show, don't tell in the UI. Every visible phrase must justify its role in helping
 users act, understand evidence, or recognize a consequential state. Prefer direct

@@ -47,3 +47,16 @@ memory and retained traces as well as throughput; avoid unnecessary parameter sw
 The useful output is a reproducible checkpoint that passes the inference behavior
 and numerical checks. Revisit preparation only when it blocks those experiments
 or a declared intervention requires different weights.
+
+## Bounded model families
+
+A small architecture comparison may produce reusable inference fixtures and satisfy
+personal curiosity without becoming a scaling-law claim. Judge execution correctness,
+learned behavior and inference cost independently. A quality failure can still leave
+a useful, verified numerical fixture; never relabel it a quality success.
+
+The [model-family findings](../research/model-family-2026-10-11.md) record the current
+width/depth spike. Its frozen matrix and fresh-case inputs live under
+`data/preparation/model-family/`; evaluation records own thresholds. Private Makefile
+workflows own training, evaluation and browser evidence. New artifacts do not replace
+the shipped default automatically.

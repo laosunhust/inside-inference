@@ -1,0 +1,77 @@
+{
+  "unit": {
+    "workflow": "test",
+    "seconds": 9.054006562000723,
+    "limit_seconds": 10,
+    "command_returncode": 0,
+    "passed": true
+  },
+  "preparation": {
+    "tests": 29,
+    "seconds": 107.221,
+    "passed": true,
+    "scope": "separate optional preparation harness"
+  },
+  "deeper_integration_attempts": [
+    {
+      "seconds": 79.19,
+      "passed": false,
+      "reason": "cache lab initial startup exceeded 10-second polling deadline"
+    },
+    {
+      "workflow": "test-integration",
+      "seconds": 103.31258622400128,
+      "limit_seconds": 100,
+      "command_returncode": 0,
+      "passed": false,
+      "reason": "all functional checks passed; total time exceeded unchanged 100-second budget"
+    },
+    {
+      "workflow": "test-integration",
+      "seconds": 103.63229449699793,
+      "limit_seconds": 100,
+      "command_returncode": 0,
+      "passed": false,
+      "reason": "shared-build consolidation retained functional pass but did not meet time budget"
+    },
+    {
+      "workflow": "test-integration",
+      "seconds": 101.5279703160013,
+      "limit_seconds": 100,
+      "command_returncode": 0,
+      "passed": false,
+      "reason": "all functional checks passed; profiling found 34.9s cache and 25.4s per-token/inspection phases"
+    },
+    {
+      "workflow": "test-integration",
+      "seconds": 101.34430593900106,
+      "limit_seconds": 100,
+      "command_returncode": 0,
+      "passed": false,
+      "reason": "visiting dependencies once had little timing effect; functional pass, budget still failed"
+    },
+    {
+      "workflow": "test-integration",
+      "seconds": 92.27035746799811,
+      "limit_seconds": 100,
+      "command_returncode": 2,
+      "passed": false,
+      "reason": "replay admission guard caught stale fixture name reference-remote; actual declared fixture is remote"
+    }
+  ],
+  "deeper_integration": {
+    "workflow": "test-integration",
+    "seconds": 94.71356859799926,
+    "limit_seconds": 100,
+    "command_returncode": 0,
+    "passed": true
+  },
+  "shipped_weights_equal_baseline_seed7": true,
+  "default_integration": {
+    "workflow": "test-integration",
+    "seconds": 79.63187304799794,
+    "limit_seconds": 100,
+    "command_returncode": 0,
+    "passed": true
+  }
+}

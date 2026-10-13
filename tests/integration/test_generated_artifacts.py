@@ -35,17 +35,15 @@ class GeneratedArtifactIntegrationTests(unittest.TestCase):
             self.assertIn('"default": 2',changed['web/declarations.generated.js'])
 
     def test_browser_state_contract_and_validator_parity(self):
-        # Node runs the same generated consumers and pure transitions as the page.
+        # Pure request transitions and generated-client admission; numerical parity is in Chromium.
+        from scripts.build.model_assets.catalog import describe
+        from scripts.build.intro_page import initial_generation
+        import gzip
         with tempfile.TemporaryDirectory() as directory:
-            from inside_inference.generation import run_token_step
-            from tests.fixtures.execution import small_workload
-            run=small_workload();path=Path(directory)/'run.json'
-            from inside_inference.workload import prepare_input
-            path.write_text(json.dumps(prepare_input(run['declaration']['workload'],checkpoint=run['traces'][0]['checkpoint'])))
-            trace=run['traces'][0]
-            spec={'checkpoint_sha256':trace['declaration']['model']['checkpoint_sha256'],
-                  'prefix_ids':trace['tokenizer']['ids'][:4],'output_ids':[],
-                  'generation':trace['declaration']['request']['generation'],
-                  'ontology_binding':trace['declaration']['ontology_binding']}
-            step=Path(directory)/'step.json';step.write_text(json.dumps(run_token_step(spec,checkpoint=trace['checkpoint'])))
-            subprocess.run(['node',str(ROOT/'tests/integration/inspection_session.mjs'),str(path),str(step)],check=True,capture_output=True,text=True)
+            path=Path(directory)/'fixture.json'
+            catalog=describe(read_yaml(ROOT/'data/models/models.yaml'),ROOT/'data/models/artifacts')
+            model=next(m for m in catalog['models'] if m['inspection']=='tensors')
+            checkpoint=json.loads(gzip.decompress((ROOT/'data/models/artifacts'/model['weights']['path']).read_bytes()))
+            input=initial_generation();input['experiment']['model_id']=model['id']
+            path.write_text(json.dumps({'input':input,'loaded':{'model':model,'load_ms':0,'token_pieces':['x']*384,'parameters':checkpoint['parameters']}}))
+            subprocess.run(['node',str(ROOT/'tests/integration/inspection_session.mjs'),str(path)],check=True,capture_output=True,text=True)

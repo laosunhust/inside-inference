@@ -27,3 +27,15 @@ operations:
   replayCache:
     request: ExecutionReplayInput
     response: CacheRun
+  modelCatalog:
+    request: null
+    response: ModelCatalog
+  loadModel:
+    request: ModelSelection
+    response: ModelLoadResult
+  prepareGeneration:
+    request: GenerationInput
+    response: GenerationPrepared
+  generateToken:
+    request: GenerationStep
+    response: GenerationPrediction

@@ -1,0 +1,23 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/browser-model-family.yaml
+evaluation_sha256: 9d168d7e746a552bbc4186d70ce4f29d8cada40abdf0a60ae5423a26dffbc797
+outcome: passed
+summary: 'Three explicit model roles execute in the browser through generated operations and verified
+  storage. One bounded tiny-story training run preserves the 384-ID tokenizer and architecture; larger
+  seed1337 checkpoints are reused. Shared-prefix numerical references, interactive/headless equivalence,
+  model loading/reset races, lazy assets, cross-origin CORS, missing/corrupt assets and desktop/narrow
+  presentation were checked. make test: 106 tests, 9.57s of 10s. make test-integration: 106 unit tests,
+  24 integration tests and browser checks, 94.38s of 100s. No budgets relaxed. Tiny story quality remains
+  poor and is explicitly not an acceptance criterion. No scaling law, general quality ranking, mobile
+  performance or deployed S3/CDN claim. The report retains encountered failures and corrections. No commit
+  or cloud publication performed.'
+evidence:
+- docs/research/browser-model-family-2026-10-12.md
+- data/preparation/story-models/training.yaml
+- data/preparation/story-models/admission.json
+- data/preparation/story-models/result.json
+- data/preparation/story-models/export.json
+- data/preparation/story-models/logits.bin
+- data/preparation/story-models/browser.json
+- scripts/check/story_models/check.mjs
+- data/models/models.yaml

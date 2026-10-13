@@ -1,0 +1,132 @@
+{
+  "models": [
+    {
+      "id": "tinyllm-8k",
+      "parameters": 8168,
+      "load_ms": 71.20000000111759,
+      "prefill_ms": 15.699998999999965,
+      "warm_median_ms": 17.499999999999627,
+      "continuation": " Th",
+      "selected_ids": [
+        6,
+        7,
+        13,
+        12,
+        7,
+        14,
+        16,
+        7
+      ]
+    },
+    {
+      "id": "tinyllm-500k",
+      "parameters": 475712,
+      "load_ms": 43.90000000037253,
+      "prefill_ms": 2.699999999254942,
+      "warm_median_ms": 0.40000000037252903,
+      "continuation": " The cat loved to play with it.",
+      "selected_ids": [
+        282,
+        460,
+        507,
+        268,
+        325,
+        332,
+        314,
+        4037
+      ]
+    },
+    {
+      "id": "tinyllm-4m",
+      "parameters": 4262144,
+      "load_ms": 255,
+      "prefill_ms": 23.299999998882413,
+      "warm_median_ms": 2.899999998509884,
+      "continuation": " The cat liked to play with the ball",
+      "selected_ids": [
+        282,
+        460,
+        530,
+        268,
+        325,
+        332,
+        264,
+        476
+      ]
+    }
+  ],
+  "numerical": [
+    {
+      "model": "tinyllm-500k",
+      "prompt": "Once upon a time, a little rabbit found a red ball.",
+      "max_error": 0.0000152587890625,
+      "argmax_equal": true,
+      "top_two_margin": 2.232071876525879,
+      "near_tie": false
+    },
+    {
+      "model": "tinyllm-500k",
+      "prompt": "a  cat\n sat",
+      "max_error": 0.0000095367431640625,
+      "argmax_equal": true,
+      "top_two_margin": 1.4321861267089844,
+      "near_tie": false
+    },
+    {
+      "model": "tinyllm-500k",
+      "prompt": "hello café 你好",
+      "max_error": 0.000009775161743164062,
+      "argmax_equal": true,
+      "top_two_margin": 1.7746782302856445,
+      "near_tie": false
+    },
+    {
+      "model": "tinyllm-4m",
+      "prompt": "Once upon a time, a little rabbit found a red ball.",
+      "max_error": 0.000014185905456542969,
+      "argmax_equal": true,
+      "top_two_margin": 1.5592451095581055,
+      "near_tie": false
+    },
+    {
+      "model": "tinyllm-4m",
+      "prompt": "a  cat\n sat",
+      "max_error": 0.0000152587890625,
+      "argmax_equal": true,
+      "top_two_margin": 0.877924919128418,
+      "near_tie": false
+    },
+    {
+      "model": "tinyllm-4m",
+      "prompt": "hello café 你好",
+      "max_error": 0.000021696090698242188,
+      "argmax_equal": true,
+      "top_two_margin": 2.1954193115234375,
+      "near_tie": false
+    }
+  ],
+  "storage": [
+    "Error: Error: Model asset unavailable (404): tinyllm-0.5m.bin",
+    "Error: Error: Load the selected model first",
+    "Error: Error: Model asset digest mismatch: tinyllm-0.5m.bin",
+    "Cross-origin CORS asset execution passed",
+    "Error: TypeError: Failed to fetch"
+  ],
+  "tokenizer": [
+    {
+      "model": "tinyllm-500k",
+      "cases": 10
+    },
+    {
+      "model": "tinyllm-4m",
+      "cases": 10
+    }
+  ],
+  "screenshots": [
+    "tinyllm-8k",
+    "tinyllm-500k",
+    "tinyllm-4m"
+  ],
+  "ready_ms": 2745.921124,
+  "passed": true
+}

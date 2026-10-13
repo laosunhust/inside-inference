@@ -73,7 +73,7 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
         positions = len(ids) + request.generation.max_new_tokens - 1
         if positions > model.config.context:
             raise ValueError('Prompt plus output budget exceeds positional capacity')
-        reservation = positions * model.config.width * 2 * 8
+        reservation = positions * model.config.layers * model.config.width * 2 * 8
         if reservation > cfg.kv_cache.device_kv_bytes:
             raise ValueError('One request exceeds device KV capacity; no truncation or silent offload policy')
         waiting_inputs.append(dict(id=item.request_id, arrival=item.arrival_us, ids=ids,
@@ -172,9 +172,9 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
         before = item['state'] if item['state'] is not None else runtime.empty()
         n, total, d, f = len(ids), len(before.token_ids)+len(ids), model.config.width, model.config.ffn
         # Executed dense matmul arithmetic (multiply+add = two FLOPs); excludes scalar ops.
-        flops = 2*n*(4*d*d+2*d*f+d*model.config.vocabulary) + 4*n*total*d
+        flops = 2*n*(model.config.layers*(4*d*d+2*d*f)+d*model.config.vocabulary) + 4*model.config.layers*n*total*d
         weight_bytes = 8*sum(math.prod(shape) for shape in parameter_shapes(model.config).values())
-        traffic = weight_bytes + 16*d*(total+n)
+        traffic = weight_bytes + 16*model.config.layers*d*(total+n)
         work_id = f'{run_id}/work-{len(computations)}'
         start = event('compute-start',item['id'],state_id=snapshot(before),phase=phase)
         result, elapsed = runtime.compute(ids,before,capture=True,request_id=item['id'],run_id=run_id,step=item['step'],work_id=work_id)
@@ -198,7 +198,7 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
         computations.append(dict(work_id=work_id,request_id=item['id'],step=item['step'],phase=phase,
             input_ids=list(ids),state_before=before.to_dict(),state_after=item['state'].to_dict(),
             nodes=result['nodes'],selection=selection,matmul_flops=flops,logical_memory_bytes=traffic,
-            reference_matmul_flops=2*total*(4*d*d+2*d*f+d*model.config.vocabulary)+4*total*total*d,
+            reference_matmul_flops=2*total*(model.config.layers*(4*d*d+2*d*f)+d*model.config.vocabulary)+4*model.config.layers*total*total*d,
             reference_max_abs_error=error))
         collect()
         return selection
@@ -245,7 +245,7 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
                 outcomes[current['id']]=RunOutcome(selected_tokens=n,published_tokens=sum(t!=end_token for t in current['emitted']),
                     unused_budget=budget-n,stop_reason='turn_end' if token==end_token else 'output_budget',complete=token==end_token).to_dict()
                 if key not in retained:
-                    size=len(current['prefix_ids'])*model.config.width*16
+                    size=len(current['prefix_ids'])*model.config.layers*model.config.width*16
                     start=event('retention-start',current['id'],state_id=snapshot(current['state']),count=size,
                         detail='Materialize retained prefix; charge payload read and write')
                     prefix,elapsed=runtime.retain(current['state'],len(current['prefix_ids']))

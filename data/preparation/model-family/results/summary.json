@@ -1,0 +1,443 @@
+{
+  "models": [
+    {
+      "name": "baseline-7",
+      "variant": "baseline",
+      "seed": 7,
+      "counts": {
+        "correct": 59,
+        "readable": 85,
+        "correct_readable": 59,
+        "exact_target": 59
+      },
+      "family": {
+        "ownership": 12,
+        "location": 12,
+        "negation": 10,
+        "correction": 25
+      },
+      "accuracy": {
+        "full": 0.6941176470588235,
+        "question_only": 0.0,
+        "rotated_context": 0.1411764705882353
+      },
+      "checkpoint_sha256": "757099c57a4931d5a0089e6a85e1183dd3c59920d150f63d470ce648afc44509",
+      "parameters": 8168,
+      "weight_bytes": 65344,
+      "kv_bytes_per_position": 128
+    },
+    {
+      "name": "baseline-17",
+      "variant": "baseline",
+      "seed": 17,
+      "counts": {
+        "correct": 61,
+        "readable": 85,
+        "correct_readable": 61,
+        "exact_target": 61
+      },
+      "family": {
+        "ownership": 16,
+        "location": 10,
+        "negation": 10,
+        "correction": 25
+      },
+      "accuracy": {
+        "full": 0.7176470588235294,
+        "question_only": 0.0,
+        "rotated_context": 0.15294117647058825
+      },
+      "checkpoint_sha256": "5bc14b8f5ffe35023356d9511f450a1d4ee94e27998720cf8348b23fc7adfee0",
+      "parameters": 8168,
+      "weight_bytes": 65344,
+      "kv_bytes_per_position": 128
+    },
+    {
+      "name": "baseline-27",
+      "variant": "baseline",
+      "seed": 27,
+      "counts": {
+        "correct": 57,
+        "readable": 85,
+        "correct_readable": 57,
+        "exact_target": 57
+      },
+      "family": {
+        "ownership": 9,
+        "location": 13,
+        "negation": 10,
+        "correction": 25
+      },
+      "accuracy": {
+        "full": 0.6705882352941176,
+        "question_only": 0.0,
+        "rotated_context": 0.15294117647058825
+      },
+      "checkpoint_sha256": "ee67c0dac1ed873f0a3b4f7f5a3bfa3d91bac18fdc8ae494f476adcd894ea02e",
+      "parameters": 8168,
+      "weight_bytes": 65344,
+      "kv_bytes_per_position": 128
+    },
+    {
+      "name": "wider-7",
+      "variant": "wider",
+      "seed": 7,
+      "counts": {
+        "correct": 57,
+        "readable": 85,
+        "correct_readable": 57,
+        "exact_target": 57
+      },
+      "family": {
+        "ownership": 13,
+        "location": 12,
+        "negation": 10,
+        "correction": 22
+      },
+      "accuracy": {
+        "full": 0.6705882352941176,
+        "question_only": 0.011764705882352941,
+        "rotated_context": 0.17647058823529413
+      },
+      "checkpoint_sha256": "55e716175ab175b8ed89b5abf756dd663cd4f6453c6349278cecc5df97357c8b",
+      "parameters": 16976,
+      "weight_bytes": 135808,
+      "kv_bytes_per_position": 256
+    },
+    {
+      "name": "wider-17",
+      "variant": "wider",
+      "seed": 17,
+      "counts": {
+        "correct": 53,
+        "readable": 85,
+        "correct_readable": 53,
+        "exact_target": 53
+      },
+      "family": {
+        "ownership": 8,
+        "location": 10,
+        "negation": 10,
+        "correction": 25
+      },
+      "accuracy": {
+        "full": 0.6235294117647059,
+        "question_only": 0.0,
+        "rotated_context": 0.15294117647058825
+      },
+      "checkpoint_sha256": "cebe662365cae90322d30e0deac990175dabfe2364277d77f3f9dfe4c841c8dc",
+      "parameters": 16976,
+      "weight_bytes": 135808,
+      "kv_bytes_per_position": 256
+    },
+    {
+      "name": "wider-27",
+      "variant": "wider",
+      "seed": 27,
+      "counts": {
+        "correct": 62,
+        "readable": 85,
+        "correct_readable": 62,
+        "exact_target": 62
+      },
+      "family": {
+        "ownership": 13,
+        "location": 14,
+        "negation": 10,
+        "correction": 25
+      },
+      "accuracy": {
+        "full": 0.7294117647058823,
+        "question_only": 0.0,
+        "rotated_context": 0.11764705882352941
+      },
+      "checkpoint_sha256": "2bef1376809b455b41a6c7948482f203b5c62c5441eaf42158b4c9814bcb2d30",
+      "parameters": 16976,
+      "weight_bytes": 135808,
+      "kv_bytes_per_position": 256
+    },
+    {
+      "name": "deeper-7",
+      "variant": "deeper",
+      "seed": 7,
+      "counts": {
+        "correct": 57,
+        "readable": 85,
+        "correct_readable": 57,
+        "exact_target": 57
+      },
+      "family": {
+        "ownership": 15,
+        "location": 10,
+        "negation": 10,
+        "correction": 22
+      },
+      "accuracy": {
+        "full": 0.6705882352941176,
+        "question_only": 0.0,
+        "rotated_context": 0.16470588235294117
+      },
+      "checkpoint_sha256": "5ce7b6878816eded2394d2dca10b28d5766eeb2b0dd0c44bc00d8d9928353a99",
+      "parameters": 8768,
+      "weight_bytes": 70144,
+      "kv_bytes_per_position": 256
+    },
+    {
+      "name": "deeper-17",
+      "variant": "deeper",
+      "seed": 17,
+      "counts": {
+        "correct": 56,
+        "readable": 85,
+        "correct_readable": 56,
+        "exact_target": 56
+      },
+      "family": {
+        "ownership": 12,
+        "location": 9,
+        "negation": 10,
+        "correction": 25
+      },
+      "accuracy": {
+        "full": 0.6588235294117647,
+        "question_only": 0.0,
+        "rotated_context": 0.1411764705882353
+      },
+      "checkpoint_sha256": "7ea6b7a9c157db9db203d954696f84de7fd3841114ed068001c6f1c45a3a1a44",
+      "parameters": 8768,
+      "weight_bytes": 70144,
+      "kv_bytes_per_position": 256
+    },
+    {
+      "name": "deeper-27",
+      "variant": "deeper",
+      "seed": 27,
+      "counts": {
+        "correct": 58,
+        "readable": 85,
+        "correct_readable": 58,
+        "exact_target": 58
+      },
+      "family": {
+        "ownership": 10,
+        "location": 13,
+        "negation": 10,
+        "correction": 25
+      },
+      "accuracy": {
+        "full": 0.6823529411764706,
+        "question_only": 0.07058823529411765,
+        "rotated_context": 0.16470588235294117
+      },
+      "checkpoint_sha256": "84a8128072ad579193d5a819aeaad695a80da9a6d63471a7c896204b970f9d6a",
+      "parameters": 8768,
+      "weight_bytes": 70144,
+      "kv_bytes_per_position": 256
+    }
+  ],
+  "shipped_counts": {
+    "correct": 59,
+    "readable": 85,
+    "correct_readable": 59,
+    "exact_target": 59
+  },
+  "test_split_evaluated": false,
+  "evaluation_cases": 85,
+  "comparison": {
+    "variants": {
+      "wider": {
+        "behavior_pass": false,
+        "gates": {
+          "binding_gain": false,
+          "seed_consistency": true,
+          "no_binding_regression": false,
+          "strong_family_retention": true,
+          "readability": true,
+          "context_controls": true
+        },
+        "family_accuracy_deltas": {
+          "ownership": -0.04,
+          "location": 0.013333333333333334,
+          "negation": 0.0,
+          "correction": -0.04
+        },
+        "binding_gain": -0.013333333333333334,
+        "seed_binding_gains": [
+          1,
+          -8,
+          5
+        ],
+        "paired_cases": {
+          "7": {
+            "improved": [
+              "location-540d23088a7cca01-v1",
+              "location-56b48104ffd8edd5-v0",
+              "location-58449e6a853b85fc-v0",
+              "location-8c3c6d75c73978eb-v0",
+              "location-97ee225eb6f178d4-v0",
+              "ownership-0450d4f871f55c62-v0",
+              "ownership-21cf435155e17bcf-v1",
+              "ownership-36eeab16a1bff5d9-v0",
+              "ownership-91cb94e40a69280e-v1"
+            ],
+            "regressed": [
+              "correction-78c523d81260ce8e-v0",
+              "correction-8a2768026245e740-v0",
+              "correction-cb7dc7d62dcf206b-v0",
+              "location-1826c57384d7a70b-v0",
+              "location-210994980929c4c5-v1",
+              "location-35735470627f8f86-v1",
+              "location-875302400ceb06df-v1",
+              "location-c130c8910e9b99e8-v1",
+              "ownership-30df4642ee49c2ca-v0",
+              "ownership-6232376928dbe668-v0",
+              "ownership-e95913f07f34562f-v0"
+            ]
+          },
+          "17": {
+            "improved": [
+              "location-58449e6a853b85fc-v0",
+              "location-8c3c6d75c73978eb-v0",
+              "ownership-2901ecedc4384ab6-v1",
+              "ownership-36eeab16a1bff5d9-v0",
+              "ownership-3f05e77181c94896-v1",
+              "ownership-bc443ce08a8031e0-v1",
+              "ownership-e3cea1c43da234d3-v0"
+            ],
+            "regressed": [
+              "location-1826c57384d7a70b-v0",
+              "location-41f29f951c9d2114-v0",
+              "ownership-0450d4f871f55c62-v0",
+              "ownership-0f93ad99bf4d8e4b-v1",
+              "ownership-123d2aabfcf0e528-v1",
+              "ownership-1ef9c3d1ff65cd85-v0",
+              "ownership-21cf435155e17bcf-v1",
+              "ownership-2af78e6f5651274f-v1",
+              "ownership-4516f8cba33f5735-v1",
+              "ownership-4b716261b53dd7f8-v0",
+              "ownership-6232376928dbe668-v0",
+              "ownership-91cb94e40a69280e-v1",
+              "ownership-a40828e2ac7fcfdb-v1",
+              "ownership-c79b4f4172c35838-v1",
+              "ownership-dd81615d475c817d-v0"
+            ]
+          },
+          "27": {
+            "improved": [
+              "location-1826c57384d7a70b-v0",
+              "location-210994980929c4c5-v1",
+              "location-395c1df66132fcbb-v0",
+              "location-79c2fa4ec1f11d3e-v1",
+              "location-875302400ceb06df-v1",
+              "location-c130c8910e9b99e8-v1",
+              "location-cae110be97a0b9c0-v0",
+              "ownership-1ef9c3d1ff65cd85-v0",
+              "ownership-21cf435155e17bcf-v1",
+              "ownership-35965af681148efb-v0",
+              "ownership-6232376928dbe668-v0",
+              "ownership-91cb94e40a69280e-v1"
+            ],
+            "regressed": [
+              "location-2937bdf448bc99bf-v0",
+              "location-49a33487b9598472-v1",
+              "location-540d23088a7cca01-v1",
+              "location-56b48104ffd8edd5-v0",
+              "location-58449e6a853b85fc-v0",
+              "location-7200f3b1a6bb4ac4-v1",
+              "ownership-30df4642ee49c2ca-v0"
+            ]
+          }
+        }
+      },
+      "deeper": {
+        "behavior_pass": false,
+        "gates": {
+          "binding_gain": false,
+          "seed_consistency": true,
+          "no_binding_regression": false,
+          "strong_family_retention": true,
+          "readability": true,
+          "context_controls": true
+        },
+        "family_accuracy_deltas": {
+          "ownership": 0.0,
+          "location": -0.04,
+          "negation": 0.0,
+          "correction": -0.04
+        },
+        "binding_gain": -0.02,
+        "seed_binding_gains": [
+          1,
+          -5,
+          1
+        ],
+        "paired_cases": {
+          "7": {
+            "improved": [
+              "location-540d23088a7cca01-v1",
+              "location-56b48104ffd8edd5-v0",
+              "location-58449e6a853b85fc-v0",
+              "ownership-0450d4f871f55c62-v0",
+              "ownership-0f93ad99bf4d8e4b-v1",
+              "ownership-21cf435155e17bcf-v1",
+              "ownership-91cb94e40a69280e-v1",
+              "ownership-a40828e2ac7fcfdb-v1"
+            ],
+            "regressed": [
+              "correction-07e82c4c3c52c120-v1",
+              "correction-adad6283fae91629-v1",
+              "correction-bdfdd3d18540ff8f-v1",
+              "location-1826c57384d7a70b-v0",
+              "location-210994980929c4c5-v1",
+              "location-875302400ceb06df-v1",
+              "location-c130c8910e9b99e8-v1",
+              "location-edb775a792ebcce1-v1",
+              "ownership-30df4642ee49c2ca-v0",
+              "ownership-6232376928dbe668-v0"
+            ]
+          },
+          "17": {
+            "improved": [
+              "location-58449e6a853b85fc-v0",
+              "ownership-30df4642ee49c2ca-v0",
+              "ownership-bc443ce08a8031e0-v1",
+              "ownership-e3cea1c43da234d3-v0"
+            ],
+            "regressed": [
+              "location-1826c57384d7a70b-v0",
+              "location-41f29f951c9d2114-v0",
+              "ownership-0450d4f871f55c62-v0",
+              "ownership-21cf435155e17bcf-v1",
+              "ownership-2af78e6f5651274f-v1",
+              "ownership-4516f8cba33f5735-v1",
+              "ownership-4b716261b53dd7f8-v0",
+              "ownership-a40828e2ac7fcfdb-v1",
+              "ownership-dd81615d475c817d-v0"
+            ]
+          },
+          "27": {
+            "improved": [
+              "location-8c3c6d75c73978eb-v0",
+              "location-97ee225eb6f178d4-v0",
+              "ownership-0f93ad99bf4d8e4b-v1",
+              "ownership-35965af681148efb-v0",
+              "ownership-3f05e77181c94896-v1",
+              "ownership-a40828e2ac7fcfdb-v1"
+            ],
+            "regressed": [
+              "location-49a33487b9598472-v1",
+              "location-7200f3b1a6bb4ac4-v1",
+              "ownership-30df4642ee49c2ca-v0",
+              "ownership-36eeab16a1bff5d9-v0",
+              "ownership-e95913f07f34562f-v0"
+            ]
+          }
+        }
+      }
+    },
+    "behavior_recommendation": "baseline",
+    "preview_seed": 7,
+    "depth_prediction_supported": false,
+    "caveat": "Behavioral screens only; deployment requires independent execution/browser gates. Failed quality does not invalidate a verified inference fixture."
+  }
+}

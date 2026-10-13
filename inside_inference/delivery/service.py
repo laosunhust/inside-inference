@@ -30,3 +30,27 @@ def execute(name, payload, store, *, checkpoint=None):
 
 def execute_json(name, payload, store):
     return execute(name, decode_json(payload), store)
+
+
+def validate_operation_input(name, raw):
+    operation = EXECUTION_OPERATIONS[name]
+    payload = decode_json(raw)
+    if operation['request']: MODELS[operation['request']].validate_shape(payload)
+    elif payload is not None: raise ValueError('Unexpected operation input')
+    if name in ('prepareGeneration','generateToken'):
+        from inside_inference.declarations_generated import LAB_BINDINGS
+        if payload['experiment']['ontology_binding'] != LAB_BINDINGS['naive-gpt']:
+            raise ValueError('Generation requires the model-execution ontology binding')
+        if name == 'prepareGeneration':
+            requests = payload['workload']['requests']
+            if len(requests) != 1 or requests[0]['arrival_us'] != 0:
+                raise ValueError('Only one request arriving at zero is supported; no scheduler is simulated')
+            policy = requests[0]['request']['generation']
+        else:
+            policy = payload['generation']
+        if policy['stopping'] != 'model-end-or-budget':
+            raise ValueError('Generation requires model-end-or-budget')
+
+
+def validate_operation_output(name, raw):
+    MODELS[EXECUTION_OPERATIONS[name]['response']].validate_shape(decode_json(raw))

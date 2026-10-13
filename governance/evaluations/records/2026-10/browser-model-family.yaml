@@ -1,0 +1,32 @@
+version: 1
+work_item: browser-model-family
+question: Can one static browser product switch between an inspectable 384-ID story model and the retained 0.48M/4.26M storytellers through declared artifact storage?
+necessity: Separate presentation and quality roles without separate local/public products or hidden model substitutions.
+baseline: Existing 8168-parameter inspectable Q/A checkpoint and independent TinyStories seed1337 checkpoints; no model selector or external weight loader.
+reuse:
+- source: Existing Python model/tokenizer/inspection and Karpathy llama2.c at 350e04fe35433e6d2941dce5a1f53308f87058eb; llama2.c-web; ONNX Runtime Web
+  decision: Reuse original numerical implementations; assess a compiled upstream browser runtime before adding a numerical implementation. Keep one execution authority per selected architecture.
+criteria:
+- Hard four-hour window from goal creation 2026-10-12T23:18:34Z through 2026-10-13T03:18:34Z. Stop training and implementation at the deadline; retain incomplete evidence. No commits or actual cloud publication requested.
+- Three declared model roles with derived exact parameter counts; seed1337 for both retained larger models. No best-output seed selection. Existing tiny architecture and 384-ID tokenizer retained.
+- Train one tiny story-continuation checkpoint using training-only TinyStories examples, fixed seed7 and bounded updates declared before training. Quality is not an acceptance gate; finite learning, export verification and inspectability are.
+- Model weights and tokenizers resolve through a declared storage interface supporting relative local URLs and HTTPS object storage URLs, with size/digest verification and explicit missing/corrupt/CORS failure. No cloud credentials in the browser.
+- Optional weights are fetched only on explicit selection. Model selection clears prior request output and numerical evidence. One selected artifact owns tokenization, execution, generation and displayed metadata.
+- Same built release and browser operations for local and public use; no native serving or compute fallback. Test a second asset origin locally for storage parity, while acknowledging hosted TLS/CDN verification remains external.
+- Larger models execute actual browser computations, compared on shared prefixes with original FP32 logits at atol0.001 rtol0.001; report argmax flips and near ties separately. Correct export and browser execution precede UI integration.
+- Small model retains detailed inspection; large models explicitly delimit available inspection. No substitution of small-model tensors for large-model output. 384-ID losses are not ranked against 4096-ID losses.
+- Measure cold loading and warm per-token latency on this machine, report exact asset sizes. Warm median token latency below500ms and no UI-thread inference; failure is recorded rather than hidden. No cross-device responsiveness claim.
+- Integration covers actual generation, model switching/reset, lazy loading, storage failure, and headless/interactive equivalence. Existing10s unit and100s integration budgets remain; desktop and narrow visual review required.
+checks:
+- make _governance-check
+- Focused tokenizer/export and original-runtime numerical comparison
+- make test
+- make test-integration
+- Browser family harness with cross-origin assets, failures, timing and screenshots
+counterexamples:
+- Loading one model displays another model's tokens, configuration or tensors.
+- A local file path or embedded checkpoint silently replaces failed remote weights.
+- Optional models download on initial page view.
+- Fluent-looking output conceals failed parity or a cherry-picked checkpoint.
+- Tiny model quality remains poor; this is expected, not grounds to alter evaluation.
+- Local tests cannot validate actual deployed TLS, CDN policy or all visitor devices.

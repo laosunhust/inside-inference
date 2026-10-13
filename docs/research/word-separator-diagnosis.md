@@ -1,7 +1,10 @@
 # Missing spaces: Step 1 diagnosis
 
-Date: 2026-10-10. Scope: the approved thirty-minute
-[diagnosis spike](word-separator-proposal.md), without training or tokenizer changes.
+Date: 2026-10-10. Scope: the approved thirty-minute diagnosis spike, without
+training or tokenizer changes. The completed proposal is retained in Git history.
+The subsequent [multi-word pilot](multiword-checkpoint-2026-10-10.md) established
+readable output with the existing tokenizer; no BPE or implicit-spacing migration
+was performed. Those alternatives are not active work.
 
 ## Finding
 

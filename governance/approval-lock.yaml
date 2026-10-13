@@ -28,7 +28,7 @@ approval:
     \ consolidation and enforcement, test-efficiency improvements, and clarification that feature-development SSOT\
     \ priority does not override governance or evaluations. Owner instruction on 2026-10-11: \"right. let's continue\
     \ deleting. we don't truly need speed up here for this tiny LLM.\", following explicit agreement to delete CUDA\
-    \ and native website compute, adopt browser-only operation execution and retain native component testing."
+    \ and native website compute, adopt browser-only operation execution and retain native component testing. Owner instruction on 2026-10-11: \"update AGENTS.md to delete proposals after they are complete, and also delete those completed or effectively completed proposals.\" Owner reply on 2026-10-11: \"Approve the fixture fix and hash update\" for the isolated governance evaluation fixture supersedes bug. Owner instruction on 2026-10-12: local and public website must share one architecture, with only runtime differences; make this a clear AGENTS.md rule and fill context/development-tooling gaps first. Owner responses on 2026-10-12: Approve the scoped browser-boundary changes; Approve the model-artifact allowance."
   scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile and
     ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content remains unlocked.
     Retain approved folder and file-size limits. This approval does not authorize future policy changes. Additional
@@ -66,10 +66,10 @@ approval:
     boundary enforcement, and scripts/build/structured.py equivalent strict YAML admission using LibYAML. No limit
     or lock-inventory changes. Browser-only cutover: update the existing transport generator and declaration generator,
     execution-boundary admission/tests, and evaluation evidence admission/tests so retired source evidence remains
-    recoverable in Git without rewriting historical records. Budgets and protected inventory remain unchanged.'
+    recoverable in Git without rewriting historical records. Budgets and protected inventory remain unchanged. Additional owner authorization covers only the proposal lifecycle obligation in AGENTS.md and its recorded hash; retire completed or superseded proposals and repair links while retaining evaluation evidence. No enforcement, inventory or limit changes. Additional authorization fixes only the isolated evaluation fixture in tests/unit/contracts/test_governance.py and its hash; no governance rule changes. Owner authorization on 2026-10-12 adds only the local/public parity obligation to AGENTS.md Development and updates its recorded hash. No enforcement, lock inventory or limit changes. Extend only the browser transport generator, boundary checker and its tests for declared model loading/execution. Add only a 32 MiB binary-model allowance under data/models/artifacts/ in limits, structure enforcement and its existing regression tests. Update corresponding hashes; no lock inventory or other limit changes.'
 files:
-  AGENTS.md: 3d82da87d8d152cde464d421d61a35cdc4f1afb6109b0c3d35edb0cd5411b596
-  governance/limits.yaml: 6be775a37ca614960261a44ae07d13305bafb71195a84f9b3233af25601b784e
+  AGENTS.md: 46a893c8c626dbffe1a4cba317060841c79f5d48cc7587dca1fa5493aa889c51
+  governance/limits.yaml: 471f9044526976db43f9d775587e0c4b3fed80d38c42e02f7ac2e326ae72c76d
   scripts/__init__.py: 07cf2de9025005ac8dbafe1162d8cd39cf4f99dab454bd0388b597a5585db2ea
   scripts/build/compile_validators.mjs: 8d226d90bad36a219aa69af05a511b665f2b7149b6ba50557b778e51c6a52795
   scripts/build/contracts.py: fca886ce74f82593a921b318535a6731ddf71124a70f1942f5f43f419742e63e
@@ -81,10 +81,10 @@ files:
   scripts/check/governance/evaluation.py: 2e8584123755b3723d494225aa188ec68ab8a0ff25cbcbc3fc7f9c8c17b49b82
   scripts/check/governance/interfaces.py: c77bd3ba3350912007ca86f0f2d7ba7efc66d0519a6f7916254a4f4c26c2f0bc
   scripts/check/governance/locks.py: b49a82dd34f4f6da2261226fecc277fffb8465f64c32e97f73a1601bfc2fdc75
-  scripts/check/governance/structure.py: d1730cf1a43d2c3e1702bf06377fbdf2d8041a3e1365b26f6313d8eb8e8bad90
+  scripts/check/governance/structure.py: b6f927698a5b3676219c4eb96c2906ebab8a19cb0c2a5e9a68e45dcb6dfbfc52
   scripts/check/layout.py: 54e53c43a5ce571375c049e9ebf740631ab24c14acdd1efaafca5eb2f63679e2
   scripts/check/make_interface.py: 298a6bd1e6f90becabbd0d12ba369c5a0d697f0b81f758fabf56423f01cd26b8
-  tests/unit/contracts/test_governance.py: b46995fdec000909fe7fa7f3d66e635fe1272855c702b681b5a1e1e713ce363e
+  tests/unit/contracts/test_governance.py: 148568993e25c3bf8844f4a3d38604fdbe5659bb51aa73b6949b181cba1af21d
   tests/unit/contracts/test_governance_locks.py: acf09b594c79261c3c40a854cfc0dde0848b208e6996946ee6ef65de23348ef7
   scripts/check/governance/frontend.py: 52215b95b64864ec6a726e28f7ef020d46308bc349615acff086f839abbf93c4
   scripts/check/governance/harness.py: 31ea6e97f860f971745a04f8188015815697183b83a1ab6382dff2abcca59a79
@@ -93,6 +93,6 @@ files:
   tests/integration/test_evaluation_history.py: 8c8c04bc9a6bae1c6ae6aa163ce8658f56d39b4649415aa315c9807b30873b6d
   scripts/build/theme.py: 09ae41862b4155fad25c2189c5a4253155ec55a59f70422de67d69fed2922639
   tests/unit/test_theme.py: 96a198554b23d8a80230cbe4e62cdf18a02f0b1a81a8f65da8380a192f66eb07
-  scripts/build/http_transport.py: 11985fab8ce46c65243026a13857b2a6f0f8fae1fbff448c57980c1a22c245c9
-  scripts/check/governance/http.py: 81bb53256905b83a56826a27271d4253ebb36caeb143df785353b4d2c02c57ca
-  tests/unit/contracts/test_http_boundary.py: a4d1ba3749a547aba1f21e2b059af1d84f413070f8b18c8461dbc09435d11ba2
+  scripts/build/http_transport.py: 5b431edb7563016de42e821601f2dd224217a17deeed96d93bae8d610e36b095
+  scripts/check/governance/http.py: 52d89b8e3a90a3a358981c5c45f22a7bd09f27806629ed9353bcbdaa1a58054b
+  tests/unit/contracts/test_http_boundary.py: 5a612d211acee2e8f5c3ef4ad91db828237243b432978f27e8ee8c02796faa8d

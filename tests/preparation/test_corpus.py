@@ -37,6 +37,22 @@ class CorpusTests(unittest.TestCase):
         cls.cases = build_cases(cls.recipe)
         cls.codec = Tokenizer()
 
+    def test_fresh_family_set_is_disjoint_balanced_and_independently_labeled(self):
+        from scripts.experiments.model_family.cases import freeze, PROBES
+        frozen=json.loads(Path('data/preparation/model-family/cases.json').read_text())
+        self.assertEqual(freeze(),frozen)
+        used=build_cases(load_recipe())
+        self.assertFalse({c['group_id'] for c in frozen}&{c['group_id'] for c in used})
+        self.assertEqual(Counter(c['family'] for c in frozen),dict(location=25,ownership=25,correction=25,negation=10))
+        for family in FAMILIES:
+            self.assertEqual(set(Counter(c['answer'] for c in frozen if c['family']==family).values()),{2 if family=='negation' else 5})
+        for c in frozen:
+            user=[t['text'] for t in c['turns'] if t['role']=='user']
+            self.assertNotIn(' '.join(user),{p for p,_ in PROBES})
+            match=re.search(r'(where is the \w+(?: now)?\?|who has the \w+\?|what does \w+ want\?)$',user[-1])
+            self.assertIsNotNone(match)
+            self.assertEqual(answer_from_rendered_text(c['family'],user[:-1]+[user[-1][:match.start()]],match[0]),c['answer'])
+
     def test_determinism_and_balanced_held_out_cases(self):
         self.assertEqual(self.cases, build_cases(self.recipe))
         self.assertEqual(Counter(c['split'] for c in self.cases),

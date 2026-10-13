@@ -1,0 +1,29 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/model-consolidation.yaml
+evaluation_sha256: dc95b75529c611f19ca0b3416e34aa431dc0a3d8e5ea58c9a19ac418476dc4e1
+outcome: passed
+summary: The main page initially selects the 4M artifact and a story opening without inference. Change
+  Model sits left of Edit and opens the system picker; selection loads through verified assets and preserves
+  input/settings while clearing tokens, output, replay, inspection and export. All three artifacts use
+  GenerationExperiment/GenerationInput/GenerationStep/GenerationPrediction, with GenerationEvidence exports
+  retaining original workload and artifact identities. Tiny-model tensors and selected-prefix branching
+  remain real; larger models show logits with disabled tensor visuals and an explicit switch to 8K. Standalone
+  model-size page/controller/catalog entry and obsolete landing evidence adapter were deleted; builds
+  remove stale generated pages. Checkpoints and historical evaluation evidence remain. Unit 9.50s and
+  integration 69.41s passed within unchanged budgets. Integration includes numerical references, softmax
+  normalization, headless/UI parity, branch/replay/reset, races, output budgets, context rejection, export,
+  lazy assets and cross-origin/failure cases. Desktop and narrow renders reviewed. No simulated hardware/placement
+  or cloud deployment claimed.
+evidence:
+- data/models/evaluations/2026-10-13-consolidation.json
+- data/models/initial.yaml
+- data-model/domains/model-family.yaml
+- web/inference.html
+- web/inference.js
+- web/inspection-session.js
+- web/inspection/details.js
+- web/execution/model-service.js
+- inside_inference/runtimes/inspectable.py
+- scripts/check/story_models/check.mjs
+- docs/architecture/inspection.md
+- docs/architecture/delivery.md

@@ -4,6 +4,7 @@ files_per_folder: 18
 authored_file_bytes: 24576
 generated_file_bytes: 2097152
 fixture_file_bytes: 131072
+model_artifact_file_bytes: 33554432
 fixture_roots:
 - data/
 - tests/fixtures/

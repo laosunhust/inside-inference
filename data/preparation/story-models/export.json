@@ -1,0 +1,224 @@
+{
+  "cases": [
+    {
+      "model_id": "tinyllm-500k",
+      "prompt": "Once upon a time, a little rabbit found a red ball.",
+      "ids": [
+        1,
+        432,
+        440,
+        261,
+        404,
+        4045,
+        261,
+        394,
+        1072,
+        509,
+        261,
+        676,
+        476,
+        4037
+      ],
+      "logit_offset": 0,
+      "logit_count": 4096
+    },
+    {
+      "model_id": "tinyllm-500k",
+      "prompt": "a  cat\n sat",
+      "ids": [
+        1,
+        261,
+        460,
+        13,
+        1089
+      ],
+      "logit_offset": 4096,
+      "logit_count": 4096
+    },
+    {
+      "model_id": "tinyllm-500k",
+      "prompt": "hello caf\u00e9 \u4f60\u597d",
+      "ids": [
+        1,
+        2534,
+        280,
+        1364,
+        198,
+        172,
+        4023,
+        231,
+        192,
+        163,
+        232,
+        168,
+        192
+      ],
+      "logit_offset": 8192,
+      "logit_count": 4096
+    },
+    {
+      "model_id": "tinyllm-4m",
+      "prompt": "Once upon a time, a little rabbit found a red ball.",
+      "ids": [
+        1,
+        432,
+        440,
+        261,
+        404,
+        4045,
+        261,
+        394,
+        1072,
+        509,
+        261,
+        676,
+        476,
+        4037
+      ],
+      "logit_offset": 12288,
+      "logit_count": 4096
+    },
+    {
+      "model_id": "tinyllm-4m",
+      "prompt": "a  cat\n sat",
+      "ids": [
+        1,
+        261,
+        460,
+        13,
+        1089
+      ],
+      "logit_offset": 16384,
+      "logit_count": 4096
+    },
+    {
+      "model_id": "tinyllm-4m",
+      "prompt": "hello caf\u00e9 \u4f60\u597d",
+      "ids": [
+        1,
+        2534,
+        280,
+        1364,
+        198,
+        172,
+        4023,
+        231,
+        192,
+        163,
+        232,
+        168,
+        192
+      ],
+      "logit_offset": 20480,
+      "logit_count": 4096
+    }
+  ],
+  "tokenizer_cases": [
+    {
+      "text": "",
+      "ids": [
+        1
+      ]
+    },
+    {
+      "text": " ",
+      "ids": [
+        1
+      ]
+    },
+    {
+      "text": "  a  ",
+      "ids": [
+        1,
+        261
+      ]
+    },
+    {
+      "text": "a\tb",
+      "ids": [
+        1,
+        261,
+        12,
+        4043
+      ]
+    },
+    {
+      "text": "\n  a",
+      "ids": [
+        1,
+        4023,
+        13,
+        261
+      ]
+    },
+    {
+      "text": "a\u00a0 b",
+      "ids": [
+        1,
+        261,
+        197,
+        163,
+        267
+      ]
+    },
+    {
+      "text": "<s>hello</s>",
+      "ids": [
+        1,
+        4023,
+        63,
+        4032,
+        65,
+        260,
+        2349,
+        63,
+        50,
+        4032,
+        65
+      ]
+    },
+    {
+      "text": "\u2581cat",
+      "ids": [
+        1,
+        4023,
+        460
+      ]
+    },
+    {
+      "text": "\u00e9\ud83d\ude42",
+      "ids": [
+        1,
+        4023,
+        198,
+        172,
+        243,
+        162,
+        156,
+        133
+      ]
+    },
+    {
+      "text": "a\r\nb",
+      "ids": [
+        1,
+        261,
+        16,
+        13,
+        4043
+      ]
+    }
+  ],
+  "upstream_revision": "350e04fe35433e6d2941dce5a1f53308f87058eb",
+  "source_checkpoints": {
+    "tinyllm-500k": "c416bb3e265817f66030cae30afd802809bd66c770a2d72d62d384ec9781d78c",
+    "tinyllm-4m": "a9d52c34ea616cdc2f00a9e551f6fb3ad6d17eeaa30b035d4eb4dc828a1040ef"
+  },
+  "tokenizer_sha256": "454977017c066af0864f17d2c398d138c7cb08128cf659aab2eaff2d35b5efac",
+  "normalizer": {
+    "name": "identity",
+    "add_dummy_prefix": true,
+    "remove_extra_whitespaces": true,
+    "escape_whitespaces": true
+  }
+}

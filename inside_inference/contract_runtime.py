@@ -21,8 +21,33 @@ def _validator(serialized):
     return Draft202012Validator(json.loads(serialized))
 
 
+def _referenced_definitions(schema, definitions):
+    """Keep the content cache sensitive to every reachable, potentially mutable schema.
+
+    Admission uses small field schemas repeatedly. Serializing the entire repository
+    for each constant/default was expensive and gave unrelated changes a cache miss.
+    Literal JSON values in const/default/enum are data, not schema references.
+    """
+    needed = {}
+    pending = [schema]
+    while pending:
+        value = pending.pop()
+        if isinstance(value, list):
+            pending.extend(value)
+        elif isinstance(value, dict):
+            reference = value.get('$ref')
+            if isinstance(reference, str) and reference.startswith('#/$defs/'):
+                name = reference[len('#/$defs/'):]
+                if name not in needed and name in definitions:
+                    needed[name] = definitions[name]
+                    pending.append(definitions[name])
+            pending.extend(child for key, child in value.items()
+                           if key not in ('const', 'default', 'enum'))
+    return needed
+
+
 def validate(schema, value, definitions, *, path='$', context=None, bound=False):
-    document = {'$defs':definitions, **schema}
+    document = {'$defs':_referenced_definitions(schema, definitions), **schema}
     try:
         _validator(json.dumps(document,sort_keys=True)).validate(_json(value))
     except ValidationError as exc:

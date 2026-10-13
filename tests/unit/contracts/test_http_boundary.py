@@ -17,6 +17,9 @@ class ExecutionBoundaryTests(unittest.TestCase):
         for source in ('fetch(url)','new Worker(url)','Declarations.routes.run','ExecutionClient.http("run",{})'):
             self.assertTrue(check_source(Path('web/inference.js'),source))
         self.assertFalse(check_source(Path('web/inference.js'),'Execution.prepareInput(workload)'))
+        self.assertFalse(check_source(Path('web/execution/model-storage.js'),'fetch(url)'))
+        self.assertTrue(check_source(Path('web/execution/model-service.js'),'fetch(url)'))
+        self.assertTrue(check_source(Path('web/execution/model-storage.js'),'new Worker(url)'))
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory)
             generated={name:(ROOT/name).read_text() for name in (RUNTIMES,CLIENT,WORKER)}

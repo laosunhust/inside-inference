@@ -1,7 +1,8 @@
 # Tokenizer and dataset: first experiment checkpoint
 
-Next proposal (2026-10-10): [bounded 384-token BPE comparison](tokenizer-spike-proposal.md).
-This is awaiting review and does not change the codec described below.
+Follow-up: the [missing-space diagnosis](word-separator-diagnosis.md) and
+[multi-word pilot](multiword-checkpoint-2026-10-10.md) retained this codec.
+The superseded BPE proposal was retired without running that experiment.
 
 Date: 2026-10-08. Scope: the first part of the requested four-hour experiment,
 before a trainer or GPT implementation. Commands: `make _tokenizer-example`,

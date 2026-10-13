@@ -36,21 +36,31 @@ def main():
     build(site, checkpoint=checkpoint)
     if args.integration_tests:
         suite = unittest.defaultTestLoader.discover(str(ROOT/'tests/integration'))
-        # Default-checkpoint site assertions and browser consume the same fresh build.
-        # External checkpoints require a separate default fixture for those assertions.
+        # Structural checks and browser consume the same declared checkpoint/site.
         import sys
-        if checkpoint is None:
-            sys.modules['test_site'].AtlasTests.shared_site = site
+        sys.modules['test_site'].AtlasTests.shared_site = site
+        sys.modules['test_site'].AtlasTests.shared_checkpoint = checkpoint
         if not run_suite(suite, output/'integration-timing.json'):
             result_path.write_text(json.dumps({'passed':False,'status':'integration tests failed'}))
             raise SystemExit(1)
     server = socket_server(('127.0.0.1', 0), directory=site)
+    assets=socket_server(('127.0.0.1',0),directory=site/'models',cors_origin='*')
+    asset_thread=threading.Thread(target=assets.serve_forever,daemon=True);asset_thread.start()
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
         base = f'http://127.0.0.1:{server.server_port}'
-        shutil.copyfile(ROOT/'tests/fixtures/integration/workloads.json',output/'references.json')
-        shutil.copyfile(ROOT/'tests/fixtures/integration/cache.json',output/'cache-references.json')
+        cache_fixtures=json.loads((ROOT/'tests/fixtures/integration/cache.json').read_text())
+        if checkpoint is not None:
+            from inside_inference.declarations_generated import ModelArchitecture
+            baseline=ModelArchitecture()
+            scale=checkpoint['config']['width']*checkpoint['config']['layers']/(baseline.width*baseline.layers)
+            # Same cache-slot pressure across model shapes, declared before execution.
+            # This parameterizes test inputs; production admission never repairs capacity.
+            for fixture in cache_fixtures:
+                for field in ('device_kv_bytes','host_kv_bytes'):
+                    fixture['spec']['system']['kv_cache'][field]=int(fixture['spec']['system']['kv_cache'][field]*scale)
+        (output/'cache-references.json').write_text(json.dumps(cache_fixtures,indent=2)+'\n')
         with tempfile.TemporaryDirectory(prefix='inference-browser-') as profile:
             with (output / 'chrome.log').open('w') as log:
                 process = subprocess.Popen([chrome, '--headless', '--no-sandbox', '--disable-gpu',
@@ -65,10 +75,10 @@ def main():
                     else: raise RuntimeError('Chrome debugging did not start')
                     port = int(portfile.read_text().splitlines()[0])
                     subprocess.run([node, str(ROOT / 'scripts/check/browser_check.mjs'), str(port),
-                        f'http://127.0.0.1:{server.server_port}', site.as_uri(), str(output)], check=True, timeout=120)
+                        f'http://127.0.0.1:{server.server_port}', site.as_uri(), str(output),f'http://127.0.0.1:{assets.server_port}/'], check=True, timeout=120)
                     result_path.write_text(json.dumps({'passed':True,
                         'scope':'static-only site; interactive/headless calls in the same browser worker',
-                        'parity':['browser headless operations','interactive computation','artifact restoration','browser export']},indent=2))
+                        'parity':['browser headless operations','interactive computation','verified model assets','browser export']},indent=2))
                 finally:
                     process.terminate()
                     process.wait(timeout=10)
@@ -79,6 +89,7 @@ def main():
         server.shutdown()
         server.server_close()
         thread.join()
+        assets.shutdown();assets.server_close();asset_thread.join()
 
 
 if __name__ == '__main__':

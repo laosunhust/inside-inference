@@ -1,0 +1,8 @@
+{
+  "all_values_exact": true,
+  "logits_compared": 1035648,
+  "cases": 60,
+  "old_checkpoint": "e19dea8d9a1e1b4b8c5e975bb615002138bf0990d132364fdda9932a00c0fc18",
+  "new_checkpoint": "5ad1a1c72c25e95a33b6c03864b4d6e5881387328a13b0825547ba6e3b264c81",
+  "change": "Layer-axis serialization only; all trained values and development logits identical"
+}

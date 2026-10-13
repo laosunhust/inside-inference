@@ -15,15 +15,15 @@ from inside_inference.tokenizer import Tokenizer, Turn
 from inside_inference.tensor_model import TensorModel as PreparationModel
 
 
-def prepare_examples(target_policy="original", budget=8):
+def prepare_examples(target_policy="original", budget=8, *, cases=None, splits=("train", "development")):
     """Explicit single-user projection; never select or evaluate test examples."""
     if target_policy not in ('original', 'shortest-multiword-v1'):
         raise ValueError('Unsupported training target policy')
     tokenizer = Tokenizer()
-    examples = {'train': [], 'development': []}
+    examples = {split: [] for split in splits}
     questions = {'location': 'where is ', 'correction': 'where is ',
                  'ownership': 'who has ', 'negation': 'what does '}
-    for case in build_cases(load_recipe()):
+    for case in build_cases(load_recipe()) if cases is None else cases:
         if case['split'] not in examples:
             continue
         text = ' '.join(turn['text'] for turn in case['turns'] if turn['role'] == 'user')

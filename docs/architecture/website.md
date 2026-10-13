@@ -7,15 +7,17 @@ by the [data model](../../data-model/README.md).
 
 ## Execute in the browser
 
-The public site serves static assets and runs the shared Python engine in the
-visitor's browser through Pyodide in a Web Worker. The
+The public site serves static assets and executes declared model operations in a
+Web Worker. The inspectable engine uses Python through Pyodide; larger
+models use pinned upstream llama2.c compiled to WebAssembly. Model selection
+chooses one numerical implementation, not separate local and hosted products. The
 [feasibility spike](../research/browser-execution-spike.md) passed for the reference
 model and existing KV simulation on desktop Chromium. The product now uses that execution path.
 Broader browser/device qualification and larger simulations remain unproven.
 Remote compute is an alternative only if measured limitations or a specific lab
 justify it. Lambda is no longer the planned deployment target.
 
-For the current tiny model and hypothetical resource simulations, Lambda would
+For these small models and hypothetical resource simulations, Lambda would
 move CPU computation elsewhere without making the abstraction more representative.
 Browser execution avoids mandatory prompt uploads, remote evidence storage and
 compute-service operations. It still has asset-delivery costs, runtime startup
@@ -27,7 +29,7 @@ costs and device-dependent limits; those must be measured.
 flowchart LR
     Assets[Static release assets] --> UI
     subgraph Browser
-        UI[Presentation] -->|Declared execution requests| Engine[Python engine in Web Worker]
+        UI[Presentation] -->|Declared execution requests| Engine[Declared model runtime in Web Worker]
         Engine -->|Receipts and observations| UI
         Engine -->|Store evidence| Store[Evidence storage]
         UI -->|Declared artifact retrieval| Store
@@ -40,6 +42,7 @@ flowchart LR
 | Presentation | Editing, submission, selection, rendering and inspection | Numerical equations, resource scheduling or alternate settings |
 | Execution | Validation, numerical work, resource simulation and observations | DOM updates or website assembly |
 | Evidence storage | Identified immutable records, artifact retrieval and export | Model policy or the simulated memory hierarchy |
+| Model asset storage | Verified immutable weights/tokenizers via the same HTTP interface locally or from object storage | Numerical execution, prompt collection or simulated KV residency |
 | Transport/runtime | Carry declared requests and results; supply execution capabilities | Change operation meaning according to deployment location |
 
 These interfaces remain essential when components share a browser. Presentation
@@ -64,7 +67,8 @@ feature requests their transfer.
 
 ## What the browser simulates
 
-Actual Python execution produces tensors and selected tokens. A resource model
+Actual browser execution produces logits and selected tokens; the inspectable
+Python engine also captures intermediate tensors. A resource model
 accounts for hypothetical compute service, memory capacity/bandwidth, transfers,
 queues and dependencies using virtual time. Browser wall time records how long the
 simulation took to run; it is not the predicted accelerator time.
@@ -91,6 +95,13 @@ consumes declared execution operations. Its implementation reuses Pyodide's work
 pattern and pinned package distribution. React/Vite adoption is independent.
 
 ## Loading and asset delivery
+
+The [model asset boundary](delivery.md#model-assets) owns lazy model loading and
+storage configuration. Larger weights are separate from the core engine package
+and are fetched only after an explicit load action. They do not enlarge the
+initial model download. The selected model owns its tokenizer and numerical
+evidence; switching clears the previous continuation and observations.
+
 
 Keep the standard pinned Python runtime for now. The
 [asset-size audit](../research/browser-execution-spike.md#asset-size-follow-up)
@@ -141,10 +152,14 @@ remain separate claims even when all checks pass.
 
 ## Current implementation
 
-The public site now uses a generated browser client and worker. The worker runs
-the same Python engine through Pyodide, with in-memory artifacts and lossless
-export/replay. The local preview server serves static files only. There is no
-native HTTP compute path, CUDA backend, Lambda bridge or S3 adapter.
+The public site uses a generated browser client and worker. The worker runs
+the inspectable Python engine through Pyodide, with in-memory artifacts and lossless
+export/replay for the existing request/KV labs. The optional model-family lab uses
+the same declared operation boundary; its larger models execute upstream C in
+WebAssembly and expose tokens/logits, not full tensor traces or archive replay. The local preview server serves static files only. There is no
+native HTTP compute path, CUDA backend or Lambda bridge. Model assets may be
+served from S3 through ordinary public HTTPS/CORS; no AWS SDK or credentials enter
+the browser.
 
 The [delivery boundary](delivery.md) owns operation and storage details. The
 integration harness drives both headless and interactive calls in Chromium. Their

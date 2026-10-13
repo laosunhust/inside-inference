@@ -17,6 +17,8 @@ terms:
     schemas:
     - RequestBinding
     - RunBinding
+    - GenerationExperiment
+    - GenerationDefaults
     - PreparedInput
     - KVExperimentInput
     - KVRunBinding
@@ -39,6 +41,7 @@ terms:
     capability_reads: []
     projections: {}
     schemas:
+    - GenerationEvidence
     - RunRecord
     - CacheRun
     - NumericalTrace
@@ -102,3 +105,4 @@ terms:
     - CacheMeasurement
     - TensorTable
     - StoredTensorObservation
+    - GenerationPrediction

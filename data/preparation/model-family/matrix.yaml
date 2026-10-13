@@ -1,0 +1,18 @@
+version: 1
+base_recipe: data/preparation/multiword.json
+evaluation_record: governance/evaluations/records/2026-10/inspectable-model-family-85.yaml
+seeds: [7, 17, 27]
+variants:
+- name: baseline
+  layers: 1
+  width: 8
+  ffn: 16
+- name: wider
+  layers: 1
+  width: 16
+  ffn: 32
+- name: deeper
+  layers: 2
+  width: 8
+  ffn: 16
+deadline: '2026-10-11T22:19:36Z'

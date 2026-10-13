@@ -13,3 +13,4 @@ modules:
 - domains/serving.yaml
 - domains/interaction.yaml
 - domains/delivery.yaml
+- domains/model-family.yaml

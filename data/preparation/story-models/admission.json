@@ -1,0 +1,49 @@
+{
+  "config": {
+    "version": 1,
+    "seed": 7,
+    "architecture": {
+      "vocabulary": 384,
+      "width": 8,
+      "ffn": 16,
+      "context": 128,
+      "layers": 1,
+      "heads": 1,
+      "epsilon": 1e-05,
+      "position": "learned-absolute",
+      "normalization": "pre-layernorm",
+      "activation": "gelu-tanh",
+      "precision": "binary64"
+    },
+    "dataset": "karpathy/tinystories-gpt4-clean",
+    "revision": "0397e27157956705a0260709da3095bb9c43d6a7",
+    "train_rows": [
+      20000,
+      22000
+    ],
+    "development_rows": [
+      10000,
+      10100
+    ],
+    "steps": 4000,
+    "batch": 32,
+    "sequence_length": 128,
+    "learning_rate": 0.003,
+    "weight_decay": 0.01,
+    "clip_gradient": 1.0,
+    "validation_interval": 200,
+    "validation_windows": 32,
+    "selection": "minimum-development-token-loss",
+    "framing": "BOS + unmodified story text + EOS",
+    "quality_gate": "none"
+  },
+  "source_sha256": {
+    "scripts/experiments/story_models/train.py": "0305ebf3d91789e4f0bc60a432bf56f21784f4a37ecfaeee0001639d13aabf06",
+    "inside_inference/tensor_model.py": "3b4da64e66194e79d963e65e2762d286188e7299dea792aea22decbeaaf25f26",
+    "inside_inference/model.py": "998dbbeb8d044569a1b86b05011a87190cb1a2489f3a880dc5319d7ad21377e7",
+    "inside_inference/tokenizer.py": "381cdcdce5ecc5b844df1ba80774b00418b193864a6bda598a033228a5df4777"
+  },
+  "parquet_sha256": "8bacd849e57784e06ebaaab3ef7b01077ca2d9d27ce7d95f2fbe465f1483548b",
+  "tokenizer_sha256": "e5edde07a3002a8f1343f99f7664f45b76d33077fd90a9f71991b6d346ce3477",
+  "started_unix": 1791847348.2406156
+}

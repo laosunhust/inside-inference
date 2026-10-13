@@ -17,10 +17,11 @@ setup: ## Install locked Python and build-tool dependencies locally.
 	@python3 -m venv .venv
 	@.venv/bin/python -m pip install -r requirements.txt
 	@npm ci --ignore-scripts
+	@$(PYTHON) -m scripts.build.model_assets.runtime --setup
 	@$(PYTHON) -m scripts.build.browser_runtime
 
 _intro-page: _governance-check _data-models-check
-	@$(PYTHON) -m scripts.build.intro_page $(if $(CHECKPOINT),--checkpoint "$(CHECKPOINT)",)
+	@$(PYTHON) -m scripts.build.intro_page $(if $(CHECKPOINT),--checkpoint "$(CHECKPOINT)",) $(if $(MODEL_ASSET_BASE),--model-asset-base "$(MODEL_ASSET_BASE)",)
 
 serve-intro: _intro-page ## Replace the listener on port 8000 and serve the static browser application.
 	@$(PYTHON) -m scripts.dev.serve_intro
@@ -115,3 +116,43 @@ _references:
 	@$(PYTHON) -m scripts.dev.references nano-vllm https://github.com/GeeeekExplorer/nano-vllm.git bb823b3e06983d71485a8e1f23715ebd87d98ef8
 
 .PHONY: _references
+
+# Bounded family spike: frozen cases and matrix live under data/preparation/model-family.
+# Training reserves 30 minutes before the approved deadline for browser checks/reporting.
+_model-family-benchmark: _data-models-check
+	@$(PYTHON) -m scripts.experiments.model_family.benchmark
+
+_model-family-train: _data-models-check
+	@$(PYTHON) -m scripts.experiments.model_family.train
+
+.PHONY: _model-family-benchmark _model-family-train
+
+_model-family-evaluate: _data-models-check
+	@$(PYTHON) -m scripts.check.model_family.evaluate
+
+.PHONY: _model-family-evaluate
+
+_model-family-browser: _data-models-check
+	@$(PYTHON) -m scripts.check.model_family.browser
+
+.PHONY: _model-family-browser
+
+# Optional model assets use the same verified HTTP reader locally and from S3/CDN.
+# MODEL_ASSET_BASE is a URL prefix ending in /; defaults come from data/models/models.yaml.
+# Example deployment configuration: MODEL_ASSET_BASE=https://assets.example/models/
+# Publish the tested static release and exact artifact bytes; never upload visitor input.
+# Retained TinyStories checkpoints are preparation inputs, not serving dependencies.
+# Preparation uses the study environment: torch, numpy, pyarrow, sentencepiece,
+# protobuf, PyYAML and jsonschema. Supply STORY_PYTHON and STORY_STUDY explicitly.
+# The training target is the retained bounded spike, not an open-ended trainer.
+STORY_PYTHON ?= $(PYTHON)
+_story-models-check: _intro-page
+	@$(PYTHON) -m scripts.check.story_models.browser
+
+_story-models-export:
+	@$(STORY_PYTHON) -m scripts.experiments.story_models.export --study "$(STORY_STUDY)"
+
+_story-models-train:
+	@$(STORY_PYTHON) -m scripts.experiments.story_models.train --study "$(STORY_STUDY)"
+
+.PHONY: _story-models-check _story-models-export _story-models-train

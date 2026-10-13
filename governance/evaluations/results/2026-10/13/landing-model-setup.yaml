@@ -1,0 +1,14 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/landing-model-setup.yaml
+evaluation_sha256: b11e376e1e7fe6d4a733cb2d6b2375a63093dc179f59eab8d235d3298f6214d7
+outcome: passed
+summary: Landing system card derives exact parameter and layer counts from its admitted checkpoint. Existing
+  dialog exposes architecture and a distinctly named link to the separate model-size lab. No landing model
+  switching or quality ranking is claimed. Unit harness passed 106 tests in 9.52s; full integration passed
+  in 94.66s, including summary derivation and link assertions. Desktop and 390px layouts reviewed. A final
+  fieldset wrapper adjustment reuses existing theme styling; rebuilt preview and focused desktop/narrow
+  browser inspection confirmed the final markup. No execution or interface changes.
+evidence:
+- web/inference.html
+- web/inference.js
+- scripts/check/browser_check.mjs

@@ -83,7 +83,9 @@ Transformer establishes an inspectable reference before more advanced mechanisms
 The tiny model's vocabulary is fixed at **384 total token IDs**, including controls
 and fallback symbols. It is a numerical instrument, not a useful assistant or a
 model of a child's development. Training supplies compatible weights as supporting
-work; training research is outside the mission.
+work; training research is outside the mission. Small, inspectable model families
+can support comparisons of behavior and inference cost. Better answers help readers,
+but do not establish execution correctness.
 
 The focus is connecting runtime and serving across boundaries. KV reuse and state
 handoff establish groundwork for heterogeneous execution, parallelism, and MoE.

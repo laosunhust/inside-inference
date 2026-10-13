@@ -1,0 +1,32 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/explanation-panels.yaml
+evaluation_sha256: e4f8ba89ecbc2f17d023e97dc8b201c39c49ccf617a5e05f430551d3c47bb64e
+outcome: passed
+summary: 'Experiment, Interaction and Explanation now have separate responsibilities. Edit owns the model
+  picker and request settings; Next Token and Generate remain the same declared execution. Explanation
+  contains the combined sequence, journey and inspector. Larger models show a compact generic single-block
+  schematic with a layer selector, declared residual edges and model-specific details; no KV reuse claim
+  is baked into the diagram. Both schematic and captured graphs share layout and the declared inspection
+  cursor, with architecture steps distinct from observations. Browser checks cover all models, layer selection,
+  no inference during playback, real tensor inspection, switching/reset/branching and actual headless
+  parity. Desktop and narrow layouts reviewed. Unit 107 tests: 7.54s/10s. Full integration: 70.65s/100s.
+  Earlier unit commands exceeded budget (10.11s, 10.43s); profiling identified repeated serialization
+  of unrelated declarations. Validation now includes only reachable definitions in its content cache,
+  with transitive-mutation and literal-value tests. No budget, approval lock or protected gate was changed.
+  An earlier browser run had an intermittent dynamic module-fetch failure, also observed before this work;
+  worker network diagnostics were added. The final successful run does not establish that transient failure''s
+  cause or resolution. Earlier expanded-layer presentation was rejected by the owner and replaced before
+  acceptance.'
+evidence:
+- web/inference.html
+- web/inference.js
+- web/execution-path.js
+- web/inspection-session.js
+- web/inspection/details.js
+- data-model/domains/model-family.yaml
+- data-model/domains/interface.yaml
+- scripts/check/story_models/check.mjs
+- tests/integration/inspection_session.mjs
+- inside_inference/contract_runtime.py
+- tests/unit/contracts/test_declarations.py
+- docs/architecture/inspection.md

@@ -8,6 +8,7 @@ $defs:
     - position
     - observation_id
     - surface
+    - architecture_step
     properties:
       run_id:
         type:
@@ -41,7 +42,15 @@ $defs:
         - model
         - selection
         - response
+        - architecture
         default: request
+      architecture_step:
+        type:
+        - integer
+        - 'null'
+        minimum: 0
+        description: Index in the selected architecture walkthrough; never an observation ID.
+        default: null
     allOf:
     - if:
         properties:
@@ -59,6 +68,25 @@ $defs:
       then:
         properties:
           observation_id:
+            type: 'null'
+    - if:
+        properties:
+          surface:
+            const: architecture
+      then:
+        required:
+        - architecture_step
+        properties:
+          architecture_step:
+            type: integer
+    - if:
+        not:
+          properties:
+            surface:
+              const: architecture
+      then:
+        properties:
+          architecture_step:
             type: 'null'
   Capabilities:
     type: object

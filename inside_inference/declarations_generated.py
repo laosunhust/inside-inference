@@ -3,8 +3,8 @@ from dataclasses import dataclass, field
 from typing import Any
 from inside_inference.contract_runtime import Declaration
 
-EXECUTION_OPERATIONS = {'capabilities': {'request': None, 'response': 'Capabilities'}, 'run': {'request': 'Workload', 'response': 'ExecutionReceipt'}, 'cacheRun': {'request': 'KVExperimentInput', 'response': 'CacheRun'}, 'cacheCapabilities': {'request': None, 'response': 'CacheCapabilities'}, 'tokenStep': {'request': 'TokenStepRequest', 'response': 'ExecutionReceipt'}, 'artifact': {'request': 'ArtifactReference', 'response': 'ArtifactResponse'}, 'prepareInput': {'request': 'Workload', 'response': 'PreparedInput'}, 'replayTokenStep': {'request': 'ExecutionReplayInput', 'response': 'TokenStepResult'}, 'replayCache': {'request': 'ExecutionReplayInput', 'response': 'CacheRun'}}
-CONTRACT_SHA256 = '61690aa2142cf6be0fe3c32da1de12a61499935bc18a4c809489e34a2a2474f4'
+EXECUTION_OPERATIONS = {'capabilities': {'request': None, 'response': 'Capabilities'}, 'run': {'request': 'Workload', 'response': 'ExecutionReceipt'}, 'cacheRun': {'request': 'KVExperimentInput', 'response': 'CacheRun'}, 'cacheCapabilities': {'request': None, 'response': 'CacheCapabilities'}, 'tokenStep': {'request': 'TokenStepRequest', 'response': 'ExecutionReceipt'}, 'artifact': {'request': 'ArtifactReference', 'response': 'ArtifactResponse'}, 'prepareInput': {'request': 'Workload', 'response': 'PreparedInput'}, 'replayTokenStep': {'request': 'ExecutionReplayInput', 'response': 'TokenStepResult'}, 'replayCache': {'request': 'ExecutionReplayInput', 'response': 'CacheRun'}, 'modelCatalog': {'request': None, 'response': 'ModelCatalog'}, 'loadModel': {'request': 'ModelSelection', 'response': 'ModelLoadResult'}, 'prepareGeneration': {'request': 'GenerationInput', 'response': 'GenerationPrepared'}, 'generateToken': {'request': 'GenerationStep', 'response': 'GenerationPrediction'}}
+CONTRACT_SHA256 = 'cf3bf8efdc3d230081dfab038aa744c90f2ffa59d5100a3de1f7ecd3d11829ef'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -52,11 +52,15 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                   'maximum': 128},
                                       'layers': {'type': 'integer',
                                                  'title': 'Blocks',
-                                                 'description': 'Supported '
-                                                                'baseline '
-                                                                'value.',
-                                                 'const': 1,
-                                                 'default': 1},
+                                                 'description': 'Executed '
+                                                                'decoder '
+                                                                'blocks; each '
+                                                                'owns its '
+                                                                'weights and '
+                                                                'KV state.',
+                                                 'default': 1,
+                                                 'minimum': 1,
+                                                 'maximum': 2},
                                       'heads': {'type': 'integer',
                                                 'title': 'Attention heads',
                                                 'description': 'Supported '
@@ -159,7 +163,8 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                        'step': {'type': 'integer',
                                                 'minimum': 1},
                                        'selection': {'type': 'string',
-                                                     'const': 'minimum-development-response-loss'},
+                                                     'enum': ['minimum-development-response-loss',
+                                                              'minimum-development-token-loss']},
                                        'development_loss': {'type': 'number',
                                                             'minimum': 0},
                                        'data_sha256': {'type': 'string',
@@ -199,20 +204,31 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                     'minimum': 0,
                                                     'maximum': 383}},
                             'keys': {'type': 'array',
-                                     'maxItems': 128,
+                                     'minItems': 1,
+                                     'maxItems': 2,
+                                     'description': 'Layer, prefix position, '
+                                                    'channel.',
                                      'items': {'type': 'array',
-                                               'minItems': 2,
-                                               'maxItems': 32,
-                                               'items': {'type': 'number'}}},
+                                               'maxItems': 128,
+                                               'items': {'type': 'array',
+                                                         'minItems': 2,
+                                                         'maxItems': 32,
+                                                         'items': {'type': 'number'}}}},
                             'values': {'type': 'array',
-                                       'maxItems': 128,
+                                       'minItems': 1,
+                                       'maxItems': 2,
+                                       'description': 'Layer, prefix position, '
+                                                      'channel.',
                                        'items': {'type': 'array',
-                                                 'minItems': 2,
-                                                 'maxItems': 32,
-                                                 'items': {'type': 'number'}}}}},
+                                                 'maxItems': 128,
+                                                 'items': {'type': 'array',
+                                                           'minItems': 2,
+                                                           'maxItems': 32,
+                                                           'items': {'type': 'number'}}}}}},
  'ModelArtifact': {'type': 'object',
                    'properties': {'config': {'$ref': '#/$defs/ModelArchitecture'},
-                                  'format': {'type': 'string'},
+                                  'format': {'type': 'string',
+                                             'const': 'naive-gpt-checkpoint-v2'},
                                   'manifest_sha256': {'type': 'string'},
                                   'parameters': {'$ref': '#/$defs/ModelWeights'},
                                   'provenance': {'oneOf': [{'$ref': '#/$defs/InitializationProvenance'},
@@ -226,38 +242,101 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                    'x-owner': 'ModelArtifact'},
  'ModelWeights': {'type': 'object',
                   'properties': {'attention_output': {'type': 'array',
+                                                      'minItems': 1,
+                                                      'maxItems': 2,
+                                                      'description': 'Layer-indexed '
+                                                                     'block '
+                                                                     'tensor.',
                                                       'items': {'type': 'array',
-                                                                'items': {'type': 'number'}}},
+                                                                'items': {'type': 'array',
+                                                                          'items': {'type': 'number'}}}},
                                  'attention_output_bias': {'type': 'array',
-                                                           'items': {'type': 'number'}},
+                                                           'minItems': 1,
+                                                           'maxItems': 2,
+                                                           'description': 'Layer-indexed '
+                                                                          'block '
+                                                                          'tensor.',
+                                                           'items': {'type': 'array',
+                                                                     'items': {'type': 'number'}}},
                                  'ff_down': {'type': 'array',
+                                             'minItems': 1,
+                                             'maxItems': 2,
+                                             'description': 'Layer-indexed '
+                                                            'block tensor.',
                                              'items': {'type': 'array',
-                                                       'items': {'type': 'number'}}},
+                                                       'items': {'type': 'array',
+                                                                 'items': {'type': 'number'}}}},
                                  'ff_down_bias': {'type': 'array',
-                                                  'items': {'type': 'number'}},
+                                                  'minItems': 1,
+                                                  'maxItems': 2,
+                                                  'description': 'Layer-indexed '
+                                                                 'block '
+                                                                 'tensor.',
+                                                  'items': {'type': 'array',
+                                                            'items': {'type': 'number'}}},
                                  'ff_up': {'type': 'array',
+                                           'minItems': 1,
+                                           'maxItems': 2,
+                                           'description': 'Layer-indexed block '
+                                                          'tensor.',
                                            'items': {'type': 'array',
-                                                     'items': {'type': 'number'}}},
+                                                     'items': {'type': 'array',
+                                                               'items': {'type': 'number'}}}},
                                  'ff_up_bias': {'type': 'array',
-                                                'items': {'type': 'number'}},
+                                                'minItems': 1,
+                                                'maxItems': 2,
+                                                'description': 'Layer-indexed '
+                                                               'block tensor.',
+                                                'items': {'type': 'array',
+                                                          'items': {'type': 'number'}}},
                                  'key': {'type': 'array',
+                                         'minItems': 1,
+                                         'maxItems': 2,
+                                         'description': 'Layer-indexed block '
+                                                        'tensor.',
                                          'items': {'type': 'array',
-                                                   'items': {'type': 'number'}}},
+                                                   'items': {'type': 'array',
+                                                             'items': {'type': 'number'}}}},
                                  'key_bias': {'type': 'array',
-                                              'items': {'type': 'number'}},
+                                              'minItems': 1,
+                                              'maxItems': 2,
+                                              'description': 'Layer-indexed '
+                                                             'block tensor.',
+                                              'items': {'type': 'array',
+                                                        'items': {'type': 'number'}}},
                                  'lm_bias': {'type': 'array',
                                              'items': {'type': 'number'}},
                                  'lm_head': {'type': 'array',
                                              'items': {'type': 'array',
                                                        'items': {'type': 'number'}}},
                                  'ln1_bias': {'type': 'array',
-                                              'items': {'type': 'number'}},
+                                              'minItems': 1,
+                                              'maxItems': 2,
+                                              'description': 'Layer-indexed '
+                                                             'block tensor.',
+                                              'items': {'type': 'array',
+                                                        'items': {'type': 'number'}}},
                                  'ln1_scale': {'type': 'array',
-                                               'items': {'type': 'number'}},
+                                               'minItems': 1,
+                                               'maxItems': 2,
+                                               'description': 'Layer-indexed '
+                                                              'block tensor.',
+                                               'items': {'type': 'array',
+                                                         'items': {'type': 'number'}}},
                                  'ln2_bias': {'type': 'array',
-                                              'items': {'type': 'number'}},
+                                              'minItems': 1,
+                                              'maxItems': 2,
+                                              'description': 'Layer-indexed '
+                                                             'block tensor.',
+                                              'items': {'type': 'array',
+                                                        'items': {'type': 'number'}}},
                                  'ln2_scale': {'type': 'array',
-                                               'items': {'type': 'number'}},
+                                               'minItems': 1,
+                                               'maxItems': 2,
+                                               'description': 'Layer-indexed '
+                                                              'block tensor.',
+                                               'items': {'type': 'array',
+                                                         'items': {'type': 'number'}}},
                                  'ln_final_bias': {'type': 'array',
                                                    'items': {'type': 'number'}},
                                  'ln_final_scale': {'type': 'array',
@@ -266,18 +345,38 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                         'items': {'type': 'array',
                                                                   'items': {'type': 'number'}}},
                                  'query': {'type': 'array',
+                                           'minItems': 1,
+                                           'maxItems': 2,
+                                           'description': 'Layer-indexed block '
+                                                          'tensor.',
                                            'items': {'type': 'array',
-                                                     'items': {'type': 'number'}}},
+                                                     'items': {'type': 'array',
+                                                               'items': {'type': 'number'}}}},
                                  'query_bias': {'type': 'array',
-                                                'items': {'type': 'number'}},
+                                                'minItems': 1,
+                                                'maxItems': 2,
+                                                'description': 'Layer-indexed '
+                                                               'block tensor.',
+                                                'items': {'type': 'array',
+                                                          'items': {'type': 'number'}}},
                                  'token_embedding': {'type': 'array',
                                                      'items': {'type': 'array',
                                                                'items': {'type': 'number'}}},
                                  'value': {'type': 'array',
+                                           'minItems': 1,
+                                           'maxItems': 2,
+                                           'description': 'Layer-indexed block '
+                                                          'tensor.',
                                            'items': {'type': 'array',
-                                                     'items': {'type': 'number'}}},
+                                                     'items': {'type': 'array',
+                                                               'items': {'type': 'number'}}}},
                                  'value_bias': {'type': 'array',
-                                                'items': {'type': 'number'}}},
+                                                'minItems': 1,
+                                                'maxItems': 2,
+                                                'description': 'Layer-indexed '
+                                                               'block tensor.',
+                                                'items': {'type': 'array',
+                                                          'items': {'type': 'number'}}}},
                   'required': ['attention_output',
                                'attention_output_bias',
                                'ff_down',
@@ -349,21 +448,21 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                       'properties': {'max_new_tokens': {'type': 'integer',
                                                         'title': 'Maximum new '
                                                                  'tokens',
-                                                        'description': 'An '
-                                                                       'upper '
-                                                                       'bound '
-                                                                       'on '
+                                                        'description': 'Maximum '
+                                                                       'number '
+                                                                       'of '
                                                                        'selected '
                                                                        'IDs, '
                                                                        'including '
-                                                                       'TURN_END. '
-                                                                       'Generation '
-                                                                       'may '
+                                                                       'an end '
+                                                                       'token. '
+                                                                       'May '
                                                                        'stop '
                                                                        'earlier.',
                                                         'minimum': 1,
                                                         'default': 11,
-                                                        'x-maximum-from': 'system.max_new_tokens_cap'},
+                                                        'x-maximum-from': 'system.max_new_tokens_cap',
+                                                        'maximum': 128},
                                      'selection': {'type': 'string',
                                                    'title': 'Selection rule',
                                                    'description': 'Supported '
@@ -373,20 +472,30 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                    'default': 'greedy-lowest-id-tie'},
                                      'stopping': {'type': 'string',
                                                   'title': 'Stopping rule',
-                                                  'description': 'Supported '
-                                                                 'baseline '
-                                                                 'value.',
-                                                  'const': 'turn-end-or-budget',
-                                                  'default': 'turn-end-or-budget'}}},
+                                                  'description': 'Stop at the '
+                                                                 'configured '
+                                                                 'model end '
+                                                                 'token or '
+                                                                 'output '
+                                                                 'budget; '
+                                                                 'context '
+                                                                 'capacity '
+                                                                 'also bounds '
+                                                                 'execution.',
+                                                  'default': 'turn-end-or-budget',
+                                                  'enum': ['turn-end-or-budget',
+                                                           'model-end-or-budget']}}},
  'InferenceRequest': {'type': 'object',
                       'x-owner': 'InferenceRequest',
                       'additionalProperties': False,
                       'required': ['text', 'generation'],
                       'properties': {'text': {'type': 'string',
                                               'title': 'Request input',
-                                              'description': 'Exact user text; '
-                                                             'no normalization '
-                                                             'or truncation.',
+                                              'description': 'User text; '
+                                                             'normalization is '
+                                                             'declared by the '
+                                                             'selected '
+                                                             'tokenizer.',
                                               'default': 'ann has the cup. ben '
                                                          'has the book. who '
                                                          'has the cup?'},
@@ -1305,7 +1414,8 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                      'required': ['run_id',
                                   'position',
                                   'observation_id',
-                                  'surface'],
+                                  'surface',
+                                  'architecture_step'],
                      'properties': {'run_id': {'type': ['string', 'null'],
                                                'title': 'Observed run',
                                                'description': 'Current '
@@ -1366,12 +1476,32 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                          'system',
                                                          'model',
                                                          'selection',
-                                                         'response'],
-                                                'default': 'request'}},
+                                                         'response',
+                                                         'architecture'],
+                                                'default': 'request'},
+                                    'architecture_step': {'type': ['integer',
+                                                                   'null'],
+                                                          'minimum': 0,
+                                                          'description': 'Index '
+                                                                         'in '
+                                                                         'the '
+                                                                         'selected '
+                                                                         'architecture '
+                                                                         'walkthrough; '
+                                                                         'never '
+                                                                         'an '
+                                                                         'observation '
+                                                                         'ID.',
+                                                          'default': None}},
                      'allOf': [{'if': {'properties': {'surface': {'const': 'model'}}},
                                 'then': {'properties': {'observation_id': {'type': 'string'}}}},
                                {'if': {'not': {'properties': {'surface': {'const': 'model'}}}},
-                                'then': {'properties': {'observation_id': {'type': 'null'}}}}]},
+                                'then': {'properties': {'observation_id': {'type': 'null'}}}},
+                               {'if': {'properties': {'surface': {'const': 'architecture'}}},
+                                'then': {'required': ['architecture_step'],
+                                         'properties': {'architecture_step': {'type': 'integer'}}}},
+                               {'if': {'not': {'properties': {'surface': {'const': 'architecture'}}}},
+                                'then': {'properties': {'architecture_step': {'type': 'null'}}}}]},
  'Capabilities': {'type': 'object',
                   'x-owner': 'ExecutionCapabilities',
                   'additionalProperties': False,
@@ -2279,7 +2409,532 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                      'required': ['receipt', 'objects'],
                      'properties': {'receipt': {'$ref': '#/$defs/ExecutionReceipt'},
                                     'objects': {'type': 'object',
-                                                'additionalProperties': {'$ref': '#/$defs/ArtifactResponse'}}}}}
+                                                'additionalProperties': {'$ref': '#/$defs/ArtifactResponse'}}}},
+ 'ModelAsset': {'type': 'object',
+                'x-owner': 'ModelArtifact',
+                'additionalProperties': False,
+                'required': ['path', 'sha256', 'bytes'],
+                'properties': {'path': {'type': 'string',
+                                        'pattern': '^[a-zA-Z0-9][a-zA-Z0-9._/-]*$'},
+                               'sha256': {'type': 'string',
+                                          'pattern': '^[0-9a-f]{64}$'},
+                               'bytes': {'type': 'integer', 'minimum': 1}}},
+ 'ModelStorage': {'type': 'object',
+                  'x-owner': 'ModelArtifact',
+                  'additionalProperties': False,
+                  'required': ['base_url'],
+                  'properties': {'base_url': {'type': 'string',
+                                              'description': 'Relative URL or '
+                                                             'HTTP(S) '
+                                                             'object-storage '
+                                                             'prefix; '
+                                                             'identical fetch '
+                                                             'protocol locally '
+                                                             'and remotely.',
+                                              'pattern': '[\\s\\S]+'}}},
+ 'LlamaArchitecture': {'type': 'object',
+                       'x-owner': 'ModelArchitecture',
+                       'additionalProperties': False,
+                       'required': ['vocabulary',
+                                    'width',
+                                    'ffn',
+                                    'context',
+                                    'layers',
+                                    'heads',
+                                    'position',
+                                    'normalization',
+                                    'activation',
+                                    'precision'],
+                       'properties': {'vocabulary': {'type': 'integer',
+                                                     'const': 4096},
+                                      'width': {'type': 'integer',
+                                                'enum': [64, 256]},
+                                      'ffn': {'type': 'integer',
+                                              'enum': [192, 704]},
+                                      'context': {'type': 'integer',
+                                                  'const': 512},
+                                      'layers': {'type': 'integer', 'const': 4},
+                                      'heads': {'type': 'integer',
+                                                'enum': [2, 8]},
+                                      'position': {'type': 'string',
+                                                   'const': 'rope'},
+                                      'normalization': {'type': 'string',
+                                                        'const': 'rmsnorm'},
+                                      'activation': {'type': 'string',
+                                                     'const': 'silu-gated'},
+                                      'precision': {'type': 'string',
+                                                    'const': 'binary32'}}},
+ 'ModelDescriptor': {'type': 'object',
+                     'x-owner': 'ModelArtifact',
+                     'additionalProperties': False,
+                     'required': ['id',
+                                  'label',
+                                  'role',
+                                  'parameters',
+                                  'architecture',
+                                  'runtime',
+                                  'weights',
+                                  'tokenizer',
+                                  'seed',
+                                  'inspection',
+                                  'stop_ids',
+                                  'normalization',
+                                  'provenance'],
+                     'properties': {'id': {'type': 'string',
+                                           'pattern': '^[a-z0-9-]+$'},
+                                    'label': {'type': 'string',
+                                              'pattern': '[\\s\\S]+'},
+                                    'role': {'type': 'string',
+                                             'enum': ['inspection',
+                                                      'comparison',
+                                                      'continuation']},
+                                    'parameters': {'type': 'integer',
+                                                   'minimum': 1},
+                                    'architecture': {'oneOf': [{'$ref': '#/$defs/ModelArchitecture'},
+                                                               {'$ref': '#/$defs/LlamaArchitecture'}]},
+                                    'runtime': {'type': 'string',
+                                                'enum': ['naive-python',
+                                                         'llama2c-wasm']},
+                                    'weights': {'$ref': '#/$defs/ModelAsset'},
+                                    'tokenizer': {'$ref': '#/$defs/ModelAsset'},
+                                    'seed': {'type': 'integer', 'minimum': 0},
+                                    'inspection': {'type': 'string',
+                                                   'enum': ['tensors',
+                                                            'logits']},
+                                    'stop_ids': {'type': 'array',
+                                                 'items': {'type': 'integer',
+                                                           'minimum': 0},
+                                                 'minItems': 1},
+                                    'normalization': {'type': 'string',
+                                                      'enum': ['exact',
+                                                               'sentencepiece-identity-collapse-spaces']},
+                                    'provenance': {'type': 'string',
+                                                   'pattern': '[\\s\\S]+'}}},
+ 'ModelCatalog': {'type': 'object',
+                  'x-owner': 'ModelArtifact',
+                  'additionalProperties': False,
+                  'required': ['storage', 'models'],
+                  'properties': {'storage': {'$ref': '#/$defs/ModelStorage'},
+                                 'models': {'type': 'array',
+                                            'items': {'$ref': '#/$defs/ModelDescriptor'},
+                                            'minItems': 1}}},
+ 'ModelSelection': {'type': 'object',
+                    'x-owner': 'ModelArtifact',
+                    'additionalProperties': False,
+                    'required': ['model_id'],
+                    'properties': {'model_id': {'type': 'string',
+                                                'pattern': '[\\s\\S]+'}}},
+ 'ModelLoadResult': {'type': 'object',
+                     'x-owner': 'ModelArtifact',
+                     'additionalProperties': False,
+                     'required': ['model',
+                                  'load_ms',
+                                  'token_pieces',
+                                  'parameters'],
+                     'properties': {'model': {'$ref': '#/$defs/ModelDescriptor'},
+                                    'load_ms': {'type': 'number', 'minimum': 0},
+                                    'token_pieces': {'type': 'array',
+                                                     'minItems': 384,
+                                                     'maxItems': 4096,
+                                                     'items': {'type': 'string'}},
+                                    'parameters': {'oneOf': [{'$ref': '#/$defs/ModelWeights'},
+                                                             {'type': 'null'}]}}},
+ 'GenerationInput': {'type': 'object',
+                     'x-owner': 'InferenceRequest',
+                     'additionalProperties': False,
+                     'required': ['experiment', 'workload'],
+                     'properties': {'experiment': {'$ref': '#/$defs/GenerationExperiment'},
+                                    'workload': {'$ref': '#/$defs/Workload'}}},
+ 'GenerationPrepared': {'type': 'object',
+                        'x-owner': 'InferenceRequest',
+                        'additionalProperties': False,
+                        'required': ['prompt_ids',
+                                     'pieces',
+                                     'input',
+                                     'encoding'],
+                        'properties': {'prompt_ids': {'type': 'array',
+                                                      'items': {'type': 'integer',
+                                                                'minimum': 0},
+                                                      'minItems': 1,
+                                                      'maxItems': 512},
+                                       'pieces': {'type': 'array',
+                                                  'items': {'type': 'string'},
+                                                  'minItems': 1,
+                                                  'maxItems': 512},
+                                       'input': {'$ref': '#/$defs/GenerationInput'},
+                                       'encoding': {'oneOf': [{'$ref': '#/$defs/Encoding'},
+                                                              {'type': 'null'}]}}},
+ 'GenerationStep': {'type': 'object',
+                    'x-owner': 'InferenceRequest',
+                    'additionalProperties': False,
+                    'required': ['experiment',
+                                 'prefix_ids',
+                                 'output_ids',
+                                 'generation'],
+                    'properties': {'experiment': {'$ref': '#/$defs/GenerationExperiment'},
+                                   'prefix_ids': {'type': 'array',
+                                                  'items': {'type': 'integer',
+                                                            'minimum': 0},
+                                                  'minItems': 1,
+                                                  'maxItems': 512},
+                                   'output_ids': {'type': 'array',
+                                                  'items': {'type': 'integer',
+                                                            'minimum': 0},
+                                                  'maxItems': 128},
+                                   'generation': {'$ref': '#/$defs/GenerationPolicy'}}},
+ 'GenerationPrediction': {'type': 'object',
+                          'x-owner': 'ExperimentObservation',
+                          'additionalProperties': False,
+                          'required': ['model_id',
+                                       'weights_sha256',
+                                       'tokenizer_sha256',
+                                       'sequence_ids',
+                                       'output_ids',
+                                       'text',
+                                       'pieces',
+                                       'logits',
+                                       'selected_id',
+                                       'stop_reason',
+                                       'compute_ms',
+                                       'nodes',
+                                       'decoding_note',
+                                       'request',
+                                       'id',
+                                       'contract_sha256',
+                                       'probabilities'],
+                          'properties': {'model_id': {'type': 'string'},
+                                         'weights_sha256': {'type': 'string',
+                                                            'pattern': '^[0-9a-f]{64}$'},
+                                         'tokenizer_sha256': {'type': 'string',
+                                                              'pattern': '^[0-9a-f]{64}$'},
+                                         'sequence_ids': {'type': 'array',
+                                                          'items': {'type': 'integer',
+                                                                    'minimum': 0},
+                                                          'minItems': 2,
+                                                          'maxItems': 513},
+                                         'output_ids': {'type': 'array',
+                                                        'items': {'type': 'integer',
+                                                                  'minimum': 0},
+                                                        'minItems': 1,
+                                                        'maxItems': 128},
+                                         'text': {'type': 'string'},
+                                         'pieces': {'type': 'array',
+                                                    'items': {'type': 'string'},
+                                                    'minItems': 2,
+                                                    'maxItems': 513},
+                                         'logits': {'type': 'array',
+                                                    'items': {'type': 'number'},
+                                                    'minItems': 384,
+                                                    'maxItems': 4096},
+                                         'selected_id': {'type': 'integer',
+                                                         'minimum': 0},
+                                         'stop_reason': {'type': ['string',
+                                                                  'null'],
+                                                         'enum': [None,
+                                                                  'end_token',
+                                                                  'output_budget',
+                                                                  'context_capacity']},
+                                         'compute_ms': {'type': 'number',
+                                                        'minimum': 0},
+                                         'nodes': {'type': 'array',
+                                                   'items': {'$ref': '#/$defs/TensorObservation'}},
+                                         'decoding_note': {'type': ['string',
+                                                                    'null']},
+                                         'request': {'$ref': '#/$defs/GenerationStep'},
+                                         'id': {'type': 'string',
+                                                'pattern': '^[0-9a-f]{64}$'},
+                                         'contract_sha256': {'type': 'string',
+                                                             'pattern': '^[0-9a-f]{64}$'},
+                                         'probabilities': {'type': 'array',
+                                                           'items': {'type': 'number',
+                                                                     'minimum': 0,
+                                                                     'maximum': 1},
+                                                           'minItems': 384,
+                                                           'maxItems': 4096}}},
+ 'ModelSource': {'type': 'object',
+                 'x-owner': 'ModelArtifact',
+                 'additionalProperties': False,
+                 'required': ['id',
+                              'role',
+                              'runtime',
+                              'seed',
+                              'provenance',
+                              'weights',
+                              'tokenizer'],
+                 'properties': {'id': {'type': 'string',
+                                       'pattern': '^[a-z0-9-]+$'},
+                                'role': {'type': 'string',
+                                         'enum': ['inspection',
+                                                  'comparison',
+                                                  'continuation']},
+                                'runtime': {'type': 'string',
+                                            'enum': ['naive-python',
+                                                     'llama2c-wasm']},
+                                'seed': {'type': 'integer', 'minimum': 0},
+                                'provenance': {'type': 'string',
+                                               'pattern': '[\\s\\S]+'},
+                                'weights': {'type': 'string',
+                                            'pattern': '^[a-z0-9][a-z0-9.-]*\\.bin$'},
+                                'tokenizer': {'type': 'string',
+                                              'pattern': '^[a-z0-9][a-z0-9.-]*\\.bin$'}}},
+ 'ModelSources': {'type': 'object',
+                  'x-owner': 'ModelArtifact',
+                  'additionalProperties': False,
+                  'required': ['storage', 'models'],
+                  'properties': {'storage': {'$ref': '#/$defs/ModelStorage'},
+                                 'models': {'type': 'array',
+                                            'minItems': 1,
+                                            'items': {'$ref': '#/$defs/ModelSource'}}}},
+ 'GenerationExperiment': {'type': 'object',
+                          'x-owner': 'ExperimentSpec',
+                          'additionalProperties': False,
+                          'required': ['model_id', 'ontology_binding'],
+                          'properties': {'model_id': {'type': 'string',
+                                                      'pattern': '^[a-z0-9-]+$'},
+                                         'ontology_binding': {'$ref': '#/$defs/OntologyBinding'}}},
+ 'GenerationDefaults': {'type': 'object',
+                        'x-owner': 'ExperimentSpec',
+                        'additionalProperties': False,
+                        'required': ['model_id', 'workload'],
+                        'properties': {'model_id': {'type': 'string',
+                                                    'pattern': '^[a-z0-9-]+$'},
+                                       'workload': {'$ref': '#/$defs/Workload'}}},
+ 'GenerationEvidence': {'type': 'object',
+                        'x-owner': 'ExperimentExecution',
+                        'additionalProperties': False,
+                        'required': ['input', 'model', 'prediction'],
+                        'properties': {'input': {'$ref': '#/$defs/GenerationInput'},
+                                       'model': {'$ref': '#/$defs/ModelDescriptor'},
+                                       'prediction': {'$ref': '#/$defs/GenerationPrediction'}}},
+ 'ArchitectureWalkthrough': {'type': 'object',
+                             'x-owner': 'ModelArchitecture',
+                             'additionalProperties': False,
+                             'required': ['runtime', 'stages'],
+                             'properties': {'runtime': {'type': 'string',
+                                                        'enum': ['naive-python',
+                                                                 'llama2c-wasm']},
+                                            'stages': {'type': 'array',
+                                                       'items': {'$ref': '#/$defs/ArchitectureStage'}}},
+                             'oneOf': [{'const': {'runtime': 'naive-python',
+                                                  'stages': [{'owner': 'Tokenizer',
+                                                              'label': 'Token '
+                                                                       'IDs',
+                                                              'scope': 'prefix',
+                                                              'detail': 'Token '
+                                                                        'IDs',
+                                                              'inputs': []},
+                                                             {'owner': 'Embedding',
+                                                              'label': 'Token '
+                                                                       'embedding',
+                                                              'scope': 'prefix',
+                                                              'detail': 'Token '
+                                                                        'embedding',
+                                                              'inputs': [0]},
+                                                             {'owner': 'PositionEncoding',
+                                                              'label': 'Position '
+                                                                       'embedding',
+                                                              'scope': 'prefix',
+                                                              'detail': 'Position '
+                                                                        'embedding',
+                                                              'inputs': [0]},
+                                                             {'owner': 'Embedding',
+                                                              'label': '+',
+                                                              'scope': 'prefix',
+                                                              'detail': 'Add '
+                                                                        'embeddings',
+                                                              'inputs': [1, 2]},
+                                                             {'owner': 'Normalization',
+                                                              'label': 'Normalize',
+                                                              'scope': 'layer',
+                                                              'detail': 'Layer '
+                                                                        'norm',
+                                                              'inputs': [3]},
+                                                             {'owner': 'Attention',
+                                                              'label': 'Attention',
+                                                              'scope': 'layer',
+                                                              'detail': 'Q/K/V '
+                                                                        'projections '
+                                                                        '→ '
+                                                                        'causal '
+                                                                        'attention '
+                                                                        '→ '
+                                                                        'output '
+                                                                        'projection.',
+                                                              'inputs': [4]},
+                                                             {'owner': 'ResidualAddition',
+                                                              'label': '+',
+                                                              'scope': 'layer',
+                                                              'detail': 'Residual '
+                                                                        'addition',
+                                                              'inputs': [3, 5]},
+                                                             {'owner': 'Normalization',
+                                                              'label': 'Normalize',
+                                                              'scope': 'layer',
+                                                              'detail': 'Layer '
+                                                                        'norm',
+                                                              'inputs': [6]},
+                                                             {'owner': 'FeedForward',
+                                                              'label': 'Feed-forward',
+                                                              'scope': 'layer',
+                                                              'detail': 'GELU '
+                                                                        'feed-forward',
+                                                              'inputs': [7]},
+                                                             {'owner': 'ResidualAddition',
+                                                              'label': '+',
+                                                              'scope': 'layer',
+                                                              'detail': 'Residual '
+                                                                        'addition',
+                                                              'inputs': [6, 8]},
+                                                             {'owner': 'Normalization',
+                                                              'label': 'Final '
+                                                                       'norm',
+                                                              'scope': 'suffix',
+                                                              'detail': 'Final '
+                                                                        'norm',
+                                                              'inputs': [9]},
+                                                             {'owner': 'OutputProjection',
+                                                              'label': 'Vocabulary '
+                                                                       'projection',
+                                                              'scope': 'suffix',
+                                                              'detail': 'Vocabulary '
+                                                                        'projection',
+                                                              'inputs': [10]}]}},
+                                       {'const': {'runtime': 'llama2c-wasm',
+                                                  'stages': [{'owner': 'Tokenizer',
+                                                              'label': 'Token '
+                                                                       'IDs',
+                                                              'scope': 'prefix',
+                                                              'detail': 'Token '
+                                                                        'IDs',
+                                                              'inputs': []},
+                                                             {'owner': 'Embedding',
+                                                              'label': 'Token '
+                                                                       'embedding',
+                                                              'scope': 'prefix',
+                                                              'detail': 'Token '
+                                                                        'embedding',
+                                                              'inputs': [0]},
+                                                             {'owner': 'Normalization',
+                                                              'label': 'Normalize',
+                                                              'scope': 'layer',
+                                                              'detail': 'RMSNorm',
+                                                              'inputs': [1]},
+                                                             {'owner': 'Attention',
+                                                              'label': 'Attention',
+                                                              'scope': 'layer',
+                                                              'detail': 'Q/K/V '
+                                                                        'projections '
+                                                                        '→ '
+                                                                        'RoPE '
+                                                                        'on '
+                                                                        'Q/K → '
+                                                                        'causal '
+                                                                        'attention '
+                                                                        '→ '
+                                                                        'output '
+                                                                        'projection.',
+                                                              'inputs': [2]},
+                                                             {'owner': 'ResidualAddition',
+                                                              'label': '+',
+                                                              'scope': 'layer',
+                                                              'detail': 'Residual '
+                                                                        'addition',
+                                                              'inputs': [1, 3]},
+                                                             {'owner': 'Normalization',
+                                                              'label': 'Normalize',
+                                                              'scope': 'layer',
+                                                              'detail': 'RMSNorm',
+                                                              'inputs': [4]},
+                                                             {'owner': 'FeedForward',
+                                                              'label': 'Feed-forward',
+                                                              'scope': 'layer',
+                                                              'detail': 'SiLU '
+                                                                        'gated '
+                                                                        'feed-forward',
+                                                              'inputs': [5]},
+                                                             {'owner': 'ResidualAddition',
+                                                              'label': '+',
+                                                              'scope': 'layer',
+                                                              'detail': 'Residual '
+                                                                        'addition',
+                                                              'inputs': [4, 6]},
+                                                             {'owner': 'Normalization',
+                                                              'label': 'Final '
+                                                                       'norm',
+                                                              'scope': 'suffix',
+                                                              'detail': 'Final '
+                                                                        'RMSNorm',
+                                                              'inputs': [7]},
+                                                             {'owner': 'OutputProjection',
+                                                              'label': 'Vocabulary '
+                                                                       'projection',
+                                                              'scope': 'suffix',
+                                                              'detail': 'Vocabulary '
+                                                                        'projection',
+                                                              'inputs': [8]}]}}]},
+ 'ArchitectureStage': {'type': 'object',
+                       'x-owner': 'ModelArchitecture',
+                       'additionalProperties': False,
+                       'required': ['owner',
+                                    'label',
+                                    'scope',
+                                    'detail',
+                                    'inputs'],
+                       'properties': {'owner': {'type': 'string',
+                                                'x-ontology-reference': True,
+                                                'enum': ['ApiError',
+                                                         'Attention',
+                                                         'ComputeService',
+                                                         'CustomerInteraction',
+                                                         'Decoding',
+                                                         'Embedding',
+                                                         'ExecutionBackend',
+                                                         'ExecutionCapabilities',
+                                                         'ExperimentEvent',
+                                                         'ExperimentExecution',
+                                                         'ExperimentObservation',
+                                                         'ExperimentSpec',
+                                                         'FeedForward',
+                                                         'GenerationPolicy',
+                                                         'InferenceRequest',
+                                                         'InferenceResponse',
+                                                         'InferenceSystem',
+                                                         'InspectionState',
+                                                         'KVCache',
+                                                         'KVState',
+                                                         'ModelArchitecture',
+                                                         'ModelArtifact',
+                                                         'ModelExecution',
+                                                         'ModelWeights',
+                                                         'Normalization',
+                                                         'OutputProjection',
+                                                         'PositionEncoding',
+                                                         'RequestScheduling',
+                                                         'ResidualAddition',
+                                                         'ResourceGraph',
+                                                         'StateTransfer',
+                                                         'Tokenizer',
+                                                         'Workload']},
+                                      'label': {'type': 'string',
+                                                'pattern': '[\\s\\S]+'},
+                                      'scope': {'type': 'string',
+                                                'enum': ['prefix',
+                                                         'layer',
+                                                         'suffix']},
+                                      'detail': {'type': 'string',
+                                                 'pattern': '[\\s\\S]+'},
+                                      'inputs': {'type': 'array',
+                                                 'items': {'type': 'integer',
+                                                           'minimum': 0},
+                                                 'description': 'Earlier stage '
+                                                                'indices in '
+                                                                'this '
+                                                                'single-block '
+                                                                'schematic; '
+                                                                'residual '
+                                                                'branches '
+                                                                'remain '
+                                                                'explicit.'}}}}
 
 @dataclass(frozen=True, kw_only=True)
 class ModelArchitecture(Declaration):
@@ -2328,34 +2983,34 @@ class KVState(Declaration):
     tokenizer_sha256: str
     precision: str = 'binary64'
     token_ids: tuple[int, ...]
-    keys: tuple[tuple[float, ...], ...]
-    values: tuple[tuple[float, ...], ...]
+    keys: tuple[tuple[tuple[float, ...], ...], ...]
+    values: tuple[tuple[tuple[float, ...], ...], ...]
 
 
 @dataclass(frozen=True, kw_only=True)
 class ModelWeights(Declaration):
-    attention_output: tuple[tuple[float, ...], ...]
-    attention_output_bias: tuple[float, ...]
-    ff_down: tuple[tuple[float, ...], ...]
-    ff_down_bias: tuple[float, ...]
-    ff_up: tuple[tuple[float, ...], ...]
-    ff_up_bias: tuple[float, ...]
-    key: tuple[tuple[float, ...], ...]
-    key_bias: tuple[float, ...]
+    attention_output: tuple[tuple[tuple[float, ...], ...], ...]
+    attention_output_bias: tuple[tuple[float, ...], ...]
+    ff_down: tuple[tuple[tuple[float, ...], ...], ...]
+    ff_down_bias: tuple[tuple[float, ...], ...]
+    ff_up: tuple[tuple[tuple[float, ...], ...], ...]
+    ff_up_bias: tuple[tuple[float, ...], ...]
+    key: tuple[tuple[tuple[float, ...], ...], ...]
+    key_bias: tuple[tuple[float, ...], ...]
     lm_bias: tuple[float, ...]
     lm_head: tuple[tuple[float, ...], ...]
-    ln1_bias: tuple[float, ...]
-    ln1_scale: tuple[float, ...]
-    ln2_bias: tuple[float, ...]
-    ln2_scale: tuple[float, ...]
+    ln1_bias: tuple[tuple[float, ...], ...]
+    ln1_scale: tuple[tuple[float, ...], ...]
+    ln2_bias: tuple[tuple[float, ...], ...]
+    ln2_scale: tuple[tuple[float, ...], ...]
     ln_final_bias: tuple[float, ...]
     ln_final_scale: tuple[float, ...]
     position_embedding: tuple[tuple[float, ...], ...]
-    query: tuple[tuple[float, ...], ...]
-    query_bias: tuple[float, ...]
+    query: tuple[tuple[tuple[float, ...], ...], ...]
+    query_bias: tuple[tuple[float, ...], ...]
     token_embedding: tuple[tuple[float, ...], ...]
-    value: tuple[tuple[float, ...], ...]
-    value_bias: tuple[float, ...]
+    value: tuple[tuple[tuple[float, ...], ...], ...]
+    value_bias: tuple[tuple[float, ...], ...]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -2864,6 +3519,7 @@ class InspectionState(Declaration):
     position: int
     observation_id: str | None = None
     surface: str = 'request'
+    architecture_step: int | None = None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -3072,9 +3728,165 @@ class ExecutionBundle(Declaration):
     objects: dict[str, Any]
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'FullPrefixExecutionConfig': FullPrefixExecutionConfig, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'CachedExecutionConfig': CachedExecutionConfig, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'TokenPublished': TokenPublished, 'RunOutcome': RunOutcome, 'RequestFinished': RequestFinished, 'DecodingContract': DecodingContract, 'AttentionConfiguration': AttentionConfiguration, 'SystemConfigurationPreview': SystemConfigurationPreview, 'WorkloadTransformationPreview': WorkloadTransformationPreview, 'OntologyBinding': OntologyBinding, 'TokenStepRequest': TokenStepRequest, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'ModelForwardCompleted': ModelForwardCompleted, 'TokenSelected': TokenSelected, 'RunEvent': RunEvent, 'Span': Span, 'Encoding': Encoding, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'CacheComputation': CacheComputation, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ClientConfigurationPreview': ClientConfigurationPreview, 'ConfigurationPreview': ConfigurationPreview, 'TokenStepResult': TokenStepResult, 'PreparedInput': PreparedInput, 'ExecutionReplayInput': ExecutionReplayInput, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ArtifactReference': ArtifactReference, 'ExecutionReceipt': ExecutionReceipt, 'ArtifactResponse': ArtifactResponse, 'TensorTable': TensorTable, 'VocabularyArtifact': VocabularyArtifact, 'StoredTensorObservation': StoredTensorObservation, 'StoredTokenSelection': StoredTokenSelection, 'StoredNumericalPass': StoredNumericalPass, 'StoredNumericalTrace': StoredNumericalTrace, 'StoredRunRecord': StoredRunRecord, 'StoredTokenStepResult': StoredTokenStepResult, 'ExecutionArchive': ExecutionArchive, 'ExecutionBundle': ExecutionBundle}
+@dataclass(frozen=True, kw_only=True)
+class ModelAsset(Declaration):
+    path: str
+    sha256: str
+    bytes: int
+
+
+@dataclass(frozen=True, kw_only=True)
+class ModelStorage(Declaration):
+    base_url: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class LlamaArchitecture(Declaration):
+    vocabulary: int
+    width: int
+    ffn: int
+    context: int
+    layers: int
+    heads: int
+    position: str
+    normalization: str
+    activation: str
+    precision: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class ModelDescriptor(Declaration):
+    id: str
+    label: str
+    role: str
+    parameters: int
+    architecture: ModelArchitecture | LlamaArchitecture
+    runtime: str
+    weights: ModelAsset
+    tokenizer: ModelAsset
+    seed: int
+    inspection: str
+    stop_ids: tuple[int, ...]
+    normalization: str
+    provenance: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class ModelCatalog(Declaration):
+    storage: ModelStorage
+    models: tuple[ModelDescriptor, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class ModelSelection(Declaration):
+    model_id: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class ModelLoadResult(Declaration):
+    model: ModelDescriptor
+    load_ms: float
+    token_pieces: tuple[str, ...]
+    parameters: ModelWeights | None
+
+
+@dataclass(frozen=True, kw_only=True)
+class GenerationExperiment(Declaration):
+    model_id: str
+    ontology_binding: OntologyBinding
+
+
+@dataclass(frozen=True, kw_only=True)
+class GenerationInput(Declaration):
+    experiment: GenerationExperiment
+    workload: Workload
+
+
+@dataclass(frozen=True, kw_only=True)
+class GenerationPrepared(Declaration):
+    prompt_ids: tuple[int, ...]
+    pieces: tuple[str, ...]
+    input: GenerationInput
+    encoding: Encoding | None
+
+
+@dataclass(frozen=True, kw_only=True)
+class GenerationStep(Declaration):
+    experiment: GenerationExperiment
+    prefix_ids: tuple[int, ...]
+    output_ids: tuple[int, ...]
+    generation: GenerationPolicy = field(default_factory=GenerationPolicy)
+
+
+@dataclass(frozen=True, kw_only=True)
+class GenerationPrediction(Declaration):
+    model_id: str
+    weights_sha256: str
+    tokenizer_sha256: str
+    sequence_ids: tuple[int, ...]
+    output_ids: tuple[int, ...]
+    text: str
+    pieces: tuple[str, ...]
+    logits: tuple[float, ...]
+    selected_id: int
+    stop_reason: str | None
+    compute_ms: float
+    nodes: tuple[TensorObservation, ...]
+    decoding_note: str | None
+    request: GenerationStep
+    id: str
+    contract_sha256: str
+    probabilities: tuple[float, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class ModelSource(Declaration):
+    id: str
+    role: str
+    runtime: str
+    seed: int
+    provenance: str
+    weights: str
+    tokenizer: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class ModelSources(Declaration):
+    storage: ModelStorage
+    models: tuple[ModelSource, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class GenerationDefaults(Declaration):
+    model_id: str
+    workload: Workload
+
+
+@dataclass(frozen=True, kw_only=True)
+class GenerationEvidence(Declaration):
+    input: GenerationInput
+    model: ModelDescriptor
+    prediction: GenerationPrediction
+
+
+@dataclass(frozen=True, kw_only=True)
+class ArchitectureStage(Declaration):
+    owner: str
+    label: str
+    scope: str
+    detail: str
+    inputs: tuple[int, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class ArchitectureWalkthrough(Declaration):
+    runtime: str
+    stages: tuple[ArchitectureStage, ...]
+
+
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'FullPrefixExecutionConfig': FullPrefixExecutionConfig, 'InferenceSystem': InferenceSystem, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'CachedExecutionConfig': CachedExecutionConfig, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'TokenPublished': TokenPublished, 'RunOutcome': RunOutcome, 'RequestFinished': RequestFinished, 'DecodingContract': DecodingContract, 'AttentionConfiguration': AttentionConfiguration, 'SystemConfigurationPreview': SystemConfigurationPreview, 'WorkloadTransformationPreview': WorkloadTransformationPreview, 'OntologyBinding': OntologyBinding, 'TokenStepRequest': TokenStepRequest, 'RequestBinding': RequestBinding, 'RunBinding': RunBinding, 'EventClock': EventClock, 'RequestArrived': RequestArrived, 'InputEncoded': InputEncoded, 'ModelForwardCompleted': ModelForwardCompleted, 'TokenSelected': TokenSelected, 'RunEvent': RunEvent, 'Span': Span, 'Encoding': Encoding, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'TokenSelection': TokenSelection, 'NumericalPass': NumericalPass, 'NumericalPrecision': NumericalPrecision, 'Token': Token, 'NumericalTrace': NumericalTrace, 'RunRecord': RunRecord, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'CacheComputation': CacheComputation, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ClientConfigurationPreview': ClientConfigurationPreview, 'ConfigurationPreview': ConfigurationPreview, 'TokenStepResult': TokenStepResult, 'PreparedInput': PreparedInput, 'ExecutionReplayInput': ExecutionReplayInput, 'InspectionState': InspectionState, 'Capabilities': Capabilities, 'ApiError': ApiError, 'CacheCapabilities': CacheCapabilities, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ArtifactReference': ArtifactReference, 'ExecutionReceipt': ExecutionReceipt, 'ArtifactResponse': ArtifactResponse, 'TensorTable': TensorTable, 'VocabularyArtifact': VocabularyArtifact, 'StoredTensorObservation': StoredTensorObservation, 'StoredTokenSelection': StoredTokenSelection, 'StoredNumericalPass': StoredNumericalPass, 'StoredNumericalTrace': StoredNumericalTrace, 'StoredRunRecord': StoredRunRecord, 'StoredTokenStepResult': StoredTokenStepResult, 'ExecutionArchive': ExecutionArchive, 'ExecutionBundle': ExecutionBundle, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'GenerationExperiment': GenerationExperiment, 'GenerationInput': GenerationInput, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough}
 OPERATION_OWNERS = {'token_embedding': 'Embedding', 'embedding': 'Embedding', 'position_embedding': 'PositionEncoding', 'ln1_mean': 'Normalization', 'ln1_variance': 'Normalization', 'ln1': 'Normalization', 'ln2_mean': 'Normalization', 'ln2_variance': 'Normalization', 'ln2': 'Normalization', 'ln_final_mean': 'Normalization', 'ln_final_variance': 'Normalization', 'ln_final': 'Normalization', 'query': 'Attention', 'key': 'Attention', 'value': 'Attention', 'scores': 'Attention', 'causal_mask': 'Attention', 'attention': 'Attention', 'weighted_values': 'Attention', 'attention_output': 'Attention', 'attention_residual': 'ResidualAddition', 'ff_residual': 'ResidualAddition', 'ff_up': 'FeedForward', 'gelu': 'FeedForward', 'ff_down': 'FeedForward', 'logits': 'OutputProjection', 'input_ids': 'Tokenizer', 'retained_keys': 'KVState', 'retained_values': 'KVState'}
-LAB_BINDINGS = {'naive-gpt': {'primary': 'ModelExecution', 'related': ['Tokenizer', 'Embedding', 'PositionEncoding', 'Normalization', 'Attention', 'ResidualAddition', 'FeedForward', 'OutputProjection', 'Decoding']}, 'kimi-delta-attention': {'primary': 'Attention', 'related': []}, 'prefix-cache': {'primary': 'KVCache', 'related': ['KVState', 'RequestScheduling', 'StateTransfer', 'ComputeService']}, 'prefill-decode': {'primary': 'StateTransfer', 'related': ['KVState', 'ModelExecution']}, 'speculative-decoding': {'primary': 'Decoding', 'related': ['ModelExecution', 'KVState']}, 'positional-encoding': {'primary': 'PositionEncoding', 'related': ['Embedding', 'Attention']}}
+LAB_BINDINGS = {'naive-gpt': {'primary': 'ModelExecution', 'related': ['Tokenizer', 'Embedding', 'PositionEncoding', 'Normalization', 'Attention', 'ResidualAddition', 'FeedForward', 'OutputProjection', 'Decoding', 'ModelArchitecture', 'ModelArtifact']}, 'kimi-delta-attention': {'primary': 'Attention', 'related': []}, 'prefix-cache': {'primary': 'KVCache', 'related': ['KVState', 'RequestScheduling', 'StateTransfer', 'ComputeService']}, 'prefill-decode': {'primary': 'StateTransfer', 'related': ['KVState', 'ModelExecution']}, 'speculative-decoding': {'primary': 'Decoding', 'related': ['ModelExecution', 'KVState']}, 'positional-encoding': {'primary': 'PositionEncoding', 'related': ['Embedding', 'Attention']}}
 for model in MODELS.values():
     model._definitions = SCHEMAS
     model._registry = MODELS

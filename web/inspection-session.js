@@ -1,103 +1,92 @@
-/* Interaction transitions over generated declarations. No model computation. */
-(() => {
-  'use strict';
-  const copy = value => JSON.parse(JSON.stringify(value));
-  const equal = (a,b) => {
-    if (a === b) return true;
-    if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return false;
-    const keys = Object.keys(a).sort();
-    return JSON.stringify(keys) === JSON.stringify(Object.keys(b).sort()) && keys.every(k => equal(a[k], b[k]));
-  };
-  function validatePrepared(prepared) {
-    Declarations.assertShape('PreparedInput',prepared);
-    Declarations.assertBound('RunBinding',prepared.declaration,prepared.declaration);
-    if(prepared.contract_sha256!==Declarations.hash) throw new Error('Preparation contract differs');
-    if(prepared.declaration.workload.requests.length!==1 || !prepared.tokenizer.ids.length) throw new Error('Unsupported prepared workload');
-    if(!equal(prepared.declaration.ontology_binding,Declarations.labs.find(l=>l.id==='naive-gpt').ontology_binding)) throw new Error('Preparation experiment differs');
+/* One request and one inspection cursor; views never own a second token sequence. */
+globalThis.InspectionSession=(()=>{
+  const clone=structuredClone;
+  const equal=(a,b)=>a===b || !!(a&&b&&typeof a==='object'&&typeof b==='object'&&Array.isArray(a)===Array.isArray(b)&&Object.keys(a).length===Object.keys(b).length&&Object.keys(a).every(k=>Object.hasOwn(b,k)&&equal(a[k],b[k])));
+  const sequence=s=>s.step?.sequence_ids || s.prepared?.prompt_ids || [];
+  const output=s=>s.step?.text || '';
+  function create(input) {
+    Declarations.assertShape('GenerationInput',input);
+    return {input:clone(input),loaded:null,prepared:null,step:null,view:{run_id:null,position:0,surface:'request',observation_id:null,architecture_step:null}};
   }
-  const cursor = prepared => ({run_id:null,position:prepared.tokenizer.ids.length-1,observation_id:null,surface:'request'});
-  function create(prepared) {
-    validatePrepared(prepared);
-    return {prepared,draft:copy(prepared.declaration.workload),submitted:null,view:cursor(prepared),step:null,submitted_step:null,phase:'offline',live:false,error:null};
+  function reset(s) {
+    return {...s,step:null,view:{run_id:null,position:Math.max(0,(s.prepared?.prompt_ids.length || 1)-1),surface:'request',observation_id:null,architecture_step:null}};
   }
-  function transition(state,event) {
-    switch(event.type) {
-      case 'CONNECT': return {...state,live:true,phase:equal(state.draft,state.prepared.declaration.workload)?'ready':'dirty'};
-      case 'EDIT':
-        if(!state.live || state.phase==='running') throw new Error('Request is not editable in this state');
-        Declarations.assertShape('Workload',event.workload);
-        return {...state,draft:copy(event.workload),phase:equal(event.workload,state.prepared.declaration.workload)?'ready':'dirty',error:null};
-      case 'SUBMIT': {
-        if(!state.live || state.phase==='running') throw new Error('Preparation unavailable');
-        const submitted={...state.prepared.declaration,workload:copy(state.draft)};
-        Declarations.assertBound('RunBinding',submitted,submitted);
-        return {...state,submitted,step:null,view:cursor(state.prepared),phase:'running',error:null};
-      }
-      case 'ACCEPT':
-        if(state.phase!=='running' || !equal(event.prepared.declaration,state.submitted)) throw new Error('Preparation differs from submitted declarations');
-        validatePrepared(event.prepared);
-        return {...state,prepared:event.prepared,draft:copy(event.prepared.declaration.workload),submitted:null,view:cursor(event.prepared),step:null,submitted_step:null,phase:'ready',error:null};
-      case 'RESET':
-        if(state.phase==='running') throw new Error('Wait for the pending operation before reset');
-        return {...state,step:null,submitted:null,submitted_step:null,view:cursor(state.prepared),error:null,phase:!state.live?'offline':equal(state.draft,state.prepared.declaration.workload)?'ready':'dirty'};
-      case 'FAIL': return {...state,submitted:null,submitted_step:null,phase:'failed',error:event.message};
-      case 'STEP_SUBMIT': {
-        if(!state.live || !['ready','failed'].includes(state.phase) || !equal(state.draft,state.prepared.declaration.workload)) throw new Error('Apply edited input before token execution');
-        const submitted_step=nextRequest(state);
-        return {...state,submitted_step,phase:'running',error:null};
-      }
-      case 'STEP_ACCEPT':
-        if(state.phase!=='running' || !state.submitted_step || !equal(event.result.request,state.submitted_step)) throw new Error('Step differs from submitted prefix');
-        validateStep(event.result,state.prepared);
-        return {...state,step:event.result,submitted_step:null,phase:'ready',error:null,
-          view:{run_id:event.result.id,position:event.result.sequence_ids.length-1,observation_id:null,surface:'selection'}};
-      case 'INSPECT': {
-        if(state.phase==='running') throw new Error('Inspection is locked during execution');
-        const view={...state.view,...event.view};
-        Declarations.assertShape('InspectionState',view);
-        if(view.run_id!==(state.step?.id || null) || view.position>=sequence(state).length) throw new Error('Inspection cursor is outside current execution');
-        if(view.observation_id!==null && !state.step?.computation.nodes.some(n=>n.id===view.observation_id)) throw new Error('Observation is outside current computation');
-        if(view.surface==='selection' && !state.step) throw new Error('No token selection has executed');
-        return {...state,view};
-      }
-      default: throw new Error('Unknown inspection transition');
-    }
+  function select(s,id) {return reset({...s,input:{...s.input,experiment:{...s.input.experiment,model_id:id}},loaded:null,prepared:null});}
+  function edit(s,workload) {
+    const input={...s.input,workload:clone(workload)};Declarations.assertShape('GenerationInput',input);
+    return reset({...s,input,prepared:null});
   }
-  const output = state => state.step?.computation.display_so_far || '';
-  const sequence = state => state.step?.sequence_ids || state.prepared.tokenizer.ids;
-  const computation = state => state.phase==='running' ? null : state.step?.computation || null;
-  function journey(state) {
-    const pass=computation(state);
-    if(!pass) throw new Error('No computation to replay');
-    return [{surface:'request',observation_id:null},{surface:'system',observation_id:null},
-      ...pass.nodes.map(node=>({surface:'model',observation_id:node.id})),
-      {surface:'selection',observation_id:null},{surface:'response',observation_id:null}];
+  function admitModel(s,loaded) {
+    Declarations.assertShape('ModelLoadResult',loaded);
+    if(loaded.model.id!==s.input.experiment.model_id)throw Error('Loaded model differs from selected experiment');
+    return {...s,loaded};
   }
-  function nextRequest(state) {
-    const trace=state.prepared, ids=sequence(state), position=state.view.position;
-    const root=state.step?.request.prefix_ids || trace.tokenizer.ids;
+  function prepare(s,prepared) {
+    Declarations.assertShape('GenerationPrepared',prepared);
+    if(!s.loaded || !equal(prepared.input,s.input))throw Error('Preparation differs from current experiment and workload');
+    if(prepared.prompt_ids.some(i=>i>=s.loaded.model.architecture.vocabulary))throw Error('Tokenizer ID outside selected vocabulary');
+    return reset({...s,prepared});
+  }
+  function nextRequest(s) {
+    if(!s.loaded || !s.prepared)throw Error('Wait for model loading and input preparation');
+    const ids=sequence(s),position=s.view.position;
+    const root=s.step?.request.prefix_ids || s.prepared.prompt_ids;
     const prefix_ids=position<root.length ? ids.slice(0,position+1) : [...root];
     const output_ids=position<root.length ? [] : ids.slice(root.length,position+1);
-    const spec={checkpoint_sha256:trace.declaration.model.checkpoint_sha256,prefix_ids,output_ids,
-      generation:copy(trace.declaration.workload.requests[0].request.generation),ontology_binding:copy(trace.declaration.ontology_binding)};
-    Declarations.assertShape('TokenStepRequest',spec);
-    const end=trace.vocabulary.find(t=>t.kind==='control' && t.piece==='TURN_END').id;
-    if(output_ids.includes(end)) throw new Error('TURN_END selected; reset or select an earlier prefix');
-    if(output_ids.length>=spec.generation.max_new_tokens) throw new Error('Output budget exhausted; reset or select an earlier prefix');
-    if(prefix_ids.length+output_ids.length>trace.checkpoint.config.context) throw new Error('Selected prefix exceeds context capacity');
-    return spec;
+    const request={experiment:clone(s.input.experiment),prefix_ids,output_ids,generation:clone(s.input.workload.requests[0].request.generation)};
+    Declarations.assertShape('GenerationStep',request);
+    if(output_ids.some(i=>s.loaded.model.stop_ids.includes(i)))throw Error('End token selected; reset or select an earlier prefix');
+    if(output_ids.length>=request.generation.max_new_tokens)throw Error('Token budget reached; reset or select an earlier prefix');
+    if(prefix_ids.length+output_ids.length>s.loaded.model.architecture.context)throw Error('Context full; reset or select an earlier prefix');
+    return request;
   }
-  function validateStep(result,prepared) {
-    Declarations.assertShape('TokenStepResult',result);
-    const trace=prepared, spec=result.request, p=result.computation;
-    if(result.contract_sha256!==Declarations.hash || spec.checkpoint_sha256!==trace.declaration.model.checkpoint_sha256 || !equal(result.checkpoint,trace.checkpoint)) throw new Error('Step checkpoint or contract differs');
-    const prefix=[...spec.prefix_ids,...spec.output_ids], selected=p.selection.selected_id;
-    const output=[...spec.output_ids,selected], end=trace.vocabulary.find(t=>t.kind==='control' && t.piece==='TURN_END').id;
-    const remaining=spec.generation.max_new_tokens-output.length;
-    const stop=selected===end ? 'turn_end' : remaining===0 ? 'output_budget' : null;
-    const logits=p.selection.raw_logits, winner=logits.reduce((best,x,i)=>x>logits[best]?i:best,0);
-    if(p.run_id!==result.id || !equal(p.input_ids,prefix) || p.selection_position!==prefix.length-1 || p.output_position!==prefix.length || p.step!==spec.output_ids.length || winner!==selected ||
-       !equal(result.output_ids,output) || !equal(result.sequence_ids,[...prefix,selected]) || result.remaining_tokens!==remaining || result.stop_reason!==stop) throw new Error('Step evidence differs from its exact prefix and selection');
+  function accept(s,result,request) {
+    Declarations.assertShape('GenerationPrediction',result);
+    const model=s.loaded?.model;
+    if(result.contract_sha256!==Declarations.hash || !model || !equal(request,nextRequest(s)) || !equal(result.request,request) || result.model_id!==model.id || result.weights_sha256!==model.weights.sha256 || result.tokenizer_sha256!==model.tokenizer.sha256)throw Error('Prediction differs from current request/model');
+    const output_ids=[...request.output_ids,result.selected_id];
+    const ids=[...request.prefix_ids,...output_ids];
+    const winner=result.logits.reduce((best,x,i)=>x>result.logits[best]?i:best,0);
+    const stop=model.stop_ids.includes(winner)?'end_token':output_ids.length>=request.generation.max_new_tokens?'output_budget':ids.length>model.architecture.context?'context_capacity':null;
+    if(winner!==result.selected_id || result.logits.length!==model.architecture.vocabulary || result.probabilities.length!==model.architecture.vocabulary || !equal(ids,result.sequence_ids) || !equal(output_ids,result.output_ids) || result.stop_reason!==stop || (model.inspection!=='tensors' && result.nodes.length))throw Error('Prediction evidence violates prefix, selection or inspection boundary');
+    return {...s,step:result,view:{run_id:result.id,position:ids.length-1,surface:'selection',observation_id:null,architecture_step:null}};
   }
-  globalThis.InspectionSession={create,transition,sequence,computation,nextRequest,validateStep,output,journey};
+  function inspect(s,change) {
+    const view={...s.view,...change,architecture_step:change.surface==='architecture'?change.architecture_step:null};Declarations.assertShape('InspectionState',view);
+    if(view.run_id!==(s.step?.id || null) || view.position>=sequence(s).length)throw Error('Inspection outside current sequence');
+    if(view.observation_id!==null && !s.step?.nodes.some(n=>n.id===view.observation_id))throw Error('Observation outside current computation');
+    if(view.surface==='architecture' && !architecture(s)[view.architecture_step])throw Error('Architecture step outside selected model');
+    if(view.surface==='selection'&&!s.step)throw Error('No prediction to inspect');
+    return {...s,view};
+  }
+  function architecture(s) {
+    const model=s.loaded?.model;if(!model)return [];
+    const recipe=Declarations.schemas.ArchitectureWalkthrough.oneOf.map(x=>x.const).find(x=>x.runtime===model.runtime);
+    if(!recipe)throw Error('No declared walkthrough for selected runtime');
+    Declarations.assertShape('ArchitectureWalkthrough',recipe);
+    const stages=[];
+    const append=(scope,layer)=>recipe.stages.filter(x=>x.scope===scope).forEach(x=>stages.push({...x,layer}));
+    recipe.stages.forEach((s,i)=>{if(s.inputs.some(source=>source>=i))throw Error('Architecture edge must reference an earlier stage');});
+    append('prefix',null);
+    for(let layer=0;layer<model.architecture.layers;layer++)append('layer',layer);
+    append('suffix',null);return stages;
+  }
+  function layer(s) {
+    if(s.view.surface==='architecture'){const stage=architecture(s)[s.view.architecture_step];return stage?.layer ?? (stage?.scope==='suffix'?s.loaded.model.architecture.layers-1:0);}
+    return s.step?.nodes.find(n=>n.id===s.view.observation_id)?.layer ?? 0;
+  }
+  function chooseLayer(s,index) {
+    const node=s.step?.nodes.find(n=>n.layer===index);
+    if(node)return {surface:'model',observation_id:node.id};
+    const architecture_step=architecture(s).findIndex(n=>n.layer===index);
+    if(architecture_step<0)throw Error('Unknown transformer layer');
+    return {surface:'architecture',architecture_step,observation_id:null};
+  }
+  function journey(s) {
+    const model=s.step?.nodes.length?s.step.nodes.map(n=>({surface:'model',observation_id:n.id})):
+      architecture(s).map((_,i)=>({surface:'architecture',architecture_step:i,observation_id:null}));
+    return [{surface:'request',observation_id:null},{surface:'system',observation_id:null},...model,
+      ...(s.step?[{surface:'selection',observation_id:null},{surface:'response',observation_id:null}]:[])];
+  }
+  return {create,reset,select,edit,admitModel,prepare,nextRequest,accept,inspect,journey,architecture,layer,chooseLayer,sequence,output};
 })();

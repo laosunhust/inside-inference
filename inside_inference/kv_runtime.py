@@ -9,7 +9,7 @@ from inside_inference.declarations_generated import KVState
 
 def state_bytes(state):
     """Logical packed binary64 K+V payload, not Python process memory."""
-    return sum(len(row) for matrix in (state.keys, state.values) for row in matrix) * 8
+    return sum(len(row) for tensor in (state.keys, state.values) for matrix in tensor for row in matrix) * 8
 
 
 def prefix_state(state, count):
@@ -17,7 +17,8 @@ def prefix_state(state, count):
         raise ValueError('Prefix slice outside state')
     return KVState(checkpoint_sha256=state.checkpoint_sha256,
         tokenizer_sha256=state.tokenizer_sha256, token_ids=state.token_ids[:count],
-        keys=state.keys[:count], values=state.values[:count])
+        keys=tuple(layer[:count] for layer in state.keys),
+        values=tuple(layer[:count] for layer in state.values))
 
 
 class ReferenceRuntime:
@@ -28,7 +29,9 @@ class ReferenceRuntime:
 
     def empty(self):
         return KVState(checkpoint_sha256=self.model.sha256,
-            tokenizer_sha256=self.model.checkpoint['manifest_sha256'], token_ids=(), keys=(), values=())
+            tokenizer_sha256=self.model.checkpoint['manifest_sha256'], token_ids=(),
+            keys=tuple(() for _ in range(self.model.config.layers)),
+            values=tuple(() for _ in range(self.model.config.layers)))
 
     def describe(self):
         return dict(compute_device='CPU scalar reference', device_state_storage='Logical pool in system DRAM',

@@ -1,0 +1,166 @@
+{
+  "scope": "Main-page model consolidation; local Chromium, not deployed-origin certification",
+  "models": {
+    "models": [
+      {
+        "id": "tinyllm-8k",
+        "parameters": 8168,
+        "load_ms": 73.60000000149012,
+        "prefill_ms": 15.700000999999908,
+        "warm_median_ms": 17.100001000000198,
+        "continuation": " Th",
+        "selected_ids": [
+          6,
+          7,
+          13,
+          12,
+          7,
+          14,
+          16,
+          7
+        ]
+      },
+      {
+        "id": "tinyllm-500k",
+        "parameters": 475712,
+        "load_ms": 34.19999999925494,
+        "prefill_ms": 13.900000002235174,
+        "warm_median_ms": 11.199999999254942,
+        "continuation": " The cat loved to play with it.",
+        "selected_ids": [
+          282,
+          460,
+          507,
+          268,
+          325,
+          332,
+          314,
+          4037
+        ]
+      },
+      {
+        "id": "tinyllm-4m",
+        "parameters": 4262144,
+        "load_ms": 239.69999999925494,
+        "prefill_ms": 34.19999999925494,
+        "warm_median_ms": 13.299999997019768,
+        "continuation": " The cat liked to play with the ball",
+        "selected_ids": [
+          282,
+          460,
+          530,
+          268,
+          325,
+          332,
+          264,
+          476
+        ]
+      }
+    ],
+    "numerical": [
+      {
+        "model": "tinyllm-500k",
+        "prompt": "Once upon a time, a little rabbit found a red ball.",
+        "max_error": 1.52587890625e-05,
+        "argmax_equal": true,
+        "top_two_margin": 2.232071876525879,
+        "near_tie": false
+      },
+      {
+        "model": "tinyllm-500k",
+        "prompt": "a  cat\n sat",
+        "max_error": 9.5367431640625e-06,
+        "argmax_equal": true,
+        "top_two_margin": 1.4321861267089844,
+        "near_tie": false
+      },
+      {
+        "model": "tinyllm-500k",
+        "prompt": "hello caf\u00e9 \u4f60\u597d",
+        "max_error": 9.775161743164062e-06,
+        "argmax_equal": true,
+        "top_two_margin": 1.7746782302856445,
+        "near_tie": false
+      },
+      {
+        "model": "tinyllm-4m",
+        "prompt": "Once upon a time, a little rabbit found a red ball.",
+        "max_error": 1.4185905456542969e-05,
+        "argmax_equal": true,
+        "top_two_margin": 1.5592451095581055,
+        "near_tie": false
+      },
+      {
+        "model": "tinyllm-4m",
+        "prompt": "a  cat\n sat",
+        "max_error": 1.52587890625e-05,
+        "argmax_equal": true,
+        "top_two_margin": 0.877924919128418,
+        "near_tie": false
+      },
+      {
+        "model": "tinyllm-4m",
+        "prompt": "hello caf\u00e9 \u4f60\u597d",
+        "max_error": 2.1696090698242188e-05,
+        "argmax_equal": true,
+        "top_two_margin": 2.1954193115234375,
+        "near_tie": false
+      }
+    ],
+    "storage": [
+      "Error: Error: Model asset unavailable (404): tinyllm-0.5m.bin",
+      "Error: Error: Load the selected model first",
+      "Error: Error: Model asset digest mismatch: tinyllm-0.5m.bin",
+      "Cross-origin default-model execution passed",
+      "CORS failure blocks execution"
+    ],
+    "tokenizer": [
+      {
+        "model": "tinyllm-500k",
+        "cases": 10
+      },
+      {
+        "model": "tinyllm-4m",
+        "cases": 10
+      }
+    ],
+    "screenshots": [
+      "tinyllm-8k",
+      "tinyllm-500k",
+      "tinyllm-4m"
+    ],
+    "ready_ms": 3045.2296610000003,
+    "passed": true
+  },
+  "harness": {
+    "unit_seconds": 9.5,
+    "unit_tests": 106,
+    "integration_seconds": 69.41,
+    "integration_tests": 24,
+    "browser_phases": [
+      {
+        "phase": "model family and object storage",
+        "milliseconds": 23376.691772
+      },
+      {
+        "phase": "cache lab",
+        "milliseconds": 19479.321123
+      },
+      {
+        "phase": "existing standalone labs",
+        "milliseconds": 266.62466400000267
+      },
+      {
+        "phase": "standalone labs and missing-worker failure",
+        "milliseconds": 113.37375099999917
+      }
+    ]
+  },
+  "corrections": [
+    "Python and JavaScript object key order must not affect preparation equality.",
+    "Narrow input rows wrap actions below the source text.",
+    "The overflow probe was lengthened after 300 repeated words correctly fit the 512-position tokenizer.",
+    "UI probability calculation was replaced with the shared execution selector. An attempted C float32 softmax normalization differed by 1.52185e-5; binary64 shared normalization passes the original 1e-5 comparison.",
+    "One startup fetch failed without a numerical result. It did not reproduce in subsequent fresh-browser runs; network failures now have harness diagnostics. No fallback or automatic retry was introduced."
+  ]
+}

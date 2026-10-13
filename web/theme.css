@@ -276,3 +276,4 @@ dt{text-transform:uppercase}
 
 #client-boundary.has-output{background:var(--accent-soft);border-color:#bfd5c9}
 .execution-path button.selected-object{background:var(--accent-soft)}
+/* Model-family lab reuses the shared action hierarchy and semantic colors. */

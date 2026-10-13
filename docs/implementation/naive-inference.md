@@ -9,8 +9,9 @@ See the [lab contract](../labs/naive-gpt.md) for evidence and limitations.
 
 ## First complete computation
 
-Use one request, one sequence, one complete decoder-only GPT block, and one causal
-scaled dot-product attention head. Preserve embeddings, declared position handling,
+Use one request, one sequence, and one or two complete decoder-only GPT blocks,
+with one causal scaled dot-product attention head per block. The shipped baseline
+remains one block. Preserve embeddings, declared position handling,
 normalization, residual connections, a feed-forward sublayer, output projection,
 and next-token selection. Small means fewer dimensions and layers, not deleting
 operations that define the GPT baseline.
@@ -74,7 +75,9 @@ Every exported run includes the complete checkpoint, parameter hash, vocabulary
 hash, input/framing trace, code source hashes and revision, Python version,
 configuration, precision, and each pass's input sequence. Greedy selection has no
 sampling RNG; initializer seed is recorded separately. Node dependencies reference
-other observations or checkpoint parameters. Positions are zero-based. Boolean
+other observations or checkpoint parameters. Block weights and K/V have a leading
+layer axis; shared embeddings and final projection do not. Observation IDs include
+the block index, while operation names keep their shared ontology meaning. Positions are zero-based. Boolean
 causal masks exclude future scores before normalization; zero probability records
 that exclusion without nonfinite JSON values.
 

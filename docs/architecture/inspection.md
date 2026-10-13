@@ -3,23 +3,22 @@
 This document owns code boundaries and navigation for the connected instrument.
 [Purpose](../purpose/README.md) owns the fixed-vocabulary learning scope;
 [ontology](../ontology/README.md) owns shared meanings; the catalog owns lab
-placement. The naïve numerical path supports identified checkpoints, with the [shipped trained checkpoint](../../data/model/README.md)
-by default. The [KV residency lab](../labs/kv-residency.md) adds cached
+placement. The main page selects identified artifacts from the [model inventory](../../data/models/README.md),
+with the 4M continuation model initially selected and the 8K model available for numerical inspection. The [KV residency lab](../labs/kv-residency.md) adds cached
 execution and a bounded resource scheduler alongside that explicit reference.
 
-## One run, three views
+## One experiment, three panels
 
-| Zoom | Question | Inspect and change |
-| --- | --- | --- |
-| 1 · Customer journey | What happens to my request? | Selected client workload → inference system → response; request progress, state movement, and resource constraints. |
-| 2 · Execution steps | What work produces the response? | Tokenization, prefill, decode, output delivery; expand model phases into embedding, layers, output projection, and selection. |
-| 3 · Mechanism | What happens if I change this operation? | Attention choice and its parameters; actual inputs, intermediate arithmetic, retained state, outputs, shapes, and precision. |
+| Panel | Responsibility |
+| --- | --- |
+| Experiment | Configure workload transformations, inference system and customer conditions. |
+| Interaction | Edit request, model and generation settings; generate tokens and read output. |
+| Explanation | Follow the request and transformer steps; inspect available evidence. |
 
-These are zoom levels over the same run, not three independently calculated
-explanations. Preserve request, run, step, layer, and sequence-position context
-when navigating. Embedding is an operation inside model execution; it is not a
-separate serving phase parallel to prefill and decode. Both phases reach the
-same attention mechanism configuration and implementation.
+The panels share the selected model, request and inspection cursor. Explanation
+supports an architecture walkthrough for every loaded model, and recorded tensor
+inspection where available. A walkthrough is not a captured execution trace or a
+performance measurement. Keep request, layer and sequence position when navigating.
 
 The first path is request → prefill or decode → naïve causal attention and its
 actual arithmetic. Establish this reference before adding a mechanism selector.
@@ -103,7 +102,7 @@ Current working code remains small:
 | `inside_inference/labs/journey.py` | Aggregate event/cost simulator, without GPT execution. |
 | `inside_inference/labs/kda.py` | Standalone numerical recurrence, without a trained model. |
 | `scripts/build/intro_page.py` | Build views and links from canonical definitions and catalog metadata. |
-| `inside_inference/model.py` | One complete single-head GPT forward path, explicit checkpoint validation, and tensor observations. |
+| `inside_inference/model.py` | One or two single-head decoder blocks, explicit checkpoint validation, and layer-identified tensor observations. |
 | `inside_inference/cache_lab.py` | Cached computation linked to admission, retention, retrieval, and virtual resource service. |
 | `inside_inference/kv_runtime.py` | Reference execution and logical residency pools. |
 | `inside_inference/tensor_model.py` | Tensor equations used only by optional checkpoint preparation. |
@@ -125,7 +124,7 @@ empty packages, speculative plugin loaders, or a second computation in JavaScrip
 solely to animate values.
 
 The implemented first vertical slice is a fixed-vocabulary prompt through tokenizer,
-embedding, one faithful single-head causal GPT layer, logits, selection, and diagnostic output-token display,
+embedding, declared single-head causal GPT blocks, logits, selection, and diagnostic output-token display,
 with trace navigation across all three zoom levels. Verify tokenizer behavior,
 independent forward calculations, causality, and trace fidelity before connecting
 resource costs. Add attention alternatives behind the execution interface only
@@ -137,73 +136,55 @@ when introducing caching; do not route failed optimized execution through it
 silently. Add interfaces as the first real variants arrive rather than building
 an advanced-attention plugin framework before the baseline.
 
-## Browser execution and offline replay
+## Model selection and live stepping
 
-The generated `index.html` embeds PreparedInput: validated configuration, model weights
-and actual tokenizer output, without a forward pass or generated answer.
-`make serve-intro` enables input preparation and individual token computations through
-the canonical Python engine. Offline controls never pretend to execute. The cost
-simulator remains at `request-cost.html`; its schedules are not numerical execution timings.
-Step exports retain complete intermediate tensors and checkpoint provenance.
+The generated landing page embeds only an initial `GenerationInput`, derived from
+[data/models/initial.yaml](../../data/models/initial.yaml) and the catalog's model-execution
+ontology binding. It does not embed a completed run or checkpoint. The browser
+loads the selected model through the same declared interface used headlessly.
+The input row's **Edit** opens model selection and request settings. Selecting
+loads immediately, preserves input and generation settings, and clears prior tokens,
+output, observations, replay and exports. A late load or prediction cannot repopulate
+another model's state. Incompatible input/settings fail visibly without repair.
 
-Declaration and interaction governance lives in [declarations](declarations.md).
-Every run binds the generated model, system, and workload declarations. The browser
-keeps editable workloads separate from accepted evidence, and all three zoom levels
-share a run-bound inspection cursor. A model card presents the identified artifact;
-it does not own request policy or duplicate executable configuration.
+`GenerationExperiment` owns the selected model and ontology binding. `Workload`
+owns request input and generation policy. Preparation tokenizes without inference;
+**Next Token** submits a `GenerationStep` and accepts a `GenerationPrediction`.
+**Generate** repeats that same operation until stopping or the user stops it.
+Reset clears the continuation while retaining input/settings. The Output Details
+panel exposes the single combined token sequence.
 
-The [workload boundary](workloads.md) defines the ordered arrivals and recorded
-events. Full workload runs retain publication events; the interactive page displays the current
-token step’s published output and actual tensors. The uncached adapter has no queue or service-time model. `kv-cache.html` consumes
-`CacheRun` evidence with virtual times and separate host measurements, under the
-KV lab contract.
+`InspectionState.position` is the only prefix cursor. Selecting a position does
+not execute. The next operation uses that prefix; a successful branch replaces
+the later continuation. Selecting inside generated output preserves prior output
+and budget usage. Selecting inside input starts a new continuation, without adding
+chat framing. Observation selection and **Token Journey** share the diagram/detail
+cursor without moving the selected prefix. Input/model changes, reset and new
+execution cancel journey replay. Replay navigates the selected architecture or recorded work; its animation interval
+is not execution timing.
 
-Generated pages and experiment outputs under `out/` are disposable. Maintained
-fixtures and required datasets remain outside it. The static landing page exposes prepared
-input; the browser worker executes token steps. The [website architecture](website.md)
-owns the static delivery path and its declared execution interfaces. Rebuild the
-static bundle and reload after contract changes.
+`ArchitectureWalkthrough` declares runtime-specific stage labels and ontology owners;
+`ArchitectureStage` references are mechanically checked against admitted ontology.
+The selected artifact supplies the layer count. A compact generic schematic shows
+one repeated transformer block; the layer picker and playback use the same cursor.
+Step details identify RoPE on Q/K, RMSNorm and SiLU-gated feed-forward for the larger
+models, versus learned positions and GELU for the tiny model. Optional cache reuse
+is not part of the architectural diagram. Declared schematic edges preserve residual
+branches; they do not claim captured tensor dependencies. These stages are explanatory, not fabricated `TensorObservation` records.
+`InspectionState.architecture_step` selects one of them; `observation_id` selects
+captured evidence. These are mutually exclusive surfaces of the same cursor.
 
-## Prefix selection and live stepping
+The 8K diagram uses recorded numerical dependencies once a prediction is available;
+its inspector reads actual tensors and parameters. Larger models expose actual tokens
+and logits plus an explicitly labeled architecture walkthrough. **Switch to 8K for
+inspection** changes the model and clears output; it never explains a larger model's
+output using the tiny model's tensors.
 
-`InspectionState.position` is the single sequence cursor. The Output row shows the
-accepted execution's output; its Details button reveals
-the single combined input/output token sequence. Both text and tokens derive from
-the same accepted request and its optional current step. Inspection never changes that output. The token
-panel selects a prefix; successful execution replaces the accepted continuation.
-Successful live stepping advances the cursor to its new output position. Inspecting an operand
-never moves the prefix. The newest selected output has no embedding computation
-of its own yet; details identify the last computed row rather than inventing one.
-
-**Next Token** sends a generated `TokenStepRequest` through the declared token-step
-route. It computes one raw-prefix forward pass and returns a `TokenStepResult`.
-Selection alone does not execute. A successful earlier-position branch replaces
-the suffix; a failed call preserves it. Selecting within generated output retains
-the preceding continuation and its budget usage. Selecting within the prompt starts
-a new continuation from that exact prefix, without adding chat framing. Partial
-byte encodings are numerical inputs, not claims of text comprehension.
-
-`InspectionState.surface` and `observation_id` jointly select the diagram and
-third-level details. There is no independent detail-panel selection. **Token
-Journey** walks the current prediction's request, direct dispatch, recorded tensor
-observations, selection and output through this same cursor. It replays evidence;
-its playback pace is not a simulated execution time. Pausing, manual inspection,
-input edits and new execution cancel playback without changing the generation
-prefix. Configuration previews disable replay until the baseline is restored.
-
-The overview encloses the numerical dependency graph in an execution endpoint.
-The baseline's declared dispatch is one direct in-process call; it supplies no
-router, network, queue or multi-node timing. A stepped raw prefix is not retokenized.
-Future MoE placement, P/D separation and parallelism must enter through resolved
-system configuration and execution evidence, then project into this view. Neither
-hardcoded frontend topology nor a configuration preview establishes executed work.
-
-There is no completed reference run loaded into the interactive session. Reset, beside
-Output Details, clears the continuation and computation while retaining input and settings. Step exports retain
-the consumed request, checkpoint, provenance, tensors and raw-logit selection and
-use the declared browser replay operation. Prior continuation IDs are declared inputs, not evidence
-that this stateless call executed their earlier predictions. No KV reuse or
-hardware-performance claim is introduced by this interface.
+The current execution endpoint is local to the browser worker. It models no network,
+queue, placement or accelerator memory budget. A native preparation reference and
+the separately declared KV lab remain available; neither silently substitutes for
+failed main-page model execution. Model download size is not simulated HBM residency.
+[Delivery](delivery.md) owns operation, asset loading and export boundaries.
 
 Shared appearance lives in `web/theme.css`; page stylesheets own layout. The site
 build and unit harness reject competing appearance rules and direct JavaScript

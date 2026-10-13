@@ -1,0 +1,128 @@
+[
+  {
+    "name": "baseline-7",
+    "parameters": 8168,
+    "weight_bytes": 65344,
+    "kv_bytes_per_position": 128,
+    "checkpoint_json_bytes": 169285,
+    "checkpoint_gzip_bytes": 77448,
+    "selected": {
+      "checkpoint_sha256": "757099c57a4931d5a0089e6a85e1183dd3c59920d150f63d470ce648afc44509",
+      "development_loss": 0.11570077777318664,
+      "step": 1800
+    },
+    "final_development_loss": 0.1659640552189249
+  },
+  {
+    "name": "baseline-17",
+    "parameters": 8168,
+    "weight_bytes": 65344,
+    "kv_bytes_per_position": 128,
+    "checkpoint_json_bytes": 169292,
+    "checkpoint_gzip_bytes": 77459,
+    "selected": {
+      "checkpoint_sha256": "5bc14b8f5ffe35023356d9511f450a1d4ee94e27998720cf8348b23fc7adfee0",
+      "development_loss": 0.0939033247273539,
+      "step": 1600
+    },
+    "final_development_loss": 0.13290790517419304
+  },
+  {
+    "name": "baseline-27",
+    "parameters": 8168,
+    "weight_bytes": 65344,
+    "kv_bytes_per_position": 128,
+    "checkpoint_json_bytes": 169000,
+    "checkpoint_gzip_bytes": 77491,
+    "selected": {
+      "checkpoint_sha256": "ee67c0dac1ed873f0a3b4f7f5a3bfa3d91bac18fdc8ae494f476adcd894ea02e",
+      "development_loss": 0.09168273602358307,
+      "step": 2200
+    },
+    "final_development_loss": 0.12955920535241472
+  },
+  {
+    "name": "wider-7",
+    "parameters": 16976,
+    "weight_bytes": 135808,
+    "kv_bytes_per_position": 256,
+    "checkpoint_json_bytes": 350073,
+    "checkpoint_gzip_bytes": 157828,
+    "selected": {
+      "checkpoint_sha256": "55e716175ab175b8ed89b5abf756dd663cd4f6453c6349278cecc5df97357c8b",
+      "development_loss": 0.12090219367399271,
+      "step": 1000
+    },
+    "final_development_loss": 0.16724000814287385
+  },
+  {
+    "name": "wider-17",
+    "parameters": 16976,
+    "weight_bytes": 135808,
+    "kv_bytes_per_position": 256,
+    "checkpoint_json_bytes": 349527,
+    "checkpoint_gzip_bytes": 157696,
+    "selected": {
+      "checkpoint_sha256": "cebe662365cae90322d30e0deac990175dabfe2364277d77f3f9dfe4c841c8dc",
+      "development_loss": 0.11733644995003853,
+      "step": 1000
+    },
+    "final_development_loss": 0.20937683746108432
+  },
+  {
+    "name": "wider-27",
+    "parameters": 16976,
+    "weight_bytes": 135808,
+    "kv_bytes_per_position": 256,
+    "checkpoint_json_bytes": 349569,
+    "checkpoint_gzip_bytes": 157855,
+    "selected": {
+      "checkpoint_sha256": "2bef1376809b455b41a6c7948482f203b5c62c5441eaf42158b4c9814bcb2d30",
+      "development_loss": 0.11000965841029568,
+      "step": 600
+    },
+    "final_development_loss": 0.17923731352426986
+  },
+  {
+    "name": "deeper-7",
+    "parameters": 8768,
+    "weight_bytes": 70144,
+    "kv_bytes_per_position": 256,
+    "checkpoint_json_bytes": 181560,
+    "checkpoint_gzip_bytes": 83138,
+    "selected": {
+      "checkpoint_sha256": "5ce7b6878816eded2394d2dca10b28d5766eeb2b0dd0c44bc00d8d9928353a99",
+      "development_loss": 0.12605146549061622,
+      "step": 1600
+    },
+    "final_development_loss": 0.22275011358065536
+  },
+  {
+    "name": "deeper-17",
+    "parameters": 8768,
+    "weight_bytes": 70144,
+    "kv_bytes_per_position": 256,
+    "checkpoint_json_bytes": 181528,
+    "checkpoint_gzip_bytes": 83266,
+    "selected": {
+      "checkpoint_sha256": "7ea6b7a9c157db9db203d954696f84de7fd3841114ed068001c6f1c45a3a1a44",
+      "development_loss": 0.12053015755961825,
+      "step": 1600
+    },
+    "final_development_loss": 0.21405867388025454
+  },
+  {
+    "name": "deeper-27",
+    "parameters": 8768,
+    "weight_bytes": 70144,
+    "kv_bytes_per_position": 256,
+    "checkpoint_json_bytes": 181497,
+    "checkpoint_gzip_bytes": 83232,
+    "selected": {
+      "checkpoint_sha256": "84a8128072ad579193d5a819aeaad695a80da9a6d63471a7c896204b970f9d6a",
+      "development_loss": 0.13211657698453014,
+      "step": 1400
+    },
+    "final_development_loss": 0.2451987684402085
+  }
+]

@@ -24,7 +24,10 @@ RequestBinding → the resolved request context and the same ontology binding wi
 OntologyBinding → one primary subject and distinct related concepts from admitted ontology.
 RunRecord → the bound workload, typed events, and linked numerical traces.
 RunOutcome → observed counts and termination; it is not a requested configuration.
-PreparedInput → validated binding, tokenizer output and model artifact, without inference.
+PreparedInput → retained reference-tooling binding and tokenizer output, without inference.
+GenerationExperiment → selected model and ontology subjects for the main page.
+GenerationInput → that experiment and its request workload.
+GenerationPrepared / GenerationStep / GenerationPrediction → tokenized input, submitted prefix and actual selected-model observations.
 InspectionState → one prefix/observation cursor; execution identity is null until a token step exists.
 
 Architecture constraints come from generated ModelArchitecture. Runtime capability
@@ -54,36 +57,18 @@ in machine records, not visible presentation.
 
 ## Interaction lifecycle
 
-One accepted prepared request and its current optional token-step result govern
-the page. The editable workload is a draft until Apply succeeds. There is no separate
-idle-state authority: an absent step means no generated output or computation.
-
-- Opening the page loads PreparedInput: the model binding and actual tokenizer result.
-  It contains no answer, forward pass or execution receipt.
-- Apply snapshots and validates the draft, clears prior execution and calls the
-  declared preparation interface. Preparation tokenizes without model.forward.
-  Invalid input remains an explicit error; cleared evidence is not restored.
-- Next Token snapshots the selected prefix and executes one forward pass. Its accepted
-  result supplies the combined tokens, output, diagram, inspection and download.
-  A selected earlier prefix replaces the continuation only upon successful computation.
-  While a step is pending, inspection is unavailable; a failure retains the prior
-  accepted step with an explicit error, never a fabricated replacement.
-- Reset belongs to Output. It discards generated continuation, computation, receipt
-  and inspection selection, retaining accepted input, generation policy and configuration.
-- Input edits, execution and Reset cancel Token Journey. Reset is unavailable while
-  a request is pending; mismatched or late responses are rejected by the transitions.
-- Offline pages expose their prepared input with execution controls disabled.
-
-The current step is the only numerical inspection authority. Selecting a token chooses
-the next prefix; it does not retrieve a previous prediction or run inference. An
-output token has no embedding in the pass that selected it; inspection uses the last
-computed position. Full workload runs remain available to headless consumers.
+One selected experiment, workload, prepared input and optional prediction govern
+the main page. [Inspection architecture](inspection.md#model-selection-and-live-stepping)
+owns its selection, switching and reset behavior. Generated declarations validate
+submissions and results; the session checks model identity, prefix, logits and
+stopping relations. A model card is a projection of the catalog's descriptor,
+not a second configuration authority.
 
 ## Behavioral evidence
 
 Schema generation cannot prove execution semantics. Tests must also establish:
 changing the budget changes executed passes unless the raw-logit winner is
-TURN_END. Controlled checkpoints test both immediate and later TURN_END selection;
+the selected model's declared end token. Controlled reference checkpoints also test immediate and later TURN_END selection;
 the observed stop and unused budget must explain the actual execution. Editing without submitting, failed submissions,
 in-flight edits, stale responses, offline viewing, and moving the inspection
 cursor must preserve the lifecycle rules. Numerical correctness remains covered

@@ -1,0 +1,21 @@
+version: 1
+work_item: landing-model-setup
+question: Can visitors identify the model actually executing on the landing page from its experiment setup?
+necessity: The system card currently hides model size and the separate model-size lab is undiscoverable there.
+baseline: Generic Explore mechanisms subtitle; model parameters hidden in numerical details.
+reuse:
+- source: Existing PreparedInput checkpoint and configuration dialog
+  decision: Derive a compact summary from admitted weights and architecture, without a second model inventory or new execution path.
+criteria:
+- System card shows exact parameter and layer counts from the admitted checkpoint.
+- Dialog exposes vocabulary, context, width, attention heads, position encoding and precision from that same checkpoint.
+- A clearly named link opens the separate model-size lab; navigation must not imply the active landing model changed.
+- No quality ranking, invented model name, duplicate count configuration or numerical changes.
+- Existing browser harness verifies derivation and links; review desktop and narrow rendering. Existing test budgets remain unchanged.
+checks:
+- make test
+- make test-integration
+- Desktop and narrow screenshot review
+counterexamples:
+- Hardcoded model size becomes stale when a checkpoint changes.
+- A model-size lab link masquerades as a working landing-page model selector.

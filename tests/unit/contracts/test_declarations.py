@@ -141,12 +141,28 @@ class DeclarationTests(unittest.TestCase):
         field['minLength'] = -1
         with self.assertRaises(SchemaError): admit(ontology, schema)
 
+    def test_validation_cache_tracks_transitive_references_without_unrelated_schemas(self):
+        from inside_inference.contract_runtime import validate, _referenced_definitions
+        definitions = {'A': {'$ref': '#/$defs/B'}, 'B': {'type': 'integer'},
+                       'Unused': {'type': 'string'}}
+        schema = {'$ref': '#/$defs/A'}
+        self.assertEqual(set(_referenced_definitions(schema, definitions)), {'A', 'B'})
+        validate(schema, 1, definitions)
+        definitions['B']['minimum'] = 2
+        with self.assertRaises(ValueError): validate(schema, 1, definitions)
+        validate(schema, 2, definitions)
+        literal = {'const': {'$ref': '#/$defs/Unused'}}
+        self.assertEqual(_referenced_definitions(literal, definitions), {})
+        validate(literal, literal['const'], definitions)
+
     def test_multiple_declarations_share_one_owner_without_losing_boundaries(self):
         ontology = load_declarations()
         spec = read(ROOT/'data-model/inference.schema.json')
         artifact = ontology['terms']['ModelArtifact']
         self.assertEqual(set(artifact['schemas']), {
-            'ModelArtifact', 'ModelArtifactReference', 'InitializationProvenance', 'TrainingProvenance'})
+            'ModelArtifact', 'ModelArtifactReference', 'InitializationProvenance', 'TrainingProvenance',
+            'ModelAsset', 'ModelStorage', 'ModelDescriptor', 'ModelCatalog', 'ModelSelection', 'ModelLoadResult',
+            'ModelSource', 'ModelSources'})
         self.assertNotIn('TrainingProvenance', ontology['terms'])
         artifact['projections']['Artifact'] = {'meaning':'Full payload and its reference',
             'fields':{'ModelArtifact':['parameters'], 'ModelArtifactReference':['checkpoint_sha256']}}
@@ -169,7 +185,7 @@ class DeclarationTests(unittest.TestCase):
         owners = ontology['terms']
         spec = read(ROOT/'data-model/inference.schema.json')
         expected = {
-            'InferenceRequest': ['InferenceRequest', 'RequestArrival', 'TokenStepRequest'],
+            'InferenceRequest': ['InferenceRequest', 'RequestArrival', 'TokenStepRequest', 'GenerationInput', 'GenerationPrepared', 'GenerationStep'],
             'InferenceSystem': ['InferenceSystem', 'KVResidencySystemConfig', 'SystemConfigurationPreview'],
             'InferenceResponse': ['TokenPublished', 'RequestFinished', 'RunOutcome'],
             'ExecutionCapabilities': ['Capabilities', 'CacheCapabilities'],

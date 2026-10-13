@@ -66,7 +66,14 @@ def main():
                     if not math.isclose(e,a,rel_tol=1e-9,abs_tol=1e-10):
                         raise AssertionError(f'Forward divergence: {example["id"]}: {e}, {a}')
             if select_greedy(expected[-1])['selected_id'] != selected:
-                raise AssertionError('Prepared generation differs from unmasked reference argmax')
+                ordered=sorted(expected[-1],reverse=True)
+                margin=ordered[0]-ordered[1]
+                tolerance=1e-10+1e-9*max(abs(v) for v in expected[-1])
+                disagreement=dict(case_id=example['id'],prefix_ids=prefix,prepared_selected=selected,
+                    reference_selected=select_greedy(expected[-1])['selected_id'],logit_margin=margin,
+                    near_tie=margin<=2*tolerance,numerical_tolerance=tolerance)
+                (output/'selection-disagreement.json').write_bytes(canonical(disagreement))
+                raise AssertionError('Prepared selection differs; near_tie='+str(disagreement['near_tie']))
             prefix.append(selected)
         if example['family'] not in traced_families:
             request = {'text':example['text'],'generation':{'max_new_tokens':budget,

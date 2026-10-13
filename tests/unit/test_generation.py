@@ -40,7 +40,7 @@ class GenerationTests(unittest.TestCase):
     def test_shipped_checkpoint_identity_and_no_fallback(self):
         checkpoint = default_checkpoint()
         self.assertEqual(identity(checkpoint),
-            'e19dea8d9a1e1b4b8c5e975bb615002138bf0990d132364fdda9932a00c0fc18')
+            '5ad1a1c72c25e95a33b6c03864b4d6e5881387328a13b0825547ba6e3b264c81')
         self.assertEqual(checkpoint['provenance']['kind'], 'trained')
         with patch('inside_inference.model.DEFAULT_CHECKPOINT') as path:
             path.read_bytes.side_effect = FileNotFoundError('missing checkpoint')

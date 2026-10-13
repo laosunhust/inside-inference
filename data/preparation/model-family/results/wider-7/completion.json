@@ -1,0 +1,1 @@
+{"best":{"checkpoint_sha256":"55e716175ab175b8ed89b5abf756dd663cd4f6453c6349278cecc5df97357c8b","development_loss":0.12090219367399271,"step":1000},"elapsed_seconds":61.486940537997725,"peak_rss_bytes":363192320,"reason":"max_steps","segment_steps":4000,"status":"finished","step":4000,"test_split_evaluated":false,"token_presentations":2879545}

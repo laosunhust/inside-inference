@@ -1,0 +1,16 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/inspectable-model-family-85.yaml
+evaluation_sha256: d14a30411966a91dbe3b9cbfddeec37ba98c6e24c23380fee7de25e20f572ac7
+outcome: failed
+summary: Completed all nine matched runs and the fresh 85-case evaluation without
+  retuning. Behavioral improvement failed for both width and depth; retain the baseline.
+  Independently, numerical execution, cached/uncached agreement, two-layer browser
+  inspection and both full integration harnesses pass. Inference costs measured; no
+  scaling-law or accelerator-performance claim, no new default promotion. Failed admission
+  and harness attempts remain visible.
+evidence:
+- docs/research/model-family-2026-10-11.md
+- data/preparation/model-family/results/summary.json
+- data/preparation/model-family/results/checks.json
+- data/preparation/model-family/results/costs.json
+- data/preparation/model-family/results/browser-timings.json

@@ -53,9 +53,10 @@ globalThis.Declarations = (() => {
       "layers": {
         "type": "integer",
         "title": "Blocks",
-        "description": "Supported baseline value.",
-        "const": 1,
-        "default": 1
+        "description": "Executed decoder blocks; each owns its weights and KV state.",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 2
       },
       "heads": {
         "type": "integer",
@@ -174,7 +175,10 @@ globalThis.Declarations = (() => {
       },
       "selection": {
         "type": "string",
-        "const": "minimum-development-response-loss"
+        "enum": [
+          "minimum-development-response-loss",
+          "minimum-development-token-loss"
+        ]
       },
       "development_loss": {
         "type": "number",
@@ -242,25 +246,37 @@ globalThis.Declarations = (() => {
       },
       "keys": {
         "type": "array",
-        "maxItems": 128,
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer, prefix position, channel.",
         "items": {
           "type": "array",
-          "minItems": 2,
-          "maxItems": 32,
+          "maxItems": 128,
           "items": {
-            "type": "number"
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 32,
+            "items": {
+              "type": "number"
+            }
           }
         }
       },
       "values": {
         "type": "array",
-        "maxItems": 128,
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer, prefix position, channel.",
         "items": {
           "type": "array",
-          "minItems": 2,
-          "maxItems": 32,
+          "maxItems": 128,
           "items": {
-            "type": "number"
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 32,
+            "items": {
+              "type": "number"
+            }
           }
         }
       }
@@ -273,7 +289,8 @@ globalThis.Declarations = (() => {
         "$ref": "#/$defs/ModelArchitecture"
       },
       "format": {
-        "type": "string"
+        "type": "string",
+        "const": "naive-gpt-checkpoint-v2"
       },
       "manifest_sha256": {
         "type": "string"
@@ -307,51 +324,78 @@ globalThis.Declarations = (() => {
     "properties": {
       "attention_output": {
         "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
           "type": "array",
           "items": {
-            "type": "number"
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
           }
         }
       },
       "attention_output_bias": {
         "type": "array",
-        "items": {
-          "type": "number"
-        }
-      },
-      "ff_down": {
-        "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
           "type": "array",
           "items": {
             "type": "number"
+          }
+        }
+      },
+      "ff_down": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
           }
         }
       },
       "ff_down_bias": {
         "type": "array",
-        "items": {
-          "type": "number"
-        }
-      },
-      "ff_up": {
-        "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
           "type": "array",
           "items": {
             "type": "number"
+          }
+        }
+      },
+      "ff_up": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
           }
         }
       },
       "ff_up_bias": {
         "type": "array",
-        "items": {
-          "type": "number"
-        }
-      },
-      "key": {
-        "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
           "type": "array",
           "items": {
@@ -359,10 +403,31 @@ globalThis.Declarations = (() => {
           }
         }
       },
+      "key": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      },
       "key_bias": {
         "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
-          "type": "number"
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       },
       "lm_bias": {
@@ -382,26 +447,50 @@ globalThis.Declarations = (() => {
       },
       "ln1_bias": {
         "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
-          "type": "number"
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       },
       "ln1_scale": {
         "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
-          "type": "number"
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       },
       "ln2_bias": {
         "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
-          "type": "number"
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       },
       "ln2_scale": {
         "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
-          "type": "number"
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       },
       "ln_final_bias": {
@@ -427,17 +516,29 @@ globalThis.Declarations = (() => {
       },
       "query": {
         "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
           "type": "array",
           "items": {
-            "type": "number"
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
           }
         }
       },
       "query_bias": {
         "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
-          "type": "number"
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       },
       "token_embedding": {
@@ -451,17 +552,29 @@ globalThis.Declarations = (() => {
       },
       "value": {
         "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
           "type": "array",
           "items": {
-            "type": "number"
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
           }
         }
       },
       "value_bias": {
         "type": "array",
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Layer-indexed block tensor.",
         "items": {
-          "type": "number"
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       }
     },
@@ -544,10 +657,11 @@ globalThis.Declarations = (() => {
       "max_new_tokens": {
         "type": "integer",
         "title": "Maximum new tokens",
-        "description": "An upper bound on selected IDs, including TURN_END. Generation may stop earlier.",
+        "description": "Maximum number of selected IDs, including an end token. May stop earlier.",
         "minimum": 1,
         "default": 11,
-        "x-maximum-from": "system.max_new_tokens_cap"
+        "x-maximum-from": "system.max_new_tokens_cap",
+        "maximum": 128
       },
       "selection": {
         "type": "string",
@@ -559,9 +673,12 @@ globalThis.Declarations = (() => {
       "stopping": {
         "type": "string",
         "title": "Stopping rule",
-        "description": "Supported baseline value.",
-        "const": "turn-end-or-budget",
-        "default": "turn-end-or-budget"
+        "description": "Stop at the configured model end token or output budget; context capacity also bounds execution.",
+        "default": "turn-end-or-budget",
+        "enum": [
+          "turn-end-or-budget",
+          "model-end-or-budget"
+        ]
       }
     }
   },
@@ -577,7 +694,7 @@ globalThis.Declarations = (() => {
       "text": {
         "type": "string",
         "title": "Request input",
-        "description": "Exact user text; no normalization or truncation.",
+        "description": "User text; normalization is declared by the selected tokenizer.",
         "default": "ann has the cup. ben has the book. who has the cup?"
       },
       "generation": {
@@ -2690,7 +2807,8 @@ globalThis.Declarations = (() => {
       "run_id",
       "position",
       "observation_id",
-      "surface"
+      "surface",
+      "architecture_step"
     ],
     "properties": {
       "run_id": {
@@ -2728,9 +2846,19 @@ globalThis.Declarations = (() => {
           "system",
           "model",
           "selection",
-          "response"
+          "response",
+          "architecture"
         ],
         "default": "request"
+      },
+      "architecture_step": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "minimum": 0,
+        "description": "Index in the selected architecture walkthrough; never an observation ID.",
+        "default": null
       }
     },
     "allOf": [
@@ -2763,6 +2891,43 @@ globalThis.Declarations = (() => {
         "then": {
           "properties": {
             "observation_id": {
+              "type": "null"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "surface": {
+              "const": "architecture"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "architecture_step"
+          ],
+          "properties": {
+            "architecture_step": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "not": {
+            "properties": {
+              "surface": {
+                "const": "architecture"
+              }
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "architecture_step": {
               "type": "null"
             }
           }
@@ -4452,6 +4617,949 @@ globalThis.Declarations = (() => {
         }
       }
     }
+  },
+  "ModelAsset": {
+    "type": "object",
+    "x-owner": "ModelArtifact",
+    "additionalProperties": false,
+    "required": [
+      "path",
+      "sha256",
+      "bytes"
+    ],
+    "properties": {
+      "path": {
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._/-]*$"
+      },
+      "sha256": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "bytes": {
+        "type": "integer",
+        "minimum": 1
+      }
+    }
+  },
+  "ModelStorage": {
+    "type": "object",
+    "x-owner": "ModelArtifact",
+    "additionalProperties": false,
+    "required": [
+      "base_url"
+    ],
+    "properties": {
+      "base_url": {
+        "type": "string",
+        "description": "Relative URL or HTTP(S) object-storage prefix; identical fetch protocol locally and remotely.",
+        "pattern": "[\\s\\S]+"
+      }
+    }
+  },
+  "LlamaArchitecture": {
+    "type": "object",
+    "x-owner": "ModelArchitecture",
+    "additionalProperties": false,
+    "required": [
+      "vocabulary",
+      "width",
+      "ffn",
+      "context",
+      "layers",
+      "heads",
+      "position",
+      "normalization",
+      "activation",
+      "precision"
+    ],
+    "properties": {
+      "vocabulary": {
+        "type": "integer",
+        "const": 4096
+      },
+      "width": {
+        "type": "integer",
+        "enum": [
+          64,
+          256
+        ]
+      },
+      "ffn": {
+        "type": "integer",
+        "enum": [
+          192,
+          704
+        ]
+      },
+      "context": {
+        "type": "integer",
+        "const": 512
+      },
+      "layers": {
+        "type": "integer",
+        "const": 4
+      },
+      "heads": {
+        "type": "integer",
+        "enum": [
+          2,
+          8
+        ]
+      },
+      "position": {
+        "type": "string",
+        "const": "rope"
+      },
+      "normalization": {
+        "type": "string",
+        "const": "rmsnorm"
+      },
+      "activation": {
+        "type": "string",
+        "const": "silu-gated"
+      },
+      "precision": {
+        "type": "string",
+        "const": "binary32"
+      }
+    }
+  },
+  "ModelDescriptor": {
+    "type": "object",
+    "x-owner": "ModelArtifact",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "label",
+      "role",
+      "parameters",
+      "architecture",
+      "runtime",
+      "weights",
+      "tokenizer",
+      "seed",
+      "inspection",
+      "stop_ids",
+      "normalization",
+      "provenance"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      },
+      "label": {
+        "type": "string",
+        "pattern": "[\\s\\S]+"
+      },
+      "role": {
+        "type": "string",
+        "enum": [
+          "inspection",
+          "comparison",
+          "continuation"
+        ]
+      },
+      "parameters": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "architecture": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/ModelArchitecture"
+          },
+          {
+            "$ref": "#/$defs/LlamaArchitecture"
+          }
+        ]
+      },
+      "runtime": {
+        "type": "string",
+        "enum": [
+          "naive-python",
+          "llama2c-wasm"
+        ]
+      },
+      "weights": {
+        "$ref": "#/$defs/ModelAsset"
+      },
+      "tokenizer": {
+        "$ref": "#/$defs/ModelAsset"
+      },
+      "seed": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "inspection": {
+        "type": "string",
+        "enum": [
+          "tensors",
+          "logits"
+        ]
+      },
+      "stop_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minItems": 1
+      },
+      "normalization": {
+        "type": "string",
+        "enum": [
+          "exact",
+          "sentencepiece-identity-collapse-spaces"
+        ]
+      },
+      "provenance": {
+        "type": "string",
+        "pattern": "[\\s\\S]+"
+      }
+    }
+  },
+  "ModelCatalog": {
+    "type": "object",
+    "x-owner": "ModelArtifact",
+    "additionalProperties": false,
+    "required": [
+      "storage",
+      "models"
+    ],
+    "properties": {
+      "storage": {
+        "$ref": "#/$defs/ModelStorage"
+      },
+      "models": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/ModelDescriptor"
+        },
+        "minItems": 1
+      }
+    }
+  },
+  "ModelSelection": {
+    "type": "object",
+    "x-owner": "ModelArtifact",
+    "additionalProperties": false,
+    "required": [
+      "model_id"
+    ],
+    "properties": {
+      "model_id": {
+        "type": "string",
+        "pattern": "[\\s\\S]+"
+      }
+    }
+  },
+  "ModelLoadResult": {
+    "type": "object",
+    "x-owner": "ModelArtifact",
+    "additionalProperties": false,
+    "required": [
+      "model",
+      "load_ms",
+      "token_pieces",
+      "parameters"
+    ],
+    "properties": {
+      "model": {
+        "$ref": "#/$defs/ModelDescriptor"
+      },
+      "load_ms": {
+        "type": "number",
+        "minimum": 0
+      },
+      "token_pieces": {
+        "type": "array",
+        "minItems": 384,
+        "maxItems": 4096,
+        "items": {
+          "type": "string"
+        }
+      },
+      "parameters": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/ModelWeights"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    }
+  },
+  "GenerationInput": {
+    "type": "object",
+    "x-owner": "InferenceRequest",
+    "additionalProperties": false,
+    "required": [
+      "experiment",
+      "workload"
+    ],
+    "properties": {
+      "experiment": {
+        "$ref": "#/$defs/GenerationExperiment"
+      },
+      "workload": {
+        "$ref": "#/$defs/Workload"
+      }
+    }
+  },
+  "GenerationPrepared": {
+    "type": "object",
+    "x-owner": "InferenceRequest",
+    "additionalProperties": false,
+    "required": [
+      "prompt_ids",
+      "pieces",
+      "input",
+      "encoding"
+    ],
+    "properties": {
+      "prompt_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minItems": 1,
+        "maxItems": 512
+      },
+      "pieces": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1,
+        "maxItems": 512
+      },
+      "input": {
+        "$ref": "#/$defs/GenerationInput"
+      },
+      "encoding": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/Encoding"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    }
+  },
+  "GenerationStep": {
+    "type": "object",
+    "x-owner": "InferenceRequest",
+    "additionalProperties": false,
+    "required": [
+      "experiment",
+      "prefix_ids",
+      "output_ids",
+      "generation"
+    ],
+    "properties": {
+      "experiment": {
+        "$ref": "#/$defs/GenerationExperiment"
+      },
+      "prefix_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minItems": 1,
+        "maxItems": 512
+      },
+      "output_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxItems": 128
+      },
+      "generation": {
+        "$ref": "#/$defs/GenerationPolicy"
+      }
+    }
+  },
+  "GenerationPrediction": {
+    "type": "object",
+    "x-owner": "ExperimentObservation",
+    "additionalProperties": false,
+    "required": [
+      "model_id",
+      "weights_sha256",
+      "tokenizer_sha256",
+      "sequence_ids",
+      "output_ids",
+      "text",
+      "pieces",
+      "logits",
+      "selected_id",
+      "stop_reason",
+      "compute_ms",
+      "nodes",
+      "decoding_note",
+      "request",
+      "id",
+      "contract_sha256",
+      "probabilities"
+    ],
+    "properties": {
+      "model_id": {
+        "type": "string"
+      },
+      "weights_sha256": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "tokenizer_sha256": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "sequence_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minItems": 2,
+        "maxItems": 513
+      },
+      "output_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minItems": 1,
+        "maxItems": 128
+      },
+      "text": {
+        "type": "string"
+      },
+      "pieces": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 2,
+        "maxItems": 513
+      },
+      "logits": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 384,
+        "maxItems": 4096
+      },
+      "selected_id": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "stop_reason": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          null,
+          "end_token",
+          "output_budget",
+          "context_capacity"
+        ]
+      },
+      "compute_ms": {
+        "type": "number",
+        "minimum": 0
+      },
+      "nodes": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/TensorObservation"
+        }
+      },
+      "decoding_note": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "request": {
+        "$ref": "#/$defs/GenerationStep"
+      },
+      "id": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "contract_sha256": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "probabilities": {
+        "type": "array",
+        "items": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minItems": 384,
+        "maxItems": 4096
+      }
+    }
+  },
+  "ModelSource": {
+    "type": "object",
+    "x-owner": "ModelArtifact",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "role",
+      "runtime",
+      "seed",
+      "provenance",
+      "weights",
+      "tokenizer"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      },
+      "role": {
+        "type": "string",
+        "enum": [
+          "inspection",
+          "comparison",
+          "continuation"
+        ]
+      },
+      "runtime": {
+        "type": "string",
+        "enum": [
+          "naive-python",
+          "llama2c-wasm"
+        ]
+      },
+      "seed": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "provenance": {
+        "type": "string",
+        "pattern": "[\\s\\S]+"
+      },
+      "weights": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9.-]*\\.bin$"
+      },
+      "tokenizer": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9.-]*\\.bin$"
+      }
+    }
+  },
+  "ModelSources": {
+    "type": "object",
+    "x-owner": "ModelArtifact",
+    "additionalProperties": false,
+    "required": [
+      "storage",
+      "models"
+    ],
+    "properties": {
+      "storage": {
+        "$ref": "#/$defs/ModelStorage"
+      },
+      "models": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "#/$defs/ModelSource"
+        }
+      }
+    }
+  },
+  "GenerationExperiment": {
+    "type": "object",
+    "x-owner": "ExperimentSpec",
+    "additionalProperties": false,
+    "required": [
+      "model_id",
+      "ontology_binding"
+    ],
+    "properties": {
+      "model_id": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      },
+      "ontology_binding": {
+        "$ref": "#/$defs/OntologyBinding"
+      }
+    }
+  },
+  "GenerationDefaults": {
+    "type": "object",
+    "x-owner": "ExperimentSpec",
+    "additionalProperties": false,
+    "required": [
+      "model_id",
+      "workload"
+    ],
+    "properties": {
+      "model_id": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      },
+      "workload": {
+        "$ref": "#/$defs/Workload"
+      }
+    }
+  },
+  "GenerationEvidence": {
+    "type": "object",
+    "x-owner": "ExperimentExecution",
+    "additionalProperties": false,
+    "required": [
+      "input",
+      "model",
+      "prediction"
+    ],
+    "properties": {
+      "input": {
+        "$ref": "#/$defs/GenerationInput"
+      },
+      "model": {
+        "$ref": "#/$defs/ModelDescriptor"
+      },
+      "prediction": {
+        "$ref": "#/$defs/GenerationPrediction"
+      }
+    }
+  },
+  "ArchitectureWalkthrough": {
+    "type": "object",
+    "x-owner": "ModelArchitecture",
+    "additionalProperties": false,
+    "required": [
+      "runtime",
+      "stages"
+    ],
+    "properties": {
+      "runtime": {
+        "type": "string",
+        "enum": [
+          "naive-python",
+          "llama2c-wasm"
+        ]
+      },
+      "stages": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/ArchitectureStage"
+        }
+      }
+    },
+    "oneOf": [
+      {
+        "const": {
+          "runtime": "naive-python",
+          "stages": [
+            {
+              "owner": "Tokenizer",
+              "label": "Token IDs",
+              "scope": "prefix",
+              "detail": "Token IDs",
+              "inputs": []
+            },
+            {
+              "owner": "Embedding",
+              "label": "Token embedding",
+              "scope": "prefix",
+              "detail": "Token embedding",
+              "inputs": [
+                0
+              ]
+            },
+            {
+              "owner": "PositionEncoding",
+              "label": "Position embedding",
+              "scope": "prefix",
+              "detail": "Position embedding",
+              "inputs": [
+                0
+              ]
+            },
+            {
+              "owner": "Embedding",
+              "label": "+",
+              "scope": "prefix",
+              "detail": "Add embeddings",
+              "inputs": [
+                1,
+                2
+              ]
+            },
+            {
+              "owner": "Normalization",
+              "label": "Normalize",
+              "scope": "layer",
+              "detail": "Layer norm",
+              "inputs": [
+                3
+              ]
+            },
+            {
+              "owner": "Attention",
+              "label": "Attention",
+              "scope": "layer",
+              "detail": "Q/K/V projections \u2192 causal attention \u2192 output projection.",
+              "inputs": [
+                4
+              ]
+            },
+            {
+              "owner": "ResidualAddition",
+              "label": "+",
+              "scope": "layer",
+              "detail": "Residual addition",
+              "inputs": [
+                3,
+                5
+              ]
+            },
+            {
+              "owner": "Normalization",
+              "label": "Normalize",
+              "scope": "layer",
+              "detail": "Layer norm",
+              "inputs": [
+                6
+              ]
+            },
+            {
+              "owner": "FeedForward",
+              "label": "Feed-forward",
+              "scope": "layer",
+              "detail": "GELU feed-forward",
+              "inputs": [
+                7
+              ]
+            },
+            {
+              "owner": "ResidualAddition",
+              "label": "+",
+              "scope": "layer",
+              "detail": "Residual addition",
+              "inputs": [
+                6,
+                8
+              ]
+            },
+            {
+              "owner": "Normalization",
+              "label": "Final norm",
+              "scope": "suffix",
+              "detail": "Final norm",
+              "inputs": [
+                9
+              ]
+            },
+            {
+              "owner": "OutputProjection",
+              "label": "Vocabulary projection",
+              "scope": "suffix",
+              "detail": "Vocabulary projection",
+              "inputs": [
+                10
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "const": {
+          "runtime": "llama2c-wasm",
+          "stages": [
+            {
+              "owner": "Tokenizer",
+              "label": "Token IDs",
+              "scope": "prefix",
+              "detail": "Token IDs",
+              "inputs": []
+            },
+            {
+              "owner": "Embedding",
+              "label": "Token embedding",
+              "scope": "prefix",
+              "detail": "Token embedding",
+              "inputs": [
+                0
+              ]
+            },
+            {
+              "owner": "Normalization",
+              "label": "Normalize",
+              "scope": "layer",
+              "detail": "RMSNorm",
+              "inputs": [
+                1
+              ]
+            },
+            {
+              "owner": "Attention",
+              "label": "Attention",
+              "scope": "layer",
+              "detail": "Q/K/V projections \u2192 RoPE on Q/K \u2192 causal attention \u2192 output projection.",
+              "inputs": [
+                2
+              ]
+            },
+            {
+              "owner": "ResidualAddition",
+              "label": "+",
+              "scope": "layer",
+              "detail": "Residual addition",
+              "inputs": [
+                1,
+                3
+              ]
+            },
+            {
+              "owner": "Normalization",
+              "label": "Normalize",
+              "scope": "layer",
+              "detail": "RMSNorm",
+              "inputs": [
+                4
+              ]
+            },
+            {
+              "owner": "FeedForward",
+              "label": "Feed-forward",
+              "scope": "layer",
+              "detail": "SiLU gated feed-forward",
+              "inputs": [
+                5
+              ]
+            },
+            {
+              "owner": "ResidualAddition",
+              "label": "+",
+              "scope": "layer",
+              "detail": "Residual addition",
+              "inputs": [
+                4,
+                6
+              ]
+            },
+            {
+              "owner": "Normalization",
+              "label": "Final norm",
+              "scope": "suffix",
+              "detail": "Final RMSNorm",
+              "inputs": [
+                7
+              ]
+            },
+            {
+              "owner": "OutputProjection",
+              "label": "Vocabulary projection",
+              "scope": "suffix",
+              "detail": "Vocabulary projection",
+              "inputs": [
+                8
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "ArchitectureStage": {
+    "type": "object",
+    "x-owner": "ModelArchitecture",
+    "additionalProperties": false,
+    "required": [
+      "owner",
+      "label",
+      "scope",
+      "detail",
+      "inputs"
+    ],
+    "properties": {
+      "owner": {
+        "type": "string",
+        "x-ontology-reference": true,
+        "enum": [
+          "ApiError",
+          "Attention",
+          "ComputeService",
+          "CustomerInteraction",
+          "Decoding",
+          "Embedding",
+          "ExecutionBackend",
+          "ExecutionCapabilities",
+          "ExperimentEvent",
+          "ExperimentExecution",
+          "ExperimentObservation",
+          "ExperimentSpec",
+          "FeedForward",
+          "GenerationPolicy",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceSystem",
+          "InspectionState",
+          "KVCache",
+          "KVState",
+          "ModelArchitecture",
+          "ModelArtifact",
+          "ModelExecution",
+          "ModelWeights",
+          "Normalization",
+          "OutputProjection",
+          "PositionEncoding",
+          "RequestScheduling",
+          "ResidualAddition",
+          "ResourceGraph",
+          "StateTransfer",
+          "Tokenizer",
+          "Workload"
+        ]
+      },
+      "label": {
+        "type": "string",
+        "pattern": "[\\s\\S]+"
+      },
+      "scope": {
+        "type": "string",
+        "enum": [
+          "prefix",
+          "layer",
+          "suffix"
+        ]
+      },
+      "detail": {
+        "type": "string",
+        "pattern": "[\\s\\S]+"
+      },
+      "inputs": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "description": "Earlier stage indices in this single-block schematic; residual branches remain explicit."
+      }
+    }
   }
 };
   const meanings = {
@@ -4459,7 +5567,8 @@ globalThis.Declarations = (() => {
     "meaning": "Dimensions and numerical conventions that define the supported GPT computation.",
     "lifetime": "Fixed within an identified model artifact.",
     "owns": [
-      "Dimensions and numerical conventions that define the supported GPT computation."
+      "Dimensions and numerical conventions that define the supported GPT computation.",
+      "Declared explanatory stage templates for supported runtimes; these are not captured observations or timing."
     ],
     "excludes": [
       "request text",
@@ -4469,7 +5578,10 @@ globalThis.Declarations = (() => {
     "capability_reads": [],
     "projections": {},
     "schemas": [
-      "ModelArchitecture"
+      "ModelArchitecture",
+      "LlamaArchitecture",
+      "ArchitectureStage",
+      "ArchitectureWalkthrough"
     ]
   },
   "KVState": {
@@ -4486,7 +5598,7 @@ globalThis.Declarations = (() => {
     "capability_reads": [],
     "projections": {
       "Sequence state": {
-        "meaning": "Actual attention keys and values retained for a token prefix and its positions. This declaration represents KV state, not arbitrary recurrent state; weights and cached final answers are separate.",
+        "meaning": "Actual attention keys and values retained per layer for a token prefix and its positions. This declaration represents KV state, not arbitrary recurrent state; weights and cached final answers are separate.",
         "fields": {
           "KVState": [
             "token_ids",
@@ -4532,14 +5644,22 @@ globalThis.Declarations = (() => {
       "ModelArtifact",
       "ModelArtifactReference",
       "InitializationProvenance",
-      "TrainingProvenance"
+      "TrainingProvenance",
+      "ModelAsset",
+      "ModelStorage",
+      "ModelDescriptor",
+      "ModelCatalog",
+      "ModelSelection",
+      "ModelLoadResult",
+      "ModelSource",
+      "ModelSources"
     ]
   },
   "ModelWeights": {
     "meaning": "Numerical tensors consumed by the model: embeddings, projection weights, biases, and normalization scales.",
     "lifetime": "Immutable within its identified artifact or recorded execution.",
     "owns": [
-      "Numerical tensor values indexed by model operation."
+      "Numerical tensor values indexed by model operation; block tensors have an explicit layer axis."
     ],
     "excludes": [
       "Architecture dimensions and execution conventions",
@@ -4647,7 +5767,10 @@ globalThis.Declarations = (() => {
     "schemas": [
       "InferenceRequest",
       "RequestArrival",
-      "TokenStepRequest"
+      "TokenStepRequest",
+      "GenerationInput",
+      "GenerationPrepared",
+      "GenerationStep"
     ]
   },
   "Workload": {
@@ -4738,6 +5861,8 @@ globalThis.Declarations = (() => {
     "schemas": [
       "RequestBinding",
       "RunBinding",
+      "GenerationExperiment",
+      "GenerationDefaults",
       "PreparedInput",
       "KVExperimentInput",
       "KVRunBinding",
@@ -4760,6 +5885,7 @@ globalThis.Declarations = (() => {
     "capability_reads": [],
     "projections": {},
     "schemas": [
+      "GenerationEvidence",
       "RunRecord",
       "CacheRun",
       "NumericalTrace",
@@ -4828,15 +5954,16 @@ globalThis.Declarations = (() => {
       "TensorObservation",
       "CacheMeasurement",
       "TensorTable",
-      "StoredTensorObservation"
+      "StoredTensorObservation",
+      "GenerationPrediction"
     ]
   },
   "InspectionState": {
-    "meaning": "One selected position in an identified accepted token sequence, with one shared diagram/detail surface and observation selection. Selection and journey replay never execute inference.",
+    "meaning": "One selected position in an identified accepted token sequence, with one shared diagram/detail surface and architecture or observation selection. Selection and journey replay never execute inference.",
     "lifetime": "Changes on inspection; reset when input is applied or output is reset. Execution identity is null until a computation exists.",
     "owns": [
       "Sequence position shared by token highlighting, derived recorded computation and the next submitted raw prefix.",
-      "Shared diagram/detail focus and recorded-journey replay selection.",
+      "Shared diagram/detail focus and journey selection, distinguishing declared architecture from captured observations.",
       "Executed observation selection; inspecting an operand never changes the generation prefix."
     ],
     "excludes": [
@@ -5362,8 +6489,8 @@ globalThis.Declarations = (() => {
   }
 };
   const operationOwners = {"token_embedding": "Embedding", "embedding": "Embedding", "position_embedding": "PositionEncoding", "ln1_mean": "Normalization", "ln1_variance": "Normalization", "ln1": "Normalization", "ln2_mean": "Normalization", "ln2_variance": "Normalization", "ln2": "Normalization", "ln_final_mean": "Normalization", "ln_final_variance": "Normalization", "ln_final": "Normalization", "query": "Attention", "key": "Attention", "value": "Attention", "scores": "Attention", "causal_mask": "Attention", "attention": "Attention", "weighted_values": "Attention", "attention_output": "Attention", "attention_residual": "ResidualAddition", "ff_residual": "ResidualAddition", "ff_up": "FeedForward", "gelu": "FeedForward", "ff_down": "FeedForward", "logits": "OutputProjection", "input_ids": "Tokenizer", "retained_keys": "KVState", "retained_values": "KVState"};
-  const labs = [{"id": "naive-gpt", "name": "Na\u00efve GPT computation", "status": "mechanical-demo", "ontology_binding": {"primary": "ModelExecution", "related": ["Tokenizer", "Embedding", "PositionEncoding", "Normalization", "Attention", "ResidualAddition", "FeedForward", "OutputProjection", "Decoding"]}}, {"id": "kimi-delta-attention", "name": "Kimi Delta Attention (KDA)", "status": "mechanical-demo", "ontology_binding": {"primary": "Attention", "related": []}}, {"id": "prefix-cache", "name": "Exact prefix caching", "status": "mechanical-demo", "ontology_binding": {"primary": "KVCache", "related": ["KVState", "RequestScheduling", "StateTransfer", "ComputeService"]}}, {"id": "prefill-decode", "name": "Prefill/decode KV handoff", "status": "planned", "ontology_binding": {"primary": "StateTransfer", "related": ["KVState", "ModelExecution"]}}, {"id": "speculative-decoding", "name": "Speculative decoding", "status": "planned", "ontology_binding": {"primary": "Decoding", "related": ["ModelExecution", "KVState"]}}, {"id": "positional-encoding", "name": "Positional encoding", "status": "planned", "ontology_binding": {"primary": "PositionEncoding", "related": ["Embedding", "Attention"]}}];
-  const hash = "61690aa2142cf6be0fe3c32da1de12a61499935bc18a4c809489e34a2a2474f4";
+  const labs = [{"id": "naive-gpt", "name": "Model execution", "status": "mechanical-demo", "ontology_binding": {"primary": "ModelExecution", "related": ["Tokenizer", "Embedding", "PositionEncoding", "Normalization", "Attention", "ResidualAddition", "FeedForward", "OutputProjection", "Decoding", "ModelArchitecture", "ModelArtifact"]}}, {"id": "kimi-delta-attention", "name": "Kimi Delta Attention (KDA)", "status": "mechanical-demo", "ontology_binding": {"primary": "Attention", "related": []}}, {"id": "prefix-cache", "name": "Exact prefix caching", "status": "mechanical-demo", "ontology_binding": {"primary": "KVCache", "related": ["KVState", "RequestScheduling", "StateTransfer", "ComputeService"]}}, {"id": "prefill-decode", "name": "Prefill/decode KV handoff", "status": "planned", "ontology_binding": {"primary": "StateTransfer", "related": ["KVState", "ModelExecution"]}}, {"id": "speculative-decoding", "name": "Speculative decoding", "status": "planned", "ontology_binding": {"primary": "Decoding", "related": ["ModelExecution", "KVState"]}}, {"id": "positional-encoding", "name": "Positional encoding", "status": "planned", "ontology_binding": {"primary": "PositionEncoding", "related": ["Embedding", "Attention"]}}];
+  const hash = "cf3bf8efdc3d230081dfab038aa744c90f2ffa59d5100a3de1f7ecd3d11829ef";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

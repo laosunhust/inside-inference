@@ -61,19 +61,19 @@ function inspect(){
  $('cache-causes').replaceChildren();if(event.causes.length)$('cache-causes').append(make('small','Enabled by: '));for(const id of event.causes){const i=run.events.findIndex(e=>e.event_id===id),cause=run.events[i],button=make('button',cause.request_id+' '+cause.kind);button.onclick=()=>{cursor=i;inspect();};$('cache-causes').append(button);}
  $('cache-state').replaceChildren();const state=event.state_id&&run.states[event.state_id];
  $('cache-state-caption').textContent=(event.phase||event.transfer_direction||event.detail)+(state?` · ${state.token_ids.length} cached positions · ${state.precision} K/V state`:' · No state snapshot attached to this event.');
- if(state){const labels=state.token_ids.map((id,i)=>`${i}: #${id} ${tokens[id]}`);$('cache-state').append(make('h3','Keys'),matrix(state.keys,labels),make('h3','Values'),matrix(state.values,labels));$('cache-raw').textContent=JSON.stringify(state,null,2);}
+ if(state){const labels=state.token_ids.map((id,i)=>`${i}: #${id} ${tokens[id]}`);state.keys.forEach((keys,layer)=>$('cache-state').append(make('h3',`Layer ${layer+1} · Keys`),matrix(keys,labels),make('h3',`Layer ${layer+1} · Values`),matrix(state.values[layer],labels)));$('cache-raw').textContent=JSON.stringify(state,null,2);}
  const work=run.computations.findIndex(c=>c.request_id===event.request_id&&event.state_id&&JSON.stringify(c.state_after)===JSON.stringify(state));
  if(work>=0){$('cache-work-choice').value=work;tensorChoices();}
 }
 function tensorChoices(){
  const work=run.computations[Number($('cache-work-choice').value)];if(!work)return;
  const prior=$('cache-tensor-choice').value;$('cache-tensor-choice').replaceChildren();
- for(const n of work.nodes){const o=make('option',n.operation.name);o.value=n.operation.name;$('cache-tensor-choice').append(o);}
- $('cache-tensor-choice').value=work.nodes.some(n=>n.operation.name===prior)?prior:'attention';tensor();
+ for(const n of work.nodes){const o=make('option',`${n.layer===null?'':`L${n.layer+1} · `}${n.operation.name}`);o.value=n.id;$('cache-tensor-choice').append(o);}
+ $('cache-tensor-choice').value=work.nodes.some(n=>n.id===prior)?prior:work.nodes.find(n=>n.operation.name==='attention').id;tensor();
 }
 function tensor(){
  const work=run.computations[Number($('cache-work-choice').value)];if(!work)return;
- const node=work.nodes.find(n=>n.operation.name===$('cache-tensor-choice').value);if(!node)return;
+ const node=work.nodes.find(n=>n.id===$('cache-tensor-choice').value);if(!node)return;
  const owner=Declarations.operationOwners[node.operation.name], definition=Declarations.meanings[owner];
  if(!definition)throw new Error('Unknown operation owner: '+node.operation.name);
  const link=make('a','Ontology: '+owner+' ↗');link.href='ontology.html#'+owner;link.title=definition.meaning;

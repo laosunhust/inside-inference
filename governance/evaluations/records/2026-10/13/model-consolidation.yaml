@@ -1,0 +1,50 @@
+version: 1
+work_item: model-consolidation
+question: Can one main experiment page execute and inspect all declared model roles without a separate
+  model-size lab or competing request state?
+necessity: Model selection is an experiment variable, not a quality lab; model requirements must remain
+  observable before resource experiments.
+baseline: A checkpoint-bound landing request path and separate story-model page with different operations
+  and state.
+reuse:
+- source: Existing verified model catalog, asset reader, upstream WASM runtime, scalar model, execution-path
+    rendering and browser harness
+  decision: Consolidate around generic declared generation operations, preserving actual computations
+    and deleting the separate model-size UI and catalog entry.
+criteria:
+- 'Owner-settled requirements: default to the 4M story model and a story opening, with empty output. Change
+  Model sits immediately left of Edit; choosing starts loading, preserves input and settings, clears output/inspection,
+  and reports incompatibilities.'
+- Only the 8K model enables visuals. Other models offer an explicit switch to 8K for inspection; this
+  is a model change and clears output. Three size tiers may later have architecture variants; TP/PP are
+  execution configurations, not model identities.
+- Main system configuration selects all three existing model artifacts; summary derives compact parameter
+  and layer counts from the selected descriptor.
+- One experiment configuration owns model selection and ontology binding; request preparation uses the
+  declared workload, rejecting unsupported concurrency and arrivals explicitly.
+- One generic generation interface governs tokenizer, prefix branching, generation policy and observations
+  for every model. Model change resets incompatible tokens, output, replay, details and exports; stale
+  asynchronous responses cannot repopulate them.
+- Tiny-model real tensor inspection and token journey remain available. Larger models show their actual
+  logits and explicit inspection limits, never fabricated small-model internals.
+- Input editing, output reset, next-token generation, selected-prefix branching and evidence export remain
+  usable on the main page. Initial output is empty and inference runs only on user request.
+- Delete the model-size page, page controller and lab catalog entry. Keep trained artifacts and historical
+  evaluation evidence. Old URLs must not survive as stale generated files.
+- Preserve verified local/cross-origin lazy asset loading and failures. Same built browser product locally
+  and remotely, no native fallback.
+- Preserve numerical comparison, headless/UI equivalence, stop and context admission, reset/loading races,
+  configuration-preview blocking and actual browser coverage at appropriate layers. Unit 10s and integration
+  100s budgets remain.
+- Review desktop and narrow layouts with tiny and larger models. Do not claim simulated placement, memory
+  budgets or parallelism; those are subsequent experiments.
+checks:
+- make test
+- make test-integration
+- Generated-interface and ontology ownership checks
+- Rendered desktop and narrow browser evidence
+counterexamples:
+- A selector changes metadata but execution or diagram still uses the prior model.
+- A model switch silently replaces the user's input or repairs an invalid request.
+- Larger models display a tiny model's tensors, or file size is labeled as simulated HBM residency.
+- Deleting the separate page discards irreplaceable training evidence or useful inspection controls.

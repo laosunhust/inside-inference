@@ -22,7 +22,7 @@ class PreparationTests(unittest.TestCase):
         torch.set_num_threads(1)
         torch.use_deterministic_algorithms(True)
         cls.tokenizer = Tokenizer()
-        cls.checkpoint = initialize(ModelArchitecture(), cls.tokenizer.manifest_sha256)
+        cls.checkpoint = initialize(ModelArchitecture(layers=2), cls.tokenizer.manifest_sha256)
         cls.pad = cls.tokenizer.token_id('control', 'PAD')
         cls.examples = prepare_examples()
 
@@ -90,7 +90,11 @@ class PreparationTests(unittest.TestCase):
         for name, parameter in model.weights.items():
             # Largest derivative avoids accepting only structurally zero coordinates.
             flat_index = int(parameter.grad.abs().reshape(-1).argmax())
-            indices = [flat_index] if parameter.ndim == 1 else [flat_index//parameter.shape[1], flat_index%parameter.shape[1]]
+            indices = []
+            remainder = flat_index
+            for size in reversed(parameter.shape):
+                indices.insert(0, remainder % size)
+                remainder //= size
             values = []
             for delta in (-1e-5, 1e-5):
                 checkpoint = deepcopy(self.checkpoint)

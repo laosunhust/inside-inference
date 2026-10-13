@@ -1,0 +1,60 @@
+version: 1
+work_item: inspectable-model-family
+question: Can a verified 1x8, 1x16, 2x8 model family support inference inspection, and does depth or width
+  improve binding accuracy?
+necessity: Reusable numerical fixtures for inference/cache experiments, understandable browser outputs, and
+  bounded personal curiosity; not a scaling-law claim.
+baseline: Shipped one-layer width-8 multiword checkpoint; matched fresh baseline training at seeds 7,17,27.
+reuse:
+- source: Existing model, tensor trainer, corpus scenarios, export verifier, browser worker and KV lab; Elhage
+    2021 and Olsson 2022 transformer-circuits papers
+  decision: Extend shared declarations and numerical paths to two layers; reuse trainer and scorers. Attention-only
+    circuit findings motivate but do not prove our MLP model hypothesis.
+criteria:
+- Hard window 2026-10-11T20:49:36Z through 2026-10-11T22:49:36Z. Reproduce ann/ben browser failure first; resolve
+  discrepancies before interpreting capacity. No automatic commit or default model promotion.
+- Execution, behavior and inference cost are independent outcomes. Quality failure does not invalidate a numerically
+  correct inspection fixture; incomplete checks are never execution success.
+- Freeze three variants 1 layer width8 FFN16, 1 layer width16 FFN32, 2 layers width8 FFN16; seeds7,17,27. One
+  head per layer,384 IDs,context128,binary64 and learned absolute positions unchanged.
+- Preserve shipped numerical weights/behavior during representation refactor. Declare layer-owned weights/KV
+  and unique per-layer observations; inspect both layers in browser. No training-only architecture or native
+  website execution.
+- 4000 updates,batch16,one CPU thread,existing multiword optimizer/target/loss settings. Independent sampler
+  RNG matches training exposures across architectures per seed. Select earliest minimum development response
+  loss at 200-update intervals. No tuning after results.
+- Before runs freeze 100 fresh cases,25 per family,5 per answer label, deterministic capacity-spike-v1 unused-scenario
+  ranking and alternating existing renderings. Exclude original train/dev/test semantic groups and duplicate
+  prompts plus known probes. Do not score original test split. Freeze targets and within-family cyclic rotation
+  mapping.
+- 'Admission by feasibility/throughput before quality: first25 minutes reproduction and depth audit; max100
+  disposable benchmark updates per variant,50% timing contingency. All9 runs required for comparative conclusion;
+  if infeasible report partial checkpoint without lowering criteria.'
+- 'Quality pass per changed architecture: mean correct-readable accuracy on50 ownership/location cases improves
+  >=10 percentage points vs matched baseline; >=2 seeds improve; neither target family mean regresses; negation/correction
+  means drop <=5 points; every seed >=90/100 readable and full-context accuracy >=20 points above each question-only/rotated
+  control. Utility screens,not significance claims.'
+- 'Prediction: deeper passes quality gates and wider does not; record all contrary outcomes. Choose fewest-parameter
+  passing architecture, tie fewer layers, always seed7 preview. No best-test-seed selection.'
+- Export/reference logits all development continuations agree atol1e-10 rtol1e-9 and argmax; report near ties
+  on disagreements. Cached/uncached per-position logits and choices agree on frozen diagnostic prompts across
+  variants. Browser headless/interactive replay and both-layer inspection pass.
+- Report exact parameter/KV payload bytes, artifact size and same-prefix browser costs:1 warmup,10 measured
+  steps,median/range,startup separately. No hardware extrapolation claims. Existing unit10s/integration100s
+  budgets unchanged.
+- Preserve run source/config/checkpoint/selection/per-case evidence and all failures. Retain required artifacts
+  durably before disposal. Complete result report and delete closed proposal; missing matrix/checks remain
+  incomplete.
+checks:
+- make _governance-check
+- Focused preparation and independent multilayer arithmetic/cache checks
+- make test
+- make test-integration
+- Browser symptom reproduction, per-layer inspection and fixed-prefix timing
+- Nine-run training, frozen fresh-set/control evaluation and export verification
+counterexamples:
+- Wider or deeper remains wrong despite correct arithmetic.
+- Higher accuracy comes from name/position shortcuts or evaluation leakage.
+- Second layer trains but browser selection/KV identity still addresses layer0.
+- A near-tied argmax differs despite small logit error.
+- 'Time runs out: do not call partial evidence a successful matrix.'

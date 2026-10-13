@@ -30,7 +30,12 @@ change the uncached adapter's execution-order-only clock.
 
 ## Submitted input, resolved specification, and provenance
 
-The reference endpoint accepts a `Workload`; the KV endpoint accepts
+The main page accepts `GenerationInput`: a `GenerationExperiment` selecting the
+model and ontology binding, plus the request `Workload`. Its browser preparation
+rejects unsupported concurrency and arrivals; token stepping returns
+`GenerationPrediction`. [Delivery](delivery.md) owns this selected-model interface.
+
+The retained preparation/reference endpoint accepts a `Workload`; the KV endpoint accepts
 `KVExperimentInput` containing a system configuration, workload, and ontology binding. The host selects
 the model artifact. These submissions are not complete identities of the computation.
 Both execution paths record a resolved `declaration` with `model`, `system`,
@@ -71,7 +76,7 @@ The implemented path records request arrival, input encoding, model forward
 completion, token selection, output publication, and request completion. The greedy
 baseline accepts each selection immediately; it has no separate commitment event.
 The `token-published` event means publication to the in-process output collector,
-not receipt across a network. HTTP returns an execution receipt;
+not receipt across a network. The retained reference operation returns an execution receipt;
 [artifact delivery](delivery.md) supplies the completed evidence separately. Token
 streaming and client acknowledgments are not implemented. A
 control token can stop generation without being delivered as text. Client output

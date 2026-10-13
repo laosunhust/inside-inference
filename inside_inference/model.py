@@ -1,4 +1,4 @@
-"""One explicit, uncached decoder block. Observations capture executed values."""
+"""Explicit decoder blocks with layer-owned parameters and KV state. Observations capture executed values."""
 from inside_inference.declarations_generated import operation_for
 from dataclasses import asdict
 from inside_inference.declarations_generated import ModelArchitecture, InitializationProvenance, TrainingProvenance, KVState
@@ -29,6 +29,10 @@ def default_checkpoint():
     return checkpoint
 
 
+SHARED_PARAMETERS = frozenset(('token_embedding', 'position_embedding', 'lm_head',
+                               'lm_bias', 'ln_final_scale', 'ln_final_bias'))
+
+
 def parameter_shapes(c):
     d, f = c.width, c.ffn
     shapes = {'token_embedding': [c.vocabulary, d], 'position_embedding': [c.context, d],
@@ -40,7 +44,8 @@ def parameter_shapes(c):
     for name in ('ln1', 'ln2', 'ln_final'):
         shapes[name + '_scale'] = [d]
         shapes[name + '_bias'] = [d]
-    return shapes
+    return {name: ([c.layers] + dims if name not in SHARED_PARAMETERS else dims)
+            for name, dims in shapes.items()}
 
 
 def shape(value):
@@ -68,7 +73,7 @@ def initialize(config, manifest_sha256, seed=7):
         if name.endswith('_bias'):
             return 0.0
         return rng.uniform(-0.2, 0.2)
-    return {'format': 'naive-gpt-checkpoint-v1', 'config': asdict(config),
+    return {'format': 'naive-gpt-checkpoint-v2', 'config': asdict(config),
             'manifest_sha256': manifest_sha256,
             'provenance': {'kind': 'untrained', 'seed': seed, 'initializer': 'python-random-uniform-v1'},
             'parameters': {k: make(k, dims) for k, dims in parameter_shapes(config).items()}}
@@ -96,7 +101,7 @@ class Model:
         self.checkpoint = json.loads(canonical(checkpoint))
         if set(checkpoint) != {'format', 'config', 'manifest_sha256', 'provenance', 'parameters'}:
             raise ValueError('Invalid checkpoint fields')
-        if checkpoint['format'] != 'naive-gpt-checkpoint-v1':
+        if checkpoint['format'] != 'naive-gpt-checkpoint-v2':
             raise ValueError('Unsupported checkpoint format')
         provenance = checkpoint['provenance']
         if not isinstance(provenance, dict) or provenance.get('kind') not in ('untrained', 'trained'):
@@ -104,7 +109,7 @@ class Model:
         provenance_type = InitializationProvenance if provenance['kind'] == 'untrained' else TrainingProvenance
         provenance_type.from_dict(provenance)
         self.config = ModelArchitecture.from_dict(checkpoint['config'])
-        implemented = {'layers':1, 'heads':1, 'position':'learned-absolute',
+        implemented = {'heads':1, 'position':'learned-absolute',
                        'normalization':'pre-layernorm', 'activation':'gelu-tanh', 'precision':'binary64'}
         if any(getattr(self.config,k) != value for k,value in implemented.items()):
             raise ValueError('Declared architecture has no execution implementation')
@@ -122,14 +127,16 @@ class Model:
         """Execute only new positions against an immutable, identified K/V prefix."""
         if state is None:
             state = KVState(checkpoint_sha256=self.sha256,
-                tokenizer_sha256=self.checkpoint['manifest_sha256'], token_ids=(), keys=(), values=())
+                tokenizer_sha256=self.checkpoint['manifest_sha256'], token_ids=(),
+                keys=tuple(() for _ in range(self.config.layers)),
+                values=tuple(() for _ in range(self.config.layers)))
         elif not isinstance(state, KVState):
             state = KVState.from_dict(state)
         state.validate_bound(state.to_dict())
         if (state.checkpoint_sha256 != self.sha256
                 or state.tokenizer_sha256 != self.checkpoint['manifest_sha256']):
             raise ValueError('KV state computation identity differs')
-        if any(not validate_array(rows, [len(state.token_ids), self.config.width])
+        if any(not validate_array(rows, [self.config.layers, len(state.token_ids), self.config.width])
                for rows in (state.to_dict()['keys'], state.to_dict()['values'])):
             raise ValueError('KV state shape or finiteness differs')
         return self._forward(ids, state=state, capture=capture, request_id=request_id, run_id=run_id, step=step, work_id=work_id)
@@ -141,19 +148,23 @@ class Model:
         total = offset + len(ids)
         if not ids or total > c.context or any(type(i) is not int or not 0 <= i < c.vocabulary for i in ids):
             raise ValueError('Forward requires 1..context valid token IDs')
-        nodes = []
+        nodes, observed = [], {}
+        current_layer = None
         prefix = (work_id or f'{run_id}/step-{step}') + '/'
-        def observe(name, value, inputs, formula, layer=0, axes=None, positions=None):
+        def observe(name, value, inputs, formula, layer='current', axes=None, positions=None):
             operation=operation_for(name)
+            layer = current_layer if layer == 'current' else layer
+            node_id = prefix + (f'layer-{layer}/' if layer is not None else '') + name
             if capture:
-                nodes.append(dict(id=prefix + name, operation=operation, layer=layer,
+                nodes.append(dict(id=node_id, operation=operation, layer=layer,
                     request_id=request_id, run_id=run_id, step=step,
                     positions=list(range(offset, total)) if positions is None else positions, shape=shape(value),
                     dtype='bool' if name == 'causal_mask' else 'int' if name == 'input_ids' else 'binary64',
-                    inputs=[i if i.startswith(('parameter:', 'state:')) else prefix + i for i in inputs],
+                    inputs=[i if i.startswith(('parameter:', 'state:')) else observed[i] for i in inputs],
                     formula=formula, axes=axes or ['position', 'channel'], values=value))
+            observed[name] = node_id
             return value
-        def dense(name, x, source, weight, layer=0):
+        def dense(name, x, source, weight, layer='current'):
             return observe(name, linear(x, p[weight], p[weight + '_bias']),
                 [source, 'parameter:' + weight, 'parameter:' + weight + '_bias'],
                 'X @ W + bias', layer=layer)
@@ -161,7 +172,7 @@ class Model:
             means = [[sum(row) / c.width] for row in x]
             variances = [[sum((a - mean[0]) ** 2 for a in row) / c.width]
                          for row, mean in zip(x, means)]
-            layer = None if name == 'ln_final' else 0
+            layer = None if name == 'ln_final' else current_layer
             observe(name + '_mean', means, [source], 'mean(X, channels)', layer=layer)
             observe(name + '_variance', variances, [source, name + '_mean'], 'mean((X - mean)^2, channels)', layer=layer)
             normalized = [[(a - mean[0]) / math.sqrt(var[0] + c.epsilon) * scale + bias
@@ -177,42 +188,52 @@ class Model:
                            ['parameter:position_embedding'], 'P[absolute_position]', layer=None)
         x = observe('embedding', add(token, position), ['token_embedding', 'position_embedding'],
                     'token embedding + position embedding', layer=None)
-        normalized = norm('ln1', x, 'embedding')
-        q, k, v = [dense(name, normalized, 'ln1', name) for name in ('query', 'key', 'value')]
-        key_source, value_source = 'key', 'value'
-        if state is not None:
-            source = 'state:' + identity(state.to_dict())
-            k = observe('retained_keys', [list(row) for row in state.keys] + k,
-                [source, 'key'], 'concatenate(cached K, new K)',
-                positions=list(range(total)))
-            v = observe('retained_values', [list(row) for row in state.values] + v,
-                [source, 'value'], 'concatenate(cached V, new V)',
-                positions=list(range(total)))
-            key_source, value_source = 'retained_keys', 'retained_values'
-        scores = observe('scores', [[sum(a * b for a, b in zip(qr, kr)) / math.sqrt(c.width)
-                         for kr in k] for qr in q], ['query', key_source], 'Q @ K^T / sqrt(width)',
-                         axes=['query position', 'key position'])
-        mask = observe('causal_mask', [[j <= i for j in range(total)] for i in range(offset, total)],
-                       ['input_ids'], 'key_position <= query_position', axes=['query position', 'key position'])
-        probabilities = []
-        for row, allowed in zip(scores, mask):
-            visible = softmax([s for s, ok in zip(row, allowed) if ok])
-            probabilities.append(visible + [0.0] * (total - len(visible)))
-        probabilities = observe('attention', probabilities, ['scores', 'causal_mask'],
-                                'softmax(scores where allowed; -infinity elsewhere)',
-                                axes=['query position', 'key position'])
-        weighted = observe('weighted_values', [[sum(probabilities[i][j] * v[j][a] for j in range(total))
-                            for a in range(c.width)] for i in range(len(ids))],
-                            ['attention', value_source], 'attention @ V')
-        projected = dense('attention_output', weighted, 'weighted_values', 'attention_output')
-        residual = observe('attention_residual', add(x, projected), ['embedding', 'attention_output'], 'X + attention output')
-        hidden = norm('ln2', residual, 'attention_residual')
-        up = dense('ff_up', hidden, 'ln2', 'ff_up')
-        activated = observe('gelu', [[0.5 * a * (1 + math.tanh(math.sqrt(2 / math.pi) * (a + 0.044715 * a**3)))
-                                    for a in row] for row in up], ['ff_up'],
-                            '0.5*x*(1+tanh(sqrt(2/pi)*(x+0.044715*x^3)))')
-        down = dense('ff_down', activated, 'gelu', 'ff_down')
-        residual = observe('ff_residual', add(residual, down), ['attention_residual', 'ff_down'], 'residual + feed-forward output')
+        all_keys, all_values = [], []
+        source = 'embedding'
+        for current_layer in range(c.layers):
+            p = {name: value if name in SHARED_PARAMETERS else value[current_layer]
+                 for name, value in self.parameters.items()}
+            normalized = norm('ln1', x, source)
+            q, k, v = [dense(name, normalized, 'ln1', name) for name in ('query', 'key', 'value')]
+            key_source, value_source = 'key', 'value'
+            if state is not None:
+                state_source = 'state:' + identity(state.to_dict())
+                k = observe('retained_keys', [list(row) for row in state.keys[current_layer]] + k,
+                    [state_source, 'key'], 'concatenate(cached K, new K)',
+                    positions=list(range(total)))
+                v = observe('retained_values', [list(row) for row in state.values[current_layer]] + v,
+                    [state_source, 'value'], 'concatenate(cached V, new V)',
+                    positions=list(range(total)))
+                key_source, value_source = 'retained_keys', 'retained_values'
+            scores = observe('scores', [[sum(a * b for a, b in zip(qr, kr)) / math.sqrt(c.width)
+                             for kr in k] for qr in q], ['query', key_source], 'Q @ K^T / sqrt(width)',
+                             axes=['query position', 'key position'])
+            mask = observe('causal_mask', [[j <= i for j in range(total)] for i in range(offset, total)],
+                           ['input_ids'], 'key_position <= query_position', axes=['query position', 'key position'])
+            probabilities = []
+            for row, allowed in zip(scores, mask):
+                visible = softmax([s for s, ok in zip(row, allowed) if ok])
+                probabilities.append(visible + [0.0] * (total - len(visible)))
+            probabilities = observe('attention', probabilities, ['scores', 'causal_mask'],
+                                    'softmax(scores where allowed; -infinity elsewhere)',
+                                    axes=['query position', 'key position'])
+            weighted = observe('weighted_values', [[sum(probabilities[i][j] * v[j][a] for j in range(total))
+                                for a in range(c.width)] for i in range(len(ids))],
+                                ['attention', value_source], 'attention @ V')
+            projected = dense('attention_output', weighted, 'weighted_values', 'attention_output')
+            residual = observe('attention_residual', add(x, projected), [source, 'attention_output'], 'X + attention output')
+            hidden = norm('ln2', residual, 'attention_residual')
+            up = dense('ff_up', hidden, 'ln2', 'ff_up')
+            activated = observe('gelu', [[0.5 * a * (1 + math.tanh(math.sqrt(2 / math.pi) * (a + 0.044715 * a**3)))
+                                        for a in row] for row in up], ['ff_up'],
+                                '0.5*x*(1+tanh(sqrt(2/pi)*(x+0.044715*x^3)))')
+            down = dense('ff_down', activated, 'gelu', 'ff_down')
+            residual = observe('ff_residual', add(residual, down), ['attention_residual', 'ff_down'], 'residual + feed-forward output')
+            all_keys.append(tuple(tuple(row) for row in k))
+            all_values.append(tuple(tuple(row) for row in v))
+            x, source = residual, 'ff_residual'
+        p = self.parameters
+        current_layer = None
         final = norm('ln_final', residual, 'ff_residual')
         logits = observe('logits', linear(final, p['lm_head'], p['lm_bias']),
                          ['ln_final', 'parameter:lm_head', 'parameter:lm_bias'],
@@ -225,5 +246,5 @@ class Model:
             result['state'] = KVState(checkpoint_sha256=self.sha256,
                 tokenizer_sha256=self.checkpoint['manifest_sha256'],
                 token_ids=tuple(state.token_ids) + tuple(ids),
-                keys=tuple(tuple(row) for row in k), values=tuple(tuple(row) for row in v))
+                keys=tuple(all_keys), values=tuple(all_values))
         return result

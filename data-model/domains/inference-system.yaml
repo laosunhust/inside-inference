@@ -43,11 +43,11 @@ $defs:
       max_new_tokens:
         type: integer
         title: Maximum new tokens
-        description: An upper bound on selected IDs, including TURN_END. Generation
-          may stop earlier.
+        description: Maximum number of selected IDs, including an end token. May stop earlier.
         minimum: 1
         default: 11
         x-maximum-from: system.max_new_tokens_cap
+        maximum: 128
       selection:
         type: string
         title: Selection rule
@@ -57,9 +57,12 @@ $defs:
       stopping:
         type: string
         title: Stopping rule
-        description: Supported baseline value.
-        const: turn-end-or-budget
+        description: Stop at the configured model end token or output budget; context capacity also bounds
+          execution.
         default: turn-end-or-budget
+        enum:
+        - turn-end-or-budget
+        - model-end-or-budget
   InferenceRequest:
     type: object
     x-owner: InferenceRequest
@@ -71,7 +74,7 @@ $defs:
       text:
         type: string
         title: Request input
-        description: Exact user text; no normalization or truncation.
+        description: User text; normalization is declared by the selected tokenizer.
         default: ann has the cup. ben has the book. who has the cup?
       generation:
         $ref: '#/$defs/GenerationPolicy'
@@ -190,8 +193,8 @@ $defs:
       display_delta:
         type: string
         title: Diagnostic text published to the output collector
-        description: Diagnostic token display; raw IDs are authoritative. Control,
-          byte, and hex IDs appear as labeled markers.
+        description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
+          as labeled markers.
   RequestFinished:
     type: object
     x-owner: InferenceResponse
@@ -227,8 +230,7 @@ $defs:
       published_tokens:
         type: integer
         title: Published IDs
-        description: Every selected ID except TURN_END, including diagnostic control/byte/hex
-          tokens.
+        description: Every selected ID except TURN_END, including diagnostic control/byte/hex tokens.
         minimum: 0
       unused_budget:
         type: integer
@@ -265,8 +267,7 @@ $defs:
     type: object
     x-owner: InferenceSystem
     title: Inference system
-    description: Expandable mechanism configuration preview; independent of the executed
-      system binding.
+    description: Expandable mechanism configuration preview; independent of the executed system binding.
     additionalProperties: false
     required:
     - attention
@@ -277,9 +278,8 @@ $defs:
     type: object
     x-owner: Workload
     title: Input transformations
-    description: Rules over the data-plane source input. Nonzero choices preview an
-      intended workload transformation; the baseline does not generate variants, random
-      messages, or timed arrivals.
+    description: Rules over the data-plane source input. Nonzero choices preview an intended workload
+      transformation; the baseline does not generate variants, random messages, or timed arrivals.
     additionalProperties: false
     required:
     - suffix_variants
@@ -335,5 +335,5 @@ $defs:
         $ref: '#/$defs/GenerationPolicy'
       ontology_binding:
         $ref: '#/$defs/OntologyBinding'
-    description: 'One next-token invocation: exact raw prefix and supplied continuation,
-      without chat framing. Generation budget counts the continuation, not the prefix.'
+    description: 'One next-token invocation: exact raw prefix and supplied continuation, without chat
+      framing. Generation budget counts the continuation, not the prefix.'
