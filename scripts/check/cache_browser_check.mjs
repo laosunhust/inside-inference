@@ -6,8 +6,64 @@ export async function checkCache({send,evaluate,until,click,base,output}) {
  await send('Page.navigate',{url:base+'/index.html'});
  await until(`document.getElementById('model-choice')?.disabled===false`,300);
  await evaluate(`document.getElementById('model-choice').value='tinyllm-8k';document.getElementById('model-choice').dispatchEvent(new Event('change'))`);
- await until(`document.getElementById('binding-status').dataset.phase==='ready'`,300);
- await click('open-system');await click('kv-reuse');await click('resource-enabled');
+ await until(`['ready','failed'].includes(document.getElementById('binding-status').dataset.phase)`,300);
+ assert.equal(await evaluate(`document.getElementById('run-error').textContent`),'');
+ await evaluate(`globalThis.cardModelSelector=document.getElementById('model-choice')`);
+ const pointer=async selector=>{
+  const point=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);
+  await send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...point});
+  await send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...point});
+ };
+ await click('open-system');
+ const ownership=await evaluate(`(()=>{
+  const definitions=Declarations.schemas.ExperimentSpec.oneOf;
+  return {expected:definitions.map(d=>({control:d.properties.control.const,owner:d.properties.ontology_binding.const.primary})),
+   cards:Array.from(document.querySelectorAll('#configure-system>[data-concept]'),c=>({owner:c.dataset.concept,disabled:c.querySelector('button').disabled})),
+   editors:Array.from(document.querySelectorAll('#configure-system [data-control]'),e=>({control:e.dataset.control,owner:e.closest('[data-concept]').dataset.concept})),
+   unowned:Array.from(document.querySelectorAll('#system-dialog input,#system-dialog select,#system-dialog textarea')).filter(e=>!e.closest('[data-control]')).map(e=>e.id)};
+ })()`);
+ assert.deepEqual(ownership.editors.sort((a,b)=>a.control.localeCompare(b.control)),ownership.expected.sort((a,b)=>a.control.localeCompare(b.control)),'Editors have exactly one primary concept home');
+ assert.deepEqual(ownership.unowned,[],'No standalone system editors');
+ assert.equal(new Set(ownership.cards.map(c=>c.owner)).size,ownership.cards.length);
+ for(const card of ownership.cards)assert.equal(card.disabled,!ownership.expected.some(e=>e.owner===card.owner),'Enabled iff a declared editor exists');
+ for(const c of ownership.expected){
+  await pointer(`#configure-system>[data-concept="${c.owner}"]>button`);
+  assert.equal(await evaluate(`document.getElementById('system-dialog').open`),true,'Concept cards must reveal settings in place');
+  assert.equal(await evaluate(`(()=>{const card=document.querySelector('#configure-system>[data-concept="${c.owner}"]'),button=card.querySelector('button'),panel=document.getElementById(button.getAttribute('aria-controls'));return button.getAttribute('aria-expanded')==='true'&&!panel.hidden&&!!panel.querySelector('input,select,textarea');})()`),true,'Expanded card must contain its usable editor');
+  await pointer(`#configure-system>[data-concept="${c.owner}"]>button`);
+ }
+ // The same model selector works inside the card and returns to Interaction on close.
+ const modelOwner=ownership.expected.find(c=>c.control==='model').owner;
+ await pointer(`#configure-system>[data-concept="${modelOwner}"]>button`);
+ assert.equal(await evaluate(`document.querySelectorAll('#model-choice').length===1&&document.getElementById('model-choice')===cardModelSelector`),true);
+ await evaluate(`document.getElementById('model-choice').value='tinyllm-500k';document.getElementById('model-choice').dispatchEvent(new Event('change'))`);
+ await until(`['ready','failed'].includes(document.getElementById('binding-status').dataset.phase)`,300);
+ assert.equal(await evaluate(`document.getElementById('run-error').textContent`),'');
+ assert.equal(await evaluate(`document.getElementById('model-choice').value`),'tinyllm-500k');
+ assert.match(await evaluate(`document.getElementById('active-model-summary').textContent`),/476K/);
+ let modelShot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/model-card-desktop.png',Buffer.from(modelShot.data,'base64'));
+ await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ await evaluate(`document.getElementById('model-choice').scrollIntoView({block:'center'})`);
+ assert.ok(await evaluate(`document.getElementById('system-dialog').scrollWidth<=document.getElementById('system-dialog').clientWidth`));
+ modelShot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/model-card-mobile.png',Buffer.from(modelShot.data,'base64'));
+ await evaluate(`document.getElementById('model-choice').value='tinyllm-8k';document.getElementById('model-choice').dispatchEvent(new Event('change'))`);
+ await until(`['ready','failed'].includes(document.getElementById('binding-status').dataset.phase)`,300);
+ assert.equal(await evaluate(`document.getElementById('run-error').textContent`),'');
+ await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+ await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+ await until(`!document.getElementById('system-dialog').open&&document.getElementById('inference-form').contains(cardModelSelector)`);
+ assert.equal(await evaluate(`document.querySelectorAll('#model-choice').length`),1);
+ await click('open-system');
+ await pointer(`#configure-system>[data-concept="${modelOwner}"]>button`);
+ await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
+ let configShot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/concept-controls-desktop.png',Buffer.from(configShot.data,'base64'));
+ await evaluate(`document.querySelector('#configure-system>[data-concept="KVCache"]>button').click()`);
+ await click('kv-reuse');await click('resource-enabled');
+ await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ await evaluate(`document.querySelector('#configure-system>[data-concept="KVCache"]').scrollIntoView({block:'start'})`);
+ assert.ok(await evaluate(`document.getElementById('system-dialog').scrollWidth<=document.getElementById('system-dialog').clientWidth`));
+ configShot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/concept-controls-mobile.png',Buffer.from(configShot.data,'base64'));
+ await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
  const logical=({measurements,...rest})=>rest;
  let replayChecked=false;
  for(const c of cases){

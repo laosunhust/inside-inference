@@ -18,6 +18,9 @@ def audit_frontend_source(path, source, ontology, spec, labs):
     failures = []
     def fail(message): failures.append(f'{path}: {message}')
     if path.suffix == '.html':
+        dialog = re.search(r'<dialog\b[^>]*id=[\"\']system-dialog[\"\'][^>]*>(.*?)</dialog>', source, re.S)
+        if dialog and any(tag in ('input', 'select', 'textarea', 'details') for tag, _ in Elements(dialog.group(1)).elements):
+            fail('handwritten system editor; generate concept homes from ExperimentSpec primary bindings')
         for _, attrs in Elements(source).elements:
             label = attrs.get('data-term')
             if label is not None and label not in projections:
@@ -59,6 +62,13 @@ def audit_system_map(ontology, spec, labs):
     if len(concepts) != len(set(concepts)): fail('concept has multiple navigation homes')
     unknown = set(concepts) - set(ontology['terms'])
     if unknown: fail(f'unknown ontology concepts: {sorted(unknown)}')
+    controls = spec['$defs']['ExperimentSpec']['oneOf']
+    for control in controls:
+        properties = control['properties']
+        name = properties['control']['const']
+        owner = properties['ontology_binding']['const']['primary']
+        if owner not in concepts:
+            fail(f'experiment control {name!r} has no concept home for primary owner {owner!r}')
     subjects = {owner for binding in labs.values() for owner in [binding['primary'], *binding['related']]}
     missing = (subjects | set(operation_owners(spec).values())) - set(concepts)
     if missing: fail(f'missing navigation homes for lab or operation owners: {sorted(missing)}')

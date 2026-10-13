@@ -155,13 +155,13 @@ import './session.js';
   });
   resources=resourceExperiment(()=>state.input,async input=>{
     stop();state=S.reset({...state,input,prepared:null});$('prompt').value=input.workload.requests[0].request.text;$('output-budget').value=input.workload.requests[0].request.generation.max_new_tokens;clearPanels();render();await prepare();
-  },view=>inspect(view));
+  },view=>inspect(view),configuration);
   render();
   try {
     catalog=await Execution.modelCatalog();
     if(!selected())throw Error('Initial model is absent from the catalog');
     $('model-choice').replaceChildren(...catalog.models.map(m=>new Option(m.label,m.id)));$('model-choice').disabled=false;
     await changeModel(S.controls(state).model_id);
-    if(location.hash==='#resource-settings'){$('resource-settings').open=true;$('system-dialog').showModal();}
+    if(location.hash==='#system-dialog')$('open-system').click();
   }catch(e){setError(e);render();}
 })();

@@ -1,0 +1,37 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/concept-controls/navigation.yaml
+evaluation_sha256: 421eb7787154832b46a093146f4aae0ea772d517810aa7080ea3a486c30fe062
+outcome: passed
+summary: 'Red: the browser regression failed before implementation changes because ModelArtifact had no
+  editor under its declared concept home. The prior renderer special-cased its button to close the modal
+  and redirect to Interaction, despite aria-controls pointing to an empty disclosure.
+
+
+  Green: all enabled concept cards use the same disclosure behavior. Opening system configuration mounts
+  the existing model fieldset under the model control''s declared owner; closing restores the same DOM
+  node to Interaction. No duplicate selector, listeners or selection state. The shared opening path also
+  handles the system-dialog deep link.
+
+
+  Browser coverage uses pointer events on every enabled card, checks the open modal, aria state and nonempty
+  controlled panel, switches 8K to 0.5M and back through the in-card selector, confirms model summary
+  changes, checks singleton DOM identity and verifies Escape closes and restores the editor. Existing
+  numerical/resource parity and ontology link coverage remain. Desktop and narrow model-card screenshots
+  reviewed without overflow.
+
+
+  A subsequent failure exposed test contamination: the earlier intentional model-digest corruption test
+  restored its file but left Chrome''s cached corrupted response. Its finally block now clears the browser
+  HTTP cache after restoration. The application correctly rejected the corrupted response; digest validation
+  was not changed. Readiness checks now surface failed loads immediately instead of waiting for timeout.
+
+
+  Final make test-integration passed the included 92 unit tests, 22 Python integration tests and browser
+  harness in 41.20s of 100s. No new unit test was added for browser-only behavior. Existing governance
+  folder warnings and their cleanup steps remain as recorded by the preceding concept-controls evaluation;
+  no limits or protected enforcement files changed in this fix.'
+evidence:
+- web/inspection/configuration.js
+- web/inspection/page.js
+- scripts/check/cache_browser_check.mjs
+- scripts/check/story_models/check.mjs

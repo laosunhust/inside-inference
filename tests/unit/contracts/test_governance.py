@@ -18,6 +18,20 @@ from scripts.check.governance.evaluation import audit_evaluation
 
 
 class GovernanceTests(unittest.TestCase):
+    def test_system_controls_require_declared_concept_homes(self):
+        from scripts.check.governance.frontend import audit_system_map, audit_frontend_source
+        ontology, spec = load_declarations(), load_schema()
+        self.assertEqual(audit_system_map(ontology, spec, {}), [])
+        for owner in ('InventedConcept', 'ExperimentSpec'):
+            changed = copy.deepcopy(spec)
+            changed['$defs']['ExperimentSpec']['oneOf'][1]['properties']['ontology_binding']['const']['primary'] = owner
+            failures = audit_system_map(ontology, changed, {})
+            self.assertTrue(any('kv_reuse' in f and 'concept home' in f for f in failures), failures)
+        for editor in ('<input type="checkbox">', '<select></select>', '<details></details>'):
+            failures = audit_frontend_source(Path('web/example.html'),
+                '<dialog id="system-dialog">' + editor + '</dialog>', ontology, spec, {})
+            self.assertTrue(any('handwritten system editor' in f for f in failures), failures)
+
     def test_validated_conversion_checks_nested_data_and_detaches_it(self):
         from inside_inference.tokenizer import Tokenizer
         from inside_inference.declarations_generated import Encoding

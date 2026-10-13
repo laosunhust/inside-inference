@@ -77,9 +77,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .configuration-fields label{font-size:13px}
 .configuration-fields a{font-size:12px}
 .configuration-fields textarea,.configuration-fields select,.configuration-fields input{font:14px system-ui;border:1px solid #98aaa7;border-radius:5px}
-.unavailable-components>div{background:#f1f2f1;border:1px dashed #d4d7d4;border-radius:8px}
-.playground .unavailable-components button{color:#666;background:transparent;border:0;opacity:1}
-.unavailable-components a{font-size:11px;color:#63756e}
+.concept-controls>div{background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.concept-controls>div:has(>button:disabled){background:#f1f2f1;border-style:dashed}
+.playground .concept-controls>div>button:disabled{color:#666;background:transparent;border:0;opacity:1}
+.concept-controls a{font-size:11px;color:#63756e}
 .execution-path>li.configuration-changed>button{border:2px solid var(--warning);background:var(--warning-soft)}
 .execution-path>li.configuration-changed::after{font-size:11px;color:#805d26}
 #client-boundary{border-radius:8px}

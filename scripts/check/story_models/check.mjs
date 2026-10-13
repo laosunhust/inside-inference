@@ -205,7 +205,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
     try {await navigate();evidence.storage.push(await rejection("Execution.loadModel({model_id:'tinyllm-500k'})",/unavailable.*404/));evidence.storage.push(await rejection(`Execution.prepareGeneration(${JSON.stringify(inputFor('tinyllm-4m','a cat'))})`,/Load the selected model/));}
     finally{await rename(path+'.held',path);}
     const original=await readFile(path),corrupt=Buffer.from(original);corrupt[corrupt.length-1]^=1;await writeFile(path,corrupt);
-    try {evidence.storage.push(await rejection("Execution.loadModel({model_id:'tinyllm-500k'})",/digest mismatch/));}finally{await writeFile(path,original);}
+    try {evidence.storage.push(await rejection("Execution.loadModel({model_id:'tinyllm-500k'})",/digest mismatch/));}finally{await writeFile(path,original);await send('Network.clearBrowserCache');}
     if(assetBase) {
       const remote=JSON.parse(catalogBytes);remote.storage.base_url=assetBase;await writeFile(catalogPath,JSON.stringify(remote));await navigate();
       await click('next-token');await ready();assert.equal((await snapshot()).model_id,'tinyllm-4m');evidence.storage.push('Cross-origin default-model execution passed');

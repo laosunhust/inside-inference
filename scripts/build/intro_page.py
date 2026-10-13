@@ -207,7 +207,7 @@ kernel measurements at representative shapes. No universal winner follows from t
         elif entry['id'] == 'naive-gpt':
             content += '<p><a href="../index.html">Inspect the actual naïve GPT execution ↗</a></p>'
         elif entry['id'] == 'prefix-cache':
-            content += '<p><a href="../index.html#resource-settings">Run the KV residency experiment: cold, warm, remote hit, and eviction ↗</a></p><p><a href="../kv-contract.html">Read its abstraction and evidence contract ↗</a></p>'
+            content += '<p><a href="../index.html#system-dialog">Run the KV residency experiment: cold, warm, remote hit, and eviction ↗</a></p><p><a href="../kv-contract.html">Read its abstraction and evidence contract ↗</a></p>'
         else:
             content += '<p class="warning"><b>Planned lab:</b> this is a specification only. No experiment or measured result is available.</p>'
         binding = entry['ontology_binding']

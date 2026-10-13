@@ -1,0 +1,38 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/concept-controls/configuration.yaml
+evaluation_sha256: b5b523792b5a8b3dc2c7f5943d64773bb3d566489a5973058c31fbe239d3786a
+outcome: passed
+summary: 'The ontology bindings already existed; the former renderer omitted configured owners from the
+  card grid and rendered their controls separately. The dialog now derives all concept cards from InferenceMap,
+  groups controls by ExperimentSpec primary binding, and enables only concepts with editors. KV reuse
+  and residency enable/budgets live under KVCache; scheduling, transfer and compute service have their
+  own settings. ModelArtifact opens the existing model selector. No new configuration state or numerical
+  path was added. Removed the unavailable heading and standalone residency disclosure; updated the incoming
+  lab link to the shared system dialog.
+
+
+  Approved enforcement rejects missing control concept homes and handwritten system editor markup. Rejection
+  tests include an invented owner and a valid ontology owner absent from the system map. Browser checks
+  compare every rendered editor with its declared owner, reject orphan fields and duplicate concept cards,
+  verify enabled/disabled states and exercise every card, including the existing model editor. Existing
+  main-page/headless numerical and resource parity still passes.
+
+
+  make test: 92 tests, 3.81s of 10s. Final make test-integration: 22 Python integration tests and browser
+  harness, 40.30s of 100s. Desktop collapsed grid and narrow expanded KV settings reviewed. An intermediate
+  integration failure exposed the deleted resource-settings anchor; its incoming link was updated rather
+  than preserving the retired section. Resource simulation still requires the 8K model and KV reuse, with
+  all four resource controls composed together; this work does not change that boundary.
+
+
+  Existing repository folder warnings remain: ontology/domain folders require a cohesive manifest split;
+  inside_inference requires a preparation/runtime organization review; historical evaluation folders need
+  an integrity-preserving migration. This work groups its new evaluation record beneath a dedicated subfolder
+  rather than growing the warned day directory. No limits were relaxed.'
+evidence:
+- web/inspection/configuration.js
+- web/inspection/resources.js
+- web/inspection/page.html
+- scripts/check/governance/frontend.py
+- tests/unit/contracts/test_governance.py
+- scripts/check/cache_browser_check.mjs

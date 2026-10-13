@@ -1,5 +1,5 @@
 /* The residency experiment edits the same ExecutionSpec and Workload as generation. */
-export function resourceExperiment(read,change,inspect) {
+export function resourceExperiment(read,change,inspect,configurationUI) {
   const $=id=>document.getElementById(id),el=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
   const definitions=Declarations.schemas.ExperimentSpec.oneOf.filter(d=>d.properties.value.$ref);
   const keys=definitions.map(d=>d.properties.control.const);
@@ -12,6 +12,13 @@ export function resourceExperiment(read,change,inspect) {
     const input=structuredClone(read());input.execution.experiments=input.execution.experiments.filter(e=>!keys.includes(e.control));
     if(value)for(const d of definitions){const control=d.properties.control.const;input.execution.experiments.push({control,value:value[control],ontology_binding:d.properties.ontology_binding.const});}
     change(input);
+  }
+  const enableLabel=el('label','Residency simulation · 8K'),enable=el('input');enable.type='checkbox';enable.id='resource-enabled';enableLabel.append(enable);
+  configurationUI.editor('kv_cache').append(enableLabel);
+  const groups=new Map();
+  for(const definition of definitions){
+    const control=definition.properties.control.const,group=el('fieldset');group.id='resource-'+control;
+    configurationUI.editor(control).append(group);groups.set(control,group);
   }
   $('resource-enabled').onchange=()=>configure($('resource-enabled').checked?defaults(Declarations.schemas.KVResidencySystemConfig):null);
   function fields(schema,value,path=[]) {
@@ -39,8 +46,15 @@ export function resourceExperiment(read,change,inspect) {
   }
   $('add-request').onclick=()=>{const next=structuredClone(read()),requests=next.workload.requests;let n=1;while(requests.some(r=>r.request_id==='r'+n))n++;requests.push({...structuredClone(requests.at(-1)),request_id:'r'+n});change(next);};
   function render(evidence,view){
-    const config=configuration();$('resource-enabled').checked=!!config;$('resource-fields').replaceChildren();
-    if(config)$('resource-fields').append(fields(Declarations.schemas.KVResidencySystemConfig,config));requests(!!config);
+    const config=configuration();$('resource-enabled').checked=!!config;
+    for(const definition of definitions){
+      const control=definition.properties.control.const,group=groups.get(control),schema=Declarations.schemas[definition.properties.value.$ref.split('/').at(-1)];
+      group.disabled=!config;group.replaceChildren(fields(schema,config?.[control]??defaults(schema),[control]));
+      let activate=configurationUI.editor(control).querySelector('button');
+      if(control!=='kv_cache'&&!activate){activate=el('button','Configure KV cache');activate.type='button';activate.onclick=()=>configurationUI.open('kv_cache');configurationUI.editor(control).prepend(activate);}
+      if(activate)activate.hidden=!!config;
+    }
+    requests(!!config);
     const panel=$('resource-explanation');panel.hidden=!evidence;panel.replaceChildren();delete panel.dataset.execution;if(!evidence)return;panel.dataset.execution=JSON.stringify(evidence);
     const run=evidence.run;panel.append(el('h3','Resource timeline · hypothetical µs'));
     const timeline=el('details');timeline.append(el('summary',`${run.events.length} events · ${run.events.at(-1).time_us.toFixed(2)} virtual µs`),InspectionDetails.table(['Request','Event','µs','Device bytes','Host bytes'],run.events.map(e=>[e.request_id,e.kind,e.time_us.toFixed(2),e.device_reserved_bytes,e.host_retained_bytes])));panel.append(timeline);

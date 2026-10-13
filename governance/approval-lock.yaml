@@ -46,7 +46,8 @@ approval:
     \ reply on 2026-10-13: \"you have the permission. please continue.\" Approves both pending shared-engine\
     \ boundary and recursive theme enforcement requests. Owner reply on 2026-10-13: \"Approve the scoped\
     \ deletion enforcement changes\". Owner response: \"Approve the scoped capability-reference fix\"\
-    . Owner response: \"Approve the endpoint-independent fixture fix\"."
+    . Owner response: \"Approve the endpoint-independent fixture fix\". Owner response on 2026-10-13:\
+    \ \"Approve the scoped concept-control enforcement changes\"."
   scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile
     and ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content
     remains unlocked. Retain approved folder and file-size limits. This approval does not authorize future
@@ -115,7 +116,9 @@ approval:
     governance/http.py and test_http_boundary.py; update only their hashes. Limits and lock inventory
     unchanged. Resolve explicitly named capability declaration roots instead of hardcoded retired RunBinding
     in generate_data_models.py; retain reference, type and default checks. Replace only the retired run
-    endpoint reference in test_governance.py with the first declared operation; preserve rejection assertions.'
+    endpoint reference in test_governance.py with the first declared operation; preserve rejection assertions.
+    Extend frontend.py and test_governance.py to reject experiment controls without concept homes and
+    handwritten system editors; update only their approval hashes. Limits and inventory unchanged.'
 files:
   AGENTS.md: a1311d34d5b743a4b023f00b59b7f227d94ef1f44d097d5f8634c2eb4b9e5c92
   governance/limits.yaml: 4218f778ada890585c448c4664f4a8275576daef70e5421b29ed1c7ac0862c30
@@ -133,9 +136,9 @@ files:
   scripts/check/governance/structure.py: b6f927698a5b3676219c4eb96c2906ebab8a19cb0c2a5e9a68e45dcb6dfbfc52
   scripts/check/layout.py: 54e53c43a5ce571375c049e9ebf740631ab24c14acdd1efaafca5eb2f63679e2
   scripts/check/make_interface.py: 298a6bd1e6f90becabbd0d12ba369c5a0d697f0b81f758fabf56423f01cd26b8
-  tests/unit/contracts/test_governance.py: 301dc34bc29c892b426cd018ab6497e58c5b6109ab10542e314c6791a576b291
+  tests/unit/contracts/test_governance.py: db16ab0b9695632a057586eaf2a0975529c52689e3c8799bd98c753945759570
   tests/unit/contracts/test_governance_locks.py: acf09b594c79261c3c40a854cfc0dde0848b208e6996946ee6ef65de23348ef7
-  scripts/check/governance/frontend.py: 6a83010c86a1d3d3a7f6780096b7af9c934b4ddc705f69f7feaaee112c31654d
+  scripts/check/governance/frontend.py: da784634938f31b759d6741f09afc25afe44e8f8b24ef49ef52ff30e67633593
   scripts/check/governance/harness.py: 31ea6e97f860f971745a04f8188015815697183b83a1ab6382dff2abcca59a79
   tests/unit/contracts/test_harness.py: 1ba20fd6e4e3a9a0bed83d99d8b1f3e87e50dc97f99deec7b1e30f8c08ae7de2
   scripts/check/governance/budget.py: d1c09b74ec64a35e5523d23658b1251e65499ed4cba6aeceb1de7e7c257e10ab

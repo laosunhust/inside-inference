@@ -1,0 +1,28 @@
+version: 1
+work_item: concept-owned-configuration
+question: Can every system configuration editor be reached through its declared ontology concept rather than standalone feature controls?
+necessity: The dialog removes configurable concepts from its concept grid and renders their controls separately, breaking conceptual navigation despite valid bindings.
+baseline: KV reuse is standalone; four resource controls live under one standalone residency disclosure; unavailable concepts form a separate grid.
+reuse:
+- source: ExperimentSpec primary ontology bindings and InferenceMap
+  decision: Derive concept homes and editor grouping from existing declarations; add no second ownership registry.
+- source: Existing model editor, resource editors and theme
+  decision: Reuse execution settings and styling; change navigation rather than execution semantics.
+criteria:
+- Every declared experiment control has exactly one system concept home determined by its primary ontology binding.
+- All existing system concepts remain visible. Configurable concepts open their editors; unavailable concepts are disabled. Remove the unavailable heading and standalone system settings.
+- KV reuse and cache capacity settings belong under KVCache; scheduling, transfer and compute service settings belong under their own primary owners.
+- Model configuration reaches the existing editor without duplicating selection state.
+- Declared missing concept homes and handwritten system editor markup fail governance with actionable feedback. Browser coverage checks rendered editors against primary ownership, including nested fields.
+- Preserve all three models, KV reuse modes and coupled resource simulation semantics. Configuration changes invalidate prior evidence as before.
+- Review desktop and narrow layouts; unit and integration checks pass within existing budgets.
+checks:
+- Governance rejection fixtures
+- Shared browser harness for concept navigation and editor ownership
+- make test
+- make test-integration
+- Desktop and narrow screenshots
+counterexamples:
+- A valid ontology binding does not prove that the editor is presented under its owner.
+- Moving every resource field into KVCache would misrepresent scheduling and transfer ownership.
+- Disabled presentation must not conceal a supported editor.

@@ -62,10 +62,11 @@ body:has(#control-plane) .landing-links{display:inline}
 .configuration-fields label:has(input){grid-template-columns:minmax(0,1fr) 110px;align-items:center}
 .configuration-fields a{display:inline-block;margin-top:8px}
 .configuration-fields select,.configuration-fields input{width:100%;padding:8px}
-.unavailable-heading{margin:22px 0 10px}
-.unavailable-components{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.unavailable-components>div{display:grid;gap:4px;padding:10px}
-.playground .unavailable-components button{padding:0;text-align:left}
+.concept-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.concept-controls>div{display:grid;gap:4px;padding:8px}
+.playground .concept-controls>div>button{padding:4px;text-align:left}
+.concept-controls>div:has(>div:not([hidden])){grid-column:1/-1}
+.concept-controls>div>div{min-width:0}
 .configuration-actions{display:flex;gap:12px;align-items:center;margin-top:12px}
 .execution-path>li.configuration-changed::after{position:absolute;top:54px;left:0;width:100%;text-align:center}
 .source-editor{margin:8px 0}
@@ -75,7 +76,7 @@ body:has(#control-plane) .landing-links{display:inline}
 @media(max-width:650px){.configuration-cards{grid-template-columns:1fr;gap:8px}
 .playground .configuration-card{padding:14px;min-height:76px;gap:5px}
 .configuration-actions{flex-wrap:wrap}
-.unavailable-components{grid-template-columns:1fr}}
+.concept-controls{grid-template-columns:1fr}}
 .prediction-controls{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
 #response-preview{white-space:pre-wrap;overflow-wrap:anywhere}
 

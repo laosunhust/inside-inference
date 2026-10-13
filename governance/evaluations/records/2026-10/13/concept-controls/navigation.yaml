@@ -1,0 +1,22 @@
+version: 1
+work_item: concept-card-navigation
+question: Does every enabled concept card reveal a usable editor where the user clicked?
+necessity: ModelArtifact closes the modal and redirects to a different editor, unlike the other cards; the prior test explicitly allowed this exception.
+baseline: ModelArtifact advertises an empty disclosure panel but overrides its button to close the dialog. Other concept cards expand their own settings.
+reuse:
+- source: Existing model fieldset and generated concept-control renderer
+  decision: Keep one model selector and its handlers; expose that same editor inside its concept card while the dialog is open.
+criteria:
+- A failing browser regression reproduces the model card exception before implementation changes.
+- Every enabled concept card opens its own nonempty editor without dismissing the dialog; aria-controls and aria-expanded match the visible panel.
+- The model selector remains a single DOM element and changing it updates the actual selected model. Closing the system dialog restores the same editor to Interaction Edit.
+- Disabled cards stay disabled, ontology links remain valid, and KV/resource execution retains existing parity coverage.
+- Pointer interaction and desktop/narrow review verify visible controls; unit and integration checks stay within budgets.
+checks:
+- Browser regression red then green
+- make test
+- make test-integration
+- Desktop and narrow screenshots
+counterexamples:
+- Opening a different editor elsewhere is not an in-place concept disclosure.
+- Duplicate selectors synchronized by copying values would violate SSOT.
