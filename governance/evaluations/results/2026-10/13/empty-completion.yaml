@@ -1,0 +1,23 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/empty-completion.yaml
+evaluation_sha256: 3abba0962e8fe201dbc2c31cb0a034a74d63799c1e5504307011a9b7a439efae
+outcome: passed
+summary: >-
+  Live-browser reproduction on port 8000 found immediate EOS with the default
+  complete sentence on 8K, empty output and a finished request, not a hung worker.
+  The same input generated normally on 4M. Added a browser regression that failed
+  on End token versus Model ended without text before the one-line presentation
+  fix. Accepted stop_reason and literal text remain the only status authority.
+  Regression verifies one end token, empty output, ready state, hidden Stop,
+  enabled Reset, cleared status after Reset, and successful edited continuation
+  the cat was -> happy. Nonempty completion retains End token. No token policy,
+  model weights, input preservation or lifecycle state changes. Desktop and narrow
+  empty-completion screenshots reviewed. Unit 110 tests passed in 7.42s total;
+  full integration passed in 62.04s within unchanged budgets. Local site rebuilt.
+  This clarifies a model outcome; it does not improve the model or rule out hangs
+  on other unreported inputs.
+evidence:
+- web/inference.js
+- scripts/check/story_models/check.mjs
+- data/models/initial.yaml
+- data/preparation/lexical-training/covered.json

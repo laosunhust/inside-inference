@@ -74,7 +74,7 @@
       b.disabled=pending;b.setAttribute('aria-pressed',String(position===state.view.position));b.onclick=()=>inspect({position,surface:state.step?'selection':'request',observation_id:null});return b;
     }));
     $('run-identity').textContent=state.step&&!pending?JSON.stringify(state.step):'';
-    $('generation-note').textContent=state.step?.decoding_note || ({end_token:'End token',output_budget:'Token budget reached',context_capacity:'Context full'})[state.step?.stop_reason] || '';
+    $('generation-note').textContent=state.step?.decoding_note || ({end_token:state.step?.text?'End token':'Model ended without text',output_budget:'Token budget reached',context_capacity:'Context full'})[state.step?.stop_reason] || '';
     renderSetup();renderPath();status();
     $('numerical-inspector').hidden=!state.prepared||pending;
     if(state.prepared&&!pending)InspectionDetails.render(state,inspect,ontology);else {$('detail-body').replaceChildren();$('inspection-context').textContent='';}

@@ -1,0 +1,21 @@
+version: 1
+work_item: empty-completion
+question: Does an immediate EOS from the 8K model appear finished and recoverable rather than stuck?
+necessity: Owner reports no text after Generate on 8K; live-browser reproduction selects EOS on the complete default sentence.
+baseline: Request finishes and controls unlock, but blank output plus the generic End token label fails to explain the result.
+reuse:
+- source: Existing accepted prediction stop_reason, text, Reset/Edit controls and browser harness
+  decision: Derive a specific empty-completion label from existing evidence; introduce no inference policy or new state.
+criteria:
+- Observe a failing browser regression for the exact default prompt on 8K before changing the UI.
+- Immediate EOS produces empty literal output and one selected end token, with an explicit Model ended without text status, no Computing state and no visible Stop button.
+- Reset clears the result/status; editing to the cat was allows a nonempty continuation. Do not modify input on model selection or override EOS.
+- Ordinary nonempty completions and byte diagnostics retain existing behavior. Unit and integration stay within current budgets; review desktop and narrow empty-output layouts.
+checks:
+- Live browser reproduction
+- Red/green browser regression
+- make test
+- make test-integration
+counterexamples:
+- A blank result is not necessarily a worker hang; inspect stop evidence before changing execution.
+- Inserting placeholder text into model output or suppressing EOS would misrepresent model behavior.

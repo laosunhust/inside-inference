@@ -53,6 +53,24 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         const terminal=structuredClone(request);terminal.generation.max_new_tokens=24;
         const stopped=await evaluate(`Execution.generateToken(${JSON.stringify(terminal)})`);assert.equal(stopped.decoding_note,null);assert.equal(stopped.stop_reason,'output_budget');
         evidence.streaming={timings,selected_id:prediction.selected_id,nodes:prediction.nodes.length};
+        // A complete sentence can select EOS immediately: empty output is finished, not stuck.
+        await choose(model.id);await apply(initial.workload.requests[0].request.text,32);
+        await click('continue-tokens');await ready();
+        const ended=await snapshot();assert.equal(ended.stop_reason,'end_token');
+        assert.equal(ended.output_ids.length,1);assert.ok(model.stop_ids.includes(ended.selected_id));
+        assert.equal(ended.text,'');assert.equal(await evaluate("document.getElementById('response-preview').textContent"),'');
+        assert.equal(await evaluate("document.getElementById('generation-note').textContent"),'Model ended without text');
+        assert.equal(await evaluate("document.getElementById('stop-tokens').hidden && !document.getElementById('reset').disabled"),true);
+        for(const [label,width,height] of [['desktop',1280,1000],['mobile',390,844]]) {
+          await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<500});
+          await evaluate("document.getElementById('client-boundary').scrollIntoView({block:'center'})");
+          assert.ok(await evaluate('document.documentElement.scrollWidth<=window.innerWidth'));
+          await writeFile(output+'/empty-completion-'+label+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+        }
+        await click('reset');await empty();assert.equal(await evaluate("document.getElementById('generation-note').textContent"),'');
+        await apply('the cat was',8);await click('continue-tokens');await ready();
+        assert.equal((await snapshot()).text,' happy.');
+        assert.equal(await evaluate("document.getElementById('generation-note').textContent"),'End token');
 
       }
       if(model.runtime==='llama2c-wasm') {
