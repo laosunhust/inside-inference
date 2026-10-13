@@ -1,0 +1,29 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/lexical-release.yaml
+evaluation_sha256: 21d159193a7041ce1b02ef0bcebbd7ead5c24daa8ca5153a467921a54f1050e2
+outcome: passed
+summary: >-
+  Owner-approved promotion replaces only the 8K release artifact with exact bytes
+  from lexical-training/covered.bin and updates model provenance. Default 4M
+  selection, other model weights, tokenizer and input-preservation behavior remain
+  unchanged. Historical training and byte-stream reference evidence is retained.
+  The new scalar fixture uses the dog had a for a full 32-token continuation;
+  browser logits and selected IDs match it, with all 27 captured nodes available
+  and displayed tensors equal to returned observations. Warm selection-24 median
+  latency was 57.2 ms. Full browser checks passed for selection, reset, branching,
+  tensor inspection, exports, headless parity and cross-origin model storage.
+  Desktop and narrow layouts reviewed. Unit harness passed in 7.76s and full
+  integration in 61.82s, within unchanged budgets. The first integration attempt
+  hit the previously observed intermittent llama.mjs fetch failure before the 8K
+  test; it remains unresolved and is not attributed to the checkpoint. Static
+  local site rebuilt. Early EOS on complete sentences and repetitive output are
+  known limitations; this promotion makes no comprehension or reliability claim.
+evidence:
+- data/models/models.yaml
+- data/models/artifacts/tinyllm-8k.bin
+- data/models/README.md
+- data/preparation/lexical-training/covered.bin
+- data/preparation/lexical-training/README.md
+- tests/fixtures/integration/tiny-covered.json
+- tests/fixtures/integration/tiny-stream.json
+- scripts/check/story_models/check.mjs

@@ -36,7 +36,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
       const m=JSON.stringify(model.id);
       const loaded=await evaluate(`Execution.loadModel({model_id:${m}})`);Declarations.assertShape('ModelLoadResult',loaded);
       if(model.id==='tinyllm-8k') {
-        const fixture=JSON.parse(await readFile(new URL('../../../tests/fixtures/integration/tiny-stream.json',import.meta.url),'utf8'));
+        const fixture=JSON.parse(await readFile(new URL('../../../tests/fixtures/integration/tiny-covered.json',import.meta.url),'utf8'));
         assert.equal(model.weights.sha256,fixture.weights_sha256);
         const input=inputFor(model.id,fixture.prompt);input.workload.requests[0].request.generation.max_new_tokens=32;
         const request=requestFor(input,fixture.prefix);request.output_ids=fixture.output.slice(0,23);
@@ -47,11 +47,11 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         }
         assert.equal(prediction.selected_id,fixture.output[23]);
         assert.ok(timings.sort((a,b)=>a-b)[1]<250,`8K token latency ${timings}: inspect validation overhead`);
-        assert.equal(prediction.decoding_note,null,'A valid unfinished byte triple is pending, not malformed');
+        assert.equal(prediction.decoding_note,null,'Covered checkpoint continuation must decode without repair');
         prediction.logits.forEach((v,i)=>assert.ok(Math.abs(v-fixture.logits_at_selection_24[i])<1e-12));
         assert.ok(prediction.nodes.some(n=>n.operation.name==='attention'&&n.values.length===request.prefix_ids.length+23),'Retain the full uncached trace');
         const terminal=structuredClone(request);terminal.generation.max_new_tokens=24;
-        const stopped=await evaluate(`Execution.generateToken(${JSON.stringify(terminal)})`);assert.match(stopped.decoding_note,/Incomplete byte triple/);assert.equal(stopped.stop_reason,'output_budget');
+        const stopped=await evaluate(`Execution.generateToken(${JSON.stringify(terminal)})`);assert.equal(stopped.decoding_note,null);assert.equal(stopped.stop_reason,'output_budget');
         evidence.streaming={timings,selected_id:prediction.selected_id,nodes:prediction.nodes.length};
 
       }
@@ -76,7 +76,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
           if(result.selected_id!==expectedChoice)assert.ok(margin<=2*maxError,'Unexplained token flip');
         }
       }
-      const prompt=initial.workload.requests[0].request.text,input=inputFor(model.id,prompt);
+      const prompt=model.id==='tinyllm-8k'?'the dog had a':initial.workload.requests[0].request.text,input=inputFor(model.id,prompt);
       const budget=model.id==='tinyllm-8k'?32:8;input.workload.requests[0].request.generation.max_new_tokens=budget;
       const prepared=await evaluate(`Execution.prepareGeneration(${JSON.stringify(input)})`);
       Declarations.assertShape('GenerationPrepared',prepared);
@@ -87,7 +87,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
       await choose(model.id);await empty();await apply(prompt,budget);
       await click('continue-tokens');await until("document.getElementById('stop-tokens').hidden && !document.getElementById('reset').disabled");
       const interactive=await snapshot();assert.deepEqual(comparable(interactive),comparable(result));
-      if(model.id==='tinyllm-8k'){const fixture=JSON.parse(await readFile(new URL('../../../tests/fixtures/integration/tiny-stream.json',import.meta.url),'utf8'));assert.deepEqual(interactive.output_ids,fixture.output);assert.equal(await evaluate("document.getElementById('generation-note').textContent"),'Token budget reached');}
+      if(model.id==='tinyllm-8k'){const fixture=JSON.parse(await readFile(new URL('../../../tests/fixtures/integration/tiny-covered.json',import.meta.url),'utf8'));assert.deepEqual(interactive.output_ids,fixture.output);assert.equal(await evaluate("document.getElementById('generation-note').textContent"),'Token budget reached');}
       if(model.id==='tinyllm-4m') {
         const {rm}=await import('node:fs/promises');await rm(output+'/inference-run.json',{force:true});await click('download-run');
         let exported;for(let i=0;i<100;i++){try{exported=JSON.parse(await readFile(output+'/inference-run.json','utf8'));break;}catch{await new Promise(r=>setTimeout(r,50));}}

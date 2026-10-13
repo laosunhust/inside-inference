@@ -1,0 +1,34 @@
+{
+  "status": "complete",
+  "seconds": 553.9472351269978,
+  "summary": {
+    "all": {
+      "familiar": {
+        "cases": 10,
+        "malformed": 9,
+        "nonempty": 9,
+        "byte_tokens": 180
+      },
+      "unfamiliar": {
+        "cases": 6,
+        "malformed": 5,
+        "nonempty": 4,
+        "byte_tokens": 100
+      }
+    },
+    "covered": {
+      "familiar": {
+        "cases": 10,
+        "malformed": 0,
+        "nonempty": 9,
+        "byte_tokens": 0
+      },
+      "unfamiliar": {
+        "cases": 6,
+        "malformed": 0,
+        "nonempty": 5,
+        "byte_tokens": 0
+      }
+    }
+  }
+}

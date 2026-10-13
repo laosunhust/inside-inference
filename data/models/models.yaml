@@ -7,7 +7,7 @@ models:
   weights: tinyllm-8k.bin
   tokenizer: tokenizer-384.bin
   seed: 7
-  provenance: Existing 8168-parameter architecture; 384 IDs; story continuation; 4000 updates. No prose-quality gate.
+  provenance: Intact vocabulary-covered lowercase sentences; 4000 updates, selected step 1000. See data/preparation/lexical-training; repetition and early EOS remain.
 - id: tinyllm-500k
   role: comparison
   runtime: llama2c-wasm

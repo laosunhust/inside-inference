@@ -91,6 +91,13 @@ _preparation-setup:
 _test-preparation: _data-models-check
 	@$(PYTHON) -m unittest discover -s tests/preparation -v
 
+# Requires a preparation interpreter with PyTorch/CUDA, NumPy, PyArrow and YAML.
+# ARGS supplies --source PATH and optionally --train; refuses to overwrite evidence.
+_lexical-study:
+	@$(PYTHON) -m scripts.experiments.story_models.lexical $(ARGS)
+
+.PHONY: _lexical-study
+
 _prepare-checkpoint: _test-preparation
 	@$(PYTHON) -m scripts.experiments.prepare_checkpoint $(ARGS)
 

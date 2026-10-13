@@ -1,0 +1,33 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/lexical-training.yaml
+evaluation_sha256: 6445837629b8b896d5c3db991a031220933ee2b2a3a40db3001099ca4993ec57
+outcome: passed
+summary: >-
+  Narrow predeclared signal gate passed: familiar terminal decoding diagnostics
+  fell from 9/10 to 0/10, with 9/10 nonempty continuations. All nine baseline
+  familiar diagnostics are incomplete byte triples at the generation allowance,
+  not malformed grammar mid-generation. Unknown-input diagnostics fell from 5/6
+  to 0/6, but comprehension is not established. No BYTE selections occurred in
+  the filtered sample; this does not guarantee their impossibility. Repetitive
+  words/spaces and immediate EOS after the complete default sentence remain.
+  Audit found 77.9 percent fallback positions in original story text; lowercasing
+  retained only 3.3 percent of sentence spans. After excluding development overlap,
+  891 distinct covered training sentences remained. Two matched 4000-step runs
+  completed in 554 seconds, under the 20-minute cap, with no tuning/retries.
+  Filtered development loss worsened after its selected step 1000, consistent
+  with overfitting the tiny retained corpus. Full generation evidence and both
+  checkpoints retained separately; website artifacts unchanged. Maximum scalar
+  export error 1.25e-14. All 31 preparation tests passed in 109.34 seconds.
+  No production inference, UI, tokenizer identity, or selection policy changed
+  in this experiment; browser integration was not rerun for training-only work.
+evidence:
+- data/preparation/lexical-training/README.md
+- data/preparation/lexical-training/admission.json
+- data/preparation/lexical-training/result.json
+- data/preparation/lexical-training/all.json
+- data/preparation/lexical-training/covered.json
+- data/preparation/lexical-training/all.bin
+- data/preparation/lexical-training/covered.bin
+- scripts/experiments/story_models/lexical.py
+- tests/preparation/test_lexical_filter.py
+- Makefile

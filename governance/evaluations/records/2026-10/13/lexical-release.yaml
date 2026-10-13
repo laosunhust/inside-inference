@@ -1,0 +1,21 @@
+version: 1
+work_item: lexical-release
+question: Can the approved filtered 8K checkpoint replace the website artifact without changing tokenizer, model selection or inspection behavior?
+necessity: Owner requests website cutover after reviewing the sentence-filtering experiment.
+baseline: Website ships the unfiltered 8K story checkpoint; the covered experimental checkpoint retains the same architecture and tokenizer.
+reuse:
+- source: data/preparation/lexical-training/covered.bin and existing generated model catalog/worker
+  decision: Replace only the 8K release weights and provenance; retain training evidence and the default 4M selection.
+criteria:
+- Published 8K artifact bytes equal the retained covered checkpoint. Tokenizer, architecture, 4M/500K weights and input-preservation behavior remain unchanged.
+- Browser predictions agree with independent scalar references for the new checkpoint. Full inspection traces remain available and displayed tensors match returned observations. Keep the historical byte-stream fixture as evidence.
+- Maintain the warmed selection-24 latency gate below 250 ms with full tensors, using a fixed 32-token continuation from the new checkpoint.
+- Unit and full browser integration pass within the existing budgets. Review rendered desktop and narrow layouts.
+- Report the known immediate EOS on complete sentences and repetition; do not imply this release fixes language quality or foreign-language understanding.
+checks:
+- Artifact identity and reference generation
+- make test
+- make test-integration
+counterexamples:
+- Editing input automatically on a model switch violates the existing selection contract.
+- Discarding old training or regression evidence to replace release weights loses provenance.

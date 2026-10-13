@@ -13,8 +13,10 @@ may point at that release or a public HTTPS object-storage prefix. Model input a
 computation remain in the browser.
 
 The small story checkpoint has the existing 384-ID tokenizer and scalar model
-architecture. [Preparation evidence](../preparation/story-models/result.json) records
-its fixed training run and export verification. The main page now selects from this inventory, starting with the 4M model;
+architecture. [Preparation evidence](../preparation/lexical-training/README.md) records
+the matched sentence-filtering experiment and export verification. The released 8K
+weights are its covered-sentence checkpoint. Repetition and early EOS remain;
+foreign text is encodable, but comprehension is not established. The main page now selects from this inventory, starting with the 4M model;
 [initial.yaml](initial.yaml) owns its initial choice and workload. The previous
 Q/A checkpoint remains a preparation/KV reference, not a fourth landing-page choice.
 The 8K artifact is an inspection instrument, not a capable storyteller.

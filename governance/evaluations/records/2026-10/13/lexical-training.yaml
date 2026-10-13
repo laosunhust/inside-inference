@@ -1,0 +1,27 @@
+version: 1
+work_item: lexical-training
+question: Does selecting intact vocabulary-covered sentences reduce malformed output from the 8K model without changing its tokenizer or decoding policy?
+necessity: Owner requests a bounded training-data comparison after malformed BYTE/hex generation.
+baseline: Shipped 8168-parameter story checkpoint can select BYTE followed by invalid hex continuations. Its training includes arbitrary TinyStories text.
+reuse:
+- source: scripts/experiments/story_models/train.py and the existing TensorModel, tokenizer and local TinyStories parquet
+  decision: Reuse architecture, initialization, optimizer and export validation. Do not replace the shipped model.
+criteria:
+- Audit the existing training and development row ranges for fallback token share and intact sentence coverage, both exact and lowercased. No words may be removed from retained sentences.
+- Freeze prompts and selection rules before training. Use disjoint source rows for training and development; exclude exact development sentences from training.
+- If at least 200 distinct covered training sentences and 20 covered development sentences survive lowercasing, compare all lowercased sentences with covered lowercased sentences. Otherwise stop after the audit.
+- Both runs use the same seed, architecture, batch, steps and optimizer as the existing 4000-step preparation; cap combined experiment wall time at 20 minutes. One run per arm, no retries or tuning based on results.
+- Preserve all 384 token IDs and unrestricted greedy decoding. Evaluate identical frozen familiar and unfamiliar prompts for up to 64 new tokens, respecting context and end tokens.
+- Report malformed terminal output, byte selections, empty output, repetition and all continuations. A useful signal requires fewer malformed familiar continuations than the matched baseline and nonempty output on at least 80 percent of familiar prompts. Report unfamiliar-input behavior separately; no comprehension claim.
+- Independently compare exported logits with the scalar model. Training loss across different corpora is not evidence of quality improvement.
+- Record source identities, corpus counts and selection evidence. Keep experimental checkpoints separate; no automatic website promotion.
+checks:
+- Preparation component tests for sentence retention and fallback counting
+- Corpus audit before training
+- Matched training, fixed-prompt generation and independent export comparison
+- make _test-preparation
+counterexamples:
+- A model can still emit BYTE despite no BYTE targets; zero failures in a small sample is not a guarantee.
+- Filtering changes data diversity and repeated exposure, not just fallback frequency.
+- Lowercasing loses case information; both arms use it, but the shipped checkpoint does not.
+- Sentence boundaries use a conservative heuristic, not a linguistic parser; retained text must remain an intact source substring apart from declared lowercasing and boundary whitespace.

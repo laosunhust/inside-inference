@@ -1,0 +1,132 @@
+{
+  "config": {
+    "version": 1,
+    "seed": 7,
+    "architecture": {
+      "vocabulary": 384,
+      "width": 8,
+      "ffn": 16,
+      "context": 128,
+      "layers": 1,
+      "heads": 1,
+      "epsilon": 1e-05,
+      "position": "learned-absolute",
+      "normalization": "pre-layernorm",
+      "activation": "gelu-tanh",
+      "precision": "binary64"
+    },
+    "dataset": "karpathy/tinystories-gpt4-clean",
+    "revision": "0397e27157956705a0260709da3095bb9c43d6a7",
+    "train_rows": [
+      20000,
+      22000
+    ],
+    "development_rows": [
+      10000,
+      10100
+    ],
+    "steps": 4000,
+    "batch": 32,
+    "sequence_length": 128,
+    "learning_rate": 0.003,
+    "weight_decay": 0.01,
+    "clip_gradient": 1.0,
+    "validation_interval": 200,
+    "validation_windows": 32,
+    "selection": "minimum-development-token-loss",
+    "framing": "BOS + unmodified story text + EOS",
+    "quality_gate": "none"
+  },
+  "prompts": {
+    "familiar": [
+      "a little cat had a red ball.",
+      "the cat was",
+      "the dog had a",
+      "ben went to the",
+      "ann had a",
+      "the sun was",
+      "the ball is in the",
+      "i want to play",
+      "she was happy",
+      "he had a big"
+    ],
+    "unfamiliar": [
+      "a giraffe had a",
+      "the robot was",
+      "你好",
+      "un éléphant",
+      "the cat met Zorvik.",
+      "a little cat had a red ball. ありがとう"
+    ]
+  },
+  "source_sha256": "8bacd849e57784e06ebaaab3ef7b01077ca2d9d27ce7d95f2fbe465f1483548b",
+  "tokenizer_sha256": "e5edde07a3002a8f1343f99f7664f45b76d33077fd90a9f71991b6d346ce3477",
+  "source_code_sha256": {
+    "scripts/experiments/story_models/lexical.py": "249c529d31ea096806a9eff804879fe30d18d8e0e618a791b77a08ed4d932541",
+    "inside_inference/tensor_model.py": "3b4da64e66194e79d963e65e2762d286188e7299dea792aea22decbeaaf25f26",
+    "inside_inference/model.py": "998dbbeb8d044569a1b86b05011a87190cb1a2489f3a880dc5319d7ad21377e7",
+    "inside_inference/tokenizer.py": "9aad91d1499a1e5f283fd8d95a8188427ddbd0d8aedc943c29e19a5588107c4c"
+  },
+  "framing": "BOS + lowercased intact sentence + EOS; no word deletion",
+  "audit": {
+    "train": {
+      "rows": 2000,
+      "positions": 2517646,
+      "fallback_positions": 1961226,
+      "fallback_fraction": 0.7789919631274611,
+      "sentences": 32795,
+      "exact_covered": 0,
+      "lowercase_covered": 1090,
+      "distinct_covered": 904,
+      "covered_examples": [
+        "she did not have any friends to play with.",
+        "the cat was sad because it had no friends to play with.",
+        "but, the bird was scared of tom.",
+        "she did not want her friend to be sad.",
+        "they were friends.",
+        "he did not see the rabbit behind the tree.",
+        "the bear was sad.",
+        "the tree and the bird were happy together.",
+        "they did not know what it was for.",
+        "tom found a big book and put it on the chair.",
+        "it was a big, sad dog.",
+        "they did not want to say."
+      ]
+    },
+    "development": {
+      "rows": 100,
+      "positions": 124220,
+      "fallback_positions": 96657,
+      "fallback_fraction": 0.7781114152310417,
+      "sentences": 1583,
+      "exact_covered": 0,
+      "lowercase_covered": 48,
+      "distinct_covered": 48,
+      "covered_examples": [
+        "they were happy together.",
+        "now, it was time for bed.",
+        "she put them on and ran to the car.",
+        "they were happy.",
+        "he could not wait to play with it.",
+        "but the box was too small.",
+        "they had hurt each other.",
+        "sorry, brother.",
+        "we were wrong.",
+        "i love you.",
+        "we will.",
+        "he was so happy!"
+      ]
+    },
+    "distinct_train_after_dedup": 891,
+    "corpus_sha256": {
+      "train": {
+        "all": "f145319a71ae289fc8466de5e84862f7ea541d805a910faf5c9d39480d477484",
+        "covered": "3b0c2fa4ddebedd2b7f00e3795b507713f0e265d3c4a79008415e24a00361fc2"
+      },
+      "development": {
+        "all": "821624643c369ec25af3c693f89f33cf382870809f5c071894ea3e01817950cb",
+        "covered": "80a231b0e53b3950e3d9f9b2d183ba034f33a347fb83681102a7b172d4bc3424"
+      }
+    }
+  }
+}
