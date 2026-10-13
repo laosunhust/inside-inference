@@ -1,0 +1,63 @@
+<section class="playground" id="playground">
+<div class="play-heading"><h1>What happens if you change this?</h1></div>
+<section id="control-plane" class="control-plane" aria-label="Experiment configuration">
+<h2>Experiment</h2>
+<div id="binding-status" role="status" class="binding-status" hidden></div>
+<div class="configuration-cards">
+<button id="open-input" class="configuration-card input-card" type="button" aria-haspopup="dialog" aria-controls="input-dialog"><strong>Input</strong><small>Reproduce a scenario</small><span class="configuration-indicator" aria-hidden="true">›</span></button>
+<button id="open-system" class="configuration-card system-card" type="button" aria-haspopup="dialog" aria-controls="system-dialog"><strong>Inference system</strong><small id="active-model-summary"></small><span class="configuration-indicator" aria-hidden="true">›</span></button>
+<button id="open-client" class="configuration-card client-card" type="button" aria-haspopup="dialog" aria-controls="client-dialog"><strong>Output</strong><small>Investigate user experience</small><span class="configuration-indicator" aria-hidden="true">›</span></button>
+</div>
+<dialog id="input-dialog" aria-labelledby="input-dialog-title"><div class="panel-heading"><h2 id="input-dialog-title">Input transformations</h2><button type="button" class="dialog-close" aria-label="Close input configuration">Done</button></div><div id="configure-input" class="configuration-fields"></div></dialog>
+<dialog id="system-dialog" aria-labelledby="system-dialog-title"><div class="panel-heading"><h2 id="system-dialog-title">Inference system</h2><button type="button" class="dialog-close" aria-label="Close system configuration">Done</button></div><div id="configure-system" class="configuration-fields"></div><details id="resource-settings"><summary>KV residency simulation · 8K</summary><label><input id="resource-enabled" type="checkbox"> Enable</label><div id="resource-fields" class="configuration-fields"></div></details><h3 class="unavailable-heading">Not adjustable here yet</h3><div id="unavailable-system" class="unavailable-components"></div></dialog>
+<dialog id="client-dialog" aria-labelledby="client-dialog-title"><div class="panel-heading"><h2 id="client-dialog-title">Output · Client</h2><button type="button" class="dialog-close" aria-label="Close client configuration">Done</button></div><div id="configure-client" class="configuration-fields"></div></dialog>
+</section>
+<section id="data-plane" class="pass-panel" aria-label="Interaction">
+<h2>Interaction</h2>
+<div id="workload-boundary">
+<div class="request-preview"><small id="source-label">Input</small> <strong id="request-preview"></strong><span class="request-actions"><button id="edit-input" type="button" aria-expanded="false" aria-controls="inference-form">Edit</button></span></div>
+<form id="inference-form" class="source-editor" hidden><div class="configuration-fields"><fieldset><legend>Model</legend><label for="model-choice">Checkpoint</label><select id="model-choice" disabled></select><p id="model-loading" role="status"></p><button id="retry-model" type="button" hidden>Retry loading</button><details><summary>Model details</summary><div id="active-model-details"></div></details></fieldset></div><div id="request-fields"><label for="prompt">Input<textarea id="prompt" rows="2"></textarea></label><label for="output-budget">Maximum new tokens<input id="output-budget" type="number"></label></div>
+<div id="resource-requests" class="configuration-fields" hidden></div><button id="add-request" type="button" hidden>Add request</button><div class="configuration-actions"><button id="execute" class="primary" disabled>Apply</button>
+</div>
+<p id="run-error" role="alert" hidden></p></form></div>
+<div id="client-boundary" class="request-preview"><small>Output</small><strong id="response-preview"></strong><span class="request-actions"><button id="reset" type="button" disabled>Reset</button><button id="output-details" type="button" data-entity="response" data-term="Response" aria-expanded="false" aria-controls="sequence-details">Details</button></span></div>
+<p id="generation-note" class="muted" role="status"></p>
+<div class="prediction-controls"><button id="next-token" class="primary" type="button" disabled>Next Token</button><button id="continue-tokens" class="secondary" type="button" disabled>Generate</button><button id="stop-tokens" type="button" hidden>Stop</button></div>
+</section>
+<section id="explanation" class="numerical-inspector" aria-label="Explanation"><h2>Explanation</h2>
+<section id="resource-explanation" hidden></section><div id="sequence-details" hidden><p id="pass-caption"></p><div id="sequence-strip" class="token-strip" aria-label="Combined input and output tokens"></div></div>
+<section class="execution-journey" aria-label="Execution path">
+<div class="execution-heading"><h2>System map</h2><span id="computation-caption"></span><div class="prediction-controls"><button id="token-journey" class="secondary" type="button" aria-pressed="false">Token Journey</button></div></div>
+<div id="system-map" class="system-map"></div>
+<div class="execution-endpoint" hidden>
+<label id="layer-control" hidden>Transformer block <select id="explanation-layer" aria-label="Transformer layer"></select></label>
+<div class="execution-scroll"><div id="execution-canvas">
+<svg id="execution-edges" aria-hidden="true"><defs><marker id="path-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0,0 6,3 0,6"/></marker></defs></svg>
+<ol id="computation-path" class="execution-path" aria-label="Transformer stages"></ol>
+</div></div>
+</div>
+
+</section>
+<!-- The declared conceptual graph owns shape; observations only supply evidence. -->
+
+<section id="numerical-inspector" aria-label="Computation details">
+<div class="panel-heading"><h2 id="detail-title">Details</h2><span><a id="definition-link" href="ontology.html">Ontology ↗</a> · <a id="labs-link" hidden>Labs ↗</a><span id="labs-empty">No primary lab yet</span></span></div><p id="definition"></p>
+<p id="inspection-context" role="status"></p><div id="concept-body"></div>
+<details id="numerics"><summary>Numerics</summary>
+<p id="inspection-unavailable" hidden>Intermediate tensors not captured. <button id="switch-inspection" type="button">Switch to 8K for tensors</button></p>
+<div id="detail-body"></div>
+<details class="model-notes"><summary>Execution evidence</summary><script id="run-identity" type="application/json"></script><button id="download-run" disabled>Download evidence</button></details>
+</details>
+</section>
+</section>
+<noscript><p>JavaScript is needed to inspect the trace. <a href="naive-gpt-contract.html">Read the experiment contract</a>.</p></noscript>
+</section>
+<script id="inference-data" type="application/json">__INFERENCE_DATA__</script>
+<script src="contract-validators.generated.js" defer></script>
+<script src="contract-runtime.js" defer></script>
+<script src="declarations.generated.js" defer></script><script src="execution/client.generated.js" defer></script>
+<script src="inspection/details.js" defer></script>
+<script src="inspection/system-map.js" defer></script>
+<script src="inspection/path.js" defer></script>
+<script src="inspection/configuration.js" defer></script>
+<script type="module" src="inspection/page.js" defer></script>

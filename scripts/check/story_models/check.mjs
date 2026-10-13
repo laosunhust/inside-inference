@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
+import {checkExecution} from './execution.mjs';
+import {checkMap,checkJourney} from './system-map.mjs';
 import {readFile,writeFile,rename,access} from 'node:fs/promises';
 
 export async function checkModels({send,evaluate,until,base,output,site,assetBase,requests=[]}) {
-  const evidence={models:[],numerical:[],storage:[],tokenizer:[],screenshots:[]};
+  const evidence={models:[],numerical:[],storage:[],tokenizer:[],screenshots:[],execution:[]};
   const fixtureRoot=new URL('../../../data/preparation/story-models/',import.meta.url);
   const references=JSON.parse(await readFile(new URL('export.json',fixtureRoot),'utf8'));
   const raw=await readFile(new URL('logits.bin',fixtureRoot));
@@ -20,18 +22,18 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
   await send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:output});
   const comparable=result=>{const value=structuredClone(result);delete value.compute_ms;return value;};
   try {
-    await navigate();evidence.ready_ms=performance.now()-started;await empty();
+    await navigate();evidence.ready_ms=performance.now()-started;await empty();await checkMap({evaluate,send},true);
     const initial=await evaluate("JSON.parse(document.getElementById('inference-data').textContent)");
-    assert.equal(initial.experiment.model_id,'tinyllm-4m');
-    assert.equal(await evaluate("document.getElementById('model-choice').value"),initial.experiment.model_id);
+    assert.equal(initial.execution.experiments.find(x=>x.control==='model').value,'tinyllm-4m');
+    assert.equal(await evaluate("document.getElementById('model-choice').value"),initial.execution.experiments.find(x=>x.control==='model').value);
     assert.equal(await evaluate("document.getElementById('change-model')===null && document.getElementById('inference-form').contains(document.getElementById('model-choice'))"),true);
     assert.equal(await evaluate("document.getElementById('continue-tokens').textContent"),'Generate');
     assert.equal(await evaluate("document.getElementById('data-plane').contains(document.getElementById('next-token')) && document.getElementById('explanation').contains(document.getElementById('token-journey'))"),true);
     assert.ok(requests.every(r=>!r.url.endsWith('tinyllm-8k.bin')&&!r.url.endsWith('tinyllm-0.5m.bin')),'Only the initial model may auto-load');
     const catalog=await evaluate('Execution.modelCatalog()');
     assert.equal(catalog.models.length,3);
-    const inputFor=(id,text)=>{const value=structuredClone(initial);value.experiment.model_id=id;value.workload.requests[0].request.text=text;value.workload.requests[0].request.generation.max_new_tokens=8;return value;};
-    const requestFor=(input,ids)=>({experiment:input.experiment,prefix_ids:ids,output_ids:[],generation:input.workload.requests[0].request.generation});
+    const inputFor=(id,text)=>{const value=structuredClone(initial);value.execution.experiments.find(x=>x.control==='model').value=id;value.workload.requests[0].request.text=text;value.workload.requests[0].request.generation.max_new_tokens=8;return value;};
+    const requestFor=(input,ids)=>({execution:input.execution,prefix_ids:ids,output_ids:[],generation:input.workload.requests[0].request.generation});
     for(const model of catalog.models) {
       const m=JSON.stringify(model.id);
       const loaded=await evaluate(`Execution.loadModel({model_id:${m}})`);Declarations.assertShape('ModelLoadResult',loaded);
@@ -49,7 +51,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         assert.ok(timings.sort((a,b)=>a-b)[1]<250,`8K token latency ${timings}: inspect validation overhead`);
         assert.equal(prediction.decoding_note,null,'Covered checkpoint continuation must decode without repair');
         prediction.logits.forEach((v,i)=>assert.ok(Math.abs(v-fixture.logits_at_selection_24[i])<1e-12));
-        assert.ok(prediction.nodes.some(n=>n.operation.name==='attention'&&n.values.length===request.prefix_ids.length+23),'Retain the full uncached trace');
+        assert.ok(prediction.nodes.some(n=>n.operation.name==='attention'&&n.positions.at(-1)===request.prefix_ids.length+22),'Capture the final query attention without inventing masked cells');
         const terminal=structuredClone(request);terminal.generation.max_new_tokens=24;
         const stopped=await evaluate(`Execution.generateToken(${JSON.stringify(terminal)})`);assert.equal(stopped.decoding_note,null);assert.equal(stopped.stop_reason,'output_budget');
         evidence.streaming={timings,selected_id:prediction.selected_id,nodes:prediction.nodes.length};
@@ -73,7 +75,10 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         assert.equal(await evaluate("document.getElementById('generation-note').textContent"),'End token');
 
       }
-      if(model.runtime==='llama2c-wasm') {
+      const executionInput=inputFor(model.id,model.inspection==='tensors'?'the cat was':'a little cat');
+      const executionPrepared=await evaluate(`Execution.prepareGeneration(${JSON.stringify(executionInput)})`);
+      evidence.execution.push(await checkExecution({evaluate},model,executionInput,executionPrepared));
+      if(model.architecture.precision==='binary32') {
         for(const test of references.tokenizer_cases) {
           const actual=await evaluate(`Execution.prepareGeneration(${JSON.stringify(inputFor(model.id,test.text))})`);
           assert.deepEqual(actual.prompt_ids,test.ids,JSON.stringify(test.text));
@@ -103,17 +108,21 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
       for(let i=0;i<budget;i++){result=await evaluate(`Execution.generateToken(${JSON.stringify(request)})`);Declarations.assertShape('GenerationPrediction',result);request.output_ids=result.output_ids;times.push(result.compute_ms);if(result.stop_reason)break;}
       const warm=times.slice(1).sort((a,b)=>a-b),median=warm[Math.floor(warm.length/2)];assert.ok(median<500);
       await choose(model.id);await empty();await apply(prompt,budget);
+      await checkJourney({evaluate},prepared.prompt_ids);
       await click('continue-tokens');await until("document.getElementById('stop-tokens').hidden && !document.getElementById('reset').disabled");
       const interactive=await snapshot();assert.deepEqual(comparable(interactive),comparable(result));
       if(model.id==='tinyllm-8k'){const fixture=JSON.parse(await readFile(new URL('../../../tests/fixtures/integration/tiny-covered.json',import.meta.url),'utf8'));assert.deepEqual(interactive.output_ids,fixture.output);assert.equal(await evaluate("document.getElementById('generation-note').textContent"),'Token budget reached');}
       if(model.id==='tinyllm-4m') {
-        const {rm}=await import('node:fs/promises');await rm(output+'/inference-run.json',{force:true});await click('download-run');
+        const {rm}=await import('node:fs/promises');await rm(output+'/inference-run.json',{force:true});await evaluate("document.querySelector('#numerics>summary').click()");await click('download-run');
         let exported;for(let i=0;i<100;i++){try{exported=JSON.parse(await readFile(output+'/inference-run.json','utf8'));break;}catch{await new Promise(r=>setTimeout(r,50));}}
         assert.deepEqual(exported.prediction,interactive,'Download must contain the current accepted prediction');
         assert.deepEqual(exported.input,input);assert.deepEqual(exported.model,model);
+        await evaluate("document.querySelector('#numerics>summary').click()");
       }
       assert.equal(await evaluate("document.getElementById('response-preview').textContent"),result.text);
       assert.equal(await evaluate("document.getElementById('active-model-summary').textContent"),`${model.parameters.toLocaleString('en-US',{notation:'compact',maximumFractionDigits:0})} params · ${model.architecture.layers} ${model.architecture.layers===1?'layer':'layers'}`);
+      await checkMap({evaluate,send});
+      await checkJourney({evaluate},[...interactive.request.prefix_ids,...interactive.request.output_ids]);
       assert.equal(await evaluate("document.querySelectorAll('#computation-path li').length>0"),true);
       assert.equal(await evaluate("document.getElementById('inspection-unavailable').hidden"),model.inspection==='tensors');
       if(model.inspection!=='tensors') {
@@ -127,27 +136,30 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         assert.equal(await evaluate("document.getElementById('explanation-layer').value"),'2');
         assert.match(await evaluate("document.getElementById('inspection-context').textContent"),/layer 3/);
         await evaluate("Array.from(document.querySelectorAll('#computation-path button')).find(b=>b.textContent==='Attention').click()");
-        assert.match(await evaluate("document.getElementById('detail-body').textContent"),/RoPE/);
-        const before=await snapshot();await click('token-journey');
+        assert.match(await evaluate("document.getElementById('concept-body').textContent"),/rope/);
+        const before=await snapshot();await evaluate("document.getElementById('map-engine').open=false");await click('token-journey');
         await until("document.getElementById('inspection-context').dataset.surface==='architecture'");
         assert.equal(await evaluate("document.getElementById('inspection-context').dataset.observationId"),'');
         assert.equal(await evaluate("document.querySelectorAll('#computation-path .selected-object').length"),1);
+        assert.equal(await evaluate("document.getElementById('map-engine').open"),true,'Replay reveals the selected computation');
         assert.deepEqual(await snapshot(),before,'Walkthrough must not execute or replace evidence');
         await click('token-journey');
       }
       await click('output-details');
       assert.deepEqual(await evaluate("Array.from(document.querySelectorAll('#sequence-strip small'),s=>Number(s.textContent.split('#')[1]))"),result.sequence_ids);
       if(model.inspection==='tensors') {
-        await evaluate("document.querySelector('#computation-path [data-operation=attention]').click()");
+        await evaluate("Array.from(document.querySelectorAll('#computation-path button')).find(b=>b.textContent==='Attention').click()");
         const shown=await evaluate("JSON.parse(document.querySelector('#detail-body script').textContent)");
         assert.deepEqual(shown,result.nodes.find(n=>n.id===shown.id));
         const inputId=shown.inputs.find(id=>result.nodes.some(n=>n.id===id));
         await evaluate(`document.querySelector('#observation-inputs [data-observation-id="${inputId}"]').click()`);
         assert.equal(await evaluate("document.getElementById('inspection-context').dataset.observationId"),inputId);
+        assert.equal(await evaluate("document.querySelectorAll('#computation-path .selected-object').length"),1,'Observed operands retain their declared diagram home');
       }
       for(const [label,width,height] of [['desktop',1280,1000],['mobile',390,844]]) {
         await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<500});
         assert.ok(await evaluate('document.documentElement.scrollWidth<=window.innerWidth'),'Horizontal overflow');
+        await evaluate("document.getElementById('system-map').scrollIntoView({block:'start'})");
         await writeFile(output+'/'+model.id+'-'+label+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
       }
       evidence.screenshots.push(model.id);
@@ -168,15 +180,17 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
     assert.equal(await evaluate("document.getElementById('request-preview').textContent"),'a cat');
     assert.equal(await evaluate("Number(document.getElementById('output-budget').value)"),5);
     await click('next-token');await ready();
-    await click('token-journey');await until("document.getElementById('inspection-context').dataset.surface==='model'");
+    await click('token-journey');await until("document.getElementById('inspection-context').dataset.surface==='architecture'");
     assert.equal(await evaluate("document.querySelectorAll('#computation-path .selected-object').length"),1);
+        assert.equal(await evaluate("document.getElementById('map-engine').open"),true,'Replay reveals the selected computation');
     await click('reset');await empty();await new Promise(r=>setTimeout(r,700));
     assert.equal(await evaluate("document.getElementById('token-journey').getAttribute('aria-pressed')"),'false');
-    // Preview-only configurations must disable actual generation without replacing observations.
+    // Real configuration resets accepted output and is retained in execution evidence.
     await click('next-token');await ready();
-    await evaluate("document.getElementById('configure-system-attention-mechanism').value='kda';document.getElementById('configure-system-attention-mechanism').dispatchEvent(new Event('change'))");
-    assert.equal(await evaluate("document.getElementById('next-token').disabled"),true);
-    await evaluate("document.getElementById('configure-system-attention-mechanism').selectedIndex=0;document.getElementById('configure-system-attention-mechanism').dispatchEvent(new Event('change'))");
+    await evaluate("document.getElementById('kv-reuse').checked=true;document.getElementById('kv-reuse').dispatchEvent(new Event('change'))");await ready();await empty();
+    await click('next-token');await ready();const configured=await snapshot();
+    assert.equal(configured.request.execution.experiments.find(e=>e.control==='kv_reuse').value,true);
+    await evaluate("document.getElementById('kv-reuse').checked=false;document.getElementById('kv-reuse').dispatchEvent(new Event('change'))");await ready();
     // Input edits during weight loading keep the newly typed source, but never stale tokens.
     await click('edit-input');
     await evaluate("document.getElementById('model-choice').value='tinyllm-500k';document.getElementById('model-choice').dispatchEvent(new Event('change'));document.getElementById('prompt').value='a dog';document.getElementById('prompt').dispatchEvent(new Event('input'))");await ready();await empty();

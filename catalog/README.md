@@ -4,13 +4,10 @@
 `make _intro-page` validates it and builds a portable site under `out/intro-page/`.
 Edit sources, never generated HTML. The site's presentation lives in `web/` and
 its generator in `scripts/build/intro_page.py`. The visual landing page inspects actual
-GPT runs from `inside_inference/generation.py`; the catalog is rendered at `atlas.html`.
-The separate `request-cost.html` replays bounded cost traces from `inside_inference/labs/journey.py`.
-
-The request playground also generates an ontology view from
-the YAML modules in `docs/ontology/`. Selectable visual objects reference canonical terms;
-phase explanations use recorded event rules and state snapshots. Keep these
-connections intact when adding visual mechanisms.
+selected-model computations and resource experiments through the same main-page flow.
+The catalog is rendered at `labs-by-concept.html`; the ontology-driven system map
+locates their primary subjects. Field meanings come from `docs/ontology/`, and
+executed observations supply the numbers. There is no parallel atlas or request-cost page.
 
 ## Connect to the request journey
 
@@ -104,7 +101,7 @@ transfer and queueing assumptions.
 
 Run `make _check`, `make test`, and `make _intro-page` before completing a lab change.
 Check browser behavior when changing interactive controls. Preserve existing IDs
-so links from the atlas, other labs, and external discussions remain useful.
+so links from the concept index, other labs, and external discussions remain useful.
 
 The reader-facing concept index includes only subjects bound to a current or
 planned lab. Ontology membership alone does not create a learning topic: experiment

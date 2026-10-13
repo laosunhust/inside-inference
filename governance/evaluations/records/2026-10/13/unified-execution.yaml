@@ -1,0 +1,31 @@
+version: 1
+work_item: unified-execution
+question: Can one declared execution configuration and numerical engine run every shipped model, with configurable KV reuse and one conceptual journey?
+necessity: Runtime-specific model execution and trace-dependent diagrams currently make model choice silently select an execution policy and a different explanation.
+baseline: The 8K model executes Python full-prefix passes; larger models execute cached llama2.c steps. Two diagram builders derive different shapes from observations and runtime recipes.
+reuse:
+- source: Pinned llama2.c numerical kernels and tokenizer, existing scalar model reference and recorded browser fixtures
+  decision: Reuse the established operations and fixtures while consolidating browser execution; preserve the shipped weights and truthful architecture differences.
+- source: Existing ontology-owned operation and system-map declarations
+  decision: One declared conceptual journey supplies navigation; observed values attach to its stages rather than supplying its shape.
+criteria:
+- ExecutionSpec composes ExperimentSpec controls for a single execution against separate customer input. Unsupported controls and conflicting assignments fail explicitly.
+- All three shipped models use one numerical engine. Architecture and precision differences are explicit model properties, not implicit execution-policy choices.
+- KV reuse and full-prefix recomputation are selectable for every model. Shared-prefix logits and token choices agree within declared precision tolerances; branch, reset and model changes cannot consume stale state.
+- Evidence records the consumed execution configuration and actual processed versus retained positions. Reuse changes executed work, not merely a label.
+- All models share one declared conceptual diagram before and after generation. Position encoding, normalization and activation differences remain truthful in progressively disclosed details.
+- Actual input pieces and IDs connect input to embedding and executed prefill/decode without requiring tensor inspection. Captured numerical details describe only the selected model and work.
+- Delete superseded model-specific browser execution and diagram authorities; preserve original evidence and independent correctness references where they remain necessary.
+- Pass numerical and behavioral regressions, generated-interface and governance checks, and complete unit/integration workflows within existing budgets. Review desktop and narrow rendered layouts.
+checks:
+- Component rejection tests for conflicting and unsupported controls
+- Browser shared-prefix cached/recomputed comparisons for all shipped models
+- Browser reset, branching, model switching and observed-work assertions
+- Single diagram shape and input association assertions
+- make test
+- make test-integration
+counterexamples:
+- Common conceptual stages do not imply identical model equations or identical weights.
+- An ExperimentSpec list combines controls; it does not request a sweep of independent runs.
+- KV retention is not a claim about hardware placement, bandwidth or production latency.
+- Numerical tolerance alone does not establish identical greedy choices; record near ties and compare choices explicitly.

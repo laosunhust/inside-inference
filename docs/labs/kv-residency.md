@@ -43,12 +43,19 @@ on other hardware remains a hypothesis, not a conclusion from these tests.
 
 ## Executable boundaries
 
-`KVExperimentInput` submits `KVResidencySystemConfig` and the chronological `Workload`.
-The completed run records `KVRunBinding`, adding the host-selected model identity,
-and shared `ExecutionProvenance` with the source inventory and observed backend.
-The generated contracts govern direct, CLI, HTTP, and browser execution. Each
-experiment starts with an empty retained cache. The uncached landing page remains
-an explicit reference; `kv-cache.html` is the connected cache/resource lab.
+The main page configures this experiment through the cache, scheduling, transfer and
+compute-service `ExperimentSpec` controls composed by its `ExecutionSpec`. Input arrives through the same `Workload`.
+Generate returns `ResourceExecution`: submitted input, a `CacheRun` and decoded
+outputs. The internal `KVExperimentInput` binds the resource configuration and
+ontology subjects; `KVRunBinding` records the selected model and tokenizer.
+There is no dedicated execution page or independently selected checkpoint.
+
+The supported browser configuration is currently the 8K artifact with KV reuse.
+Encoding is BOS plus the exact text, and EOS terminates generation, matching
+ordinary main-page continuation. Larger-model resource state and uncached
+resource scheduling fail explicitly. Each experiment starts with an empty cache.
+The historical report above used an older chat-framed checkpoint; it is not
+performance or quality evidence for the current selected model.
 
 The scheduler admits FIFO requests only when a full maximum-sequence KV reservation
 and a request slot are available. Active requests then alternate one work item at

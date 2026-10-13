@@ -1,14 +1,15 @@
 terms:
   InspectionState:
-    meaning: One selected position in an identified accepted token sequence, with
-      one shared diagram/detail surface and architecture or observation selection. Selection and journey replay never execute inference.
-    lifetime: Changes on inspection; reset when input is applied or output is reset. Execution identity is null until a computation exists.
+    meaning: One selected position in an identified accepted token sequence, with one shared diagram/detail
+      surface and architecture or observation selection. Selection and journey replay never execute inference.
+    lifetime: Changes on inspection; reset when input is applied or output is reset. Execution identity
+      is null until a computation exists.
     owns:
-    - Sequence position shared by token highlighting, derived recorded computation
-      and the next submitted raw prefix.
-    - Shared diagram/detail focus and journey selection, distinguishing declared architecture from captured observations.
-    - Executed observation selection; inspecting an operand never changes the generation
-      prefix.
+    - Sequence position shared by token highlighting, derived recorded computation and the next submitted
+      raw prefix.
+    - Shared diagram/detail focus and journey selection, distinguishing declared architecture from captured
+      observations.
+    - Executed observation selection; inspecting an operand never changes the generation prefix.
     excludes:
     - input text
     - model or generation configuration
@@ -18,8 +19,8 @@ terms:
     - InspectionState
   ApiError:
     meaning: An explicit transport admission or execution failure message.
-    lifetime: Produced for a rejected or failed service operation; a completed execution
-      record need not exist.
+    lifetime: Produced for a rejected or failed service operation; a completed execution record need not
+      exist.
     owns:
     - An explicit transport admission or execution failure message.
     excludes:
@@ -30,20 +31,3 @@ terms:
     projections: {}
     schemas:
     - ApiError
-  ExecutionCapabilities:
-    meaning: "The running service\u2019s advertised execution support and contract\
-      \ compatibility information."
-    lifetime: A service-discovery snapshot; refresh when connecting to or reconnecting
-      with a service.
-    owns:
-    - Engine and contract identity used to check client/service compatibility.
-    - Numerical backends advertised as available by the service.
-    excludes:
-    - The configuration selected for an experiment
-    - Measured performance or calibrated hardware capacity
-    - Evidence of the backend or implementation that actually executed a run
-    capability_reads: []
-    projections: {}
-    schemas:
-    - Capabilities
-    - CacheCapabilities

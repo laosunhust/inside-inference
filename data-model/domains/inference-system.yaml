@@ -1,36 +1,4 @@
 $defs:
-  InferenceSystem:
-    type: object
-    x-owner: InferenceSystem
-    additionalProperties: false
-    required:
-    - max_new_tokens_cap
-    - max_requests
-    - dispatch
-    - model_execution
-    properties:
-      max_new_tokens_cap:
-        type: integer
-        title: Supported new-token limit
-        description: Supported baseline value.
-        const: 16
-        default: 16
-      max_requests:
-        type: integer
-        title: Supported request count
-        description: Supported request count
-        minimum: 0
-        maximum: 9007199254740991
-        const: 1
-        default: 1
-      dispatch:
-        type: string
-        title: Direct dispatch
-        description: One in-process execution endpoint; no router, queue, network or placement simulation.
-        const: direct-in-process
-        default: direct-in-process
-      model_execution:
-        $ref: '#/$defs/FullPrefixExecutionConfig'
   GenerationPolicy:
     type: object
     x-owner: GenerationPolicy
@@ -46,7 +14,7 @@ $defs:
         description: Maximum number of selected IDs, including an end token. May stop earlier.
         minimum: 1
         default: 11
-        x-maximum-from: system.max_new_tokens_cap
+        x-maximum-from: KVRunBinding.system.max_new_tokens_cap
         maximum: 128
       selection:
         type: string
@@ -59,9 +27,8 @@ $defs:
         title: Stopping rule
         description: Stop at the configured model end token or output budget; context capacity also bounds
           execution.
-        default: turn-end-or-budget
+        default: model-end-or-budget
         enum:
-        - turn-end-or-budget
         - model-end-or-budget
   InferenceRequest:
     type: object
@@ -128,7 +95,6 @@ $defs:
     required:
     - max_requests
     - max_new_tokens_cap
-    - model_execution
     - scheduling
     - kv_cache
     - transfer
@@ -142,8 +108,6 @@ $defs:
         type: integer
         const: 16
         default: 16
-      model_execution:
-        $ref: '#/$defs/CachedExecutionConfig'
       scheduling:
         $ref: '#/$defs/RequestSchedulingConfig'
       kv_cache:
@@ -152,65 +116,6 @@ $defs:
         $ref: '#/$defs/StateTransferConfig'
       compute_service:
         $ref: '#/$defs/ComputeServiceConfig'
-  TokenPublished:
-    type: object
-    x-owner: InferenceResponse
-    additionalProperties: false
-    required:
-    - kind
-    - work_id
-    - token_ids
-    - output_start
-    - display_delta
-    properties:
-      kind:
-        type: string
-        title: Event kind
-        description: Event kind
-        const: token-published
-        default: token-published
-      work_id:
-        type: string
-        title: Producing computation
-        description: Producing computation
-      token_ids:
-        type: array
-        title: Published token IDs
-        description: Published token IDs
-        items:
-          type: integer
-          title: Published token ID
-          description: Published token ID
-          minimum: 0
-          maximum: 9007199254740991
-        minItems: 1
-      output_start:
-        type: integer
-        title: Published output token offset
-        description: Published output token offset
-        minimum: 0
-        maximum: 9007199254740991
-      display_delta:
-        type: string
-        title: Diagnostic text published to the output collector
-        description: Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear
-          as labeled markers.
-  RequestFinished:
-    type: object
-    x-owner: InferenceResponse
-    additionalProperties: false
-    required:
-    - kind
-    - outcome
-    properties:
-      kind:
-        type: string
-        title: Event kind
-        description: Event kind
-        const: request-finished
-        default: request-finished
-      outcome:
-        $ref: '#/$defs/RunOutcome'
   RunOutcome:
     type: object
     x-owner: InferenceResponse
@@ -242,98 +147,9 @@ $defs:
         title: Termination condition
         description: Recorded by the execution loop.
         enum:
-        - turn_end
+        - end_token
         - output_budget
       complete:
         type: boolean
         title: Turn complete
         description: True only if TURN_END was selected.
-  DecodingContract:
-    type: object
-    properties:
-      choice:
-        type: string
-      explanation:
-        type: string
-      rule:
-        type: string
-    required:
-    - choice
-    - explanation
-    - rule
-    additionalProperties: false
-    x-owner: GenerationPolicy
-  SystemConfigurationPreview:
-    type: object
-    x-owner: InferenceSystem
-    title: Inference system
-    description: Expandable mechanism configuration preview; independent of the executed system binding.
-    additionalProperties: false
-    required:
-    - attention
-    properties:
-      attention:
-        $ref: '#/$defs/AttentionConfiguration'
-  WorkloadTransformationPreview:
-    type: object
-    x-owner: Workload
-    title: Input transformations
-    description: Rules over the data-plane source input. Nonzero choices preview an intended workload
-      transformation; the baseline does not generate variants, random messages, or timed arrivals.
-    additionalProperties: false
-    required:
-    - suffix_variants
-    - random_messages
-    - arrival_spacing_us
-    properties:
-      suffix_variants:
-        type: integer
-        title: Suffix variants
-        minimum: 0
-        maximum: 9007199254740991
-        default: 0
-      random_messages:
-        type: integer
-        title: Random messages
-        minimum: 0
-        maximum: 9007199254740991
-        default: 0
-      arrival_spacing_us:
-        type: integer
-        title: "Arrival spacing (\xB5s)"
-        minimum: 0
-        maximum: 9007199254740991
-        default: 0
-  TokenStepRequest:
-    type: object
-    x-owner: InferenceRequest
-    additionalProperties: false
-    required:
-    - checkpoint_sha256
-    - prefix_ids
-    - output_ids
-    - generation
-    - ontology_binding
-    properties:
-      checkpoint_sha256:
-        type: string
-        pattern: ^[0-9a-f]{64}$
-      prefix_ids:
-        type: array
-        items:
-          type: integer
-          minimum: 0
-          maximum: 383
-        minItems: 1
-      output_ids:
-        type: array
-        items:
-          type: integer
-          minimum: 0
-          maximum: 383
-      generation:
-        $ref: '#/$defs/GenerationPolicy'
-      ontology_binding:
-        $ref: '#/$defs/OntologyBinding'
-    description: 'One next-token invocation: exact raw prefix and supplied continuation, without chat
-      framing. Generation budget counts the continuation, not the prefix.'

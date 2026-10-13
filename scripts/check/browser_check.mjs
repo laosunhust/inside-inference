@@ -29,24 +29,22 @@ async function evaluate(expression) {
 }
 async function until(expression, attempts=100) {
   for (let i=0; i<attempts; i++) { if (await evaluate(expression)) return; await new Promise(r=>setTimeout(r,100)); }
-  throw new Error(`Timed out: ${expression}`);
+  throw new Error(`Timed out: ${expression}\n${await evaluate("document.body.innerText")}`);
 }
 const timings=[];let measuredAt=performance.now();
 const mark=name=>{const now=performance.now();timings.push({phase:name,milliseconds:now-measuredAt});measuredAt=now;};
 const click = id => evaluate(`document.getElementById(${JSON.stringify(id)}).click()`);
 try {
-  await send('Runtime.enable'); await send('Page.enable'); await send('Network.enable');
+  await send('Runtime.enable'); await send('Page.enable');
   const requests=[];
   socket.addEventListener('message',event=>{
     const data=JSON.parse(event.data);
     if(data.method==='Network.requestWillBeSent')requests.push(data.params.request);
     if(data.method==='Network.loadingFailed')console.error('Browser network failure',data.params);
-    if(data.method==='Target.attachedToTarget') {
-      const session=data.params.sessionId;
-      (async()=>{try{await send('Network.enable',{},session);}finally{await send('Runtime.runIfWaitingForDebugger',{},session);}})().catch(e=>console.error('Worker diagnostics failed',e));
-    }
+
   });
-  await send('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:true,flatten:true});
+  // Observe worker requests at the fixture servers; attaching Network during cold
+  // worker startup can abort its module/WASM downloads in Chrome.
   await send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:output});
   // Measure model wall time before journey tests enable Chrome virtual time.
   await checkModels({send,evaluate,until,base,output,site:fileURLToPath(file),assetBase,requests});
@@ -68,19 +66,6 @@ try {
       assert.deepEqual(await evaluate(`Array.from(document.querySelectorAll('#trace pre'),n=>n.textContent)`),fields.map(k=>formatValue(events[i][k])));
     }
   }
-  await send('Page.navigate', {url:base+'/request-cost.html'});
-  await until(`document.getElementById('finish-value')?.textContent`);
-  const costRuns=await evaluate(`JSON.parse(document.getElementById('journey-data').textContent)`);
-  const rates=[...new Set(Object.values(costRuns).map(r=>r.compute))].sort((a,b)=>a-b);
-  assert.equal(await evaluate(`Number(document.getElementById('compute').max)`),rates.length-1);
-  assert.deepEqual(await evaluate(`Array.from(document.getElementById('bandwidth').options,o=>Number(o.value))`),[...new Set(Object.values(costRuns).map(r=>r.bandwidth))].sort((a,b)=>a-b));
-  for(const run of Object.values(costRuns)) {
-    await evaluate(`document.getElementById('reuse').checked=${run.reuse};document.getElementById('compute').value=${rates.indexOf(run.compute)};document.getElementById('bandwidth').value=${run.bandwidth};document.getElementById('compute').dispatchEvent(new Event('input'));`);
-    assert.equal(await evaluate(`document.getElementById('finish-value').textContent`),`${Number(run.end.toFixed(3))} ticks`);
-    assert.equal(await evaluate(`document.querySelectorAll('#timeline button').length`),run.events.length);
-    await evaluate(`document.getElementById('time').value=${run.end};document.getElementById('time').dispatchEvent(new Event('input'));`);
-    assert.equal(await evaluate(`document.getElementById('output-count').textContent`),`${run.output_tokens} / ${run.output_tokens} delivered`);
-  }
   mark('existing standalone labs');
   // Failure is explicit; there is no native service to fall back to.
   const workerPath=output+'/site/execution/worker.generated.js';
@@ -96,6 +81,6 @@ try {
   assert.deepEqual(errors, []);
   mark('standalone labs and missing-worker failure');
   await writeFile(output+'/browser-timing.json',JSON.stringify(timings,null,2));
-  await writeFile(output+'/browser-checks.json',JSON.stringify({passed:true,checks:['model selection and empty initial output','apply/reset clear evidence','selected-model headless/UI numerical parity','step exports and branching in the same browser runtime','replay cancellation','configuration preview blocks execution','explicit overflow','mobile layout','cache/KDA/request-cost parity','model-family numerical/UI parity and object storage']},null,2));
+  await writeFile(output+'/browser-checks.json',JSON.stringify({passed:true,checks:['model selection and empty initial output','apply/reset clear evidence','selected-model headless/UI numerical parity','step exports and branching in the same browser runtime','replay cancellation','explicit overflow','mobile layout','cache/KDA parity','model-family numerical/UI parity and object storage']},null,2));
   console.log('Browser checks passed; screenshots and evidence: '+output);
 } finally { socket.close(); }

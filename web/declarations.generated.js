@@ -605,45 +605,6 @@ globalThis.Declarations = (() => {
     "additionalProperties": false,
     "x-owner": "ModelWeights"
   },
-  "InferenceSystem": {
-    "type": "object",
-    "x-owner": "InferenceSystem",
-    "additionalProperties": false,
-    "required": [
-      "max_new_tokens_cap",
-      "max_requests",
-      "dispatch",
-      "model_execution"
-    ],
-    "properties": {
-      "max_new_tokens_cap": {
-        "type": "integer",
-        "title": "Supported new-token limit",
-        "description": "Supported baseline value.",
-        "const": 16,
-        "default": 16
-      },
-      "max_requests": {
-        "type": "integer",
-        "title": "Supported request count",
-        "description": "Supported request count",
-        "minimum": 0,
-        "maximum": 9007199254740991,
-        "const": 1,
-        "default": 1
-      },
-      "dispatch": {
-        "type": "string",
-        "title": "Direct dispatch",
-        "description": "One in-process execution endpoint; no router, queue, network or placement simulation.",
-        "const": "direct-in-process",
-        "default": "direct-in-process"
-      },
-      "model_execution": {
-        "$ref": "#/$defs/FullPrefixExecutionConfig"
-      }
-    }
-  },
   "GenerationPolicy": {
     "type": "object",
     "x-owner": "GenerationPolicy",
@@ -660,7 +621,7 @@ globalThis.Declarations = (() => {
         "description": "Maximum number of selected IDs, including an end token. May stop earlier.",
         "minimum": 1,
         "default": 11,
-        "x-maximum-from": "system.max_new_tokens_cap",
+        "x-maximum-from": "KVRunBinding.system.max_new_tokens_cap",
         "maximum": 128
       },
       "selection": {
@@ -674,9 +635,8 @@ globalThis.Declarations = (() => {
         "type": "string",
         "title": "Stopping rule",
         "description": "Stop at the configured model end token or output budget; context capacity also bounds execution.",
-        "default": "turn-end-or-budget",
+        "default": "model-end-or-budget",
         "enum": [
-          "turn-end-or-budget",
           "model-end-or-budget"
         ]
       }
@@ -764,7 +724,6 @@ globalThis.Declarations = (() => {
     "required": [
       "max_requests",
       "max_new_tokens_cap",
-      "model_execution",
       "scheduling",
       "kv_cache",
       "transfer",
@@ -781,9 +740,6 @@ globalThis.Declarations = (() => {
         "const": 16,
         "default": 16
       },
-      "model_execution": {
-        "$ref": "#/$defs/CachedExecutionConfig"
-      },
       "scheduling": {
         "$ref": "#/$defs/RequestSchedulingConfig"
       },
@@ -795,78 +751,6 @@ globalThis.Declarations = (() => {
       },
       "compute_service": {
         "$ref": "#/$defs/ComputeServiceConfig"
-      }
-    }
-  },
-  "TokenPublished": {
-    "type": "object",
-    "x-owner": "InferenceResponse",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "work_id",
-      "token_ids",
-      "output_start",
-      "display_delta"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "token-published",
-        "default": "token-published"
-      },
-      "work_id": {
-        "type": "string",
-        "title": "Producing computation",
-        "description": "Producing computation"
-      },
-      "token_ids": {
-        "type": "array",
-        "title": "Published token IDs",
-        "description": "Published token IDs",
-        "items": {
-          "type": "integer",
-          "title": "Published token ID",
-          "description": "Published token ID",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "minItems": 1
-      },
-      "output_start": {
-        "type": "integer",
-        "title": "Published output token offset",
-        "description": "Published output token offset",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      },
-      "display_delta": {
-        "type": "string",
-        "title": "Diagnostic text published to the output collector",
-        "description": "Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear as labeled markers."
-      }
-    }
-  },
-  "RequestFinished": {
-    "type": "object",
-    "x-owner": "InferenceResponse",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "outcome"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "request-finished",
-        "default": "request-finished"
-      },
-      "outcome": {
-        "$ref": "#/$defs/RunOutcome"
       }
     }
   },
@@ -905,7 +789,7 @@ globalThis.Declarations = (() => {
         "title": "Termination condition",
         "description": "Recorded by the execution loop.",
         "enum": [
-          "turn_end",
+          "end_token",
           "output_budget"
         ]
       },
@@ -913,464 +797,6 @@ globalThis.Declarations = (() => {
         "type": "boolean",
         "title": "Turn complete",
         "description": "True only if TURN_END was selected."
-      }
-    }
-  },
-  "DecodingContract": {
-    "type": "object",
-    "properties": {
-      "choice": {
-        "type": "string"
-      },
-      "explanation": {
-        "type": "string"
-      },
-      "rule": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "choice",
-      "explanation",
-      "rule"
-    ],
-    "additionalProperties": false,
-    "x-owner": "GenerationPolicy"
-  },
-  "SystemConfigurationPreview": {
-    "type": "object",
-    "x-owner": "InferenceSystem",
-    "title": "Inference system",
-    "description": "Expandable mechanism configuration preview; independent of the executed system binding.",
-    "additionalProperties": false,
-    "required": [
-      "attention"
-    ],
-    "properties": {
-      "attention": {
-        "$ref": "#/$defs/AttentionConfiguration"
-      }
-    }
-  },
-  "WorkloadTransformationPreview": {
-    "type": "object",
-    "x-owner": "Workload",
-    "title": "Input transformations",
-    "description": "Rules over the data-plane source input. Nonzero choices preview an intended workload transformation; the baseline does not generate variants, random messages, or timed arrivals.",
-    "additionalProperties": false,
-    "required": [
-      "suffix_variants",
-      "random_messages",
-      "arrival_spacing_us"
-    ],
-    "properties": {
-      "suffix_variants": {
-        "type": "integer",
-        "title": "Suffix variants",
-        "minimum": 0,
-        "maximum": 9007199254740991,
-        "default": 0
-      },
-      "random_messages": {
-        "type": "integer",
-        "title": "Random messages",
-        "minimum": 0,
-        "maximum": 9007199254740991,
-        "default": 0
-      },
-      "arrival_spacing_us": {
-        "type": "integer",
-        "title": "Arrival spacing (\u00b5s)",
-        "minimum": 0,
-        "maximum": 9007199254740991,
-        "default": 0
-      }
-    }
-  },
-  "TokenStepRequest": {
-    "type": "object",
-    "x-owner": "InferenceRequest",
-    "additionalProperties": false,
-    "required": [
-      "checkpoint_sha256",
-      "prefix_ids",
-      "output_ids",
-      "generation",
-      "ontology_binding"
-    ],
-    "properties": {
-      "checkpoint_sha256": {
-        "type": "string",
-        "pattern": "^[0-9a-f]{64}$"
-      },
-      "prefix_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 383
-        },
-        "minItems": 1
-      },
-      "output_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 383
-        }
-      },
-      "generation": {
-        "$ref": "#/$defs/GenerationPolicy"
-      },
-      "ontology_binding": {
-        "$ref": "#/$defs/OntologyBinding"
-      }
-    },
-    "description": "One next-token invocation: exact raw prefix and supplied continuation, without chat framing. Generation budget counts the continuation, not the prefix."
-  },
-  "RequestBinding": {
-    "type": "object",
-    "x-owner": "ExperimentSpec",
-    "additionalProperties": false,
-    "required": [
-      "model",
-      "system",
-      "request",
-      "ontology_binding"
-    ],
-    "properties": {
-      "model": {
-        "$ref": "#/$defs/ModelArtifactReference"
-      },
-      "system": {
-        "$ref": "#/$defs/InferenceSystem"
-      },
-      "request": {
-        "$ref": "#/$defs/InferenceRequest"
-      },
-      "ontology_binding": {
-        "$ref": "#/$defs/OntologyBinding"
-      }
-    }
-  },
-  "RunBinding": {
-    "type": "object",
-    "x-owner": "ExperimentSpec",
-    "additionalProperties": false,
-    "required": [
-      "model",
-      "system",
-      "workload",
-      "ontology_binding"
-    ],
-    "properties": {
-      "model": {
-        "$ref": "#/$defs/ModelArtifactReference"
-      },
-      "system": {
-        "$ref": "#/$defs/InferenceSystem"
-      },
-      "workload": {
-        "$ref": "#/$defs/Workload"
-      },
-      "ontology_binding": {
-        "$ref": "#/$defs/OntologyBinding"
-      }
-    }
-  },
-  "EventClock": {
-    "type": "object",
-    "x-owner": "ExperimentEvent",
-    "additionalProperties": false,
-    "required": [
-      "kind"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Clock domain",
-        "description": "Clock domain",
-        "const": "execution-order",
-        "default": "execution-order"
-      }
-    }
-  },
-  "RequestArrived": {
-    "type": "object",
-    "x-owner": "ExperimentEvent",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "arrival_us"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "request-arrived",
-        "default": "request-arrived"
-      },
-      "arrival_us": {
-        "type": "integer",
-        "title": "Declared virtual arrival; not service latency",
-        "description": "Declared virtual arrival; not service latency",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      }
-    }
-  },
-  "InputEncoded": {
-    "type": "object",
-    "x-owner": "ExperimentEvent",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "input_sha256",
-      "token_count"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "input-encoded",
-        "default": "input-encoded"
-      },
-      "input_sha256": {
-        "type": "string",
-        "title": "Framed input identity",
-        "description": "Framed input identity",
-        "pattern": "^[0-9a-f]{64}$"
-      },
-      "token_count": {
-        "type": "integer",
-        "title": "Encoded positions",
-        "description": "Encoded positions",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      }
-    }
-  },
-  "RunEvent": {
-    "type": "object",
-    "x-owner": "ExperimentEvent",
-    "additionalProperties": false,
-    "required": [
-      "event_id",
-      "run_id",
-      "request_id",
-      "sequence",
-      "causes",
-      "payload"
-    ],
-    "properties": {
-      "event_id": {
-        "type": "string",
-        "title": "Event identity",
-        "description": "Event identity"
-      },
-      "run_id": {
-        "type": "string",
-        "title": "Run identity",
-        "description": "Run identity",
-        "pattern": "^[0-9a-f]{64}$"
-      },
-      "request_id": {
-        "type": "string",
-        "title": "Request identity",
-        "description": "Request identity"
-      },
-      "sequence": {
-        "type": "integer",
-        "title": "Global sequence order",
-        "description": "Global sequence order",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      },
-      "causes": {
-        "type": "array",
-        "title": "Earlier event identities",
-        "description": "Earlier event identities",
-        "items": {
-          "type": "string",
-          "title": "Causal predecessor",
-          "description": "Causal predecessor"
-        },
-        "uniqueItems": true
-      },
-      "payload": {
-        "oneOf": [
-          {
-            "$ref": "#/$defs/RequestArrived"
-          },
-          {
-            "$ref": "#/$defs/InputEncoded"
-          },
-          {
-            "$ref": "#/$defs/ModelForwardCompleted"
-          },
-          {
-            "$ref": "#/$defs/TokenSelected"
-          },
-          {
-            "$ref": "#/$defs/TokenPublished"
-          },
-          {
-            "$ref": "#/$defs/RequestFinished"
-          }
-        ]
-      }
-    }
-  },
-  "NumericalTrace": {
-    "type": "object",
-    "properties": {
-      "checkpoint": {
-        "$ref": "#/$defs/ModelArtifact"
-      },
-      "provenance": {
-        "$ref": "#/$defs/ExecutionProvenance"
-      },
-      "contract_sha256": {
-        "type": "string"
-      },
-      "declaration": {
-        "$ref": "#/$defs/RequestBinding"
-      },
-      "decoding_contract": {
-        "$ref": "#/$defs/DecodingContract"
-      },
-      "evidence": {
-        "type": "string"
-      },
-      "format": {
-        "type": "string",
-        "const": "naive-gpt-run-v2"
-      },
-      "id": {
-        "type": "string"
-      },
-      "outcome": {
-        "$ref": "#/$defs/RunOutcome"
-      },
-      "output_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "output_display": {
-        "type": "string",
-        "description": "Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear as labeled markers."
-      },
-      "passes": {
-        "type": "array",
-        "items": {
-          "$ref": "#/$defs/NumericalPass"
-        }
-      },
-      "precision": {
-        "$ref": "#/$defs/NumericalPrecision"
-      },
-      "request_id": {
-        "type": "string"
-      },
-      "sequence_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "tokenizer": {
-        "$ref": "#/$defs/Encoding"
-      },
-      "vocabulary": {
-        "type": "array",
-        "items": {
-          "$ref": "#/$defs/Token"
-        }
-      }
-    },
-    "required": [
-      "checkpoint",
-      "provenance",
-      "contract_sha256",
-      "declaration",
-      "decoding_contract",
-      "evidence",
-      "format",
-      "id",
-      "outcome",
-      "output_ids",
-      "output_display",
-      "passes",
-      "precision",
-      "request_id",
-      "sequence_ids",
-      "tokenizer",
-      "vocabulary"
-    ],
-    "additionalProperties": false,
-    "x-owner": "ExperimentExecution"
-  },
-  "RunRecord": {
-    "type": "object",
-    "x-owner": "ExperimentExecution",
-    "additionalProperties": false,
-    "required": [
-      "format",
-      "id",
-      "contract_sha256",
-      "declaration",
-      "clock",
-      "events",
-      "traces"
-    ],
-    "properties": {
-      "format": {
-        "type": "string",
-        "title": "Run format",
-        "description": "Run format",
-        "const": "workload-run-v1",
-        "default": "workload-run-v1"
-      },
-      "id": {
-        "type": "string",
-        "title": "Run identity",
-        "description": "Run identity",
-        "pattern": "^[0-9a-f]{64}$"
-      },
-      "contract_sha256": {
-        "type": "string",
-        "title": "Contract identity",
-        "description": "Contract identity",
-        "pattern": "^[0-9a-f]{64}$"
-      },
-      "declaration": {
-        "$ref": "#/$defs/RunBinding"
-      },
-      "clock": {
-        "$ref": "#/$defs/EventClock"
-      },
-      "events": {
-        "type": "array",
-        "title": "Ordered execution events",
-        "description": "Ordered execution events",
-        "items": {
-          "$ref": "#/$defs/RunEvent"
-        },
-        "minItems": 1
-      },
-      "traces": {
-        "type": "array",
-        "title": "Request computation evidence",
-        "description": "Request computation evidence",
-        "items": {
-          "$ref": "#/$defs/NumericalTrace"
-        },
-        "minItems": 1
       }
     }
   },
@@ -1499,7 +925,7 @@ globalThis.Declarations = (() => {
   },
   "KVExperimentInput": {
     "type": "object",
-    "x-owner": "ExperimentSpec",
+    "x-owner": "InferenceRequest",
     "additionalProperties": false,
     "required": [
       "system",
@@ -1842,7 +1268,7 @@ globalThis.Declarations = (() => {
   },
   "KVRunBinding": {
     "type": "object",
-    "x-owner": "ExperimentSpec",
+    "x-owner": "ExperimentExecution",
     "additionalProperties": false,
     "required": [
       "model",
@@ -1887,7 +1313,7 @@ globalThis.Declarations = (() => {
           "Decoding",
           "Embedding",
           "ExecutionBackend",
-          "ExecutionCapabilities",
+          "ExecutionSpec",
           "ExperimentEvent",
           "ExperimentExecution",
           "ExperimentObservation",
@@ -1930,7 +1356,7 @@ globalThis.Declarations = (() => {
             "Decoding",
             "Embedding",
             "ExecutionBackend",
-            "ExecutionCapabilities",
+            "ExecutionSpec",
             "ExperimentEvent",
             "ExperimentExecution",
             "ExperimentObservation",
@@ -2112,7 +1538,7 @@ globalThis.Declarations = (() => {
         "if": {
           "properties": {
             "primary": {
-              "const": "ExecutionCapabilities"
+              "const": "ExecutionSpec"
             }
           }
         },
@@ -2122,7 +1548,7 @@ globalThis.Declarations = (() => {
               "type": "array",
               "not": {
                 "contains": {
-                  "const": "ExecutionCapabilities"
+                  "const": "ExecutionSpec"
                 }
               }
             }
@@ -2656,134 +2082,6 @@ globalThis.Declarations = (() => {
       }
     ]
   },
-  "ConfigurationPreview": {
-    "type": "object",
-    "x-owner": "ExperimentSpec",
-    "title": "Configuration preview",
-    "description": "Workload transformation, mechanism and client choices over separately supplied data-plane input. Preview choices are not accepted execution settings; recorded evidence remains separately bound.",
-    "additionalProperties": false,
-    "required": [
-      "input",
-      "system",
-      "client"
-    ],
-    "properties": {
-      "input": {
-        "$ref": "#/$defs/WorkloadTransformationPreview"
-      },
-      "system": {
-        "$ref": "#/$defs/SystemConfigurationPreview"
-      },
-      "client": {
-        "$ref": "#/$defs/ClientConfigurationPreview"
-      }
-    }
-  },
-  "TokenStepResult": {
-    "type": "object",
-    "x-owner": "ExperimentExecution",
-    "additionalProperties": false,
-    "required": [
-      "id",
-      "contract_sha256",
-      "request",
-      "checkpoint",
-      "provenance",
-      "output_ids",
-      "sequence_ids",
-      "remaining_tokens",
-      "stop_reason",
-      "computation"
-    ],
-    "properties": {
-      "id": {
-        "type": "string"
-      },
-      "contract_sha256": {
-        "type": "string"
-      },
-      "request": {
-        "$ref": "#/$defs/TokenStepRequest"
-      },
-      "checkpoint": {
-        "$ref": "#/$defs/ModelArtifact"
-      },
-      "provenance": {
-        "$ref": "#/$defs/ExecutionProvenance"
-      },
-      "output_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 383
-        }
-      },
-      "sequence_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 383
-        }
-      },
-      "remaining_tokens": {
-        "type": "integer",
-        "minimum": 0
-      },
-      "stop_reason": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "enum": [
-          null,
-          "turn_end",
-          "output_budget"
-        ]
-      },
-      "computation": {
-        "$ref": "#/$defs/NumericalPass"
-      }
-    }
-  },
-  "PreparedInput": {
-    "type": "object",
-    "x-owner": "ExperimentSpec",
-    "description": "Validated model and workload binding with encoded input; no forward pass, selected output or execution identity.",
-    "additionalProperties": false,
-    "required": [
-      "declaration",
-      "tokenizer",
-      "checkpoint",
-      "vocabulary",
-      "decoding_contract",
-      "contract_sha256"
-    ],
-    "properties": {
-      "declaration": {
-        "$ref": "#/$defs/RunBinding"
-      },
-      "tokenizer": {
-        "$ref": "#/$defs/Encoding"
-      },
-      "checkpoint": {
-        "$ref": "#/$defs/ModelArtifact"
-      },
-      "vocabulary": {
-        "type": "array",
-        "items": {
-          "$ref": "#/$defs/Token"
-        }
-      },
-      "decoding_contract": {
-        "$ref": "#/$defs/DecodingContract"
-      },
-      "contract_sha256": {
-        "type": "string"
-      }
-    }
-  },
   "ExecutionReplayInput": {
     "type": "object",
     "x-owner": "ExperimentExecution",
@@ -2808,7 +2106,8 @@ globalThis.Declarations = (() => {
       "position",
       "observation_id",
       "surface",
-      "architecture_step"
+      "architecture_step",
+      "computation_index"
     ],
     "properties": {
       "run_id": {
@@ -2859,6 +2158,15 @@ globalThis.Declarations = (() => {
         "minimum": 0,
         "description": "Index in the selected architecture walkthrough; never an observation ID.",
         "default": null
+      },
+      "computation_index": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "minimum": 0,
+        "default": null,
+        "description": "Selected computation in a resource execution; null for ordinary token generation."
       }
     },
     "allOf": [
@@ -2935,30 +2243,6 @@ globalThis.Declarations = (() => {
       }
     ]
   },
-  "Capabilities": {
-    "type": "object",
-    "x-owner": "ExecutionCapabilities",
-    "additionalProperties": false,
-    "required": [
-      "engine",
-      "contract_sha256"
-    ],
-    "properties": {
-      "engine": {
-        "type": "string",
-        "title": "Engine version",
-        "description": "Engine version",
-        "const": "workload-engine-v1",
-        "default": "workload-engine-v1"
-      },
-      "contract_sha256": {
-        "type": "string",
-        "title": "Contract identity",
-        "description": "Contract identity",
-        "pattern": "^[0-9a-f]{64}$"
-      }
-    }
-  },
   "ApiError": {
     "type": "object",
     "x-owner": "ApiError",
@@ -2971,31 +2255,6 @@ globalThis.Declarations = (() => {
         "type": "string",
         "title": "Explicit rejection reason",
         "description": "Explicit rejection reason"
-      }
-    }
-  },
-  "CacheCapabilities": {
-    "type": "object",
-    "x-owner": "ExecutionCapabilities",
-    "additionalProperties": false,
-    "required": [
-      "contract_sha256",
-      "backends"
-    ],
-    "properties": {
-      "contract_sha256": {
-        "type": "string"
-      },
-      "backends": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "enum": [
-            "reference"
-          ]
-        },
-        "minItems": 1,
-        "uniqueItems": true
       }
     }
   },
@@ -3455,35 +2714,6 @@ globalThis.Declarations = (() => {
       }
     }
   },
-  "AttentionConfiguration": {
-    "type": "object",
-    "x-owner": "Attention",
-    "title": "Attention",
-    "description": "Configuration preview. Only causal softmax executes in the landing model; KDA selects the affected stage, not replacement weights or tensors.",
-    "additionalProperties": false,
-    "required": [
-      "mechanism"
-    ],
-    "properties": {
-      "mechanism": {
-        "type": "string",
-        "title": "Mechanism",
-        "default": "causal-softmax",
-        "oneOf": [
-          {
-            "type": "string",
-            "const": "causal-softmax",
-            "title": "Causal softmax"
-          },
-          {
-            "type": "string",
-            "const": "kda",
-            "title": "KDA"
-          }
-        ]
-      }
-    }
-  },
   "CacheComputation": {
     "type": "object",
     "x-owner": "ModelExecution",
@@ -3573,60 +2803,6 @@ globalThis.Declarations = (() => {
       }
     }
   },
-  "ModelForwardCompleted": {
-    "type": "object",
-    "x-owner": "ModelExecution",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "work_id",
-      "phase"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "model-forward-completed",
-        "default": "model-forward-completed"
-      },
-      "work_id": {
-        "type": "string",
-        "title": "Numerical observation identity",
-        "description": "Numerical observation identity"
-      },
-      "phase": {
-        "type": "string",
-        "title": "Execution phase",
-        "description": "Execution phase",
-        "enum": [
-          "prefill",
-          "decode"
-        ]
-      }
-    }
-  },
-  "NumericalPrecision": {
-    "type": "object",
-    "properties": {
-      "accumulation": {
-        "type": "string"
-      },
-      "compute": {
-        "type": "string"
-      },
-      "storage": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "accumulation",
-      "compute",
-      "storage"
-    ],
-    "additionalProperties": false,
-    "x-owner": "ModelExecution"
-  },
   "TokenSelection": {
     "type": "object",
     "properties": {
@@ -3666,151 +2842,6 @@ globalThis.Declarations = (() => {
     ],
     "additionalProperties": false,
     "x-owner": "Decoding"
-  },
-  "TokenSelected": {
-    "type": "object",
-    "x-owner": "Decoding",
-    "additionalProperties": false,
-    "required": [
-      "kind",
-      "work_id",
-      "token_id",
-      "output_position"
-    ],
-    "properties": {
-      "kind": {
-        "type": "string",
-        "title": "Event kind",
-        "description": "Event kind",
-        "const": "token-selected",
-        "default": "token-selected"
-      },
-      "work_id": {
-        "type": "string",
-        "title": "Producing computation",
-        "description": "Producing computation"
-      },
-      "token_id": {
-        "type": "integer",
-        "title": "Selected vocabulary ID",
-        "description": "Selected vocabulary ID",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      },
-      "output_position": {
-        "type": "integer",
-        "title": "Absolute sequence position",
-        "description": "Absolute sequence position",
-        "minimum": 0,
-        "maximum": 9007199254740991
-      }
-    }
-  },
-  "NumericalPass": {
-    "type": "object",
-    "properties": {
-      "display_so_far": {
-        "type": "string",
-        "description": "Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear as labeled markers."
-      },
-      "execution": {
-        "type": "string"
-      },
-      "id": {
-        "type": "string"
-      },
-      "input_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "nodes": {
-        "type": "array",
-        "items": {
-          "$ref": "#/$defs/TensorObservation"
-        }
-      },
-      "output_position": {
-        "type": "integer"
-      },
-      "phase": {
-        "type": "string"
-      },
-      "positions": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "request_id": {
-        "type": "string"
-      },
-      "run_id": {
-        "type": "string"
-      },
-      "selection": {
-        "$ref": "#/$defs/TokenSelection"
-      },
-      "selection_position": {
-        "type": "integer"
-      },
-      "step": {
-        "type": "integer"
-      }
-    },
-    "required": [
-      "display_so_far",
-      "execution",
-      "id",
-      "input_ids",
-      "nodes",
-      "output_position",
-      "phase",
-      "positions",
-      "request_id",
-      "run_id",
-      "selection",
-      "selection_position",
-      "step"
-    ],
-    "additionalProperties": false,
-    "x-owner": "Decoding"
-  },
-  "FullPrefixExecutionConfig": {
-    "type": "object",
-    "x-owner": "ModelExecution",
-    "additionalProperties": false,
-    "required": [
-      "execution"
-    ],
-    "properties": {
-      "execution": {
-        "type": "string",
-        "title": "Execution strategy",
-        "description": "Supported baseline value.",
-        "const": "full-prefix-recomputation",
-        "default": "full-prefix-recomputation"
-      }
-    }
-  },
-  "CachedExecutionConfig": {
-    "type": "object",
-    "x-owner": "ModelExecution",
-    "additionalProperties": false,
-    "required": [
-      "backend"
-    ],
-    "properties": {
-      "backend": {
-        "type": "string",
-        "enum": [
-          "reference"
-        ],
-        "default": "reference",
-        "title": "Numerical backend"
-      }
-    }
   },
   "RequestSchedulingConfig": {
     "type": "object",
@@ -4020,604 +3051,6 @@ globalThis.Declarations = (() => {
       }
     }
   },
-  "ClientConfigurationPreview": {
-    "type": "object",
-    "x-owner": "CustomerInteraction",
-    "title": "Client",
-    "description": "Client configuration preview. Paused marks the receiving boundary; no network, buffer, or backpressure execution is implied.",
-    "additionalProperties": false,
-    "required": [
-      "consumption"
-    ],
-    "properties": {
-      "consumption": {
-        "type": "string",
-        "title": "Consumption",
-        "default": "reading",
-        "oneOf": [
-          {
-            "type": "string",
-            "const": "reading",
-            "title": "Reading"
-          },
-          {
-            "type": "string",
-            "const": "paused",
-            "title": "Paused"
-          }
-        ]
-      }
-    }
-  },
-  "ArtifactReference": {
-    "type": "object",
-    "x-owner": "ExperimentExecution",
-    "additionalProperties": false,
-    "required": [
-      "schema",
-      "sha256"
-    ],
-    "properties": {
-      "schema": {
-        "type": "string",
-        "enum": [
-          "ExecutionArchive",
-          "TensorTable",
-          "ModelArtifact",
-          "VocabularyArtifact"
-        ]
-      },
-      "sha256": {
-        "type": "string",
-        "pattern": "^[0-9a-f]{64}$"
-      }
-    }
-  },
-  "ExecutionReceipt": {
-    "type": "object",
-    "x-owner": "ExperimentExecution",
-    "additionalProperties": false,
-    "required": [
-      "execution_id",
-      "archive"
-    ],
-    "properties": {
-      "execution_id": {
-        "type": "string"
-      },
-      "archive": {
-        "$ref": "#/$defs/ArtifactReference"
-      }
-    }
-  },
-  "ArtifactResponse": {
-    "type": "object",
-    "x-owner": "ExperimentExecution",
-    "additionalProperties": false,
-    "required": [
-      "reference",
-      "content"
-    ],
-    "properties": {
-      "reference": {
-        "$ref": "#/$defs/ArtifactReference"
-      },
-      "content": {
-        "type": "string",
-        "description": "Canonical JSON bytes decoded as UTF-8; must match the referenced digest and declared schema before consumption."
-      }
-    }
-  },
-  "TensorTable": {
-    "type": "object",
-    "x-owner": "ExperimentObservation",
-    "additionalProperties": false,
-    "required": [
-      "rows"
-    ],
-    "properties": {
-      "rows": {
-        "type": "array",
-        "items": {
-          "type": "array",
-          "items": {
-            "type": [
-              "number",
-              "boolean"
-            ]
-          }
-        }
-      }
-    }
-  },
-  "VocabularyArtifact": {
-    "type": "object",
-    "x-owner": "Tokenizer",
-    "additionalProperties": false,
-    "required": [
-      "tokens"
-    ],
-    "properties": {
-      "tokens": {
-        "type": "array",
-        "items": {
-          "$ref": "#/$defs/Token"
-        }
-      }
-    }
-  },
-  "StoredTensorObservation": {
-    "type": "object",
-    "properties": {
-      "axes": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        }
-      },
-      "dtype": {
-        "type": "string"
-      },
-      "formula": {
-        "type": "string"
-      },
-      "id": {
-        "type": "string"
-      },
-      "inputs": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        }
-      },
-      "layer": {
-        "type": [
-          "integer",
-          "null"
-        ]
-      },
-      "positions": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "request_id": {
-        "type": "string"
-      },
-      "run_id": {
-        "type": "string"
-      },
-      "shape": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "step": {
-        "type": "integer"
-      },
-      "values": {
-        "type": "array",
-        "items": {
-          "type": "integer",
-          "minimum": 0
-        }
-      },
-      "operation": {
-        "anyOf": [
-          {
-            "$ref": "#/$defs/EmbeddingOperation"
-          },
-          {
-            "$ref": "#/$defs/PositionEncodingOperation"
-          },
-          {
-            "$ref": "#/$defs/NormalizationOperation"
-          },
-          {
-            "$ref": "#/$defs/AttentionOperation"
-          },
-          {
-            "$ref": "#/$defs/ResidualAdditionOperation"
-          },
-          {
-            "$ref": "#/$defs/FeedForwardOperation"
-          },
-          {
-            "$ref": "#/$defs/OutputProjectionOperation"
-          },
-          {
-            "$ref": "#/$defs/TokenizerOperation"
-          },
-          {
-            "$ref": "#/$defs/KVStateOperation"
-          }
-        ]
-      }
-    },
-    "required": [
-      "axes",
-      "dtype",
-      "formula",
-      "id",
-      "inputs",
-      "layer",
-      "positions",
-      "request_id",
-      "run_id",
-      "shape",
-      "step",
-      "values",
-      "operation"
-    ],
-    "additionalProperties": false,
-    "x-owner": "ExperimentObservation"
-  },
-  "StoredTokenSelection": {
-    "type": "object",
-    "properties": {
-      "decoding": {
-        "type": "string"
-      },
-      "probabilities": {
-        "type": "integer",
-        "minimum": 0
-      },
-      "raw_logits": {
-        "type": "integer",
-        "minimum": 0
-      },
-      "rng_state": {
-        "type": "null"
-      },
-      "rule": {
-        "type": "string",
-        "const": "unmasked-greedy-v1"
-      },
-      "selected_id": {
-        "type": "integer"
-      }
-    },
-    "required": [
-      "decoding",
-      "probabilities",
-      "raw_logits",
-      "rng_state",
-      "rule",
-      "selected_id"
-    ],
-    "additionalProperties": false,
-    "x-owner": "Decoding"
-  },
-  "StoredNumericalPass": {
-    "type": "object",
-    "properties": {
-      "display_so_far": {
-        "type": "string",
-        "description": "Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear as labeled markers."
-      },
-      "execution": {
-        "type": "string"
-      },
-      "id": {
-        "type": "string"
-      },
-      "input_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "nodes": {
-        "type": "array",
-        "items": {
-          "$ref": "#/$defs/StoredTensorObservation"
-        }
-      },
-      "output_position": {
-        "type": "integer"
-      },
-      "phase": {
-        "type": "string"
-      },
-      "positions": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "request_id": {
-        "type": "string"
-      },
-      "run_id": {
-        "type": "string"
-      },
-      "selection": {
-        "$ref": "#/$defs/StoredTokenSelection"
-      },
-      "selection_position": {
-        "type": "integer"
-      },
-      "step": {
-        "type": "integer"
-      }
-    },
-    "required": [
-      "display_so_far",
-      "execution",
-      "id",
-      "input_ids",
-      "nodes",
-      "output_position",
-      "phase",
-      "positions",
-      "request_id",
-      "run_id",
-      "selection",
-      "selection_position",
-      "step"
-    ],
-    "additionalProperties": false,
-    "x-owner": "Decoding"
-  },
-  "StoredNumericalTrace": {
-    "type": "object",
-    "properties": {
-      "checkpoint": {
-        "$ref": "#/$defs/ArtifactReference"
-      },
-      "provenance": {
-        "$ref": "#/$defs/ExecutionProvenance"
-      },
-      "contract_sha256": {
-        "type": "string"
-      },
-      "declaration": {
-        "$ref": "#/$defs/RequestBinding"
-      },
-      "decoding_contract": {
-        "$ref": "#/$defs/DecodingContract"
-      },
-      "evidence": {
-        "type": "string"
-      },
-      "format": {
-        "type": "string",
-        "const": "naive-gpt-run-v2"
-      },
-      "id": {
-        "type": "string"
-      },
-      "outcome": {
-        "$ref": "#/$defs/RunOutcome"
-      },
-      "output_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "output_display": {
-        "type": "string",
-        "description": "Diagnostic token display; raw IDs are authoritative. Control, byte, and hex IDs appear as labeled markers."
-      },
-      "passes": {
-        "type": "array",
-        "items": {
-          "$ref": "#/$defs/StoredNumericalPass"
-        }
-      },
-      "precision": {
-        "$ref": "#/$defs/NumericalPrecision"
-      },
-      "request_id": {
-        "type": "string"
-      },
-      "sequence_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer"
-        }
-      },
-      "tokenizer": {
-        "$ref": "#/$defs/Encoding"
-      },
-      "vocabulary": {
-        "$ref": "#/$defs/ArtifactReference"
-      }
-    },
-    "required": [
-      "checkpoint",
-      "provenance",
-      "contract_sha256",
-      "declaration",
-      "decoding_contract",
-      "evidence",
-      "format",
-      "id",
-      "outcome",
-      "output_ids",
-      "output_display",
-      "passes",
-      "precision",
-      "request_id",
-      "sequence_ids",
-      "tokenizer",
-      "vocabulary"
-    ],
-    "additionalProperties": false,
-    "x-owner": "ExperimentExecution"
-  },
-  "StoredRunRecord": {
-    "type": "object",
-    "x-owner": "ExperimentExecution",
-    "additionalProperties": false,
-    "required": [
-      "format",
-      "id",
-      "contract_sha256",
-      "declaration",
-      "clock",
-      "events",
-      "traces"
-    ],
-    "properties": {
-      "format": {
-        "type": "string",
-        "title": "Run format",
-        "description": "Run format",
-        "const": "workload-run-v1",
-        "default": "workload-run-v1"
-      },
-      "id": {
-        "type": "string",
-        "title": "Run identity",
-        "description": "Run identity",
-        "pattern": "^[0-9a-f]{64}$"
-      },
-      "contract_sha256": {
-        "type": "string",
-        "title": "Contract identity",
-        "description": "Contract identity",
-        "pattern": "^[0-9a-f]{64}$"
-      },
-      "declaration": {
-        "$ref": "#/$defs/RunBinding"
-      },
-      "clock": {
-        "$ref": "#/$defs/EventClock"
-      },
-      "events": {
-        "type": "array",
-        "title": "Ordered execution events",
-        "description": "Ordered execution events",
-        "items": {
-          "$ref": "#/$defs/RunEvent"
-        },
-        "minItems": 1
-      },
-      "traces": {
-        "type": "array",
-        "minItems": 1,
-        "items": {
-          "$ref": "#/$defs/StoredNumericalTrace"
-        }
-      }
-    }
-  },
-  "StoredTokenStepResult": {
-    "type": "object",
-    "x-owner": "ExperimentExecution",
-    "additionalProperties": false,
-    "required": [
-      "id",
-      "contract_sha256",
-      "request",
-      "checkpoint",
-      "provenance",
-      "output_ids",
-      "sequence_ids",
-      "remaining_tokens",
-      "stop_reason",
-      "computation"
-    ],
-    "properties": {
-      "id": {
-        "type": "string"
-      },
-      "contract_sha256": {
-        "type": "string"
-      },
-      "request": {
-        "$ref": "#/$defs/TokenStepRequest"
-      },
-      "checkpoint": {
-        "$ref": "#/$defs/ArtifactReference"
-      },
-      "provenance": {
-        "$ref": "#/$defs/ExecutionProvenance"
-      },
-      "output_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 383
-        }
-      },
-      "sequence_ids": {
-        "type": "array",
-        "items": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 383
-        }
-      },
-      "remaining_tokens": {
-        "type": "integer",
-        "minimum": 0
-      },
-      "stop_reason": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "enum": [
-          null,
-          "turn_end",
-          "output_budget"
-        ]
-      },
-      "computation": {
-        "$ref": "#/$defs/StoredNumericalPass"
-      }
-    }
-  },
-  "ExecutionArchive": {
-    "type": "object",
-    "x-owner": "ExperimentExecution",
-    "additionalProperties": false,
-    "required": [
-      "record",
-      "tensors"
-    ],
-    "properties": {
-      "record": {
-        "oneOf": [
-          {
-            "$ref": "#/$defs/StoredRunRecord"
-          },
-          {
-            "$ref": "#/$defs/StoredTokenStepResult"
-          }
-        ]
-      },
-      "tensors": {
-        "$ref": "#/$defs/ArtifactReference"
-      }
-    }
-  },
-  "ExecutionBundle": {
-    "type": "object",
-    "x-owner": "ExperimentExecution",
-    "additionalProperties": false,
-    "required": [
-      "receipt",
-      "objects"
-    ],
-    "properties": {
-      "receipt": {
-        "$ref": "#/$defs/ExecutionReceipt"
-      },
-      "objects": {
-        "type": "object",
-        "additionalProperties": {
-          "$ref": "#/$defs/ArtifactResponse"
-        }
-      }
-    }
-  },
   "ModelAsset": {
     "type": "object",
     "x-owner": "ModelArtifact",
@@ -4671,7 +3104,8 @@ globalThis.Declarations = (() => {
       "position",
       "normalization",
       "activation",
-      "precision"
+      "precision",
+      "epsilon"
     ],
     "properties": {
       "vocabulary": {
@@ -4722,6 +3156,10 @@ globalThis.Declarations = (() => {
       "precision": {
         "type": "string",
         "const": "binary32"
+      },
+      "epsilon": {
+        "type": "number",
+        "const": 1e-05
       }
     }
   },
@@ -4735,14 +3173,15 @@ globalThis.Declarations = (() => {
       "role",
       "parameters",
       "architecture",
-      "runtime",
       "weights",
       "tokenizer",
       "seed",
       "inspection",
       "stop_ids",
       "normalization",
-      "provenance"
+      "provenance",
+      "weight_format",
+      "tokenizer_format"
     ],
     "properties": {
       "id": {
@@ -4773,13 +3212,6 @@ globalThis.Declarations = (() => {
           {
             "$ref": "#/$defs/LlamaArchitecture"
           }
-        ]
-      },
-      "runtime": {
-        "type": "string",
-        "enum": [
-          "naive-python",
-          "llama2c-wasm"
         ]
       },
       "weights": {
@@ -4817,6 +3249,20 @@ globalThis.Declarations = (() => {
       "provenance": {
         "type": "string",
         "pattern": "[\\s\\S]+"
+      },
+      "weight_format": {
+        "type": "string",
+        "enum": [
+          "naive-gpt-json",
+          "llama2c-binary"
+        ]
+      },
+      "tokenizer_format": {
+        "type": "string",
+        "enum": [
+          "word-hex-manifest",
+          "sentencepiece-binary"
+        ]
       }
     }
   },
@@ -4898,12 +3344,12 @@ globalThis.Declarations = (() => {
     "x-owner": "InferenceRequest",
     "additionalProperties": false,
     "required": [
-      "experiment",
+      "execution",
       "workload"
     ],
     "properties": {
-      "experiment": {
-        "$ref": "#/$defs/GenerationExperiment"
+      "execution": {
+        "$ref": "#/$defs/ExecutionSpec"
       },
       "workload": {
         "$ref": "#/$defs/Workload"
@@ -4958,14 +3404,14 @@ globalThis.Declarations = (() => {
     "x-owner": "InferenceRequest",
     "additionalProperties": false,
     "required": [
-      "experiment",
+      "execution",
       "prefix_ids",
       "output_ids",
       "generation"
     ],
     "properties": {
-      "experiment": {
-        "$ref": "#/$defs/GenerationExperiment"
+      "execution": {
+        "$ref": "#/$defs/ExecutionSpec"
       },
       "prefix_ids": {
         "type": "array",
@@ -5010,7 +3456,8 @@ globalThis.Declarations = (() => {
       "request",
       "id",
       "contract_sha256",
-      "probabilities"
+      "probabilities",
+      "work"
     ],
     "properties": {
       "model_id": {
@@ -5114,6 +3561,9 @@ globalThis.Declarations = (() => {
         },
         "minItems": 384,
         "maxItems": 4096
+      },
+      "work": {
+        "$ref": "#/$defs/GenerationWork"
       }
     }
   },
@@ -5124,11 +3574,12 @@ globalThis.Declarations = (() => {
     "required": [
       "id",
       "role",
-      "runtime",
       "seed",
       "provenance",
       "weights",
-      "tokenizer"
+      "tokenizer",
+      "weight_format",
+      "tokenizer_format"
     ],
     "properties": {
       "id": {
@@ -5141,13 +3592,6 @@ globalThis.Declarations = (() => {
           "inspection",
           "comparison",
           "continuation"
-        ]
-      },
-      "runtime": {
-        "type": "string",
-        "enum": [
-          "naive-python",
-          "llama2c-wasm"
         ]
       },
       "seed": {
@@ -5165,6 +3609,20 @@ globalThis.Declarations = (() => {
       "tokenizer": {
         "type": "string",
         "pattern": "^[a-z0-9][a-z0-9.-]*\\.bin$"
+      },
+      "weight_format": {
+        "type": "string",
+        "enum": [
+          "naive-gpt-json",
+          "llama2c-binary"
+        ]
+      },
+      "tokenizer_format": {
+        "type": "string",
+        "enum": [
+          "word-hex-manifest",
+          "sentencepiece-binary"
+        ]
       }
     }
   },
@@ -5189,36 +3647,17 @@ globalThis.Declarations = (() => {
       }
     }
   },
-  "GenerationExperiment": {
-    "type": "object",
-    "x-owner": "ExperimentSpec",
-    "additionalProperties": false,
-    "required": [
-      "model_id",
-      "ontology_binding"
-    ],
-    "properties": {
-      "model_id": {
-        "type": "string",
-        "pattern": "^[a-z0-9-]+$"
-      },
-      "ontology_binding": {
-        "$ref": "#/$defs/OntologyBinding"
-      }
-    }
-  },
   "GenerationDefaults": {
     "type": "object",
-    "x-owner": "ExperimentSpec",
+    "x-owner": "ExecutionSpec",
     "additionalProperties": false,
     "required": [
-      "model_id",
+      "execution",
       "workload"
     ],
     "properties": {
-      "model_id": {
-        "type": "string",
-        "pattern": "^[a-z0-9-]+$"
+      "execution": {
+        "$ref": "#/$defs/ExecutionSpec"
       },
       "workload": {
         "$ref": "#/$defs/Workload"
@@ -5251,17 +3690,9 @@ globalThis.Declarations = (() => {
     "x-owner": "ModelArchitecture",
     "additionalProperties": false,
     "required": [
-      "runtime",
       "stages"
     ],
     "properties": {
-      "runtime": {
-        "type": "string",
-        "enum": [
-          "naive-python",
-          "llama2c-wasm"
-        ]
-      },
       "stages": {
         "type": "array",
         "items": {
@@ -5269,221 +3700,174 @@ globalThis.Declarations = (() => {
         }
       }
     },
-    "oneOf": [
-      {
-        "const": {
-          "runtime": "naive-python",
-          "stages": [
-            {
-              "owner": "Tokenizer",
-              "label": "Token IDs",
-              "scope": "prefix",
-              "detail": "Token IDs",
-              "inputs": []
-            },
-            {
-              "owner": "Embedding",
-              "label": "Token embedding",
-              "scope": "prefix",
-              "detail": "Token embedding",
-              "inputs": [
-                0
-              ]
-            },
-            {
-              "owner": "PositionEncoding",
-              "label": "Position embedding",
-              "scope": "prefix",
-              "detail": "Position embedding",
-              "inputs": [
-                0
-              ]
-            },
-            {
-              "owner": "Embedding",
-              "label": "+",
-              "scope": "prefix",
-              "detail": "Add embeddings",
-              "inputs": [
-                1,
-                2
-              ]
-            },
-            {
-              "owner": "Normalization",
-              "label": "Normalize",
-              "scope": "layer",
-              "detail": "Layer norm",
-              "inputs": [
-                3
-              ]
-            },
-            {
-              "owner": "Attention",
-              "label": "Attention",
-              "scope": "layer",
-              "detail": "Q/K/V projections \u2192 causal attention \u2192 output projection.",
-              "inputs": [
-                4
-              ]
-            },
-            {
-              "owner": "ResidualAddition",
-              "label": "+",
-              "scope": "layer",
-              "detail": "Residual addition",
-              "inputs": [
-                3,
-                5
-              ]
-            },
-            {
-              "owner": "Normalization",
-              "label": "Normalize",
-              "scope": "layer",
-              "detail": "Layer norm",
-              "inputs": [
-                6
-              ]
-            },
-            {
-              "owner": "FeedForward",
-              "label": "Feed-forward",
-              "scope": "layer",
-              "detail": "GELU feed-forward",
-              "inputs": [
-                7
-              ]
-            },
-            {
-              "owner": "ResidualAddition",
-              "label": "+",
-              "scope": "layer",
-              "detail": "Residual addition",
-              "inputs": [
-                6,
-                8
-              ]
-            },
-            {
-              "owner": "Normalization",
-              "label": "Final norm",
-              "scope": "suffix",
-              "detail": "Final norm",
-              "inputs": [
-                9
-              ]
-            },
-            {
-              "owner": "OutputProjection",
-              "label": "Vocabulary projection",
-              "scope": "suffix",
-              "detail": "Vocabulary projection",
-              "inputs": [
-                10
-              ]
-            }
-          ]
+    "const": {
+      "stages": [
+        {
+          "owner": "Tokenizer",
+          "label": "Token IDs",
+          "scope": "prefix",
+          "detail": "Text is encoded into vocabulary IDs.",
+          "inputs": [],
+          "operations": [
+            "input_ids"
+          ],
+          "related": [],
+          "inspection": "input_ids"
+        },
+        {
+          "owner": "Embedding",
+          "label": "Embedding",
+          "scope": "prefix",
+          "detail": "Look up token vectors. Learned absolute positions, when configured, are added here.",
+          "inputs": [
+            0
+          ],
+          "operations": [
+            "token_embedding",
+            "position_embedding",
+            "embedding"
+          ],
+          "related": [
+            "PositionEncoding"
+          ],
+          "inspection": "token_embedding"
+        },
+        {
+          "owner": "Normalization",
+          "label": "Normalize",
+          "scope": "layer",
+          "detail": "Normalize channels using the declared model normalization.",
+          "inputs": [
+            1
+          ],
+          "operations": [
+            "ln1_mean",
+            "ln1_variance",
+            "ln1"
+          ],
+          "related": [],
+          "inspection": "ln1"
+        },
+        {
+          "owner": "Attention",
+          "label": "Attention",
+          "scope": "layer",
+          "detail": "Project Q/K/V, apply positional rotation when configured, mix causal values, and project the result.",
+          "inputs": [
+            2
+          ],
+          "operations": [
+            "query",
+            "key",
+            "value",
+            "retained_keys",
+            "retained_values",
+            "scores",
+            "causal_mask",
+            "attention",
+            "weighted_values",
+            "attention_output"
+          ],
+          "related": [
+            "PositionEncoding",
+            "KVState"
+          ],
+          "inspection": "attention"
+        },
+        {
+          "owner": "ResidualAddition",
+          "label": "+",
+          "scope": "layer",
+          "detail": "Add the attention branch to its input.",
+          "inputs": [
+            1,
+            3
+          ],
+          "operations": [
+            "attention_residual"
+          ],
+          "related": [],
+          "inspection": "attention_residual"
+        },
+        {
+          "owner": "Normalization",
+          "label": "Normalize",
+          "scope": "layer",
+          "detail": "Normalize channels using the declared model normalization.",
+          "inputs": [
+            4
+          ],
+          "operations": [
+            "ln2_mean",
+            "ln2_variance",
+            "ln2"
+          ],
+          "related": [],
+          "inspection": "ln2"
+        },
+        {
+          "owner": "FeedForward",
+          "label": "Feed-forward",
+          "scope": "layer",
+          "detail": "Project, apply the declared activation, and project back.",
+          "inputs": [
+            5
+          ],
+          "operations": [
+            "ff_up",
+            "gelu",
+            "ff_down"
+          ],
+          "related": [],
+          "inspection": "ff_up"
+        },
+        {
+          "owner": "ResidualAddition",
+          "label": "+",
+          "scope": "layer",
+          "detail": "Add the feed-forward branch to its input.",
+          "inputs": [
+            4,
+            6
+          ],
+          "operations": [
+            "ff_residual"
+          ],
+          "related": [],
+          "inspection": "ff_residual"
+        },
+        {
+          "owner": "Normalization",
+          "label": "Final norm",
+          "scope": "suffix",
+          "detail": "Normalize the final hidden vector.",
+          "inputs": [
+            7
+          ],
+          "operations": [
+            "ln_final_mean",
+            "ln_final_variance",
+            "ln_final"
+          ],
+          "related": [],
+          "inspection": "ln_final"
+        },
+        {
+          "owner": "OutputProjection",
+          "label": "Vocabulary projection",
+          "scope": "suffix",
+          "detail": "Project hidden vectors into one logit per vocabulary ID.",
+          "inputs": [
+            8
+          ],
+          "operations": [
+            "logits"
+          ],
+          "related": [],
+          "inspection": "logits"
         }
-      },
-      {
-        "const": {
-          "runtime": "llama2c-wasm",
-          "stages": [
-            {
-              "owner": "Tokenizer",
-              "label": "Token IDs",
-              "scope": "prefix",
-              "detail": "Token IDs",
-              "inputs": []
-            },
-            {
-              "owner": "Embedding",
-              "label": "Token embedding",
-              "scope": "prefix",
-              "detail": "Token embedding",
-              "inputs": [
-                0
-              ]
-            },
-            {
-              "owner": "Normalization",
-              "label": "Normalize",
-              "scope": "layer",
-              "detail": "RMSNorm",
-              "inputs": [
-                1
-              ]
-            },
-            {
-              "owner": "Attention",
-              "label": "Attention",
-              "scope": "layer",
-              "detail": "Q/K/V projections \u2192 RoPE on Q/K \u2192 causal attention \u2192 output projection.",
-              "inputs": [
-                2
-              ]
-            },
-            {
-              "owner": "ResidualAddition",
-              "label": "+",
-              "scope": "layer",
-              "detail": "Residual addition",
-              "inputs": [
-                1,
-                3
-              ]
-            },
-            {
-              "owner": "Normalization",
-              "label": "Normalize",
-              "scope": "layer",
-              "detail": "RMSNorm",
-              "inputs": [
-                4
-              ]
-            },
-            {
-              "owner": "FeedForward",
-              "label": "Feed-forward",
-              "scope": "layer",
-              "detail": "SiLU gated feed-forward",
-              "inputs": [
-                5
-              ]
-            },
-            {
-              "owner": "ResidualAddition",
-              "label": "+",
-              "scope": "layer",
-              "detail": "Residual addition",
-              "inputs": [
-                4,
-                6
-              ]
-            },
-            {
-              "owner": "Normalization",
-              "label": "Final norm",
-              "scope": "suffix",
-              "detail": "Final RMSNorm",
-              "inputs": [
-                7
-              ]
-            },
-            {
-              "owner": "OutputProjection",
-              "label": "Vocabulary projection",
-              "scope": "suffix",
-              "detail": "Vocabulary projection",
-              "inputs": [
-                8
-              ]
-            }
-          ]
-        }
-      }
-    ]
+      ]
+    }
   },
   "ArchitectureStage": {
     "type": "object",
@@ -5494,7 +3878,10 @@ globalThis.Declarations = (() => {
       "label",
       "scope",
       "detail",
-      "inputs"
+      "inputs",
+      "operations",
+      "related",
+      "inspection"
     ],
     "properties": {
       "owner": {
@@ -5508,7 +3895,7 @@ globalThis.Declarations = (() => {
           "Decoding",
           "Embedding",
           "ExecutionBackend",
-          "ExecutionCapabilities",
+          "ExecutionSpec",
           "ExperimentEvent",
           "ExperimentExecution",
           "ExperimentObservation",
@@ -5559,6 +3946,553 @@ globalThis.Declarations = (() => {
           "minimum": 0
         },
         "description": "Earlier stage indices in this single-block schematic; residual branches remain explicit."
+      },
+      "operations": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1
+      },
+      "related": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "x-ontology-reference": true,
+          "enum": [
+            "ApiError",
+            "Attention",
+            "ComputeService",
+            "CustomerInteraction",
+            "Decoding",
+            "Embedding",
+            "ExecutionBackend",
+            "ExecutionSpec",
+            "ExperimentEvent",
+            "ExperimentExecution",
+            "ExperimentObservation",
+            "ExperimentSpec",
+            "FeedForward",
+            "GenerationPolicy",
+            "InferenceRequest",
+            "InferenceResponse",
+            "InferenceSystem",
+            "InspectionState",
+            "KVCache",
+            "KVState",
+            "ModelArchitecture",
+            "ModelArtifact",
+            "ModelExecution",
+            "ModelWeights",
+            "Normalization",
+            "OutputProjection",
+            "PositionEncoding",
+            "RequestScheduling",
+            "ResidualAddition",
+            "ResourceGraph",
+            "StateTransfer",
+            "Tokenizer",
+            "Workload"
+          ]
+        }
+      },
+      "inspection": {
+        "type": "string"
+      }
+    }
+  },
+  "ExperimentSpec": {
+    "type": "object",
+    "x-owner": "ExperimentSpec",
+    "additionalProperties": false,
+    "required": [
+      "control",
+      "value",
+      "ontology_binding"
+    ],
+    "properties": {
+      "control": {
+        "type": "string",
+        "enum": [
+          "model",
+          "kv_reuse",
+          "kv_cache",
+          "scheduling",
+          "transfer",
+          "compute_service"
+        ]
+      },
+      "value": {
+        "type": [
+          "string",
+          "boolean",
+          "object"
+        ]
+      },
+      "ontology_binding": {
+        "$ref": "#/$defs/OntologyBinding"
+      }
+    },
+    "oneOf": [
+      {
+        "properties": {
+          "control": {
+            "const": "model"
+          },
+          "value": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$",
+            "title": "Model"
+          },
+          "ontology_binding": {
+            "const": {
+              "primary": "ModelArtifact",
+              "related": []
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "control": {
+            "const": "kv_reuse"
+          },
+          "value": {
+            "type": "boolean",
+            "title": "KV reuse"
+          },
+          "ontology_binding": {
+            "const": {
+              "primary": "KVCache",
+              "related": [
+                "ModelExecution"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "control": {
+            "const": "kv_cache"
+          },
+          "value": {
+            "$ref": "#/$defs/KVCacheConfig"
+          },
+          "ontology_binding": {
+            "const": {
+              "primary": "KVCache",
+              "related": [
+                "KVState"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "control": {
+            "const": "scheduling"
+          },
+          "value": {
+            "$ref": "#/$defs/RequestSchedulingConfig"
+          },
+          "ontology_binding": {
+            "const": {
+              "primary": "RequestScheduling",
+              "related": []
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "control": {
+            "const": "transfer"
+          },
+          "value": {
+            "$ref": "#/$defs/StateTransferConfig"
+          },
+          "ontology_binding": {
+            "const": {
+              "primary": "StateTransfer",
+              "related": [
+                "KVState"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "control": {
+            "const": "compute_service"
+          },
+          "value": {
+            "$ref": "#/$defs/ComputeServiceConfig"
+          },
+          "ontology_binding": {
+            "const": {
+              "primary": "ComputeService",
+              "related": []
+            }
+          }
+        }
+      }
+    ]
+  },
+  "ExecutionSpec": {
+    "type": "object",
+    "x-owner": "ExecutionSpec",
+    "additionalProperties": false,
+    "required": [
+      "experiments"
+    ],
+    "properties": {
+      "experiments": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 6,
+        "items": {
+          "$ref": "#/$defs/ExperimentSpec"
+        }
+      }
+    },
+    "description": "Exactly one model and one KV reuse assignment. The implemented resource simulation additionally requires cache, scheduling, transfer and compute-service controls together; partial and duplicate assignments fail before execution."
+  },
+  "GenerationWork": {
+    "type": "object",
+    "x-owner": "ModelExecution",
+    "additionalProperties": false,
+    "required": [
+      "processed_positions",
+      "reused_positions",
+      "matmul_flops"
+    ],
+    "properties": {
+      "processed_positions": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 512
+      },
+      "reused_positions": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 512
+      },
+      "matmul_flops": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991,
+        "description": "Executed dense and attention matrix multiply/add operations, counted as two FLOPs per multiply-add. Excludes normalization, activation and softmax."
+      }
+    }
+  },
+  "ResourceExecution": {
+    "type": "object",
+    "x-owner": "ExperimentExecution",
+    "additionalProperties": false,
+    "required": [
+      "input",
+      "run",
+      "outputs",
+      "decoding_notes"
+    ],
+    "properties": {
+      "input": {
+        "$ref": "#/$defs/GenerationInput"
+      },
+      "run": {
+        "$ref": "#/$defs/CacheRun"
+      },
+      "outputs": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "decoding_notes": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Request-indexed malformed or incomplete decoding diagnostics; output text remains unmodified."
+      }
+    }
+  },
+  "InferenceMap": {
+    "type": "object",
+    "x-owner": "InferenceSystem",
+    "additionalProperties": false,
+    "required": [
+      "areas",
+      "relationships"
+    ],
+    "properties": {
+      "areas": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/InferenceMapArea"
+        },
+        "minItems": 1
+      },
+      "relationships": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/InferenceMapRelationship"
+        }
+      }
+    },
+    "description": "Navigation across system responsibilities, not execution events or supported configuration. Concepts have one navigation home; typed execution evidence remains with its owner.",
+    "const": {
+      "areas": [
+        {
+          "id": "deployment",
+          "title": "Deployment & objectives",
+          "concepts": [
+            "ModelArtifact",
+            "ModelWeights",
+            "ModelArchitecture"
+          ],
+          "gaps": [
+            "Service objectives, placement and rollout controllers"
+          ],
+          "view": "concepts",
+          "expanded": false
+        },
+        {
+          "id": "requests",
+          "title": "Request handling & routing",
+          "concepts": [
+            "InferenceRequest",
+            "Workload"
+          ],
+          "gaps": [
+            "Endpoint selection, cache affinity and routing policy"
+          ],
+          "view": "concepts",
+          "expanded": false
+        },
+        {
+          "id": "delivery",
+          "title": "Response delivery",
+          "concepts": [
+            "InferenceResponse"
+          ],
+          "gaps": [
+            "Streaming protocols, network receipt and backpressure"
+          ],
+          "view": "concepts",
+          "expanded": false
+        },
+        {
+          "id": "engine",
+          "title": "Engine scheduling & execution",
+          "concepts": [
+            "RequestScheduling",
+            "ModelExecution",
+            "Decoding",
+            "Tokenizer",
+            "Embedding",
+            "PositionEncoding",
+            "Normalization",
+            "Attention",
+            "ResidualAddition",
+            "FeedForward",
+            "OutputProjection"
+          ],
+          "gaps": [],
+          "view": "engine",
+          "expanded": true
+        },
+        {
+          "id": "state",
+          "title": "State management & transfer",
+          "concepts": [
+            "KVState",
+            "KVCache",
+            "StateTransfer"
+          ],
+          "gaps": [
+            "Recurrent state, activation transfer and shared state directories"
+          ],
+          "view": "concepts",
+          "expanded": false
+        },
+        {
+          "id": "kernels",
+          "title": "Kernels & collectives",
+          "concepts": [],
+          "gaps": [
+            "Kernel implementations and TP / PP / EP collectives"
+          ],
+          "view": "concepts",
+          "expanded": false
+        },
+        {
+          "id": "resources",
+          "title": "Compute, memory & interconnect",
+          "concepts": [
+            "ResourceGraph",
+            "ComputeService",
+            "ExecutionBackend"
+          ],
+          "gaps": [
+            "Shared-link contention and calibrated accelerator profiles"
+          ],
+          "view": "concepts",
+          "expanded": false
+        }
+      ],
+      "relationships": [
+        {
+          "source": "deployment",
+          "target": "requests",
+          "label": "Configures"
+        },
+        {
+          "source": "deployment",
+          "target": "engine",
+          "label": "Configures"
+        },
+        {
+          "source": "requests",
+          "target": "engine",
+          "label": "Dispatches to"
+        },
+        {
+          "source": "engine",
+          "target": "delivery",
+          "label": "Produces output for"
+        },
+        {
+          "source": "requests",
+          "target": "state",
+          "label": "Consults residency in"
+        },
+        {
+          "source": "engine",
+          "target": "state",
+          "label": "Reads and writes"
+        },
+        {
+          "source": "engine",
+          "target": "kernels",
+          "label": "Executes through"
+        },
+        {
+          "source": "kernels",
+          "target": "resources",
+          "label": "Runs on"
+        },
+        {
+          "source": "state",
+          "target": "resources",
+          "label": "Occupies"
+        }
+      ]
+    }
+  },
+  "InferenceMapArea": {
+    "type": "object",
+    "x-owner": "InferenceSystem",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "title",
+      "concepts",
+      "gaps",
+      "view",
+      "expanded"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z-]*$"
+      },
+      "title": {
+        "type": "string"
+      },
+      "concepts": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "x-ontology-reference": true,
+          "enum": [
+            "ApiError",
+            "Attention",
+            "ComputeService",
+            "CustomerInteraction",
+            "Decoding",
+            "Embedding",
+            "ExecutionBackend",
+            "ExecutionSpec",
+            "ExperimentEvent",
+            "ExperimentExecution",
+            "ExperimentObservation",
+            "ExperimentSpec",
+            "FeedForward",
+            "GenerationPolicy",
+            "InferenceRequest",
+            "InferenceResponse",
+            "InferenceSystem",
+            "InspectionState",
+            "KVCache",
+            "KVState",
+            "ModelArchitecture",
+            "ModelArtifact",
+            "ModelExecution",
+            "ModelWeights",
+            "Normalization",
+            "OutputProjection",
+            "PositionEncoding",
+            "RequestScheduling",
+            "ResidualAddition",
+            "ResourceGraph",
+            "StateTransfer",
+            "Tokenizer",
+            "Workload"
+          ]
+        },
+        "uniqueItems": true
+      },
+      "gaps": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "uniqueItems": true
+      },
+      "view": {
+        "type": "string",
+        "enum": [
+          "concepts",
+          "engine"
+        ]
+      },
+      "expanded": {
+        "type": "boolean"
+      }
+    }
+  },
+  "InferenceMapRelationship": {
+    "type": "object",
+    "x-owner": "InferenceSystem",
+    "additionalProperties": false,
+    "required": [
+      "source",
+      "target",
+      "label"
+    ],
+    "properties": {
+      "source": {
+        "type": "string"
+      },
+      "target": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string"
       }
     }
   }
@@ -5679,40 +4613,34 @@ globalThis.Declarations = (() => {
     "owns": [
       "Composition of separately owned execution, scheduling, cache, transfer and compute-service configurations.",
       "System-wide supported request and output-token ceilings.",
+      "The navigable composition of responsibilities, with ontology bindings, structural relationships and explicit undeclared gaps.",
       "Declared dispatch boundary; the baseline uses one direct in-process execution endpoint."
     ],
     "excludes": [
       "Constituent mechanisms and their observations.",
       "Caller-requested generation policy and response publication.",
-      "Model weights and measured results."
+      "Model weights and measured results.",
+      "Navigation groupings are not new semantic owners or evidence that a mechanism executes."
     ],
     "capability_reads": [],
     "projections": {
       "Inference system": {
         "meaning": "Composition of the implemented execution components and system-wide limits; not an algorithm or a generic lab subject.",
         "fields": {
-          "InferenceSystem": [
-            "model_execution",
-            "dispatch",
-            "max_requests"
-          ],
           "KVResidencySystemConfig": [
-            "model_execution",
             "scheduling",
             "kv_cache",
             "transfer",
             "compute_service"
-          ],
-          "SystemConfigurationPreview": [
-            "attention"
           ]
         }
       }
     },
     "schemas": [
-      "InferenceSystem",
-      "KVResidencySystemConfig",
-      "SystemConfigurationPreview"
+      "InferenceMap",
+      "InferenceMapArea",
+      "InferenceMapRelationship",
+      "KVResidencySystemConfig"
     ]
   },
   "GenerationPolicy": {
@@ -5729,12 +4657,11 @@ globalThis.Declarations = (() => {
       "observed outcomes"
     ],
     "capability_reads": [
-      "system.max_new_tokens_cap"
+      "KVRunBinding.system.max_new_tokens_cap"
     ],
     "projections": {},
     "schemas": [
-      "GenerationPolicy",
-      "DecodingContract"
+      "GenerationPolicy"
     ]
   },
   "InferenceRequest": {
@@ -5768,18 +4695,17 @@ globalThis.Declarations = (() => {
     "schemas": [
       "InferenceRequest",
       "RequestArrival",
-      "TokenStepRequest",
       "GenerationInput",
       "GenerationPrepared",
-      "GenerationStep"
+      "GenerationStep",
+      "KVExperimentInput"
     ]
   },
   "Workload": {
     "meaning": "An ordered collection of request arrivals; array order breaks equal-time ties.",
     "lifetime": "Immutable in an identified execution record.",
     "owns": [
-      "An ordered collection of request arrivals; array order breaks equal-time ties.",
-      "Declared transformation previews over source input; a rule is not an instantiated request or evidence of generated arrivals."
+      "An ordered collection of request arrivals; array order breaks equal-time ties."
     ],
     "excludes": [
       "Actual admission or execution order chosen by the scheduler",
@@ -5788,22 +4714,16 @@ globalThis.Declarations = (() => {
     "capability_reads": [],
     "projections": {
       "Workload": {
-        "meaning": "An ordered request collection and the rules proposed to derive it from source input. Transformation previews do not instantiate requests.",
+        "meaning": "An ordered request collection supplied to execution.",
         "fields": {
           "Workload": [
             "requests"
-          ],
-          "WorkloadTransformationPreview": [
-            "suffix_variants",
-            "random_messages",
-            "arrival_spacing_us"
           ]
         }
       }
     },
     "schemas": [
-      "Workload",
-      "WorkloadTransformationPreview"
+      "Workload"
     ]
   },
   "InferenceResponse": {
@@ -5821,16 +4741,8 @@ globalThis.Declarations = (() => {
     "capability_reads": [],
     "projections": {
       "Response": {
-        "meaning": "Published output and the request outcome. The existing event envelope supplies request/run identity and order; publication is not proof of network receipt.",
+        "meaning": "Observed completion and publication counts; no network receipt is implied.",
         "fields": {
-          "TokenPublished": [
-            "token_ids",
-            "output_start",
-            "display_delta"
-          ],
-          "RequestFinished": [
-            "outcome"
-          ],
           "RunOutcome": [
             "published_tokens",
             "stop_reason",
@@ -5840,18 +4752,15 @@ globalThis.Declarations = (() => {
       }
     },
     "schemas": [
-      "TokenPublished",
-      "RequestFinished",
       "RunOutcome"
     ]
   },
   "ExperimentSpec": {
-    "meaning": "The declared inputs, configuration, and assumptions for an experiment.",
+    "meaning": "One declared intervention on an ontology-owned mechanism or artifact in the inference journey.",
     "lifetime": "Editable before execution; the consumed specification is frozen in the execution record.",
     "owns": [
-      "Submitted experiment input, and resolved bindings identifying the model, inference system, and request or workload actually consumed.",
-      "Primary and related ontology subjects, resolved against admitted concepts and preserved in execution.",
-      "Unexecuted configuration previews, kept distinct from resolved execution bindings."
+      "One mechanism or artifact control and its requested settings.",
+      "Primary and related ontology subjects, resolved against admitted concepts and preserved in execution."
     ],
     "excludes": [
       "Observed outcomes and execution identity",
@@ -5860,23 +4769,17 @@ globalThis.Declarations = (() => {
     "capability_reads": [],
     "projections": {},
     "schemas": [
-      "RequestBinding",
-      "RunBinding",
-      "GenerationExperiment",
-      "GenerationDefaults",
-      "PreparedInput",
-      "KVExperimentInput",
-      "KVRunBinding",
       "OntologyBinding",
-      "ConfigurationPreview"
+      "ExperimentSpec"
     ]
   },
   "ExperimentExecution": {
-    "meaning": "One identified execution of an experiment specification, retaining its events and observations for inspection and replay.",
+    "meaning": "One identified execution of the consumed controls against customer input, retaining its events and observations for inspection and replay.",
     "lifetime": "Evidence accumulates during execution; the completed record is immutable.",
     "owns": [
       "Execution records joining the consumed specification, events, observations, and request outcomes.",
-      "Numerical traces and shared execution provenance identifying source bytes, Python/Git version, and the actual backend; provenance is distinct from requested system settings."
+      "Numerical traces and shared execution provenance identifying source bytes, Python/Git version, and the actual backend; provenance is distinct from requested system settings.",
+      "Resolved model, system and customer-input bindings actually consumed; these are frozen evidence, not an independent editable specification."
     ],
     "excludes": [
       "Editable experiment drafts",
@@ -5887,27 +4790,18 @@ globalThis.Declarations = (() => {
     "projections": {},
     "schemas": [
       "GenerationEvidence",
-      "RunRecord",
       "CacheRun",
-      "NumericalTrace",
       "ExecutionProvenance",
-      "TokenStepResult",
-      "ArtifactReference",
-      "ExecutionReceipt",
-      "ArtifactResponse",
-      "StoredNumericalTrace",
-      "StoredRunRecord",
-      "StoredTokenStepResult",
-      "ExecutionArchive",
-      "ExecutionBundle",
-      "ExecutionReplayInput"
+      "ExecutionReplayInput",
+      "KVRunBinding",
+      "ResourceExecution"
     ]
   },
   "ExperimentEvent": {
     "meaning": "An occurrence within an execution, with explicit order, causal links, and the applicable clock interpretation.",
     "lifetime": "Recorded when an occurrence happens; earlier events are not rewritten.",
     "owns": [
-      "Causal event envelopes, request arrival and input-encoding payloads, and the declared event clock.",
+      "Causal cache event envelopes with request identity and virtual timestamps.",
       "The current cache event envelope records cross-mechanism scheduling, cache and service transitions; it is not their semantic owner."
     ],
     "excludes": [
@@ -5919,22 +4813,19 @@ globalThis.Declarations = (() => {
     "capability_reads": [],
     "projections": {
       "Event": {
-        "meaning": "An occurrence linked to its causes and affected entities. The execution declares whether order alone or virtual time is available; neither establishes measured duration.",
+        "meaning": "A cache-lab occurrence linked to its causes in declared virtual microseconds, not measured wall time.",
         "fields": {
-          "RunEvent": [
+          "CacheEvent": [
             "event_id",
             "causes",
-            "payload"
+            "kind",
+            "time_us"
           ]
         }
       }
     },
     "schemas": [
-      "RunEvent",
-      "CacheEvent",
-      "EventClock",
-      "RequestArrived",
-      "InputEncoded"
+      "CacheEvent"
     ]
   },
   "ExperimentObservation": {
@@ -5954,9 +4845,26 @@ globalThis.Declarations = (() => {
     "schemas": [
       "TensorObservation",
       "CacheMeasurement",
-      "TensorTable",
-      "StoredTensorObservation",
       "GenerationPrediction"
+    ]
+  },
+  "ExecutionSpec": {
+    "meaning": "A composition of experiment controls used together to execute customer input. The list specifies one setup, not a sweep.",
+    "lifetime": "Editable before execution; retained unchanged with the execution evidence.",
+    "owns": [
+      "Composition of ontology-bound controls, with one assignment per control.",
+      "Execution setup independently of customer input and observed results."
+    ],
+    "excludes": [
+      "Customer text and request arrivals, owned by Workload and InferenceRequest",
+      "Observed outcomes",
+      "Silently overriding conflicting controls"
+    ],
+    "capability_reads": [],
+    "projections": {},
+    "schemas": [
+      "ExecutionSpec",
+      "GenerationDefaults"
     ]
   },
   "InspectionState": {
@@ -5992,25 +4900,6 @@ globalThis.Declarations = (() => {
     "projections": {},
     "schemas": [
       "ApiError"
-    ]
-  },
-  "ExecutionCapabilities": {
-    "meaning": "The running service\u2019s advertised execution support and contract compatibility information.",
-    "lifetime": "A service-discovery snapshot; refresh when connecting to or reconnecting with a service.",
-    "owns": [
-      "Engine and contract identity used to check client/service compatibility.",
-      "Numerical backends advertised as available by the service."
-    ],
-    "excludes": [
-      "The configuration selected for an experiment",
-      "Measured performance or calibrated hardware capacity",
-      "Evidence of the backend or implementation that actually executed a run"
-    ],
-    "capability_reads": [],
-    "projections": {},
-    "schemas": [
-      "Capabilities",
-      "CacheCapabilities"
     ]
   },
   "ExecutionBackend": {
@@ -6106,8 +4995,7 @@ globalThis.Declarations = (() => {
       "Turn",
       "Span",
       "Encoding",
-      "TokenizerOperation",
-      "VocabularyArtifact"
+      "TokenizerOperation"
     ]
   },
   "Embedding": {
@@ -6204,8 +5092,7 @@ globalThis.Declarations = (() => {
       }
     },
     "schemas": [
-      "AttentionOperation",
-      "AttentionConfiguration"
+      "AttentionOperation"
     ]
   },
   "ResidualAddition": {
@@ -6307,11 +5194,8 @@ globalThis.Declarations = (() => {
       }
     },
     "schemas": [
-      "FullPrefixExecutionConfig",
-      "CachedExecutionConfig",
       "CacheComputation",
-      "ModelForwardCompleted",
-      "NumericalPrecision"
+      "GenerationWork"
     ]
   },
   "Decoding": {
@@ -6340,11 +5224,7 @@ globalThis.Declarations = (() => {
       }
     },
     "schemas": [
-      "TokenSelection",
-      "TokenSelected",
-      "NumericalPass",
-      "StoredTokenSelection",
-      "StoredNumericalPass"
+      "TokenSelection"
     ]
   },
   "RequestScheduling": {
@@ -6462,8 +5342,7 @@ globalThis.Declarations = (() => {
     "lifetime": "Immutable scenario input; changing it defines a different scenario.",
     "owns": [
       "Ordered customer actions; equal-time array order breaks ties. Each submission creates one invocation.",
-      "Consumption describes client demand; cancellation expresses intent, not acknowledgment or immediate server termination.",
-      "Client consumption intent in configuration previews; previewing a pause does not execute a transport or buffer."
+      "Consumption describes client demand; cancellation expresses intent, not acknowledgment or immediate server termination."
     ],
     "excludes": [
       "No browser rendering, API protocol, network delivery, retry grouping or agent tool orchestration is implemented.",
@@ -6472,10 +5351,10 @@ globalThis.Declarations = (() => {
     "capability_reads": [],
     "projections": {
       "Client": {
-        "meaning": "Client-side consumption intent; a preview does not establish delivery or executed backpressure.",
+        "meaning": "Customer submissions, output consumption and cancellation.",
         "fields": {
-          "ClientConfigurationPreview": [
-            "consumption"
+          "CustomerInteraction": [
+            "actions"
           ]
         }
       }
@@ -6484,14 +5363,13 @@ globalThis.Declarations = (() => {
       "CustomerSubmission",
       "CustomerConsumption",
       "CustomerCancellation",
-      "CustomerInteraction",
-      "ClientConfigurationPreview"
+      "CustomerInteraction"
     ]
   }
 };
   const operationOwners = {"token_embedding": "Embedding", "embedding": "Embedding", "position_embedding": "PositionEncoding", "ln1_mean": "Normalization", "ln1_variance": "Normalization", "ln1": "Normalization", "ln2_mean": "Normalization", "ln2_variance": "Normalization", "ln2": "Normalization", "ln_final_mean": "Normalization", "ln_final_variance": "Normalization", "ln_final": "Normalization", "query": "Attention", "key": "Attention", "value": "Attention", "scores": "Attention", "causal_mask": "Attention", "attention": "Attention", "weighted_values": "Attention", "attention_output": "Attention", "attention_residual": "ResidualAddition", "ff_residual": "ResidualAddition", "ff_up": "FeedForward", "gelu": "FeedForward", "ff_down": "FeedForward", "logits": "OutputProjection", "input_ids": "Tokenizer", "retained_keys": "KVState", "retained_values": "KVState"};
   const labs = [{"id": "naive-gpt", "name": "Model execution", "status": "mechanical-demo", "ontology_binding": {"primary": "ModelExecution", "related": ["Tokenizer", "Embedding", "PositionEncoding", "Normalization", "Attention", "ResidualAddition", "FeedForward", "OutputProjection", "Decoding", "ModelArchitecture", "ModelArtifact"]}}, {"id": "kimi-delta-attention", "name": "Kimi Delta Attention (KDA)", "status": "mechanical-demo", "ontology_binding": {"primary": "Attention", "related": []}}, {"id": "prefix-cache", "name": "Exact prefix caching", "status": "mechanical-demo", "ontology_binding": {"primary": "KVCache", "related": ["KVState", "RequestScheduling", "StateTransfer", "ComputeService"]}}, {"id": "prefill-decode", "name": "Prefill/decode KV handoff", "status": "planned", "ontology_binding": {"primary": "StateTransfer", "related": ["KVState", "ModelExecution"]}}, {"id": "speculative-decoding", "name": "Speculative decoding", "status": "planned", "ontology_binding": {"primary": "Decoding", "related": ["ModelExecution", "KVState"]}}, {"id": "positional-encoding", "name": "Positional encoding", "status": "planned", "ontology_binding": {"primary": "PositionEncoding", "related": ["Embedding", "Attention"]}}];
-  const hash = "d698aecfc30d49983545ddd035b48252c006c8a32209fc071c8e38de49eccf6f";
+  const hash = "109b8dcf77637c8ed62a0745aefd63bdde0d66ffea069b68dd388a16fdbfaa57";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

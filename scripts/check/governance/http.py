@@ -32,12 +32,17 @@ def check_source(path, source):
 
 def audit_http(root, paths, generated):
     failures=[]
+    worker=generated.get(WORKER,'')
+    if "import {installComponentEngine} from './component-engine.js'" not in worker or 'await installComponentEngine();' not in worker:
+        failures.append(WORKER+': browser operations require the shared numerical engine')
     for name in (RUNTIMES,CLIENT,WORKER):
         if name not in generated or not (root/name).is_file() or (root/name).read_text()!=generated[name]:
             failures.append(f'{name}: missing or stale generated execution boundary')
     for name in ('inside_inference/delivery/application.py','inside_inference/delivery/http.py',
                  'inside_inference/delivery/http_generated.py','inside_inference/cuda_runtime.py',
-                 'scripts/dev/lambda_api.py','data-model/openapi.yaml'):
+                 'scripts/dev/lambda_api.py','data-model/openapi.yaml',
+                 'inside_inference/delivery/store.py','inside_inference/delivery/codec.py',
+                 'inside_inference/workload.py','inside_inference/declarations.py'):
         if (root/name).exists():failures.append(f'{name}: retired execution path')
     for path in paths:
         if path.as_posix() in generated:continue

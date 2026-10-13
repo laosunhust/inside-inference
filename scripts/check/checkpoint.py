@@ -1,4 +1,4 @@
-"""Verify exported preparation weights against actual reference inference and replay."""
+"""Verify exported preparation weights against actual reference inference."""
 import argparse
 import json
 from pathlib import Path
@@ -12,8 +12,6 @@ from inside_inference.generation import select_greedy
 from inside_inference.model import Model, canonical, identity
 from inside_inference.preparation import PreparationModel, prepare_examples, evaluate, generate, readability_report
 from inside_inference.tokenizer import Tokenizer
-from inside_inference.workload import default_workload, run_workload, replay_workload
-from scripts.check.selection_contract import assert_unrestricted_generation
 
 
 def main():
@@ -52,7 +50,7 @@ def main():
         (output/'baseline-development.json').write_bytes(canonical(baseline))
     (output/'development.json').write_bytes(canonical(development))
     (output/'training-diagnostic.json').write_bytes(canonical(training))
-    largest_error, checked_values, traced_families = 0.0, 0, set()
+    largest_error, checked_values = 0.0, 0
     for example, observation in zip(examples['development'],development['records']):
         prefix = example['prompt_ids'][:]
         for selected in observation['full']['ids']:
@@ -75,17 +73,6 @@ def main():
                 (output/'selection-disagreement.json').write_bytes(canonical(disagreement))
                 raise AssertionError('Prepared selection differs; near_tie='+str(disagreement['near_tie']))
             prefix.append(selected)
-        if example['family'] not in traced_families:
-            request = {'text':example['text'],'generation':{'max_new_tokens':budget,
-                'selection':'greedy-lowest-id-tie','stopping':'turn-end-or-budget'}}
-            run = run_workload(default_workload(request).to_dict(),checkpoint=checkpoint)
-            assert_unrestricted_generation(run)
-            if run['traces'][0]['output_ids'] != observation['full']['ids']:
-                raise AssertionError('Workload adapter differs from preparation')
-            if canonical(replay_workload(run)) != canonical(run):
-                raise AssertionError('Reference replay differs')
-            (output/(example['family']+'.run.json')).write_bytes(canonical(run)+b'\n')
-            traced_families.add(example['family'])
     contrast = json.loads((ROOT/'data/corpus/contrast-pairs.json').read_text())
     contrast_results = []
     for pair in contrast:
@@ -102,10 +89,9 @@ def main():
     (output/'result.json').write_bytes(canonical({'passed':True,
         'checkpoint_sha256':identity(checkpoint),'development_cases':len(examples['development']),
         'compared_logit_values':checked_values,'max_absolute_logit_error':largest_error,
-        'reference_trace_families':sorted(traced_families),
         'development_shortcut_diagnostic':shortcuts,'test_split_evaluated':False,
         'learned_behavior_passed':development.get('provisional_pass', development.get('readability_pass',False) and development.get('task_pass',False)),
-        'scope':'numerical export, raw argmax, all development continuations, per-family trace replay'}))
+        'scope':'numerical export, raw argmax, all development continuations'}))
     print((output/'result.json').read_text())
 
 

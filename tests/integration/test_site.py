@@ -1,4 +1,5 @@
 import copy
+import hashlib
 from html.parser import HTMLParser
 import json
 import re
@@ -8,7 +9,6 @@ import unittest
 from urllib.parse import unquote, urlsplit
 
 from scripts.build.intro_page import build, load_catalog, ontology_terms
-from inside_inference.workload import run_workload
 from inside_inference.labs.kda import demo, step
 
 
@@ -71,9 +71,10 @@ class AtlasTests(unittest.TestCase):
         self.assertNotIn('receipt',snapshot)
         self.assertNotIn('output_ids',snapshot)
         self.assertNotIn('passes',snapshot)
-        self.assertEqual(embedded('ontology-data'), ontology_terms())
+        self.assertNotIn('id="ontology-data"',page)
+        self.assertIn('declarations.generated.js',page)
         self.assertNotIn('journey-data', page)
-        self.assertIn('journey-data', (root / 'request-cost.html').read_text())
+        self.assertFalse((root / 'request-cost.html').exists())
 
     def test_primary_listing_and_related_references_share_catalog(self):
         from scripts.build.presentation import lab_index, Elements
@@ -128,11 +129,9 @@ class AtlasTests(unittest.TestCase):
             source=(self.site/page).read_text()
             return json.loads(re.search(r'<script id="'+identifier+r'" type="application/json">(.*?)</script>',source,re.S).group(1))
         snapshot=embedded('index.html','inference-data')
-        cache=embedded('kv-cache.html','cache-data')
         with tempfile.TemporaryDirectory() as directory, \
              patch('scripts.build.intro_page.demo', return_value=traces), \
-             patch('scripts.build.intro_page.initial_generation', return_value=snapshot), \
-             patch('scripts.build.intro_page.default_experiment', return_value=cache):
+             patch('scripts.build.intro_page.initial_generation', return_value=snapshot):
             root = Path(directory)
             build(root, checkpoint=self.shared_checkpoint)
             page = (root/'labs/kimi-delta-attention.html').read_text()
@@ -160,9 +159,32 @@ class AtlasTests(unittest.TestCase):
             self.assertIn('false negatives', page)
             if entry['status'] == 'planned':
                 self.assertIn('No experiment or measured result', page)
-        before = {p.relative_to(root): p.read_bytes() for p in root.rglob('*') if p.is_file()}
+        def snapshot():
+            return {p.relative_to(root): hashlib.sha256(p.read_bytes()).hexdigest()
+                    for p in root.rglob('*') if p.is_file()}
+        before = snapshot()
         build(root, checkpoint=self.shared_checkpoint)
-        self.assertEqual(before, {p.relative_to(root): p.read_bytes() for p in root.rglob('*') if p.is_file()})
+        self.assertEqual(before, snapshot())
+
+    def test_release_decoder_against_independent_scalar_reference(self):
+        import subprocess
+        import zipfile
+        from inside_inference.model import Model, ModelArchitecture, initialize
+        from inside_inference.tokenizer import Tokenizer
+        from scripts import ROOT
+        cases=[]
+        for layers in (1,2):
+            checkpoint=initialize(ModelArchitecture(width=4,ffn=8,layers=layers,context=8),Tokenizer().manifest_sha256,seed=19)
+            ids=[0,3,42,6]
+            reference=Model(checkpoint).forward(ids)
+            cases.append(dict(checkpoint=checkpoint,ids=ids,logits=reference['logits'],nodes=reference['nodes']))
+        with tempfile.TemporaryDirectory(dir=ROOT/'out') as directory:
+            fixture=Path(directory)/'reference.json';fixture.write_text(json.dumps(cases))
+            result=subprocess.run(['node',str(ROOT/'tests/integration/decoder_reference.mjs'),str(self.site),str(fixture)],capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        with zipfile.ZipFile(self.site/'execution/engine.zip') as package:
+            self.assertNotIn('inside_inference/runtimes/reference.py',package.namelist())
+            self.assertNotIn('inside_inference/runtimes/inspectable.py',package.namelist())
 
 
 if __name__ == '__main__':

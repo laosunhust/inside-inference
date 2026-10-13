@@ -1,21 +1,4 @@
 'use strict';
-const search = document.querySelector('#search');
-if (search) {
-  const cards = [...document.querySelectorAll('[data-search]')];
-  const update = () => {
-    const query = search.value.trim().toLowerCase();
-    let visible = 0;
-    for (const card of cards) {
-      card.hidden = !card.textContent.toLowerCase().includes(query);
-      document.querySelector(`nav a[href="#${card.id}"]`).hidden = card.hidden;
-      if (!card.hidden) visible++;
-    }
-    document.querySelector('#result-count').textContent = `${visible} of ${cards.length} areas`;
-    document.querySelector('#no-results').hidden = visible !== 0;
-  };
-  search.addEventListener('input', update);
-  update();
-}
 const traceData = document.querySelector('#trace-data');
 if (traceData) {
   const data = JSON.parse(traceData.textContent);

@@ -2,7 +2,7 @@
 from copy import deepcopy
 import unittest
 
-from inside_inference.declarations_generated import CacheEvent, InferenceRequest, InferenceSystem
+from inside_inference.declarations_generated import CacheEvent, InferenceRequest, KVResidencySystemConfig
 from inside_inference.scenarios import validate_customer_interaction, validate_resource_graph
 from inside_inference.cache_lab import default_experiment, run_cache_experiment
 
@@ -62,5 +62,5 @@ class ScenarioTests(unittest.TestCase):
         for key, value in [('resource_graph', graph()), ('customer_interaction', interaction())]:
             spec = default_experiment(); spec['system'][key] = value
             with self.assertRaises(ValueError): run_cache_experiment(spec)
-        legacy = InferenceSystem().to_dict(); legacy['arrival_policy'] = 'single-at-zero'
-        with self.assertRaises(ValueError): InferenceSystem.from_dict(legacy)
+        legacy = KVResidencySystemConfig().to_dict(); legacy['arrival_policy'] = 'single-at-zero'
+        with self.assertRaises(ValueError): KVResidencySystemConfig.from_dict(legacy)

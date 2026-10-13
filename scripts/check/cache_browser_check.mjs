@@ -1,67 +1,62 @@
 import assert from 'node:assert/strict';
-import {readFile,writeFile,rm} from 'node:fs/promises';
-export async function checkCache({send,evaluate,until,click,base,file,output}) {
- const cases=JSON.parse(await readFile(output+'/cache-references.json','utf8'));
+import {readFile,writeFile} from 'node:fs/promises';
+export async function checkCache({send,evaluate,until,click,base,output}) {
  await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
- await send('Page.navigate',{url:base+'/kv-cache.html'});
- // This page boots the worker and executes the initial multi-request lab.
- // Allow startup within the unchanged overall integration budget.
- await until(`document.getElementById('cache-status')?.dataset.phase==='ready'`,300);
+ const cases=JSON.parse(await readFile(output+'/cache-references.json','utf8'));
+ await send('Page.navigate',{url:base+'/index.html'});
+ await until(`document.getElementById('model-choice')?.disabled===false`,300);
+ await evaluate(`document.getElementById('model-choice').value='tinyllm-8k';document.getElementById('model-choice').dispatchEvent(new Event('change'))`);
+ await until(`document.getElementById('binding-status').dataset.phase==='ready'`,300);
+ await click('open-system');await click('kv-reuse');await click('resource-enabled');
  const logical=({measurements,...rest})=>rest;
  let replayChecked=false;
  for(const c of cases){
-  c.record=await evaluate(`Execution.cacheRun(${JSON.stringify(c.spec)})`);
-  Declarations.assertShape('CacheRun',c.record);
-  const before=await evaluate(`document.getElementById('cache-run-identity').textContent`);
-  await evaluate(`(() => {
-   const spec=${JSON.stringify(c.spec)},$=id=>document.getElementById(id);
-   while(document.querySelectorAll('.cache-request').length>spec.workload.requests.length)document.querySelectorAll('.cache-request button')[document.querySelectorAll('.cache-request button').length-1].click();
-   while(document.querySelectorAll('.cache-request').length<spec.workload.requests.length)$('cache-add').click();
-   const set=(id,value)=>{const e=$(id);e.value=value;e.dispatchEvent(new Event('input'));};
-   const configure=value=>{for(const [key,v] of Object.entries(value)){if(v&&typeof v==='object')configure(v);else if($('cache-'+key))set('cache-'+key,v);}};
-   configure(spec.system);
-   spec.workload.requests.forEach((r,i)=>{set('cache-text-'+i,r.request.text);set('cache-arrival-'+i,r.arrival_us);set('cache-budget-'+i,r.request.generation.max_new_tokens);});
-  })()`);
-  assert.equal(await evaluate(`document.getElementById('cache-status').dataset.phase`),'dirty');
-  assert.equal(await evaluate(`document.getElementById('cache-run-identity').textContent`),before);
-  await evaluate(`document.getElementById('cache-form').requestSubmit();if(!document.getElementById('cache-execute').disabled)throw Error('Cache controls must lock during execution')`);
-  await until(`['ready','error'].includes(document.getElementById('cache-status').dataset.phase)`);
-  assert.equal(await evaluate(`document.getElementById('cache-status').dataset.phase`),'ready',await evaluate(`document.getElementById('cache-error').textContent`));
-  const filename=output+'/cache-'+c.record.id.slice(0,12)+'.json';await rm(filename,{force:true});await click('cache-download');
-  let raw;
-  for(let i=0;i<100;i++){
-   try{const candidate=await readFile(filename,'utf8');JSON.parse(candidate);raw=candidate;break;}
-   catch(e){if(e.code!=='ENOENT' && !(e instanceof SyntaxError))throw e;await new Promise(r=>setTimeout(r,50));}
+  const input=await evaluate(`(()=>{const input=JSON.parse(document.getElementById('inference-data').textContent);input.execution.experiments.find(e=>e.control==='model').value='tinyllm-8k';input.execution.experiments.find(e=>e.control==='kv_reuse').value=true;const system=${JSON.stringify(c.spec.system)};for(const d of Declarations.schemas.ExperimentSpec.oneOf.filter(d=>d.properties.value.$ref)){const control=d.properties.control.const;input.execution.experiments.push({control,value:system[control],ontology_binding:d.properties.ontology_binding.const});}input.workload=${JSON.stringify(c.spec.workload)};return input;})()`);
+  // Current generation policy, not the retired standalone chat endpoint.
+  input.workload.requests.forEach(r=>r.request.generation.stopping='model-end-or-budget');
+  const expected=await evaluate(`Execution.simulateResources(${JSON.stringify(input)})`);Declarations.assertShape('ResourceExecution',expected);
+  if(c.id==='warm'){
+   const ordinary=structuredClone(input);ordinary.execution.experiments=ordinary.execution.experiments.filter(e=>['model','kv_reuse'].includes(e.control));ordinary.workload.requests=ordinary.workload.requests.slice(0,1);
+   const prepared=await evaluate(`Execution.prepareGeneration(${JSON.stringify(ordinary)})`);
+   const first=expected.run.computations.find(c=>c.selection);
+   assert.deepEqual(prepared.prompt_ids,first.state_after.token_ids,'Resource execution cannot invent framing');
+   const prediction=await evaluate(`Execution.generateToken(${JSON.stringify({execution:ordinary.execution,prefix_ids:prepared.prompt_ids,output_ids:[],generation:ordinary.workload.requests[0].request.generation})})`);
+   assert.equal(prediction.selected_id,first.selection.selected_id);
+   prediction.logits.forEach((v,i)=>assert.ok(Math.abs(v-first.selection.raw_logits[i])<=1e-10,'Resource/ordinary numerical parity'));
+   const incompatible=structuredClone(input);incompatible.execution.experiments.find(e=>e.control==='kv_reuse').value=false;
+   const rejection=await evaluate(`Execution.simulateResources(${JSON.stringify(incompatible)}).then(()=>null,e=>e.message)`);assert.match(rejection,/requires KV reuse/);
   }
-  assert.ok(raw,'Cache browser download absent');const record=JSON.parse(raw);
-  assert.deepEqual(logical(record),logical(c.record),c.id+': cache browser parity');
-  await writeFile(output+'/'+c.id+'.cache-browser.json',raw);
-  // Every scenario compares headless/interactive exports above. Replay is one shared
-  // interface: exercise it on the transfer scenario rather than rerun every experiment.
+  await evaluate(`(()=>{const config=${JSON.stringify(c.spec.system)};const visit=o=>Object.entries(o).forEach(([k,v])=>{if(v&&typeof v==='object')visit(v);else {const e=document.getElementById('resource-'+k);if(e){e.value=v;e.dispatchEvent(new Event('change'));}}});visit(config);})()`);
+  await evaluate(`document.getElementById('system-dialog').close();if(document.getElementById('inference-form').hidden)document.getElementById('edit-input').click();`);
+  await evaluate(`(()=>{const requests=${JSON.stringify(input.workload.requests)};while(document.querySelectorAll('#resource-requests fieldset').length>requests.length)document.querySelector('#resource-requests fieldset:last-child button').click();while(document.querySelectorAll('#resource-requests fieldset').length<requests.length)document.getElementById('add-request').click();requests.forEach((r,i)=>{for(const [k,v]of [['text',r.request.text],['arrival_us',r.arrival_us],['max_new_tokens',r.request.generation.max_new_tokens]]){const e=document.getElementById('resource-'+k+'-'+i);e.value=v;e.dispatchEvent(new Event('change'));}});document.getElementById('inference-form').requestSubmit();})()`);
+  assert.equal(await evaluate(`document.getElementById('response-preview').textContent`),'');
+  await click('continue-tokens');await until(`!document.getElementById('continue-tokens').disabled`,300);
+  assert.equal(await evaluate(`document.getElementById('run-error').textContent`),'');
+  const actual=await evaluate(`JSON.parse(document.getElementById('resource-explanation').dataset.execution)`);
+  assert.deepEqual(logical(actual.run),logical(expected.run),c.id+': main-page/headless parity');assert.deepEqual(actual.outputs,expected.outputs);
+  assert.equal(await evaluate(`document.querySelectorAll('#resource-explanation table tr').length`),actual.run.events.length+1);
+  // Resource numerics use the main diagram and inspector, not a second tensor viewer.
+  const last=actual.run.computations.length-1,work=actual.run.computations[last];
+  await evaluate(`document.querySelector('[aria-label="Resource computation"]').value=${last};document.querySelector('[aria-label="Resource computation"]').dispatchEvent(new Event('change'));document.querySelector('[data-configuration-owner="Attention"] button').click();`);
+  const tensor=await evaluate(`JSON.parse(document.querySelector('#detail-body script[type="application/json"]').textContent)`);
+  assert.deepEqual(tensor,work.nodes.find(n=>n.id===tensor.id),'Shared inspector shows this resource computation');
+  assert.equal(await evaluate(`document.getElementById('token-journey').disabled`),false);
   if(c.id==='remote'){
-   const replayed=await evaluate(`Execution.replayCache(${JSON.stringify({record_json:raw})})`);
-   assert.deepEqual(logical(replayed),logical(record),'Cache export replay');replayChecked=true;
+   await evaluate(`document.getElementById('numerical-inspector').scrollIntoView()`);
+   const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/resources-inspection.png',Buffer.from(shot.data,'base64'));
+   assert.ok(actual.run.events.some(e=>e.kind==='remote-hit'),'Fixture must still exercise actual transfer');
+   const replay=await evaluate(`Execution.replayCache({record_json:${JSON.stringify(JSON.stringify(actual.run))}})`);assert.deepEqual(logical(replay),logical(actual.run));replayChecked=true;
   }
-  assert.equal(await evaluate(`document.querySelectorAll('#cache-events button').length`),record.events.length);
-  const index=record.computations.length-1;
-  await evaluate(`document.getElementById('cache-work-choice').value=${index};document.getElementById('cache-work-choice').dispatchEvent(new Event('change'));document.getElementById('cache-tensor-choice').value=[...document.getElementById('cache-tensor-choice').options].find(o=>o.textContent.endsWith('attention')).value;document.getElementById('cache-tensor-choice').dispatchEvent(new Event('change'));`);
-  assert.deepEqual(await evaluate(`JSON.parse(document.getElementById('cache-raw').textContent)`),record.computations[index].nodes.find(n=>n.operation.name==='attention'));
-  for(const attention of record.computations[index].nodes.filter(n=>n.operation.name==='attention')) {
-   await evaluate(`document.getElementById('cache-tensor-choice').value=${JSON.stringify(attention.id)};document.getElementById('cache-tensor-choice').dispatchEvent(new Event('change'));`);
-   assert.deepEqual(await evaluate(`JSON.parse(document.getElementById('cache-raw').textContent)`),attention,'Layer selection must own the displayed tensor');
-  }
-  const hit=record.events.findIndex(e=>e.kind==='remote-hit'||e.kind==='local-hit');
-  if(hit>=0){await evaluate(`document.querySelectorAll('#cache-events button')[${hit}].click()`);assert.ok(await evaluate(`document.getElementById('cache-state').textContent.includes('Keys')`));}
-  if(c.id==='remote'){await evaluate('window.scrollTo(0,0)');const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/'+c.id+'-cache.png',Buffer.from(shot.data,'base64'));}
+  await writeFile(output+'/'+c.id+'.cache-browser.json',JSON.stringify(actual));
  }
- assert.ok(replayChecked,'A transfer fixture must exercise exported-cache replay');
- const id=await evaluate(`document.getElementById('cache-run-identity').textContent`);
- await evaluate(`document.getElementById('cache-device_kv_bytes').value=1;document.getElementById('cache-device_kv_bytes').dispatchEvent(new Event('input'));document.getElementById('cache-form').requestSubmit()`);
- await until(`document.getElementById('cache-status').dataset.phase==='error'`);
- assert.equal(await evaluate(`document.getElementById('cache-run-identity').textContent`),id);
- await evaluate('window.scrollTo(0,0)');let shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/cache-failure.png',Buffer.from(shot.data,'base64'));
- await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
- assert.ok(await evaluate(`document.documentElement.scrollWidth<=window.innerWidth`),'Cache mobile overflow');
- shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/cache-mobile.png',Buffer.from(shot.data,'base64'));
- await writeFile(output+'/cache-browser-checks.json',JSON.stringify({passed:true,cases:cases.map(c=>c.id),checks:['headless worker export parity','actual tensor equality','cache outcomes','draft/applied separation','in-flight locking','explicit admission failure','mobile layout']},null,2));
+ assert.ok(replayChecked);
+ await click('reset');assert.equal(await evaluate(`document.getElementById('response-preview').textContent`),'');assert.equal(await evaluate(`document.getElementById('resource-explanation').hidden`),true);
+ await click('open-system');await evaluate(`document.getElementById('resource-device_kv_bytes').value=1;document.getElementById('resource-device_kv_bytes').dispatchEvent(new Event('change'));document.getElementById('system-dialog').close()`);
+ await click('continue-tokens');await until(`document.getElementById('binding-status').dataset.phase==='failed'`);
+ assert.match(await evaluate(`document.getElementById('run-error').textContent`),/capacity/);
+ await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
+ let shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/resources-desktop.png',Buffer.from(shot.data,'base64'));
+ await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});assert.ok(await evaluate(`document.documentElement.scrollWidth<=innerWidth`));
+ shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/resources-mobile.png',Buffer.from(shot.data,'base64'));
+ await writeFile(output+'/cache-browser-checks.json',JSON.stringify({passed:true,cases:cases.map(c=>c.id),checks:['main-page/headless parity','selected artifact','resource admission','replay','reset invalidation','desktop/narrow']},null,2));
 }

@@ -3,22 +3,28 @@ storage:
 models:
 - id: tinyllm-8k
   role: inspection
-  runtime: naive-python
   weights: tinyllm-8k.bin
   tokenizer: tokenizer-384.bin
   seed: 7
-  provenance: Intact vocabulary-covered lowercase sentences; 4000 updates, selected step 1000. See data/preparation/lexical-training; repetition and early EOS remain.
+  provenance: Intact vocabulary-covered lowercase sentences; 4000 updates, selected step 1000. See data/preparation/lexical-training;
+    repetition and early EOS remain.
+  weight_format: naive-gpt-json
+  tokenizer_format: word-hex-manifest
 - id: tinyllm-500k
   role: comparison
-  runtime: llama2c-wasm
   weights: tinyllm-0.5m.bin
   tokenizer: tokenizer-4096.bin
   seed: 1337
-  provenance: TinyStories size study; 65536 updates; 1.074B training tokens; seed chosen before quality evaluation.
+  provenance: TinyStories size study; 65536 updates; 1.074B training tokens; seed chosen before quality
+    evaluation.
+  weight_format: llama2c-binary
+  tokenizer_format: sentencepiece-binary
 - id: tinyllm-4m
   role: continuation
-  runtime: llama2c-wasm
   weights: tinyllm-4m.bin
   tokenizer: tokenizer-4096.bin
   seed: 1337
-  provenance: Same tokenizer, training exposure and recipe as 0.5M. Lower held-out loss; story consistency remains fragile.
+  provenance: Same tokenizer, training exposure and recipe as 0.5M. Lower held-out loss; story consistency
+    remains fragile.
+  weight_format: llama2c-binary
+  tokenizer_format: sentencepiece-binary

@@ -8,25 +8,17 @@ from inside_inference.declarations_generated import ExecutionBackend, ExecutionP
 from inside_inference.model import identity
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = ('model.py', 'generation.py', 'tokenizer.py', 'declarations.py',
-           'declarations_generated.py', 'contract_runtime.py', 'workload.py',
-           'cache_lab.py', 'kv_runtime.py', 'provenance.py')
+SOURCES = ('model.py', 'generation.py', 'tokenizer.py',
+           'declarations_generated.py', 'contract_runtime.py',
+           'cache_lab.py', 'kv_runtime.py', 'provenance.py', 'runtimes/component.py')
 
 
 def source_inventory():
-    return {'inside_inference/'+name: hashlib.sha256((ROOT/'inside_inference'/name).read_bytes()).hexdigest()
-            for name in SOURCES}
-
-
-def source_identity():
-    return identity(source_inventory())
-
-
-def reference_backend():
-    return ExecutionBackend(compute_device='CPU scalar reference',
-        device_state_storage='No retained KV state; full-prefix recomputation',
-        host_state_storage='Python objects in system DRAM',
-        library='Python '+platform.python_version()+' ('+sys.platform+')', precision='binary64').to_dict()
+    paths=['inside_inference/'+name for name in SOURCES]
+    paths += (['inside_inference/runtimes/engine.c','inside_inference/runtimes/decoder.h',
+               'web/execution/component-engine.js','web/execution/decoder.js','web/execution/observations.js',
+               'execution/llama/llama.wasm'] if sys.platform == 'emscripten' else ['inside_inference/runtimes/reference.py'])
+    return {name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in paths}
 
 
 def packaged_revision(root):
@@ -42,11 +34,11 @@ def revision():
     return packaged_revision(ROOT)
 
 
-def execution_provenance(backend=None):
+def execution_provenance(backend):
     sources = source_inventory()
     return ExecutionProvenance(revision=revision(),
         sources=sources, source_sha256=identity(sources), python=platform.python_version(),
-        backend=ExecutionBackend.from_dict(reference_backend() if backend is None else backend)).to_dict()
+        backend=ExecutionBackend.from_dict(backend)).to_dict()
 
 
 def stable_provenance(value):

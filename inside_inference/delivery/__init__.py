@@ -1,1 +1,1 @@
-"""Execution delivery and immutable evidence storage, independent of transport."""
+"""Declared browser operation admission and replay."""

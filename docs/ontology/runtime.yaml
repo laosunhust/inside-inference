@@ -23,11 +23,8 @@ terms:
           - state_before
           - state_after
     schemas:
-    - FullPrefixExecutionConfig
-    - CachedExecutionConfig
     - CacheComputation
-    - ModelForwardCompleted
-    - NumericalPrecision
+    - GenerationWork
   Decoding:
     meaning: Use model predictions to advance a generated sequence while honoring the requested generation
       policy.
@@ -52,7 +49,3 @@ terms:
           - probabilities
     schemas:
     - TokenSelection
-    - TokenSelected
-    - NumericalPass
-    - StoredTokenSelection
-    - StoredNumericalPass

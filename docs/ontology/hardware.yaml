@@ -1,5 +1,3 @@
-# Initial graph: local compute/memory and independent directed links.
-# Expand with shared pools and routing only alongside their executable semantics.
 terms:
   ExecutionBackend:
     meaning: Actual compute device, state-storage implementation, library, and precision observed for

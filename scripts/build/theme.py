@@ -48,11 +48,11 @@ def split(source):
 
 def check_theme(root):
     if not (root/'web/theme.css').is_file(): raise ValueError('Missing shared web/theme.css')
-    for path in sorted((root/'web').glob('*.css')):
-        if path.name == 'theme.css': continue
+    for path in sorted((root/'web').rglob('*.css')):
+        if path == root/'web/theme.css': continue
         paint, _ = split(path.read_text())
         if paint: raise ValueError(f'{path.relative_to(root)}: appearance belongs in web/theme.css; page CSS owns layout')
-    for path in sorted((root/'web').glob('*.js')):
+    for path in sorted((root/'web').rglob('*.js')):
         if '.generated.' in path.name: continue
         if re.search(r'\.style\.(?:color|background\w*|border\w*|font\w*)\s*=',path.read_text()):
             raise ValueError(f'{path.relative_to(root)}: use a data-valued CSS custom property; theme.css owns appearance')

@@ -26,9 +26,9 @@ terms:
           - codec_version
       Detokenizer:
         meaning: The recorded output IDs and their diagnostic display under the identified tokenizer.
-          Selected IDs remain visible in full. Streaming text exposes only complete UTF-8; a valid
-          pending byte triple or UTF-8 suffix is not an error until generation ends. Malformed
-          output remains diagnostic; rendering never repairs or filters token choices.
+          Selected IDs remain visible in full. Streaming text exposes only complete UTF-8; a valid pending
+          byte triple or UTF-8 suffix is not an error until generation ends. Malformed output remains
+          diagnostic; rendering never repairs or filters token choices.
         fields:
           Token:
           - id
@@ -40,4 +40,3 @@ terms:
     - Span
     - Encoding
     - TokenizerOperation
-    - VocabularyArtifact

@@ -44,6 +44,7 @@ $defs:
     - normalization
     - activation
     - precision
+    - epsilon
     properties:
       vocabulary:
         type: integer
@@ -81,6 +82,9 @@ $defs:
       precision:
         type: string
         const: binary32
+      epsilon:
+        type: number
+        const: 1.0e-05
   ModelDescriptor:
     type: object
     x-owner: ModelArtifact
@@ -91,7 +95,6 @@ $defs:
     - role
     - parameters
     - architecture
-    - runtime
     - weights
     - tokenizer
     - seed
@@ -99,6 +102,8 @@ $defs:
     - stop_ids
     - normalization
     - provenance
+    - weight_format
+    - tokenizer_format
     properties:
       id:
         type: string
@@ -119,11 +124,6 @@ $defs:
         oneOf:
         - $ref: '#/$defs/ModelArchitecture'
         - $ref: '#/$defs/LlamaArchitecture'
-      runtime:
-        type: string
-        enum:
-        - naive-python
-        - llama2c-wasm
       weights:
         $ref: '#/$defs/ModelAsset'
       tokenizer:
@@ -150,6 +150,16 @@ $defs:
       provenance:
         type: string
         pattern: '[\s\S]+'
+      weight_format:
+        type: string
+        enum:
+        - naive-gpt-json
+        - llama2c-binary
+      tokenizer_format:
+        type: string
+        enum:
+        - word-hex-manifest
+        - sentencepiece-binary
   ModelCatalog:
     type: object
     x-owner: ModelArtifact
@@ -205,11 +215,11 @@ $defs:
     x-owner: InferenceRequest
     additionalProperties: false
     required:
-    - experiment
+    - execution
     - workload
     properties:
-      experiment:
-        $ref: '#/$defs/GenerationExperiment'
+      execution:
+        $ref: '#/$defs/ExecutionSpec'
       workload:
         $ref: '#/$defs/Workload'
   GenerationPrepared:
@@ -246,13 +256,13 @@ $defs:
     x-owner: InferenceRequest
     additionalProperties: false
     required:
-    - experiment
+    - execution
     - prefix_ids
     - output_ids
     - generation
     properties:
-      experiment:
-        $ref: '#/$defs/GenerationExperiment'
+      execution:
+        $ref: '#/$defs/ExecutionSpec'
       prefix_ids:
         type: array
         items:
@@ -290,6 +300,7 @@ $defs:
     - id
     - contract_sha256
     - probabilities
+    - work
     properties:
       model_id:
         type: string
@@ -368,6 +379,8 @@ $defs:
           maximum: 1
         minItems: 384
         maxItems: 4096
+      work:
+        $ref: '#/$defs/GenerationWork'
   ModelSource:
     type: object
     x-owner: ModelArtifact
@@ -375,11 +388,12 @@ $defs:
     required:
     - id
     - role
-    - runtime
     - seed
     - provenance
     - weights
     - tokenizer
+    - weight_format
+    - tokenizer_format
     properties:
       id:
         type: string
@@ -390,11 +404,6 @@ $defs:
         - inspection
         - comparison
         - continuation
-      runtime:
-        type: string
-        enum:
-        - naive-python
-        - llama2c-wasm
       seed:
         type: integer
         minimum: 0
@@ -407,6 +416,16 @@ $defs:
       tokenizer:
         type: string
         pattern: ^[a-z0-9][a-z0-9.-]*\.bin$
+      weight_format:
+        type: string
+        enum:
+        - naive-gpt-json
+        - llama2c-binary
+      tokenizer_format:
+        type: string
+        enum:
+        - word-hex-manifest
+        - sentencepiece-binary
   ModelSources:
     type: object
     x-owner: ModelArtifact
@@ -422,30 +441,16 @@ $defs:
         minItems: 1
         items:
           $ref: '#/$defs/ModelSource'
-  GenerationExperiment:
-    type: object
-    x-owner: ExperimentSpec
-    additionalProperties: false
-    required:
-    - model_id
-    - ontology_binding
-    properties:
-      model_id:
-        type: string
-        pattern: ^[a-z0-9-]+$
-      ontology_binding:
-        $ref: '#/$defs/OntologyBinding'
   GenerationDefaults:
     type: object
-    x-owner: ExperimentSpec
+    x-owner: ExecutionSpec
     additionalProperties: false
     required:
-    - model_id
+    - execution
     - workload
     properties:
-      model_id:
-        type: string
-        pattern: ^[a-z0-9-]+$
+      execution:
+        $ref: '#/$defs/ExecutionSpec'
       workload:
         $ref: '#/$defs/Workload'
   GenerationEvidence:
@@ -468,160 +473,138 @@ $defs:
     x-owner: ModelArchitecture
     additionalProperties: false
     required:
-    - runtime
     - stages
     properties:
-      runtime:
-        type: string
-        enum:
-        - naive-python
-        - llama2c-wasm
       stages:
         type: array
         items:
           $ref: '#/$defs/ArchitectureStage'
-    oneOf:
-    - const:
-        runtime: naive-python
-        stages:
-        - owner: Tokenizer
-          label: Token IDs
-          scope: prefix
-          detail: Token IDs
-          inputs: []
-        - owner: Embedding
-          label: Token embedding
-          scope: prefix
-          detail: Token embedding
-          inputs:
-          - 0
-        - owner: PositionEncoding
-          label: Position embedding
-          scope: prefix
-          detail: Position embedding
-          inputs:
-          - 0
-        - owner: Embedding
-          label: +
-          scope: prefix
-          detail: Add embeddings
-          inputs:
-          - 1
-          - 2
-        - owner: Normalization
-          label: Normalize
-          scope: layer
-          detail: Layer norm
-          inputs:
-          - 3
-        - owner: Attention
-          label: Attention
-          scope: layer
-          detail: Q/K/V projections → causal attention → output projection.
-          inputs:
-          - 4
-        - owner: ResidualAddition
-          label: +
-          scope: layer
-          detail: Residual addition
-          inputs:
-          - 3
-          - 5
-        - owner: Normalization
-          label: Normalize
-          scope: layer
-          detail: Layer norm
-          inputs:
-          - 6
-        - owner: FeedForward
-          label: Feed-forward
-          scope: layer
-          detail: GELU feed-forward
-          inputs:
-          - 7
-        - owner: ResidualAddition
-          label: +
-          scope: layer
-          detail: Residual addition
-          inputs:
-          - 6
-          - 8
-        - owner: Normalization
-          label: Final norm
-          scope: suffix
-          detail: Final norm
-          inputs:
-          - 9
-        - owner: OutputProjection
-          label: Vocabulary projection
-          scope: suffix
-          detail: Vocabulary projection
-          inputs:
-          - 10
-    - const:
-        runtime: llama2c-wasm
-        stages:
-        - owner: Tokenizer
-          label: Token IDs
-          scope: prefix
-          detail: Token IDs
-          inputs: []
-        - owner: Embedding
-          label: Token embedding
-          scope: prefix
-          detail: Token embedding
-          inputs:
-          - 0
-        - owner: Normalization
-          label: Normalize
-          scope: layer
-          detail: RMSNorm
-          inputs:
-          - 1
-        - owner: Attention
-          label: Attention
-          scope: layer
-          detail: Q/K/V projections → RoPE on Q/K → causal attention → output projection.
-          inputs:
-          - 2
-        - owner: ResidualAddition
-          label: +
-          scope: layer
-          detail: Residual addition
-          inputs:
-          - 1
-          - 3
-        - owner: Normalization
-          label: Normalize
-          scope: layer
-          detail: RMSNorm
-          inputs:
-          - 4
-        - owner: FeedForward
-          label: Feed-forward
-          scope: layer
-          detail: SiLU gated feed-forward
-          inputs:
-          - 5
-        - owner: ResidualAddition
-          label: +
-          scope: layer
-          detail: Residual addition
-          inputs:
-          - 4
-          - 6
-        - owner: Normalization
-          label: Final norm
-          scope: suffix
-          detail: Final RMSNorm
-          inputs:
-          - 7
-        - owner: OutputProjection
-          label: Vocabulary projection
-          scope: suffix
-          detail: Vocabulary projection
-          inputs:
-          - 8
+    const:
+      stages:
+      - owner: Tokenizer
+        label: Token IDs
+        scope: prefix
+        detail: Text is encoded into vocabulary IDs.
+        inputs: []
+        operations:
+        - input_ids
+        related: []
+        inspection: input_ids
+      - owner: Embedding
+        label: Embedding
+        scope: prefix
+        detail: Look up token vectors. Learned absolute positions, when configured, are added here.
+        inputs:
+        - 0
+        operations:
+        - token_embedding
+        - position_embedding
+        - embedding
+        related:
+        - PositionEncoding
+        inspection: token_embedding
+      - owner: Normalization
+        label: Normalize
+        scope: layer
+        detail: Normalize channels using the declared model normalization.
+        inputs:
+        - 1
+        operations:
+        - ln1_mean
+        - ln1_variance
+        - ln1
+        related: []
+        inspection: ln1
+      - owner: Attention
+        label: Attention
+        scope: layer
+        detail: Project Q/K/V, apply positional rotation when configured, mix causal values, and project
+          the result.
+        inputs:
+        - 2
+        operations:
+        - query
+        - key
+        - value
+        - retained_keys
+        - retained_values
+        - scores
+        - causal_mask
+        - attention
+        - weighted_values
+        - attention_output
+        related:
+        - PositionEncoding
+        - KVState
+        inspection: attention
+      - owner: ResidualAddition
+        label: +
+        scope: layer
+        detail: Add the attention branch to its input.
+        inputs:
+        - 1
+        - 3
+        operations:
+        - attention_residual
+        related: []
+        inspection: attention_residual
+      - owner: Normalization
+        label: Normalize
+        scope: layer
+        detail: Normalize channels using the declared model normalization.
+        inputs:
+        - 4
+        operations:
+        - ln2_mean
+        - ln2_variance
+        - ln2
+        related: []
+        inspection: ln2
+      - owner: FeedForward
+        label: Feed-forward
+        scope: layer
+        detail: Project, apply the declared activation, and project back.
+        inputs:
+        - 5
+        operations:
+        - ff_up
+        - gelu
+        - ff_down
+        related: []
+        inspection: ff_up
+      - owner: ResidualAddition
+        label: +
+        scope: layer
+        detail: Add the feed-forward branch to its input.
+        inputs:
+        - 4
+        - 6
+        operations:
+        - ff_residual
+        related: []
+        inspection: ff_residual
+      - owner: Normalization
+        label: Final norm
+        scope: suffix
+        detail: Normalize the final hidden vector.
+        inputs:
+        - 7
+        operations:
+        - ln_final_mean
+        - ln_final_variance
+        - ln_final
+        related: []
+        inspection: ln_final
+      - owner: OutputProjection
+        label: Vocabulary projection
+        scope: suffix
+        detail: Project hidden vectors into one logit per vocabulary ID.
+        inputs:
+        - 8
+        operations:
+        - logits
+        related: []
+        inspection: logits
   ArchitectureStage:
     type: object
     x-owner: ModelArchitecture
@@ -632,6 +615,9 @@ $defs:
     - scope
     - detail
     - inputs
+    - operations
+    - related
+    - inspection
     properties:
       owner:
         type: string
@@ -654,3 +640,164 @@ $defs:
           type: integer
           minimum: 0
         description: Earlier stage indices in this single-block schematic; residual branches remain explicit.
+      operations:
+        type: array
+        items:
+          type: string
+        minItems: 1
+      related:
+        type: array
+        items:
+          type: string
+          x-ontology-reference: true
+      inspection:
+        type: string
+  ExperimentSpec:
+    type: object
+    x-owner: ExperimentSpec
+    additionalProperties: false
+    required:
+    - control
+    - value
+    - ontology_binding
+    properties:
+      control:
+        type: string
+        enum:
+        - model
+        - kv_reuse
+        - kv_cache
+        - scheduling
+        - transfer
+        - compute_service
+      value:
+        type:
+        - string
+        - boolean
+        - object
+      ontology_binding:
+        $ref: '#/$defs/OntologyBinding'
+    oneOf:
+    - properties:
+        control:
+          const: model
+        value:
+          type: string
+          pattern: ^[a-z0-9-]+$
+          title: Model
+        ontology_binding:
+          const:
+            primary: ModelArtifact
+            related: []
+    - properties:
+        control:
+          const: kv_reuse
+        value:
+          type: boolean
+          title: KV reuse
+        ontology_binding:
+          const:
+            primary: KVCache
+            related:
+            - ModelExecution
+    - properties:
+        control:
+          const: kv_cache
+        value:
+          $ref: '#/$defs/KVCacheConfig'
+        ontology_binding:
+          const:
+            primary: KVCache
+            related:
+            - KVState
+    - properties:
+        control:
+          const: scheduling
+        value:
+          $ref: '#/$defs/RequestSchedulingConfig'
+        ontology_binding:
+          const:
+            primary: RequestScheduling
+            related: []
+    - properties:
+        control:
+          const: transfer
+        value:
+          $ref: '#/$defs/StateTransferConfig'
+        ontology_binding:
+          const:
+            primary: StateTransfer
+            related:
+            - KVState
+    - properties:
+        control:
+          const: compute_service
+        value:
+          $ref: '#/$defs/ComputeServiceConfig'
+        ontology_binding:
+          const:
+            primary: ComputeService
+            related: []
+  ExecutionSpec:
+    type: object
+    x-owner: ExecutionSpec
+    additionalProperties: false
+    required:
+    - experiments
+    properties:
+      experiments:
+        type: array
+        minItems: 2
+        maxItems: 6
+        items:
+          $ref: '#/$defs/ExperimentSpec'
+    description: Exactly one model and one KV reuse assignment. The implemented resource simulation additionally
+      requires cache, scheduling, transfer and compute-service controls together; partial and duplicate
+      assignments fail before execution.
+  GenerationWork:
+    type: object
+    x-owner: ModelExecution
+    additionalProperties: false
+    required:
+    - processed_positions
+    - reused_positions
+    - matmul_flops
+    properties:
+      processed_positions:
+        type: integer
+        minimum: 0
+        maximum: 512
+      reused_positions:
+        type: integer
+        minimum: 0
+        maximum: 512
+      matmul_flops:
+        type: integer
+        minimum: 0
+        maximum: 9007199254740991
+        description: Executed dense and attention matrix multiply/add operations, counted as two FLOPs
+          per multiply-add. Excludes normalization, activation and softmax.
+  ResourceExecution:
+    type: object
+    x-owner: ExperimentExecution
+    additionalProperties: false
+    required:
+    - input
+    - run
+    - outputs
+    - decoding_notes
+    properties:
+      input:
+        $ref: '#/$defs/GenerationInput'
+      run:
+        $ref: '#/$defs/CacheRun'
+      outputs:
+        type: object
+        additionalProperties:
+          type: string
+      decoding_notes:
+        type: object
+        additionalProperties:
+          type: string
+        description: Request-indexed malformed or incomplete decoding diagnostics; output text remains
+          unmodified.

@@ -1,0 +1,45 @@
+version: 1
+work_item: execution-deletion
+question: Can we remove superseded execution and presentation paths while retaining the real model and
+  KV experiments, with a substantial net reduction in product code?
+necessity: The prior consolidation unified arithmetic but increased authored backend/frontend code and
+  retained obsolete request APIs, storage machinery and parallel presentation surfaces.
+baseline: Current uncommitted product diff against HEAD adds 736 and removes 485 lines, net +251 after
+  rename detection. The main page uses GenerationInput/GenerationStep; the older request receipt APIs
+  have no current page consumer.
+reuse:
+- source: Current model service, shared WASM decoder, ontology map and KV residency experiment
+  decision: Keep these as the executing and presentation authorities; retire superseded paths instead
+    of adding adapters.
+criteria:
+- At least 500 net authored product lines removed versus HEAD, with at least 100 net frontend and 200
+  net backend lines removed. Count renames correctly and exclude generated files. Do not relocate production
+  logic into tooling or compress formatting to satisfy the count.
+- Retain all three models, both KV modes, input editing, stepping/generation/reset, branching, numerical
+  inspection and export through the current declared interface.
+- Retain KV admission/backpressure, residency/transfer, real cached computation, virtual resource costs
+  and replay; retain the KDA recurrence lab.
+- Remove unused request/receipt/storage operations and their declarations/consumers, duplicate generation
+  policy checks and superseded atlas/request-cost presentation. Preserve historical evidence and model
+  artifacts.
+- Execution configuration and the diagram retain ontology/declaration SSOT. No alternative engine, native
+  browser fallback, or handwritten interface is introduced.
+- Unit and full integration harnesses pass within unchanged budgets. Check desktop/narrow layouts and
+  local release artifact parity.
+- The KV residency experiment is configured by ExperimentSpec and executed from the main interaction panel
+  against its selected model and Workload. Delete its dedicated page and controls. Unsupported model/state
+  combinations fail explicitly; never substitute weights or input framing.
+- Main-page resource settings, requests, output and explanation must follow one accepted execution; reset/edit
+  invalidate resource evidence. Preserve admission, local/remote hits, transfers, eviction, numerical
+  evidence and replay through headless/main-page parity.
+checks:
+- Rename-aware authored line accounting against HEAD and the starting worktree
+- Generated operation registry and consumer audit
+- make test
+- make test-integration
+- Desktop and narrow browser screenshots
+counterexamples:
+- Fewer files or shorter formatting is not consolidation.
+- Deleting a tested capability without its retained replacement is a regression.
+- Independent numerical reference fixtures are not a competing product engine.
+supersedes: governance/evaluations/records/2026-10/13/execution-deletion.yaml

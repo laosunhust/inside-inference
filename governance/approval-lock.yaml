@@ -1,98 +1,147 @@
 version: 1
 approval:
-  source: "Project-owner instruction in this conversation: \"once we are in better shape, we need to lock ontology.\
-    \ but not yet. let's update accordingly.\" Follows approval of 12-file warnings and an 18-file maximum. Additional\
-    \ owner response on 2026-10-10: \"Approve references/ exclusion\". Project-owner instruction on 2026-10-10:\
-    \ \"let's go ahead. we should also ensure governance ; that is, we need to check the ontology_binding and enforce\
-    \ those rules and provide useful feedback when some binding is invented without actual ontology\". Project-owner\
-    \ instruction on 2026-10-10: \"please also try to audit other frontend pages to see how to enforce SSOT and\
-    \ add governance if necessary\"; requests shared authority for lab setup and ontology owners. Project-owner\
-    \ instruction on 2026-10-10: \"let's remove depends_on . I don't think it's valuable.\" Project-owner instruction\
-    \ on 2026-10-10: \"intro-page , help, check should all be hidden\" and \"freeze the public interface of make\
-    \ help as governance boundary ... I don't want ad hoc public targets\". Project-owner instruction in this conversation:\
-    \ \"efficient harness is also essential governance boundary ; we need tests, but tests need to be scoped properly\"\
-    ; requests another test audit and consolidation of integration setup. Project-owner instruction in this conversation:\
-    \ \"Declarations and ontology -> absolutely needed, but I doubt if we need 2.6 seconds there. are there wasteful\
-    \ algorithms?\" and \"Governance, approval locks, harness boundaries ... I still doubt implementation efficiency.\"\
-    \ Owner instruction in this conversation: \"add governance for unit test do not exceed 10 seconds, integ test\
-    \ for 100 seconds and explicitly request agent to check for efficiency, redundancy and ROI issues before asking\
-    \ owner for relaxing this.\" Owner instruction on 2026-10-10: \"ok. let's proceed with what you suggested in\
-    \ I\u2019d proceed in this order\", following the explicit proposal to preserve evaluation history and add protected\
-    \ checker/tests. Owner response on 2026-10-11: \"Approve locking the theme check\". Owner instruction on 2026-10-11:\
-    \ add a clear AGENTS.md Development obligation for UI, \"Show, dont' tell\". Owner instruction on 2026-10-11:\
-    \ \"fix the interface, adapt implementation to interface, and add the interface to governance boundary ... only\
-    \ one HTTP, with two runtimes.\" Owner instruction on 2026-10-11: SSOT is the highest Development philosophy;\
-    \ ignore backward compatibility during development, emphasize forward compatibility, and prefer deletion of\
-    \ superseded paths. Owner instruction on 2026-10-11: \"ok. let's go ahead and make changes accordingly. feels\
-    \ like primarily deletion/consolidation.\", approving removal of unused Lambda/S3 paths, transport-interface\
-    \ consolidation and enforcement, test-efficiency improvements, and clarification that feature-development SSOT\
-    \ priority does not override governance or evaluations. Owner instruction on 2026-10-11: \"right. let's continue\
-    \ deleting. we don't truly need speed up here for this tiny LLM.\", following explicit agreement to delete CUDA\
-    \ and native website compute, adopt browser-only operation execution and retain native component testing. Owner instruction on 2026-10-11: \"update AGENTS.md to delete proposals after they are complete, and also delete those completed or effectively completed proposals.\" Owner reply on 2026-10-11: \"Approve the fixture fix and hash update\" for the isolated governance evaluation fixture supersedes bug. Owner instruction on 2026-10-12: local and public website must share one architecture, with only runtime differences; make this a clear AGENTS.md rule and fill context/development-tooling gaps first. Owner responses on 2026-10-12: Approve the scoped browser-boundary changes; Approve the model-artifact allowance. Owner reply on 2026-10-12: sure let's apply. we need to delete; approving the scoped response-validation deletion and hash update."
-  scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile and
-    ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content remains unlocked.
-    Retain approved folder and file-size limits. This approval does not authorize future policy changes. Additional
-    authorization on 2026-10-10 allows only references/ to be excluded from the authored inventory. Extend contracts.py,
-    generate_data_models.py, compile_validators.mjs and test_governance.py only to admit ontology bindings and uniquely
-    owned operations, generate shared validators, and test rejection. No additional constitution, limits, or lock-inventory
-    changes. Extend governance frontend-reference admission and its regression tests for this audit; register frontend.py
-    in the protected enforcement inventory and wire it into __main__.py. No limit or constitution changes. Remove
-    only the ontology depends_on field and cross-owner reference allowlist from generate_data_models.py; retain
-    ownership, reference existence, cycle and other admission checks. Freeze public workflow names to setup, serve-intro,
-    test and test-integration in the existing locked make_interface.py; keep help callable but unlisted and rename
-    check/intro-page with underscores. Extend its locked regression tests. Makefile recipes remain editable and
-    internal targets remain extensible. For this harness audit, establish test-scope obligations in AGENTS.md, add
-    the locked harness scope checker and its regression tests, wire scope admission and Makefile enforcement, and
-    relocate the frontend build assertion into integration. No numerical, parity or admission coverage may be removed;
-    file limits and public workflow names remain unchanged. For this efficiency request, optimize repeated schema
-    meta-validation in generate_data_models.py using bounded content-keyed successful validation, preserving standard
-    validation and all semantic admission checks. No policy, limit, lock-inventory or public-workflow changes. The
-    same efficiency request covers structured.py: reuse successful strict YAML parses by exact source content, always
-    reread files and return detached copies; preserve duplicate-key, alias and finite-value rejection. Add whole-workflow
-    wall-time limits, protected budget enforcement, constitution efficiency-review obligation, Makefile routing
-    checks and regression tests. No other limits or public target names change. Replace single-record evaluation
-    admission with preserved criteria/results, active reference and Git-history checks. Update evaluation.py, locks.py,
-    test_governance.py and add/protect tests/integration/test_evaluation_history.py. Record the migration Git anchor;
-    no constitution, limits, or public workflow changes. Owner approval on 2026-10-11 adds scripts/build/theme.py
-    and tests/unit/test_theme.py to the protected inventory, updating only locks.py and this manifest for that scope.
-    Additional owner authorization on 2026-10-11 adds the show-dont-tell UI obligation under Development in AGENTS.md
-    and refreshes only its recorded hash; no other enforcement or limit changes. Establish one OpenAPI-driven WSGI
-    application and generated socket/Lambda runtime bridges; extend generate_data_models.py, add/protect http_transport.py
-    and governance/http.py, wire __main__.py, protect test_http_boundary.py, and update locks.py. No constitution,
-    limits, or public workflow changes. Additional owner authorization on 2026-10-11 updates only AGENTS.md Development
-    principles for SSOT, compatibility and removal of superseded implementations, and its recorded hash. No lock
-    inventory, limits or enforcement changes. This authorization covers AGENTS.md clarification, scripts/build/http_transport.py
-    deletion and generated client, scripts/check/governance/http.py and tests/unit/contracts/test_http_boundary.py
-    boundary enforcement, and scripts/build/structured.py equivalent strict YAML admission using LibYAML. No limit
-    or lock-inventory changes. Browser-only cutover: update the existing transport generator and declaration generator,
-    execution-boundary admission/tests, and evaluation evidence admission/tests so retired source evidence remains
-    recoverable in Git without rewriting historical records. Budgets and protected inventory remain unchanged. Additional owner authorization covers only the proposal lifecycle obligation in AGENTS.md and its recorded hash; retire completed or superseded proposals and repair links while retaining evaluation evidence. No enforcement, inventory or limit changes. Additional authorization fixes only the isolated evaluation fixture in tests/unit/contracts/test_governance.py and its hash; no governance rule changes. Owner authorization on 2026-10-12 adds only the local/public parity obligation to AGENTS.md Development and updates its recorded hash. No enforcement, lock inventory or limit changes. Extend only the browser transport generator, boundary checker and its tests for declared model loading/execution. Add only a 32 MiB binary-model allowance under data/models/artifacts/ in limits, structure enforcement and its existing regression tests. Update corresponding hashes; no lock inventory or other limit changes. Remove production response-schema validation from scripts/build/http_transport.py and update only its hash; retain request admission and validate responses in the harness. No limits or inventory changes.'
+  source: "Project-owner instruction in this conversation: \"once we are in better shape, we need to lock\
+    \ ontology. but not yet. let's update accordingly.\" Follows approval of 12-file warnings and an 18-file\
+    \ maximum. Additional owner response on 2026-10-10: \"Approve references/ exclusion\". Project-owner\
+    \ instruction on 2026-10-10: \"let's go ahead. we should also ensure governance ; that is, we need\
+    \ to check the ontology_binding and enforce those rules and provide useful feedback when some binding\
+    \ is invented without actual ontology\". Project-owner instruction on 2026-10-10: \"please also try\
+    \ to audit other frontend pages to see how to enforce SSOT and add governance if necessary\"; requests\
+    \ shared authority for lab setup and ontology owners. Project-owner instruction on 2026-10-10: \"\
+    let's remove depends_on . I don't think it's valuable.\" Project-owner instruction on 2026-10-10:\
+    \ \"intro-page , help, check should all be hidden\" and \"freeze the public interface of make help\
+    \ as governance boundary ... I don't want ad hoc public targets\". Project-owner instruction in this\
+    \ conversation: \"efficient harness is also essential governance boundary ; we need tests, but tests\
+    \ need to be scoped properly\"; requests another test audit and consolidation of integration setup.\
+    \ Project-owner instruction in this conversation: \"Declarations and ontology -> absolutely needed,\
+    \ but I doubt if we need 2.6 seconds there. are there wasteful algorithms?\" and \"Governance, approval\
+    \ locks, harness boundaries ... I still doubt implementation efficiency.\" Owner instruction in this\
+    \ conversation: \"add governance for unit test do not exceed 10 seconds, integ test for 100 seconds\
+    \ and explicitly request agent to check for efficiency, redundancy and ROI issues before asking owner\
+    \ for relaxing this.\" Owner instruction on 2026-10-10: \"ok. let's proceed with what you suggested\
+    \ in I\u2019d proceed in this order\", following the explicit proposal to preserve evaluation history\
+    \ and add protected checker/tests. Owner response on 2026-10-11: \"Approve locking the theme check\"\
+    . Owner instruction on 2026-10-11: add a clear AGENTS.md Development obligation for UI, \"Show, dont'\
+    \ tell\". Owner instruction on 2026-10-11: \"fix the interface, adapt implementation to interface,\
+    \ and add the interface to governance boundary ... only one HTTP, with two runtimes.\" Owner instruction\
+    \ on 2026-10-11: SSOT is the highest Development philosophy; ignore backward compatibility during\
+    \ development, emphasize forward compatibility, and prefer deletion of superseded paths. Owner instruction\
+    \ on 2026-10-11: \"ok. let's go ahead and make changes accordingly. feels like primarily deletion/consolidation.\"\
+    , approving removal of unused Lambda/S3 paths, transport-interface consolidation and enforcement,\
+    \ test-efficiency improvements, and clarification that feature-development SSOT priority does not\
+    \ override governance or evaluations. Owner instruction on 2026-10-11: \"right. let's continue deleting.\
+    \ we don't truly need speed up here for this tiny LLM.\", following explicit agreement to delete CUDA\
+    \ and native website compute, adopt browser-only operation execution and retain native component testing.\
+    \ Owner instruction on 2026-10-11: \"update AGENTS.md to delete proposals after they are complete,\
+    \ and also delete those completed or effectively completed proposals.\" Owner reply on 2026-10-11:\
+    \ \"Approve the fixture fix and hash update\" for the isolated governance evaluation fixture supersedes\
+    \ bug. Owner instruction on 2026-10-12: local and public website must share one architecture, with\
+    \ only runtime differences; make this a clear AGENTS.md rule and fill context/development-tooling\
+    \ gaps first. Owner responses on 2026-10-12: Approve the scoped browser-boundary changes; Approve\
+    \ the model-artifact allowance. Owner reply on 2026-10-12: sure let's apply. we need to delete; approving\
+    \ the scoped response-validation deletion and hash update. Owner reply on 2026-10-12: Approve the\
+    \ scoped map enforcement changes. Owner instruction on 2026-10-12: add a special rule for docs/local,\
+    \ distinguish repository warnings, and update AGENTS.md to require agent handling without routine\
+    \ owner escalation. Owner reply on 2026-10-13: Approve the scoped unified-execution checks. Owner\
+    \ reply on 2026-10-13: \"you have the permission. please continue.\" Approves both pending shared-engine\
+    \ boundary and recursive theme enforcement requests. Owner reply on 2026-10-13: \"Approve the scoped\
+    \ deletion enforcement changes\". Owner response: \"Approve the scoped capability-reference fix\"\
+    . Owner response: \"Approve the endpoint-independent fixture fix\"."
+  scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile
+    and ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content
+    remains unlocked. Retain approved folder and file-size limits. This approval does not authorize future
+    policy changes. Additional authorization on 2026-10-10 allows only references/ to be excluded from
+    the authored inventory. Extend contracts.py, generate_data_models.py, compile_validators.mjs and test_governance.py
+    only to admit ontology bindings and uniquely owned operations, generate shared validators, and test
+    rejection. No additional constitution, limits, or lock-inventory changes. Extend governance frontend-reference
+    admission and its regression tests for this audit; register frontend.py in the protected enforcement
+    inventory and wire it into __main__.py. No limit or constitution changes. Remove only the ontology
+    depends_on field and cross-owner reference allowlist from generate_data_models.py; retain ownership,
+    reference existence, cycle and other admission checks. Freeze public workflow names to setup, serve-intro,
+    test and test-integration in the existing locked make_interface.py; keep help callable but unlisted
+    and rename check/intro-page with underscores. Extend its locked regression tests. Makefile recipes
+    remain editable and internal targets remain extensible. For this harness audit, establish test-scope
+    obligations in AGENTS.md, add the locked harness scope checker and its regression tests, wire scope
+    admission and Makefile enforcement, and relocate the frontend build assertion into integration. No
+    numerical, parity or admission coverage may be removed; file limits and public workflow names remain
+    unchanged. For this efficiency request, optimize repeated schema meta-validation in generate_data_models.py
+    using bounded content-keyed successful validation, preserving standard validation and all semantic
+    admission checks. No policy, limit, lock-inventory or public-workflow changes. The same efficiency
+    request covers structured.py: reuse successful strict YAML parses by exact source content, always
+    reread files and return detached copies; preserve duplicate-key, alias and finite-value rejection.
+    Add whole-workflow wall-time limits, protected budget enforcement, constitution efficiency-review
+    obligation, Makefile routing checks and regression tests. No other limits or public target names change.
+    Replace single-record evaluation admission with preserved criteria/results, active reference and Git-history
+    checks. Update evaluation.py, locks.py, test_governance.py and add/protect tests/integration/test_evaluation_history.py.
+    Record the migration Git anchor; no constitution, limits, or public workflow changes. Owner approval
+    on 2026-10-11 adds scripts/build/theme.py and tests/unit/test_theme.py to the protected inventory,
+    updating only locks.py and this manifest for that scope. Additional owner authorization on 2026-10-11
+    adds the show-dont-tell UI obligation under Development in AGENTS.md and refreshes only its recorded
+    hash; no other enforcement or limit changes. Establish one OpenAPI-driven WSGI application and generated
+    socket/Lambda runtime bridges; extend generate_data_models.py, add/protect http_transport.py and governance/http.py,
+    wire __main__.py, protect test_http_boundary.py, and update locks.py. No constitution, limits, or
+    public workflow changes. Additional owner authorization on 2026-10-11 updates only AGENTS.md Development
+    principles for SSOT, compatibility and removal of superseded implementations, and its recorded hash.
+    No lock inventory, limits or enforcement changes. This authorization covers AGENTS.md clarification,
+    scripts/build/http_transport.py deletion and generated client, scripts/check/governance/http.py and
+    tests/unit/contracts/test_http_boundary.py boundary enforcement, and scripts/build/structured.py equivalent
+    strict YAML admission using LibYAML. No limit or lock-inventory changes. Browser-only cutover: update
+    the existing transport generator and declaration generator, execution-boundary admission/tests, and
+    evaluation evidence admission/tests so retired source evidence remains recoverable in Git without
+    rewriting historical records. Budgets and protected inventory remain unchanged. Additional owner authorization
+    covers only the proposal lifecycle obligation in AGENTS.md and its recorded hash; retire completed
+    or superseded proposals and repair links while retaining evaluation evidence. No enforcement, inventory
+    or limit changes. Additional authorization fixes only the isolated evaluation fixture in tests/unit/contracts/test_governance.py
+    and its hash; no governance rule changes. Owner authorization on 2026-10-12 adds only the local/public
+    parity obligation to AGENTS.md Development and updates its recorded hash. No enforcement, lock inventory
+    or limit changes. Extend only the browser transport generator, boundary checker and its tests for
+    declared model loading/execution. Add only a 32 MiB binary-model allowance under data/models/artifacts/
+    in limits, structure enforcement and its existing regression tests. Update corresponding hashes; no
+    lock inventory or other limit changes. Remove production response-schema validation from scripts/build/http_transport.py
+    and update only its hash; retain request admission and validate responses in the harness. No limits
+    or inventory changes. Extend only frontend.py and test_governance.py for declared system-map references,
+    unique navigation homes, lab/operation coverage, relationships and handwritten map rejection; refresh
+    only those hashes. No limits or inventory changes for the map work. Subsequent explicit owner instruction
+    authorizes excluding only docs/local in limits.yaml, adding the repository-warning prefix in governance/__main__.py,
+    the proactive warning obligation in AGENTS.md, regression coverage in test_governance.py and their
+    corresponding hashes. Numerical limits and lock inventory remain unchanged. Extend only frontend.py
+    and test_governance.py to enforce one declared numerical runtime and conceptual graph, operation homes
+    and graph edges, and reject handwritten diagram labels and retired browser engines; refresh only their
+    hashes. No limits or inventory changes. Update only scripts/build/http_transport.py, scripts/check/governance/http.py
+    and tests/unit/contracts/test_http_boundary.py to initialize and enforce the shared browser decoder
+    for request/KV operations; update scripts/build/theme.py and tests/unit/test_theme.py to enforce theme
+    authority recursively. Refresh only these five hashes. No limits or lock inventory changes. Remove
+    obsolete evidence-store initialization and reject retired request/storage paths in http_transport.py,
+    governance/http.py and test_http_boundary.py; update only their hashes. Limits and lock inventory
+    unchanged. Resolve explicitly named capability declaration roots instead of hardcoded retired RunBinding
+    in generate_data_models.py; retain reference, type and default checks. Replace only the retired run
+    endpoint reference in test_governance.py with the first declared operation; preserve rejection assertions.'
 files:
-  AGENTS.md: 46a893c8c626dbffe1a4cba317060841c79f5d48cc7587dca1fa5493aa889c51
-  governance/limits.yaml: 471f9044526976db43f9d775587e0c4b3fed80d38c42e02f7ac2e326ae72c76d
+  AGENTS.md: a1311d34d5b743a4b023f00b59b7f227d94ef1f44d097d5f8634c2eb4b9e5c92
+  governance/limits.yaml: 4218f778ada890585c448c4664f4a8275576daef70e5421b29ed1c7ac0862c30
   scripts/__init__.py: 07cf2de9025005ac8dbafe1162d8cd39cf4f99dab454bd0388b597a5585db2ea
   scripts/build/compile_validators.mjs: 8d226d90bad36a219aa69af05a511b665f2b7149b6ba50557b778e51c6a52795
   scripts/build/contracts.py: fca886ce74f82593a921b318535a6731ddf71124a70f1942f5f43f419742e63e
-  scripts/build/generate_data_models.py: aeab9cc39005ce44068551dcdb85c2fa1abb560d41011ee455b0b631c868794b
+  scripts/build/generate_data_models.py: f87b41382c9170f23812e903fabee9efc803660a03bcf9d8f74e5c99d623f7be
   scripts/build/ontology.py: 9f5271f975a3c877906abad76fba1eb58496bf4399691e77c3bfa4bba7e35454
   scripts/build/structured.py: f548e8e5f85e47297091182e45702fbfe5d1196463727dd387b91beedd138b06
   scripts/check/governance/__init__.py: f90f2f4c5a46fe4fa0deb54d71f7a463cc6368400b54fee101c89aab7e6aba50
-  scripts/check/governance/__main__.py: a0c2e0ab3c08e90a315850795278f89e30b7c6bfd5f9f2d246c4421638fae137
+  scripts/check/governance/__main__.py: bd513efa97c2c605ba1a549ef250590de051dbd67cab107ff0d6bc95724a99f3
   scripts/check/governance/evaluation.py: 2e8584123755b3723d494225aa188ec68ab8a0ff25cbcbc3fc7f9c8c17b49b82
   scripts/check/governance/interfaces.py: c77bd3ba3350912007ca86f0f2d7ba7efc66d0519a6f7916254a4f4c26c2f0bc
   scripts/check/governance/locks.py: b49a82dd34f4f6da2261226fecc277fffb8465f64c32e97f73a1601bfc2fdc75
   scripts/check/governance/structure.py: b6f927698a5b3676219c4eb96c2906ebab8a19cb0c2a5e9a68e45dcb6dfbfc52
   scripts/check/layout.py: 54e53c43a5ce571375c049e9ebf740631ab24c14acdd1efaafca5eb2f63679e2
   scripts/check/make_interface.py: 298a6bd1e6f90becabbd0d12ba369c5a0d697f0b81f758fabf56423f01cd26b8
-  tests/unit/contracts/test_governance.py: 148568993e25c3bf8844f4a3d38604fdbe5659bb51aa73b6949b181cba1af21d
+  tests/unit/contracts/test_governance.py: 301dc34bc29c892b426cd018ab6497e58c5b6109ab10542e314c6791a576b291
   tests/unit/contracts/test_governance_locks.py: acf09b594c79261c3c40a854cfc0dde0848b208e6996946ee6ef65de23348ef7
-  scripts/check/governance/frontend.py: 52215b95b64864ec6a726e28f7ef020d46308bc349615acff086f839abbf93c4
+  scripts/check/governance/frontend.py: 6a83010c86a1d3d3a7f6780096b7af9c934b4ddc705f69f7feaaee112c31654d
   scripts/check/governance/harness.py: 31ea6e97f860f971745a04f8188015815697183b83a1ab6382dff2abcca59a79
   tests/unit/contracts/test_harness.py: 1ba20fd6e4e3a9a0bed83d99d8b1f3e87e50dc97f99deec7b1e30f8c08ae7de2
   scripts/check/governance/budget.py: d1c09b74ec64a35e5523d23658b1251e65499ed4cba6aeceb1de7e7c257e10ab
   tests/integration/test_evaluation_history.py: 8c8c04bc9a6bae1c6ae6aa163ce8658f56d39b4649415aa315c9807b30873b6d
-  scripts/build/theme.py: 09ae41862b4155fad25c2189c5a4253155ec55a59f70422de67d69fed2922639
-  tests/unit/test_theme.py: 96a198554b23d8a80230cbe4e62cdf18a02f0b1a81a8f65da8380a192f66eb07
-  scripts/build/http_transport.py: 3d69eb5b3beba00ac08bb33f2f21226a9e1d7b81aff9dd5d44efc2e1f892b082
-  scripts/check/governance/http.py: 52d89b8e3a90a3a358981c5c45f22a7bd09f27806629ed9353bcbdaa1a58054b
-  tests/unit/contracts/test_http_boundary.py: 5a612d211acee2e8f5c3ef4ad91db828237243b432978f27e8ee8c02796faa8d
+  scripts/build/theme.py: dd2f5e4f1fa43fcf5728c65bc82e3c9fa9dc8534a1946f671d088c101709660e
+  tests/unit/test_theme.py: eeedb9d670a09e8945d79ae190075b6ff6f5836356f8788e3ee2eb65ad87f2ac
+  scripts/build/http_transport.py: 21ef4582a3bdce302b3b2c8eb55b221822bbe317c79cfd6f4d87eb2eddfe00ce
+  scripts/check/governance/http.py: 79f9b6117dbf40271b0eeaafaa837b394cd6d9f01978f9029f0b8ddf3b7cfbd7
+  tests/unit/contracts/test_http_boundary.py: 1f9235e8dd5b2c40bd0818b580b6e549bd839a890e68579641356085715c804d

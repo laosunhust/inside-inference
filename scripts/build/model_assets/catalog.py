@@ -21,22 +21,25 @@ def describe(config, root):
             path=root/entry[field]
             raw=path.read_bytes()
             item[field]=dict(path=path.name,bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
-        if item['runtime']=='naive-python':
+        format=item['weight_format']
+        expected_tokenizer='word-hex-manifest' if format=='naive-gpt-json' else 'sentencepiece-binary'
+        if item['tokenizer_format']!=expected_tokenizer:raise ValueError('Unsupported model/tokenizer format pairing')
+        if format=='naive-gpt-json':
             checkpoint=json.loads(gzip.decompress((root/entry['weights']).read_bytes()))
             model=Model(checkpoint)
             def count(x):return sum(map(count,x)) if isinstance(x,list) else 1
             parameters=sum(map(count,checkpoint['parameters'].values()))
             item.update(architecture=checkpoint['config'],parameters=parameters,inspection='tensors',stop_ids=[1],normalization='exact')
             if checkpoint['manifest_sha256']!=item['tokenizer']['sha256']:raise ValueError('Tiny tokenizer mismatch')
-        elif item['runtime']=='llama2c-wasm':
+        elif format=='llama2c-binary':
             raw=(root/entry['weights']).read_bytes()
             d,f,l,h,k,v,n=struct.unpack('<7i',raw[:28])
             if v!=4096 or k!=h or d%h:raise ValueError('Unsupported llama2.c architecture')
             parameters=v*d+l*(2*d+4*d*d+3*d*f)+d
             expected=28+4*(parameters+n*(d//h))
             if len(raw)!=expected:raise ValueError('Weight payload length differs from architecture')
-            item.update(architecture=dict(vocabulary=v,width=d,ffn=f,context=n,layers=l,heads=h,position='rope',normalization='rmsnorm',activation='silu-gated',precision='binary32'),parameters=parameters,inspection='logits',stop_ids=[1,2],normalization='sentencepiece-identity-collapse-spaces')
-        else:raise ValueError('Unsupported runtime')
+            item.update(architecture=dict(vocabulary=v,width=d,ffn=f,context=n,layers=l,heads=h,position='rope',normalization='rmsnorm',activation='silu-gated',precision='binary32',epsilon=1e-5),parameters=parameters,inspection='logits',stop_ids=[1,2],normalization='sentencepiece-identity-collapse-spaces')
+        else:raise ValueError('Unsupported weight format')
         p=item['parameters']
         item['label']='TinyLLM-'+(f'{p/1e6:.1f}'.rstrip('0').rstrip('.')+'M' if p>=100000 else f'{p/1000:.0f}K')
         models.append(item)

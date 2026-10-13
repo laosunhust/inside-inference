@@ -95,6 +95,32 @@ class GovernanceTests(unittest.TestCase):
                 (root/'governance/limits.yaml').write_text(yaml.safe_dump(bad))
                 with self.assertRaises(ValueError): load_limits(root)
 
+    def test_local_references_excluded_without_excluding_authored_neighbors(self):
+        policy=load_limits(ROOT)
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            for relative in ('docs/local/reference.pdf','docs/local/nested/reference.pdf',
+                             'docs/local-copy/reference.pdf','docs/purpose/reference.pdf'):
+                path=root/relative;path.parent.mkdir(parents=True,exist_ok=True)
+                path.write_bytes(b'x'*(policy['authored_file_bytes']+1))
+            failures=audit_structure(root,policy,{})
+            self.assertEqual(len(failures),2)
+            self.assertTrue(any('docs/local-copy/' in f for f in failures))
+            self.assertTrue(any('docs/purpose/' in f for f in failures))
+
+    def test_repository_warning_prefix_and_failure_remain_distinct(self):
+        import contextlib
+        import io
+        from scripts.check.governance.__main__ import main
+        def warn(*,warnings): warnings.append('fixture reaches warning threshold');return []
+        stream=io.StringIO()
+        with patch('scripts.check.governance.__main__.audit',side_effect=warn), contextlib.redirect_stdout(stream):
+            main()
+        self.assertIn('[inside-inference:governance] warning: fixture',stream.getvalue())
+        with patch('scripts.check.governance.__main__.audit',return_value=['oversized']):
+            with self.assertRaisesRegex(SystemExit,'Governance blocked:'):
+                main()
+
     def test_evaluation_history_references_and_result_binding(self):
         active=read_yaml(ROOT/'governance/evaluations.yaml')['active']
         original=read_yaml(ROOT/active)
@@ -196,7 +222,7 @@ class GovernanceTests(unittest.TestCase):
             path=root/'data-model/execution.yaml';original=read_yaml(path)
             for value in ('Invented',{'type':'object'}):
                 spec=copy.deepcopy(original)
-                spec['operations']['run']['response']=value
+                next(iter(spec['operations'].values()))['response']=value
                 path.write_text(yaml.safe_dump(spec))
                 with self.assertRaisesRegex(ValueError,'execution schema'):outputs(root)
 
@@ -287,6 +313,8 @@ class FrontendGovernanceTests(unittest.TestCase):
             ('const url="ontology.html#Invented";', '.js', 'unknown ontology anchor'),
             ('<a href="labs/invented.html">x</a>', '.html', 'unknown lab'),
             ('<section data-primary="Attention">x</section>', '.html', 'handwritten ownership'),
+            ('<details data-map-area="engine"></details>', '.html', 'handwritten system map'),
+            ('const inferenceMap=[];', '.js', 'handwritten semantic registry'),
             ("const x={ontology_binding:{primary:'Attention',related:[]}};", '.js', 'handwritten ontology_binding'),
             ('const operationOwners={attention:"Embedding"};', '.js', 'handwritten semantic registry'),
             ('Declarations.labs=[];', '.js', 'cannot replace'),
@@ -295,3 +323,45 @@ class FrontendGovernanceTests(unittest.TestCase):
         for source, suffix, message in cases:
             with self.subTest(source=source):
                 self.assertTrue(any(message in error for error in check(source, suffix)))
+
+
+    def test_system_map_admits_one_home_and_rejects_missing_or_invented_bindings(self):
+        from scripts.check.governance.frontend import audit_system_map
+        from scripts.build.contracts import lab_bindings
+        ontology, spec = load_declarations(), load_schema()
+        labs = lab_bindings(ROOT, ontology, spec)
+        self.assertEqual(audit_system_map(ontology, spec, labs), [])
+        def duplicate_id(m): m['areas'][1]['id'] = m['areas'][0]['id']
+        def duplicate_home(m): m['areas'][0]['concepts'].append('Attention')
+        def unknown(m): m['areas'][0]['concepts'].append('Invented')
+        def missing(m): next(a for a in m['areas'] if 'Attention' in a['concepts'])['concepts'].remove('Attention')
+        def edge(m): m['relationships'][0]['target'] = 'missing'
+        def expanded(m): m['areas'][0]['expanded'] = True
+        for mutation, message in [(duplicate_id,'duplicate area'),(duplicate_home,'multiple navigation'),
+                (unknown,'unknown ontology'),(missing,'missing navigation'),(edge,'dangling relationship'),
+                (expanded,'exactly one engine')]:
+            with self.subTest(mutation=mutation.__name__):
+                changed=copy.deepcopy(spec);mutation(changed['$defs']['InferenceMap']['const'])
+                self.assertTrue(any(message in e for e in audit_system_map(ontology,changed,labs)))
+        changed=copy.deepcopy(spec);unknown(changed['$defs']['InferenceMap']['const'])
+        with self.assertRaisesRegex(ValueError, 'Invented'):
+            admit(ontology,changed)
+
+    def test_journey_rejects_competing_runtime_and_operation_authorities(self):
+        from scripts.check.governance.frontend import audit_execution_journey
+        spec=load_schema()
+        self.assertEqual(audit_execution_journey(spec),[])
+        def duplicate(s): s['ArchitectureWalkthrough']['const']['stages'][1]['operations'].append('input_ids')
+        def missing(s): s['ArchitectureWalkthrough']['const']['stages'][0]['operations'].clear()
+        def invented(s): s['ArchitectureWalkthrough']['const']['stages'][0]['operations'].append('invented')
+        def edge(s): s['ArchitectureWalkthrough']['const']['stages'][0]['inputs'].append(1)
+        def negative_edge(s): s['ArchitectureWalkthrough']['const']['stages'][1]['inputs']=[-1]
+        def inspection(s): s['ArchitectureWalkthrough']['const']['stages'][0]['inspection']='attention'
+        def runtime(s): s['ModelDescriptor']['properties']['runtime']={'enum':['one','two']}
+        def graph(s): s['ArchitectureWalkthrough']['oneOf']=[]
+        for mutation,message in [(duplicate,'multiple stage homes'),(missing,'missing stage homes'),
+                (invented,'unknown operation'),(edge,'earlier stages'),(negative_edge,'earlier stages'),(runtime,'second numerical runtime'),
+                (graph,'one shared declared graph'),(inspection,'inspection operation')]:
+            with self.subTest(mutation=mutation.__name__):
+                changed=copy.deepcopy(spec);mutation(changed['$defs'])
+                self.assertTrue(any(message in e for e in audit_execution_journey(changed)))

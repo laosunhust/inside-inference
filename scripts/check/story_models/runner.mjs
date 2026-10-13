@@ -1,5 +1,8 @@
 import {checkModels} from './check.mjs';
+import vm from 'node:vm';
+import {readFileSync} from 'node:fs';
 const [port,base,output,site,assetBase]=process.argv.slice(2);
+for(const name of ['contract-validators.generated.js','contract-runtime.js','declarations.generated.js'])vm.runInThisContext(readFileSync(site+'/'+name,'utf8'));
 const targets=await(await fetch(`http://127.0.0.1:${port}/json/list`)).json();
 const socket=new WebSocket(targets.find(t=>t.type==='page').webSocketDebuggerUrl);
 await new Promise(resolve=>socket.addEventListener('open',resolve,{once:true}));

@@ -3,7 +3,7 @@ from copy import deepcopy
 import unittest
 
 from inside_inference.cache_lab import run_cache_experiment, replay_cache
-from inside_inference.tokenizer import Tokenizer, Turn
+from inside_inference.tokenizer import Tokenizer
 from tests.fixtures.execution import cache_scenario as scenario
 
 
@@ -20,11 +20,11 @@ class CacheLabTests(unittest.TestCase):
     def test_hand_calculated_service_and_causal_links(self):
         run=self.record
         # Width 8, FFN 16, 384 output IDs: 8,168 binary64 parameters.
-        # Six prefix positions, final prompt position, then one decode position.
-        # Memory-limited service: 66.880 + 66.368 + 66.496 us;
-        # retention reads/writes 768 bytes each: 1.536 us.
-        # The second request reuses the prefix and executes only 66.368+66.496 us.
-        self.assertAlmostEqual(run['events'][-1]['time_us'],334.144,places=9)
+        # Three prefix positions, final prompt position, then one decode position.
+        # Memory-limited service: 66.112 + 65.984 + 66.112 us;
+        # retention reads/writes 384 bytes each: 0.768 us.
+        # The second request reuses the prefix and executes only 65.984+66.112 us.
+        self.assertAlmostEqual(run['events'][-1]['time_us'],331.072,places=9)
         seen=set()
         for event in run['events']:
             self.assertTrue(set(event['causes'])<=seen)
@@ -52,10 +52,10 @@ class CacheLabTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'replay differs'):replay_cache(bad)
 
     def test_capacity_causes_remote_hit_and_host_eviction_causes_miss(self):
-        n=len(Tokenizer().encode_prompt([Turn(role='user', text='the ball')],context_limit=128).ids)
+        n=1+len(Tokenizer().encode('the ball.').ids)
         capacity=(n+1)*8*16
         for host,expected in ((32768,['miss','miss','remote-hit']),(0,['miss','miss','miss'])):
-            r=run_cache_experiment(scenario(('the ball','the cup','the ball'),device=capacity,host=host))
+            r=run_cache_experiment(scenario(('the ball.','the cup.','the ball.'),device=capacity,host=host))
             self.assertEqual([e['kind'] for e in r['events'] if e['kind'] in ('local-hit','remote-hit','miss')],expected)
             self.assertTrue(all(e['device_reserved_bytes']<=capacity and e['host_retained_bytes']<=host for e in r['events']))
             if host:
@@ -67,7 +67,7 @@ class CacheLabTests(unittest.TestCase):
                     self.assertAlmostEqual(finish['time_us']-start['time_us'],expected_us)
 
     def test_admission_backpressure_and_shared_compute(self):
-        n=len(Tokenizer().encode_prompt([Turn(role='user', text='the ball')],context_limit=128).ids)
+        n=1+len(Tokenizer().encode('the ball.').ids)
         capacity=(n+1)*8*16
         r=run_cache_experiment(scenario(device=capacity,active=2))
         finished=next(e for e in r['events'] if e['kind']=='finished' and e['request_id']=='r0')

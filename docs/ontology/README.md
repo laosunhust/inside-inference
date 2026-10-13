@@ -15,7 +15,7 @@ unregistered files, nested authorities, symlinks, malformed modules, and ownersh
 | [Serving](serving.yaml) | Request scheduling, KV-cache management, state transfer, and conditional compute service. |
 | [Hardware](hardware.yaml) | Observed backend identity and hypothetical resource graphs. |
 | [Customer interaction](interaction.yaml) | Declared submission, consumption and cancellation actions. |
-| [Experiment](experiment.yaml) | Experiment specifications, executions, causal events, and numerical/measurement observations. |
+| [Experiment](experiment.yaml) | Control interventions, their ExecutionSpec composition, executions, causal events, and observations. |
 | [Interface](interface.yaml) | Inspection cursors, advertised execution capabilities, and service errors. |
 | [Tokenizer](tokenizer.yaml) | One tokenizer concept owning vocabulary entries, framing inputs, encoding spans, and results. |
 | [Data model](../../data-model/README.md) | Concrete field shapes and generated consumers. |
@@ -121,6 +121,32 @@ Fixed lab endpoints retain their declared subjects in resolved specifications an
 reject incompatible bindings. Association identifies what is being studied, not
 proof that an experiment is correct or that every associated concept is changed.
 The generated step-level Ontology and Labs links use these owners and bindings.
+
+## Navigable system map
+
+InferenceSystem owns the [map declaration](../../data-model/domains/system-map.yaml).
+Its areas group existing system owners; area labels are not additional ontology concepts.
+Customer interaction stays in the Interaction panel, outside this system boundary.
+Server-side response delivery stays inside; publication is not proof of receipt.
+Each lab subject and operation owner has one navigation home. Relationships describe
+responsibilities, not chronological events or proof that a path executed. The same
+map surrounds each model's actual architecture and captured computation.
+
+The frontend derives names, membership, links and initial expansion from that
+admitted declaration. Governance rejects unknown subjects, multiple homes, missing
+lab/operation owners and dangling relationships. Opening an area or the separate Numerics section changes disclosure
+only, not the experiment or inspection cursor. Concept explanations remain available
+for all models. Intermediate tensor inspection follows the declared model capability,
+not a hardcoded parameter-count threshold; available output scores remain inspectable. Replay reveals a selected computation
+inside its area. A lab link means an implemented primary lab exists; it does not
+mean that mechanism can be selected in the current main-page execution.
+
+Areas also list missing subjects explicitly. A paper can motivate an area without
+having an admitted ontology owner or an executable ExperimentSpec. First identify
+its primary mechanism and related owners; declare missing semantics, configuration
+and evidence before implementing a runnable experiment. Do not bind routing or
+collectives to InferenceSystem just to pass validation. New ideas may challenge the
+map itself; Transformer ancestry is not a completeness guarantee.
 
 ## Decomposition under test
 

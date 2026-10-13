@@ -1,4 +1,3 @@
-model_id: tinyllm-4m
 workload:
   requests:
   - request_id: r1
@@ -10,3 +9,16 @@ workload:
         selection: greedy-lowest-id-tie
         stopping: model-end-or-budget
   kind: fixed-arrivals
+execution:
+  experiments:
+  - control: model
+    value: tinyllm-4m
+    ontology_binding:
+      primary: ModelArtifact
+      related: []
+  - control: kv_reuse
+    value: false
+    ontology_binding:
+      primary: KVCache
+      related:
+      - ModelExecution

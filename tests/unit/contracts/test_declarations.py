@@ -8,10 +8,7 @@ import unittest
 import yaml
 
 from inside_inference.declarations_generated import InferenceRequest, GenerationPolicy
-from inside_inference.declarations import validate_result
 from inside_inference.contract_runtime import decode_json
-from inside_inference.generation import run_request
-from inside_inference.workload import run_workload
 from scripts.build.generate_data_models import ROOT, admit, generate, outputs, read as read_json
 from scripts.build.ontology import load_declarations
 from scripts.build.structured import read_yaml
@@ -111,6 +108,15 @@ class DeclarationTests(unittest.TestCase):
         bad['$defs']['InferenceRequest']['properties']['text']['unknownKeyword'] = 1
         with self.assertRaisesRegex(ValueError, 'unsupported'): admit(ontology, bad)
 
+    def test_capability_references_resolve_declared_roots(self):
+        for path, message in [('Missing.system.limit', 'capability root'),
+                              ('KVRunBinding.system.missing', 'capability reference'),
+                              ('KVRunBinding.system.max_requests', 'exceeds capability')]:
+            ontology=load_declarations();schema=read(ROOT/'data-model/inference.schema.json')
+            ontology['terms']['GenerationPolicy']['capability_reads']=[path]
+            schema['$defs']['GenerationPolicy']['properties']['max_new_tokens']['x-maximum-from']=path
+            with self.subTest(path=path), self.assertRaisesRegex(ValueError,message):admit(ontology,schema)
+
     def test_yaml_reads_are_detached_and_file_changes_are_not_hidden(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)/'authority.yaml'
@@ -185,11 +191,10 @@ class DeclarationTests(unittest.TestCase):
         owners = ontology['terms']
         spec = read(ROOT/'data-model/inference.schema.json')
         expected = {
-            'InferenceRequest': ['InferenceRequest', 'RequestArrival', 'TokenStepRequest', 'GenerationInput', 'GenerationPrepared', 'GenerationStep'],
-            'InferenceSystem': ['InferenceSystem', 'KVResidencySystemConfig', 'SystemConfigurationPreview'],
-            'InferenceResponse': ['TokenPublished', 'RequestFinished', 'RunOutcome'],
-            'ExecutionCapabilities': ['Capabilities', 'CacheCapabilities'],
-            'Tokenizer': ['Token', 'Turn', 'Span', 'Encoding', 'TokenizerOperation', 'VocabularyArtifact'],
+            'InferenceRequest': ['InferenceRequest', 'RequestArrival', 'GenerationInput', 'GenerationPrepared', 'GenerationStep', 'KVExperimentInput'],
+            'InferenceSystem': ['InferenceMap', 'InferenceMapArea', 'InferenceMapRelationship', 'KVResidencySystemConfig'],
+            'InferenceResponse': ['RunOutcome'],
+            'Tokenizer': ['Token', 'Turn', 'Span', 'Encoding', 'TokenizerOperation'],
             'ExecutionBackend': ['ExecutionBackend'],
         }
         # These intended semantic mappings remain independent of generic admission.
@@ -202,11 +207,11 @@ class DeclarationTests(unittest.TestCase):
         for owner in ('InferenceRequest', 'InferenceSystem'):
             self.assertEqual(owners[owner]['schemas'], expected[owner])
         for retired in ('ScheduledRequest', 'CacheSystem', 'CacheBackend',
-                        'Token', 'Turn', 'Span', 'Encoding', *expected['InferenceResponse'],
-                        *expected['ExecutionCapabilities']):
+                        'Token', 'Turn', 'Span', 'Encoding', *expected['InferenceResponse']):
             self.assertNotIn(retired, owners)
         fields = owners['InferenceSystem']['projections']['Inference system']['fields']
-        self.assertEqual(set(fields), set(expected['InferenceSystem']))
+        self.assertEqual(set(fields), {'KVResidencySystemConfig'})
+        self.assertTrue(set(fields) <= set(expected['InferenceSystem']))
         requests = tuple(RequestArrival(request_id=f'r{budget}', arrival_us=0,
             request=InferenceRequest(generation=GenerationPolicy(max_new_tokens=budget)))
             for budget in (1, 3))
@@ -217,20 +222,17 @@ class DeclarationTests(unittest.TestCase):
 
     def test_experiment_concepts_separate_specs_events_and_observations(self):
         module = read(ROOT/'docs/ontology/experiment.yaml')
-        self.assertEqual(set(module['terms']), {'ExperimentSpec', 'ExperimentExecution',
+        self.assertEqual(set(module['terms']), {'ExperimentSpec', 'ExecutionSpec', 'ExperimentExecution',
             'ExperimentEvent', 'ExperimentObservation'})
         ontology = load_declarations()
         spec = read(ROOT/'data-model/inference.schema.json')
-        self.assertEqual(spec['$defs']['DecodingContract']['x-owner'], 'GenerationPolicy')
-        self.assertNotIn('DecodingContract', ontology['terms'])
-        for name, owner in [('RunBinding','ExperimentSpec'), ('CacheRun','ExperimentExecution'),
-                            ('RunEvent','ExperimentEvent'), ('CacheMeasurement','ExperimentObservation')]:
+        for name, owner in [('KVRunBinding','ExperimentExecution'), ('CacheRun','ExperimentExecution'),
+                            ('CacheEvent','ExperimentEvent'), ('CacheMeasurement','ExperimentObservation')]:
             self.assertEqual(spec['$defs'][name]['x-owner'], owner)
-        self.assertEqual(spec['$defs']['EventClock']['properties']['kind']['const'], 'execution-order')
         self.assertIn('time_us', spec['$defs']['CacheEvent']['properties'])
         self.assertIn('elapsed_us', spec['$defs']['CacheMeasurement']['properties'])
         bad = copy.deepcopy(spec)
-        bad['$defs']['RequestBinding']['properties']['request'] = {'$ref':'#/$defs/CacheMeasurement'}
+        bad['$defs']['KVRunBinding']['properties']['workload'] = {'$ref':'#/$defs/CacheMeasurement'}
         # Cross-owner references are structural links, not an ontology permission list.
         admit(ontology, bad)
         bad = copy.deepcopy(ontology)
@@ -251,7 +253,6 @@ class DeclarationTests(unittest.TestCase):
         with self.assertRaises(ValueError): InferenceRequest(generation={})
         with self.assertRaises(ValueError): GenerationPolicy(max_new_tokens=True)
         with self.assertRaises(ValueError): GenerationPolicy(max_new_tokens=0)
-        with self.assertRaises(ValueError): run_request(InferenceRequest(generation=GenerationPolicy(max_new_tokens=17)).to_dict())
 
     def test_preparation_provenance_is_artifact_owned_and_strict(self):
         from inside_inference.declarations_generated import TrainingProvenance, InitializationProvenance
@@ -269,20 +270,6 @@ class DeclarationTests(unittest.TestCase):
             initial['provenance'] = bad
             with self.assertRaises(ValueError): Model(initial)
 
-    def test_budget_is_ceiling_and_outcome_is_observed(self):
-        results=[]
-        for budget in (1,2,3,8):
-            request=InferenceRequest(text='the ball is in',generation=GenerationPolicy(max_new_tokens=budget))
-            run=run_request(request.to_dict()); results.append(run)
-            self.assertEqual(run['declaration']['request'],request.to_dict())
-            validate_result(run)
-        self.assertEqual([len(r['passes']) for r in results],[1,2,3,3])
-        self.assertEqual([r['outcome']['unused_budget'] for r in results],[0,0,0,5])
-        self.assertEqual([r['outcome']['stop_reason'] for r in results],['output_budget','output_budget','turn_end','turn_end'])
-        self.assertEqual(results[2]['output_ids'],results[3]['output_ids'][:3])
-        for key,value in [('unused_budget',1),('selected_tokens',8),('complete',False)]:
-            bad=copy.deepcopy(results[3]);bad['outcome'][key]=value
-            with self.assertRaises(ValueError): validate_result(bad)
 
 
 
@@ -294,8 +281,7 @@ class InferenceDecompositionTests(unittest.TestCase):
         from scripts.build.contracts import load_schema
         from inside_inference.declarations_generated import KVResidencySystemConfig
         spec=load_schema()['$defs']
-        components={'model_execution':('CachedExecutionConfig','ModelExecution'),
-                    'scheduling':('RequestSchedulingConfig','RequestScheduling'),
+        components={'scheduling':('RequestSchedulingConfig','RequestScheduling'),
                     'kv_cache':('KVCacheConfig','KVCache'),
                     'transfer':('StateTransferConfig','StateTransfer'),
                     'compute_service':('ComputeServiceConfig','ComputeService')}
@@ -304,9 +290,9 @@ class InferenceDecompositionTests(unittest.TestCase):
             self.assertEqual(spec['KVResidencySystemConfig']['properties'][field], {'$ref':'#/$defs/'+schema})
             self.assertEqual(spec[schema]['x-owner'],owner)
             self.assertIsInstance(config[field],dict)
-        for name in ('TokenSelection','TokenSelected','NumericalPass'):
+        for name in ('TokenSelection',):
             self.assertEqual(spec[name]['x-owner'],'Decoding')
-        for name in ('CacheComputation','ModelForwardCompleted','NumericalPrecision'):
+        for name in ('CacheComputation','GenerationWork'):
             self.assertEqual(spec[name]['x-owner'],'ModelExecution')
         # A legacy setting cannot shadow an owned component's value.
         for change in (lambda c:c.update(device_kv_bytes=123),

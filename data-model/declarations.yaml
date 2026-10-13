@@ -12,5 +12,5 @@ modules:
 - domains/runtime.yaml
 - domains/serving.yaml
 - domains/interaction.yaml
-- domains/delivery.yaml
 - domains/model-family.yaml
+- domains/system-map.yaml

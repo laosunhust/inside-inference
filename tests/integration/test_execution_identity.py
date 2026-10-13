@@ -2,8 +2,6 @@
 import copy
 import unittest
 from inside_inference.cache_lab import default_experiment, run_cache_experiment, replay_cache
-from inside_inference.generation import run_request, replay
-from inside_inference.workload import run_workload, replay_workload, default_workload
 from inside_inference.model import initialize, ModelArchitecture, identity
 from inside_inference.tokenizer import Tokenizer
 from tests.fixtures.execution import small_checkpoint
@@ -15,41 +13,28 @@ class ExecutionIdentityTests(unittest.TestCase):
     def setUpClass(cls):
         cls.checkpoint = small_checkpoint(seed=11)
         cls.request = {'text':'the ball is in', 'generation':{
-            'max_new_tokens':2, 'selection':'greedy-lowest-id-tie', 'stopping':'turn-end-or-budget'}}
-        cls.trace = run_request(cls.request, checkpoint=cls.checkpoint)
-        cls.workload = default_workload(cls.request).to_dict()
+            'max_new_tokens':2, 'selection':'greedy-lowest-id-tie', 'stopping':'model-end-or-budget'}}
+        cls.workload = {'kind':'fixed-arrivals','requests':[{'request_id':'r1','arrival_us':0,'request':cls.request}]}
         cls.input = default_experiment()
         cls.input['workload'] = cls.workload
         cls.cache = run_cache_experiment(cls.input, checkpoint=cls.checkpoint)
 
-    def test_both_paths_resolve_the_selected_model_and_keep_submission_separate(self):
-        reference = run_workload(self.workload, checkpoint=self.checkpoint)
-        for run in (reference, self.cache):
-            self.assertEqual(set(run['declaration']), {'model','system','workload','ontology_binding'})
-            self.assertEqual(run['declaration']['model']['checkpoint_sha256'], identity(self.checkpoint))
-            self.assertEqual(run['declaration']['workload'], self.workload)
-        self.assertEqual(reference['declaration']['model'], self.cache['declaration']['model'])
+    def test_binding_keeps_submission_separate_and_records_actual_provenance(self):
+        run = self.cache
+        self.assertEqual(set(run['declaration']), {'model','system','workload','ontology_binding'})
+        self.assertEqual(run['declaration']['model']['checkpoint_sha256'], identity(self.checkpoint))
+        self.assertEqual(run['declaration']['workload'], self.workload)
         self.assertEqual(set(self.input), {'system','workload','ontology_binding'})
         with self.assertRaises(ValueError):
-            run_cache_experiment(dict(self.input, model=self.cache['declaration']['model']))
+            run_cache_experiment(dict(self.input, model=run['declaration']['model']))
         changed = run_cache_experiment(self.input)
-        self.assertNotEqual(changed['declaration']['model'], self.cache['declaration']['model'])
-        self.assertNotEqual(changed['id'], self.cache['id'])
-        self.assertEqual(replay_workload(reference), reference)
-
-    def test_shared_provenance_preserves_details_and_backend_differences(self):
-        reference, cached = self.trace['provenance'], self.cache['provenance']
-        self.assertEqual(set(reference), set(cached))
-        self.assertEqual(reference['sources'], source_inventory())
-        self.assertEqual(reference['sources'], cached['sources'])
-        self.assertEqual(reference['source_sha256'], identity(reference['sources']))
-        self.assertNotEqual(reference['backend']['device_state_storage'], cached['backend']['device_state_storage'])
-        self.assertNotIn('backend', self.cache)
-        self.assertNotIn('source_sha256', self.cache)
-        self.assertNotIn('code', self.trace)
+        self.assertNotEqual(changed['declaration']['model'], run['declaration']['model'])
+        self.assertNotEqual(changed['id'], run['id'])
+        self.assertEqual(run['provenance']['sources'], source_inventory())
+        self.assertEqual(run['provenance']['source_sha256'], identity(source_inventory()))
 
     def test_replay_rejects_tampered_models_sources_and_runtime(self):
-        for original, execute in ((self.trace, replay), (self.cache, replay_cache)):
+        for original, execute in ((self.cache, replay_cache),):
             def source_and_hash(r):
                 r['provenance']['sources']['inside_inference/model.py'] = '0'*64
                 r['provenance']['source_sha256'] = identity(r['provenance']['sources'])
@@ -68,8 +53,19 @@ class ExecutionIdentityTests(unittest.TestCase):
                     with self.assertRaises(ValueError): execute(bad)
 
     def test_revision_label_alone_does_not_prevent_replay(self):
-        for original, execute in ((self.trace, replay), (self.cache, replay_cache)):
+        for original, execute in ((self.cache, replay_cache),):
             changed = copy.deepcopy(original)
             changed['provenance']['revision'] = 'a-different-commit-with-the-same-source-bytes'
             result = execute(changed)
             self.assertEqual(result['provenance'], changed['provenance'])
+
+    def test_replay_compares_numeric_values_not_json_number_spelling(self):
+        def browser_numbers(value):
+            if isinstance(value,float) and value.is_integer(): return int(value)
+            if isinstance(value,list): return [browser_numbers(v) for v in value]
+            if isinstance(value,dict): return {k:browser_numbers(v) for k,v in value.items()}
+            return value
+        # Keep the identified checkpoint intact; the execution envelope crosses JSON.
+        changed = browser_numbers(self.cache)
+        changed['checkpoint'] = self.cache['checkpoint']
+        self.assertEqual(replay_cache(changed)['events'], self.cache['events'])

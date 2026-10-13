@@ -1,86 +1,106 @@
-/* Declared model operations; presentation never imports runtimes or asset readers. */
+/* One execution loop over one decoder; artifact formats affect loading/tokenization only. */
+import {installComponentEngine} from './component-engine.js';
+import {resolveExecution} from './controls.js';
 import {readAsset,readCatalog} from './model-storage.js';
-let loaded=null, module=null, prefix=[];
-let catalog=null;
-export function handlesModelOperation(name) {return ['modelCatalog','loadModel','prepareGeneration','generateToken'].includes(name);}
-export async function executeModelOperation(name,input,py) {
+import {Decoder,loadWeights,finishSelection} from './decoder.js';
+import {observations} from './observations.js';
+let loaded=null,module=null,decoder=null,catalog=null,checkpoint=null;
+export function handlesModelOperation(name){return ['modelCatalog','loadModel','prepareGeneration','generateToken','simulateResources'].includes(name);}
+export async function executeModelOperation(name,input,py){
   const result=await execute(name,input,py);
-  if(name==='generateToken') {
+  if(name==='generateToken'){
     result.request=input;
     result.contract_sha256=py.runPython('from inside_inference.declarations_generated import CONTRACT_SHA256; CONTRACT_SHA256');
     const raw=new TextEncoder().encode(JSON.stringify([result.contract_sha256,result.weights_sha256,result.tokenizer_sha256,input]));
     result.id=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',raw)),b=>b.toString(16).padStart(2,'0')).join('');
+    const old=`prediction-${input.output_ids.length}/`;
+    for(const node of result.nodes){node.id=node.id.replace(old,result.id+'/');node.run_id=result.id;node.inputs=node.inputs.map(id=>id.startsWith(old)?id.replace(old,result.id+'/'):id);}
   }
   return result;
 }
-async function execute(name,input,py) {
-  if(!catalog) {
+async function tiny(py,expression,values={}) {
+  for(const [key,value] of Object.entries(values))py.globals.set(key,value);
+  return JSON.parse(await py.runPythonAsync('from inside_inference.runtimes import tokenization; '+expression));
+}
+async function execute(name,input,py){
+  if(!catalog){
     const value=await readCatalog(new URL('../',import.meta.url));
     py.globals.set('story_catalog_json',JSON.stringify(value));
-    await py.runPythonAsync('import json; from inside_inference.declarations_generated import ModelCatalog; ModelCatalog.validate_shape(json.loads(story_catalog_json))');
-    catalog=value;
+    await py.runPythonAsync('import json; from inside_inference.declarations_generated import ModelCatalog; ModelCatalog.validate_shape(json.loads(story_catalog_json))');catalog=value;
   }
   if(name==='modelCatalog')return catalog;
-  const model=catalog.models.find(m=>m.id===(input.experiment?.model_id ?? input.model_id));
+  const controls=input.execution?resolveExecution(input.execution):null;
+  const model=catalog.models.find(m=>m.id===(controls?.model_id??input.model_id));
   if(!model)throw Error('Unknown model');
-  if(name==='loadModel') {
-    loaded=null;prefix=[];
-    const start=performance.now();
+  if(name==='loadModel'){
+    loaded=null;decoder=null;const start=performance.now();
     const [weights,tokenizer]=await Promise.all([model.weights,model.tokenizer].map(a=>readAsset(catalog.storage,a,new URL('../',import.meta.url))));
-    if(model.runtime==='llama2c-wasm') {
-      // The weights and tokenizer are verified before entering upstream C code.
-      if(!module)module=await (await import('./llama/llama.mjs')).default();
-      const header=new Int32Array(weights.buffer,weights.byteOffset,7),a=model.architecture;
-      if(JSON.stringify(Array.from(header))!==JSON.stringify([a.width,a.ffn,a.layers,a.heads,a.heads,a.vocabulary,a.context]))throw Error('Model header differs from declaration');
-      module.FS.writeFile('/weights.bin',weights);module.FS.writeFile('/tokenizer.bin',tokenizer);
-      if(module._load_model()!==a.vocabulary)throw Error('Runtime vocabulary mismatch');
-    } else {
+    if(!module)module=await (await import('./llama/llama.mjs')).default();
+    checkpoint=null;let token_pieces;
+    if(model.tokenizer_format==='word-hex-manifest'){
       py.FS.writeFile('/story-weights.bin',weights);py.FS.writeFile('/story-tokenizer.json',tokenizer);
-      py.globals.set('story_model_json',JSON.stringify(model));
-      await py.runPythonAsync('from inside_inference.runtimes.inspectable import load_tiny; load_tiny(story_model_json)');
+      checkpoint=await tiny(py,'tokenization.load(story_model_json)',{story_model_json:JSON.stringify(model)});
+      token_pieces=await tiny(py,'tokenization.pieces(story_ids)',{story_ids:JSON.stringify(Array.from({length:model.architecture.vocabulary},(_,i)=>i))});
+    }else{
+      module.FS.writeFile('/tokenizer.bin',tokenizer);module._load_tokenizer(model.architecture.vocabulary);
+      token_pieces=Array.from({length:model.architecture.vocabulary},(_,i)=>module.UTF8ToString(module._vocab_piece(i)));
     }
-    const token_pieces=model.runtime==='llama2c-wasm'?Array.from({length:model.architecture.vocabulary},(_,i)=>module.UTF8ToString(module._vocab_piece(i))):JSON.parse(await py.runPythonAsync('from inside_inference.runtimes.inspectable import vocabulary_json; vocabulary_json()'));
-    loaded=model;
-    const parameters=model.runtime==='naive-python'?JSON.parse(await py.runPythonAsync('from inside_inference.runtimes.inspectable import parameters_json; parameters_json()')):null;
+    const parameters=loadWeights(module,model,weights,checkpoint);
+    loaded=model;decoder=new Decoder(module,model);
     return {model,load_ms:performance.now()-start,token_pieces,parameters};
   }
-  if(!loaded || loaded.id!==model.id)throw Error('Load the selected model first');
-  if(model.runtime==='naive-python') {
-    py.globals.set('story_operation',name);py.globals.set('story_input',JSON.stringify(input));
-    return JSON.parse(await py.runPythonAsync('from inside_inference.runtimes.inspectable import execute_tiny; execute_tiny(story_operation, story_input)'));
+  if(!loaded||loaded.id!==model.id)throw Error('Load the selected model first');
+  if(name==='simulateResources'){
+    if(!controls.resources)throw Error('Configure a KV residency experiment first');
+    if(!checkpoint)throw Error('Resource simulation currently requires the 8K state format; select 8K explicitly');
+    if(!controls.kv_reuse)throw Error('KV residency simulation requires KV reuse');
+    await installComponentEngine();
+    py.globals.set('resource_spec',JSON.stringify({system:controls.resources,workload:input.workload}));
+    py.globals.set('resource_checkpoint',JSON.stringify(checkpoint));
+    const run=JSON.parse(await py.runPythonAsync('from inside_inference.cache_lab import run_cache_experiment; from inside_inference.declarations_generated import KVResidencySystemConfig, LAB_BINDINGS; spec=json.loads(resource_spec); spec["system"]={**KVResidencySystemConfig().to_dict(), **spec["system"]}; spec["ontology_binding"]=LAB_BINDINGS["prefix-cache"]; json.dumps(run_cache_experiment(spec, checkpoint=json.loads(resource_checkpoint)))'));
+    const outputs={},decoding_notes={};
+    for(const request of input.workload.requests){
+      const ids=run.computations.filter(c=>c.request_id===request.request_id&&c.selection).map(c=>c.selection.selected_id).filter(id=>!model.stop_ids.includes(id));
+      let note;[outputs[request.request_id],note]=await tiny(py,'tokenization.decode(story_ids, True)',{story_ids:JSON.stringify(ids)});
+      if(note)decoding_notes[request.request_id]=note;
+    }
+    return {input,run,outputs,decoding_notes};
   }
-  if(name==='prepareGeneration') {
-    const source=input.workload.requests[0].request.text;
-    if(source.includes('\0'))throw Error('NUL input is not supported by the upstream tokenizer');
-    // Export admits only the identity SentencePiece normalizer with these exact flags.
-    const text=source.replace(/ +/g,' ').replace(/^ | $/g,'').replaceAll('▁',' ');
-    const ptr=module._malloc((new TextEncoder().encode(text).length+4)*4);
-    let ids;
-    try {const n=module.ccall('tokenize','number',['string','number'],[text,ptr]);ids=Array.from(module.HEAP32.subarray(ptr/4,ptr/4+n));}
-    finally{module._free(ptr);}
+  if(controls.resources)throw Error('Resource experiments execute through simulateResources');
+  if(name==='prepareGeneration'){
+    if(input.workload.requests.length!==1)throw Error('This execution supports one request');
+    const source=input.workload.requests[0].request.text;let ids,encoding=null,token_pieces;
+    if(model.tokenizer_format==='word-hex-manifest'){
+      const result=await tiny(py,'tokenization.encode(story_text)',{story_text:source});ids=result.ids;encoding=result.encoding;
+      token_pieces=await tiny(py,'tokenization.pieces(story_ids)',{story_ids:JSON.stringify(ids)});
+    }else{
+      if(source.includes('\0'))throw Error('NUL input is not supported by the upstream tokenizer');
+      const text=source.replace(/ +/g,' ').replace(/^ | $/g,'').replaceAll('▁',' ');
+      const ptr=module._malloc((new TextEncoder().encode(text).length+4)*4);
+      try{const n=module.ccall('tokenize','number',['string','number'],[text,ptr]);ids=Array.from(module.HEAP32.subarray(ptr/4,ptr/4+n));}finally{module._free(ptr);}
+      token_pieces=pieces(ids);
+    }
     if(ids.length>model.architecture.context)throw Error('Input exceeds model context');
-    return {input,prompt_ids:ids,pieces:pieces(ids),encoding:null};
+    decoder.prefix=[];
+    return {input,prompt_ids:ids,pieces:token_pieces,encoding};
   }
   if(name!=='generateToken')throw Error('Unknown generation operation');
   const ids=[...input.prefix_ids,...input.output_ids],a=model.architecture;
   if(ids.some(id=>!Number.isInteger(id)||id<0||id>=a.vocabulary))throw Error('Token ID outside vocabulary');
-  if(ids.length>a.context || input.output_ids.length>=input.generation.max_new_tokens || (input.output_ids.length && input.output_ids.some(id=>model.stop_ids.includes(id))))throw Error('Request has already finished');
-  const start=performance.now();
-  let same=0;while(same<ids.length && same<prefix.length && ids[same]===prefix[same])same++;
-  // Cache only exact already-executed prefixes. Branches recompute from position zero.
-  if(same!==prefix.length || same===ids.length)same=0;
-  let pointer;
-  for(let i=same;i<ids.length;i++)pointer=module._step(ids[i],i);
-  prefix=ids;
-  const logits=Array.from(module.HEAPF32.subarray(pointer/4,pointer/4+a.vocabulary));
+  if(ids.length>a.context||input.output_ids.length>=input.generation.max_new_tokens||input.output_ids.some(id=>model.stop_ids.includes(id)))throw Error('Request has already finished');
+  const start=performance.now(),run=decoder.run(ids,controls.kv_reuse),logits=run.logits;
   if(logits.some(x=>!Number.isFinite(x)))throw Error('Nonfinite model output');
   py.globals.set('generation_logits',JSON.stringify(logits));
-  const selection=JSON.parse(await py.runPythonAsync('from inside_inference.generation import select_greedy; json.dumps(select_greedy(json.loads(generation_logits)))'));
-  const {probabilities,selected_id:selected}=selection;
-  const output=[...input.output_ids,selected],sequence=[...input.prefix_ids,...output];
-  const stop=model.stop_ids.includes(selected)?'end_token':output.length>=input.generation.max_new_tokens?'output_budget':sequence.length>a.context?'context_capacity':null;
+  const {probabilities,selected_id:selected}=JSON.parse(await py.runPythonAsync('from inside_inference.generation import select_greedy; json.dumps(select_greedy(json.loads(generation_logits)))'));
+  const {output,sequence,stop,visible}=finishSelection(input,selected,model);
+  let text,decoding_note=null,token_pieces;
+  if(model.tokenizer_format==='word-hex-manifest'){
+    [text,decoding_note]=await tiny(py,'tokenization.decode(story_ids, story_final)',{story_ids:JSON.stringify(visible),story_final:stop!==null});
+    token_pieces=await tiny(py,'tokenization.pieces(story_ids)',{story_ids:JSON.stringify(sequence)});
+  }else{text=decode(output,input.prefix_ids.at(-1));token_pieces=pieces(sequence);}
   return {model_id:model.id,weights_sha256:model.weights.sha256,tokenizer_sha256:model.tokenizer.sha256,
-    sequence_ids:sequence,output_ids:output,text:decode(output,input.prefix_ids.at(-1)),pieces:pieces(sequence),logits,probabilities,selected_id:selected,stop_reason:stop,compute_ms:performance.now()-start,nodes:[],decoding_note:null};
+    sequence_ids:sequence,output_ids:output,text,pieces:token_pieces,logits,probabilities,selected_id:selected,stop_reason:stop,
+    compute_ms:performance.now()-start,nodes:observations(run.captured,ids,run.work,module,model,output.length-1),decoding_note,work:run.work};
 }
 function bytes(previous,id) {
   if(id===1||id===2)return new Uint8Array();

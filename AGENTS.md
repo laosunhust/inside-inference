@@ -43,6 +43,13 @@ Folder structure has declared upper bounds on files per folder and size per file
 with one machine-readable authority for scope, units, and limits. Warning thresholds
 signal when to plan a cohesive split; exceeding a hard limit blocks the build. Checks cannot silently repair drift, grant exceptions, or relax limits.
 
+Repository warnings marked `[inside-inference:governance]` are actionable obligations,
+not third-party tool noise. Agents must proactively triage them and perform justified
+cleanup within authorized scope, without asking the owner to manage routine fixes.
+If a warning cannot be resolved within that scope, report its cause and a concrete
+next step. Do not suppress warnings or relax limits to dispose of them; protected
+changes still require authorization.
+
 The constitution, governance limits, and enforcement are approval-locked in
 [governance/approval-lock.yaml](governance/approval-lock.yaml). Changes to protected
 files, lock scope, or recorded hashes require explicit project-owner authorization

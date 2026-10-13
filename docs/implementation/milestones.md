@@ -27,7 +27,7 @@ This checkpoint can be committed before a tokenizer or model exists. It is compl
 when the following are reviewable and repository checks pass:
 
 - Current purpose, ontology, numerical/simulation boundaries, and extension contract.
-- Offline request-cost playground with source-derived explanations and ontology links.
+- Original bootstrap: offline request-cost playground. Superseded by the main-page KV resource experiment.
 - Reproducible vocabulary research and explicitly conditional training estimates.
 - Public Make workflows, independent checks for implemented arithmetic, and no generated
   runs, checkpoints, or local environments in the commit payload.
@@ -38,7 +38,7 @@ Current capability ledger:
 
 | Capability | State |
 | --- | --- |
-| Request cost simulation and ontology inspection | Implemented; conditional arithmetic only. |
+| Request cost simulation and ontology inspection | Main-page resource experiment with actual KV computation and explicitly hypothetical service rates; the aggregate-only playground is retired. |
 | KDA recurrence lab | Existing optional side lab with hand-selected vectors; not integrated attention or a milestone prerequisite. |
 | Vocabulary-budget audit | Implemented counting study; not a tokenizer or language model. |
 | 384-entry manifest and reversible tokenizer | Implemented candidate; independent codec checks pass, everyday coverage gaps remain. T1 is not complete. |

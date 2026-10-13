@@ -1,39 +1,28 @@
 terms:
   ExperimentSpec:
-    meaning: The declared inputs, configuration, and assumptions for an experiment.
-    lifetime: Editable before execution; the consumed specification is frozen in the
-      execution record.
+    meaning: One declared intervention on an ontology-owned mechanism or artifact in the inference journey.
+    lifetime: Editable before execution; the consumed specification is frozen in the execution record.
     owns:
-    - Submitted experiment input, and resolved bindings identifying the model, inference
-      system, and request or workload actually consumed.
-    - Primary and related ontology subjects, resolved against admitted concepts and
-      preserved in execution.
-    - Unexecuted configuration previews, kept distinct from resolved execution bindings.
+    - One mechanism or artifact control and its requested settings.
+    - Primary and related ontology subjects, resolved against admitted concepts and preserved in execution.
     excludes:
     - Observed outcomes and execution identity
     - Causal events and numerical measurements
     capability_reads: []
     projections: {}
     schemas:
-    - RequestBinding
-    - RunBinding
-    - GenerationExperiment
-    - GenerationDefaults
-    - PreparedInput
-    - KVExperimentInput
-    - KVRunBinding
     - OntologyBinding
-    - ConfigurationPreview
+    - ExperimentSpec
   ExperimentExecution:
-    meaning: One identified execution of an experiment specification, retaining its
-      events and observations for inspection and replay.
+    meaning: One identified execution of the consumed controls against customer input, retaining its events
+      and observations for inspection and replay.
     lifetime: Evidence accumulates during execution; the completed record is immutable.
     owns:
-    - Execution records joining the consumed specification, events, observations,
-      and request outcomes.
-    - Numerical traces and shared execution provenance identifying source bytes, Python/Git
-      version, and the actual backend; provenance is distinct from requested system
-      settings.
+    - Execution records joining the consumed specification, events, observations, and request outcomes.
+    - Numerical traces and shared execution provenance identifying source bytes, Python/Git version, and
+      the actual backend; provenance is distinct from requested system settings.
+    - Resolved model, system and customer-input bindings actually consumed; these are frozen evidence,
+      not an independent editable specification.
     excludes:
     - Editable experiment drafts
     - Inspection cursor or playback position
@@ -42,29 +31,19 @@ terms:
     projections: {}
     schemas:
     - GenerationEvidence
-    - RunRecord
     - CacheRun
-    - NumericalTrace
     - ExecutionProvenance
-    - TokenStepResult
-    - ArtifactReference
-    - ExecutionReceipt
-    - ArtifactResponse
-    - StoredNumericalTrace
-    - StoredRunRecord
-    - StoredTokenStepResult
-    - ExecutionArchive
-    - ExecutionBundle
     - ExecutionReplayInput
+    - KVRunBinding
+    - ResourceExecution
   ExperimentEvent:
-    meaning: An occurrence within an execution, with explicit order, causal links,
-      and the applicable clock interpretation.
+    meaning: An occurrence within an execution, with explicit order, causal links, and the applicable
+      clock interpretation.
     lifetime: Recorded when an occurrence happens; earlier events are not rewritten.
     owns:
-    - Causal event envelopes, request arrival and input-encoding payloads, and the
-      declared event clock.
-    - The current cache event envelope records cross-mechanism scheduling, cache and
-      service transitions; it is not their semantic owner.
+    - Causal cache event envelopes with request identity and virtual timestamps.
+    - The current cache event envelope records cross-mechanism scheduling, cache and service transitions;
+      it is not their semantic owner.
     excludes:
     - A global sequential step shared by concurrent requests
     - Inferring causality from adjacency or equal timestamps
@@ -73,23 +52,19 @@ terms:
     capability_reads: []
     projections:
       Event:
-        meaning: An occurrence linked to its causes and affected entities. The execution
-          declares whether order alone or virtual time is available; neither establishes
-          measured duration.
+        meaning: A cache-lab occurrence linked to its causes in declared virtual microseconds, not measured
+          wall time.
         fields:
-          RunEvent:
+          CacheEvent:
           - event_id
           - causes
-          - payload
+          - kind
+          - time_us
     schemas:
-    - RunEvent
     - CacheEvent
-    - EventClock
-    - RequestArrived
-    - InputEncoded
   ExperimentObservation:
-    meaning: Recorded tensors or local measurements attached to executed work; mechanism-specific
-      decisions and computations have separate owners.
+    meaning: Recorded tensors or local measurements attached to executed work; mechanism-specific decisions
+      and computations have separate owners.
     lifetime: Captured during execution and retained unchanged with its evidence.
     owns:
     - Recorded intermediate tensors and their dependencies.
@@ -103,6 +78,20 @@ terms:
     schemas:
     - TensorObservation
     - CacheMeasurement
-    - TensorTable
-    - StoredTensorObservation
     - GenerationPrediction
+  ExecutionSpec:
+    meaning: A composition of experiment controls used together to execute customer input. The list specifies
+      one setup, not a sweep.
+    lifetime: Editable before execution; retained unchanged with the execution evidence.
+    owns:
+    - Composition of ontology-bound controls, with one assignment per control.
+    - Execution setup independently of customer input and observed results.
+    excludes:
+    - Customer text and request arrivals, owned by Workload and InferenceRequest
+    - Observed outcomes
+    - Silently overriding conflicting controls
+    capability_reads: []
+    projections: {}
+    schemas:
+    - ExecutionSpec
+    - GenerationDefaults

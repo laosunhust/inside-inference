@@ -6,7 +6,6 @@ import tempfile
 import unittest
 import yaml
 
-from inside_inference.workload import run_workload
 from scripts.build.generate_data_models import ROOT, generate, outputs, read as read_json
 from scripts.build.structured import read_yaml
 
@@ -44,6 +43,6 @@ class GeneratedArtifactIntegrationTests(unittest.TestCase):
             catalog=describe(read_yaml(ROOT/'data/models/models.yaml'),ROOT/'data/models/artifacts')
             model=next(m for m in catalog['models'] if m['inspection']=='tensors')
             checkpoint=json.loads(gzip.decompress((ROOT/'data/models/artifacts'/model['weights']['path']).read_bytes()))
-            input=initial_generation();input['experiment']['model_id']=model['id']
+            input=initial_generation();next(item for item in input['execution']['experiments'] if item['control']=='model')['value']=model['id']
             path.write_text(json.dumps({'input':input,'loaded':{'model':model,'load_ms':0,'token_pieces':['x']*384,'parameters':checkpoint['parameters']}}))
             subprocess.run(['node',str(ROOT/'tests/integration/inspection_session.mjs'),str(path)],check=True,capture_output=True,text=True)

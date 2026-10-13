@@ -1,0 +1,115 @@
+/* Layout only. Shared appearance belongs to theme.css. */
+body:has(#control-plane) header{padding-top:14px;padding-bottom:14px}
+body:has(#control-plane) main{padding-top:8px}
+body:has(#control-plane) .landing-links{display:inline}
+.play-heading{padding:10px 0 16px}
+.play-heading h1{margin:8px 0;max-width:none}
+.control-plane{margin:0 0 18px;min-width:0}
+.pass-panel,.numerical-inspector{padding:16px;margin:0 0 14px;min-width:0}
+.playground .panel-heading{gap:10px;flex-wrap:wrap}
+.playground .panel-heading h2{margin:0}
+.inference-form{display:flex;gap:12px;align-items:end;margin:12px 0}
+#request-fields{display:grid;grid-template-columns:minmax(0,1fr) 160px;gap:12px;flex:1}
+#request-fields label{display:grid;gap:5px}
+.inference-form textarea{width:100%;resize:vertical;min-height:52px;margin:0;padding:7px 10px}
+#request-fields select{width:100%}
+.playground #execute{min-height:40px}
+.system-settings{display:flex;gap:14px;align-items:start;flex-wrap:wrap}
+.system-settings details{margin:4px 0;flex:1;min-width:120px}
+.system-settings .table-scroll{max-height:240px}
+.playground .request-preview{display:flex;align-items:center;gap:12px;text-align:left;margin:0 0 8px;padding:8px 10px 8px 14px;max-width:100%;overflow-wrap:anywhere}
+.request-preview strong{flex:1;min-width:0}
+.request-preview small{min-width:42px}
+.playground .request-preview button{flex:none;min-height:40px;min-width:70px}
+.token-strip{display:flex;gap:4px;flex-wrap:wrap}
+.playground .token-chip{padding:4px 6px}
+.token-chip{display:grid;gap:2px;min-width:34px}
+#pass-caption{margin:8px 0}
+.event-record,.model-notes{margin:12px 0 0}
+#definition{margin:10px 0}
+#inspection-context{overflow-wrap:anywhere}
+@media(max-width:700px){.pass-panel,.numerical-inspector{padding:12px}
+.inference-form{flex-wrap:wrap}
+#request-fields{grid-template-columns:minmax(0,1fr) 110px;flex-basis:100%}
+}
+.table-scroll{max-height:420px;overflow:auto;margin:1rem 0}
+.table-scroll table{border-collapse:collapse;width:100%}
+.table-scroll th,.table-scroll td{text-align:left;padding:.5rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.table-scroll th{position:sticky;top:0}
+.raw-values,#run-identity,#parameter-values{max-height:320px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.attention-grid{display:grid;gap:2px;min-width:420px;width:max-content;max-width:100%}
+.heat-cell{width:22px;height:22px;padding:0}
+.equation{padding:1rem}
+.execution-journey{margin:18px 0 0;padding:16px 0 0}
+.execution-heading{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.execution-heading h2{margin:0}
+.execution-journey button{padding:8px 10px}
+.execution-scroll{overflow-x:auto}
+#execution-canvas{position:relative;height:220px}
+#execution-edges{position:absolute;inset:0;width:100%;height:220px;overflow:visible}
+.execution-path{margin:0;padding:0}
+.execution-path>li{position:absolute;width:80px;height:50px}
+.execution-path>li>button{width:80px;height:50px;padding:5px}
+.execution-path button span{display:none}
+
+.configuration-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.playground .configuration-card{grid-template-columns:1fr auto;display:grid;align-content:center;gap:8px;min-height:106px;padding:18px;text-align:left}
+.playground dialog{width:min(720px,calc(100vw - 32px));max-height:85vh;overflow:auto;padding:22px}
+.playground dialog .panel-heading{margin-bottom:18px}
+.configuration-fields fieldset{min-width:0;padding:12px;margin:0 0 12px}
+.configuration-fields legend{padding:0 5px}
+.configuration-fields label{display:grid;gap:6px;margin:10px 0}
+.configuration-fields label:has(input){grid-template-columns:minmax(0,1fr) 110px;align-items:center}
+.configuration-fields a{display:inline-block;margin-top:8px}
+.configuration-fields select,.configuration-fields input{width:100%;padding:8px}
+.unavailable-heading{margin:22px 0 10px}
+.unavailable-components{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.unavailable-components>div{display:grid;gap:4px;padding:10px}
+.playground .unavailable-components button{padding:0;text-align:left}
+.configuration-actions{display:flex;gap:12px;align-items:center;margin-top:12px}
+.execution-path>li.configuration-changed::after{position:absolute;top:54px;left:0;width:100%;text-align:center}
+.source-editor{margin:8px 0}
+.source-editor #request-fields{margin-top:8px;max-width:760px}
+.source-editor textarea{width:100%;padding:8px}
+#workload-boundary.configuration-changed{padding-left:10px}
+@media(max-width:650px){.configuration-cards{grid-template-columns:1fr;gap:8px}
+.playground .configuration-card{padding:14px;min-height:76px;gap:5px}
+.configuration-actions{flex-wrap:wrap}
+.unavailable-components{grid-template-columns:1fr}}
+.prediction-controls{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+#response-preview{white-space:pre-wrap;overflow-wrap:anywhere}
+
+.execution-endpoint{min-width:0;margin:0;padding:0}
+
+.configuration-card>strong,.configuration-card>small{grid-column:1}
+.configuration-indicator{grid-column:2;grid-row:1/3;align-self:center}
+
+.request-actions{display:flex;gap:8px;flex:none}
+@media(max-width:450px){.playground .request-preview{flex-wrap:wrap}.request-preview .request-actions{margin-left:auto}.request-preview strong{flex-basis:calc(100% - 60px)}#request-fields{grid-template-columns:1fr}}
+#request-fields input{width:100%;min-width:0}
+
+#explanation>.execution-journey{margin-top:0;padding-top:0}
+#data-plane>.prediction-controls{justify-content:flex-end;margin-top:12px}
+#explanation #numerical-inspector{margin-top:18px}
+
+
+#layer-control{display:flex;align-items:center;gap:8px;margin:8px 0}
+
+.system-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0;align-items:start}
+.map-area{min-width:0;margin:0}
+.map-area:first-child,.map-area[data-view=engine],.map-area:last-child{grid-column:1/-1}
+.map-area>summary{padding:12px 14px}
+.map-body{padding:0 14px 12px;min-width:0}
+.map-concept{margin:0;padding:8px 0}
+.map-concept p{max-width:75ch;margin:8px 0}
+.map-links{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.map-gaps{margin:8px 0;max-width:75ch}
+.map-relations{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px}
+.map-concepts{margin:8px 0}
+@media(max-width:650px){.system-map{grid-template-columns:minmax(0,1fr)}.map-area>summary{padding:11px}.map-body{padding:0 11px 11px}}
+
+#numerics{margin-top:12px}
+#concept-body p{max-width:75ch}
+.token-readout{display:grid;gap:2px;padding:3px 7px}
+
+.configuration-fields textarea{width:100%;min-height:60px}

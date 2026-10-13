@@ -1,5 +1,7 @@
 """Exercise the actual page in installed Chrome using Node's built-in CDP transport."""
 import argparse
+from functools import partial
+from urllib.parse import urlsplit
 import json
 from pathlib import Path
 import shutil
@@ -13,6 +15,18 @@ from scripts.check.governance.harness import run_suite
 
 from scripts.build.intro_page import ROOT, build
 from scripts.dev.http_runtimes_generated import socket_server
+
+
+def observe_requests(server, records):
+    """Capture worker/page traffic without pausing or attaching to the worker."""
+    original = server.RequestHandlerClass
+    class ObservedHandler(original.func):
+        def parse_request(self):
+            accepted = super().parse_request()
+            if accepted:
+                records.append({'method': self.command, 'path': self.path, 'port': server.server_port})
+            return accepted
+    server.RequestHandlerClass = partial(ObservedHandler, *original.args, **original.keywords)
 
 
 def main():
@@ -45,6 +59,8 @@ def main():
             raise SystemExit(1)
     server = socket_server(('127.0.0.1', 0), directory=site)
     assets=socket_server(('127.0.0.1',0),directory=site/'models',cors_origin='*')
+    requests=[]
+    for endpoint in (server, assets): observe_requests(endpoint, requests)
     asset_thread=threading.Thread(target=assets.serve_forever,daemon=True);asset_thread.start()
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -76,6 +92,9 @@ def main():
                     port = int(portfile.read_text().splitlines()[0])
                     subprocess.run([node, str(ROOT / 'scripts/check/browser_check.mjs'), str(port),
                         f'http://127.0.0.1:{server.server_port}', site.as_uri(), str(output),f'http://127.0.0.1:{assets.server_port}/'], check=True, timeout=120)
+                    (output/'static-requests.json').write_text(json.dumps(requests,indent=2))
+                    if not requests or any(r['method'] != 'GET' or urlsplit(r['path']).path.startswith('/api/') for r in requests):
+                        raise AssertionError('Browser and worker must use static GET requests, never a compute API')
                     result_path.write_text(json.dumps({'passed':True,
                         'scope':'static-only site; interactive/headless calls in the same browser worker',
                         'parity':['browser headless operations','interactive computation','verified model assets','browser export']},indent=2))

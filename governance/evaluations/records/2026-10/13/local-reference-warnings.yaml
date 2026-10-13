@@ -1,0 +1,21 @@
+version: 1
+work_item: local-reference-warnings
+question: Can local reference documents coexist with authored-file limits while repository warnings remain actionable for agents?
+necessity: The owner's two gitignored PDFs in docs/local exceed authored-file limits and block serve-intro.
+baseline: Gitignore does not change the governance inventory; generic Warning output does not distinguish repository obligations from dependency warnings.
+reuse:
+- source: Existing excluded_directories inventory and approval-locked limits
+  decision: Add only docs/local; preserve checks on adjacent authored documents and all numerical limits.
+criteria:
+- docs/local and its descendants are excluded, but a similarly named sibling and authored documentation still fail oversized-file checks.
+- Repository warnings carry a distinct Inside Inference prefix; warning thresholds and hard failure behavior remain unchanged.
+- The constitution requires proactive agent triage and authorized cleanup of repository warnings, while preserving approval requirements and forbidding suppression or limit relaxation as cleanup.
+- Governance and the normal test workflows pass; record the owner's explicit scope in the approval lock.
+checks:
+- In-process inventory boundary regression
+- In-process CLI warning output regression
+- make test
+- make test-integration
+counterexamples:
+- Gitignored source outside declared exclusions must still be checked.
+- A warning does not authorize changes to protected limits or historical evidence.

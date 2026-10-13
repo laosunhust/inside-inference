@@ -7,18 +7,14 @@ from inside_inference.declarations_generated import OntologyBinding, LAB_BINDING
 from inside_inference.generation import select_greedy
 from inside_inference.kv_runtime import ReferenceRuntime, state_bytes
 from inside_inference.model import Model, identity, default_checkpoint, parameter_shapes
-from inside_inference.tokenizer import Tokenizer, Turn
+from inside_inference.tokenizer import Tokenizer
 from inside_inference.provenance import execution_provenance, stable_provenance, validate_provenance
-
-
-def available_backends():
-    return ['reference']
 
 
 def default_experiment():
     from inside_inference.declarations_generated import KVResidencySystemConfig
-    from inside_inference.workload import default_workload
-    workload = default_workload().to_dict()
+    from inside_inference.declarations_generated import Workload, RequestArrival, InferenceRequest
+    workload = Workload(requests=(RequestArrival(request_id='r1',arrival_us=0,request=InferenceRequest()),)).to_dict()
     first = workload['requests'][0]
     workload['requests'] = [dict(first, request_id=f'r{i+1}', arrival_us=t)
                             for i,t in enumerate((0, 0, 10000))]
@@ -43,7 +39,8 @@ def replay_cache(record):
     submitted = KVExperimentInput(system=binding.system, workload=binding.workload, ontology_binding=binding.ontology_binding).to_dict()
     result = run_cache_experiment(submitted, checkpoint=checkpoint)
     result['provenance']['revision'] = record['provenance']['revision']
-    if identity(logical_record(result)) != identity(logical_record(record)):
+    # Compare typed values, not JSON spellings such as 0 versus 0.0 after browser export.
+    if logical_record(result) != logical_record(record):
         raise ValueError('Cache logical replay differs')
     return result
 
@@ -51,7 +48,7 @@ def replay_cache(record):
 def run_cache_experiment(spec=None, *, checkpoint=None):
     spec = KVExperimentInput.from_dict(default_experiment() if spec is None else spec)
     if spec.ontology_binding.to_dict() != LAB_BINDINGS['prefix-cache']:
-        raise ValueError('ontology_binding: this endpoint executes the prefix-cache experiment; binding differs')
+        raise ValueError('KV residency ontology binding differs from the declared experiment')
     codec = Tokenizer()
     checkpoint = default_checkpoint() if checkpoint is None else checkpoint
     model = Model(checkpoint)
@@ -69,7 +66,7 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
         request = item.request
         if request.generation.max_new_tokens > cfg.max_new_tokens_cap:
             raise ValueError('Request selection budget exceeds the declared system capability')
-        ids = list(codec.encode_prompt([Turn(role='user', text=request.text)],context_limit=model.config.context).ids)
+        ids = [codec.token_id('control','BOS'), *codec.encode(request.text).ids]
         positions = len(ids) + request.generation.max_new_tokens - 1
         if positions > model.config.context:
             raise ValueError('Prompt plus output budget exceeds positional capacity')
@@ -89,7 +86,7 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
     pending, active, incoming = deque(), deque(), deque(waiting_inputs)
     retained = OrderedDict()
     now, reserved, host_inflight = 0.0, 0, 0
-    end_token = codec.token_id('control','TURN_END')
+    end_token = codec.token_id('control','EOS')
     current = None
     last_request, state_ready = {}, {}
     last_resource, last_service = None, None
@@ -172,14 +169,15 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
         before = item['state'] if item['state'] is not None else runtime.empty()
         n, total, d, f = len(ids), len(before.token_ids)+len(ids), model.config.width, model.config.ffn
         # Executed dense matmul arithmetic (multiply+add = two FLOPs); excludes scalar ops.
-        flops = 2*n*(model.config.layers*(4*d*d+2*d*f)+d*model.config.vocabulary) + 4*model.config.layers*n*total*d
         weight_bytes = 8*sum(math.prod(shape) for shape in parameter_shapes(model.config).values())
         traffic = weight_bytes + 16*model.config.layers*d*(total+n)
         work_id = f'{run_id}/work-{len(computations)}'
         start = event('compute-start',item['id'],state_id=snapshot(before),phase=phase)
         result, elapsed = runtime.compute(ids,before,capture=True,request_id=item['id'],run_id=run_id,step=item['step'],work_id=work_id)
         reference_started = perf_counter_ns()
-        reference = model.forward(list(before.token_ids)+list(ids),capture=False)['logits'][-n:]
+        flops=result['matmul_flops']
+        recomputed = model.forward(list(before.token_ids)+list(ids),capture=False)
+        reference = recomputed['logits'][-n:]
         error = 0.0
         for actual_row,expected_row in zip(result['logits'],reference):
             for actual,expected in zip(actual_row,expected_row):
@@ -198,7 +196,7 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
         computations.append(dict(work_id=work_id,request_id=item['id'],step=item['step'],phase=phase,
             input_ids=list(ids),state_before=before.to_dict(),state_after=item['state'].to_dict(),
             nodes=result['nodes'],selection=selection,matmul_flops=flops,logical_memory_bytes=traffic,
-            reference_matmul_flops=2*total*(model.config.layers*(4*d*d+2*d*f)+d*model.config.vocabulary)+4*model.config.layers*total*total*d,
+            reference_matmul_flops=recomputed['matmul_flops'],
             reference_max_abs_error=error))
         collect()
         return selection
@@ -219,7 +217,8 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
                 entry=retained.get(key)
                 if entry is None:
                     event('miss',current['id'],detail='Exact prefix absent; execute prefix computation')
-                    compute(current,current['prefix_ids'],'cache-build')
+                    if current['prefix_ids']: compute(current,current['prefix_ids'],'cache-build')
+                    else: current['state']=runtime.empty()
                 else:
                     retained.move_to_end(key)
                     if entry['tier']=='host':
@@ -243,7 +242,7 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
             if finished:
                 n=len(current['emitted'])
                 outcomes[current['id']]=RunOutcome(selected_tokens=n,published_tokens=sum(t!=end_token for t in current['emitted']),
-                    unused_budget=budget-n,stop_reason='turn_end' if token==end_token else 'output_budget',complete=token==end_token).to_dict()
+                    unused_budget=budget-n,stop_reason='end_token' if token==end_token else 'output_budget',complete=token==end_token).to_dict()
                 if key not in retained:
                     size=len(current['prefix_ids'])*model.config.layers*model.config.width*16
                     start=event('retention-start',current['id'],state_id=snapshot(current['state']),count=size,
@@ -266,6 +265,5 @@ def run_cache_experiment(spec=None, *, checkpoint=None):
         record=dict(id=run_id,declaration=binding.to_dict(),checkpoint=model.checkpoint,provenance=source,
             events=events,computations=computations,measurements=measurements,outcomes=outcomes,states=states,
             evidence='Actual cached numerics with uncached verification. Virtual rates are hypothetical; logical KV budgets exclude weights and workspace. Local wall times include backend inspection overhead, not target accelerator predictions.')
-        CacheRun.from_dict(record)
         return record
     finally: runtime.close()

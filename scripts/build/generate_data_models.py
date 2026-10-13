@@ -115,8 +115,10 @@ def admit(ontology, spec):
         if 'x-maximum-from' in child:
             if child['x-maximum-from'] not in terms[owners[name]]['capability_reads']:
                 raise ValueError('Unowned capability read')
-            target = definitions['RunBinding']
-            for part in child['x-maximum-from'].split('.'):
+            root_name, *parts = child['x-maximum-from'].split('.')
+            if root_name not in definitions: raise ValueError('Dangling capability root')
+            target = definitions[root_name]
+            for part in parts:
                 target = target.get('properties', {}).get(part)
                 if target is None: raise ValueError('Dangling capability reference')
                 if '$ref' in target: target = definitions[target['$ref'].split('/')[-1]]

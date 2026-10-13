@@ -41,7 +41,7 @@ def main():
     warnings = []
     failures = audit(warnings=warnings)
     for warning in warnings:
-        print("Warning: " + warning)
+        print("[inside-inference:governance] warning: " + warning)
     if failures: raise SystemExit('Governance blocked:\n'+'\n'.join('- '+f for f in failures))
     print('Ontology, generated interfaces, repository limits, approval locks, and evaluation admission checked.')
 

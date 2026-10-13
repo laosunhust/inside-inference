@@ -2,17 +2,12 @@
 from copy import deepcopy
 from inside_inference.model import initialize, ModelArchitecture
 from inside_inference.tokenizer import Tokenizer
-from inside_inference.workload import default_workload, run_workload
 
 
 def small_checkpoint(seed=7):
     return initialize(ModelArchitecture(width=2, ffn=4), Tokenizer().manifest_sha256, seed)
 
 
-def small_workload():
-    workload = default_workload({'text':'cat', 'generation':{
-        'max_new_tokens':2, 'selection':'greedy-lowest-id-tie', 'stopping':'turn-end-or-budget'}})
-    return run_workload(workload.to_dict(), checkpoint=small_checkpoint())
 
 
 def cache_scenario(texts=('the ball','the ball'), *, device=16384, host=32768, active=1):

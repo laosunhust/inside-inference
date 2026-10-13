@@ -28,3 +28,15 @@ class ThemeTests(unittest.TestCase):
             page.write_text('button{display:flex}')
             (web/'page.js').write_text("button.style.backgroundColor='blue'")
             with self.assertRaisesRegex(ValueError,'custom property'):check_theme(root)
+
+    def test_nested_files_cannot_bypass_the_theme_boundary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);web=root/'web';nested=web/'inspection';nested.mkdir(parents=True)
+            (web/'theme.css').write_text('button{color:red}')
+            for name,source in [('page.css','button{color:blue}'),('theme.css','button{color:blue}'),
+                                ('page.js',"button.style.backgroundColor='blue'")]:
+                path=nested/name;path.write_text(source)
+                with self.assertRaises(ValueError):check_theme(root)
+                path.unlink()
+            (nested/'page.css').write_text('button{display:flex}')
+            check_theme(root)

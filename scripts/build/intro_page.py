@@ -8,9 +8,6 @@ import re
 import shutil
 
 from inside_inference.labs.kda import demo
-from inside_inference.labs.journey import scenarios, simulate
-from inside_inference.cache_lab import default_experiment
-from inside_inference.tokenizer import Tokenizer
 from scripts.build.generate_data_models import admit, generate, read
 from scripts.build.ontology import load_declarations
 from scripts.build.contracts import load_schema, lab_bindings
@@ -94,11 +91,11 @@ def ontology_terms():
 
 
 def initial_generation():
-    from inside_inference.declarations_generated import GenerationDefaults, GenerationInput, LAB_BINDINGS
+    from inside_inference.declarations_generated import GenerationDefaults, GenerationInput
     from scripts.build.structured import read_yaml
     defaults=read_yaml(ROOT/'data/models/initial.yaml')
     GenerationDefaults.validate_shape(defaults)
-    result={'experiment':{'model_id':defaults['model_id'],'ontology_binding':LAB_BINDINGS['naive-gpt']},'workload':defaults['workload']}
+    result=defaults
     GenerationInput.validate_shape(result)
     return result
 
@@ -111,75 +108,23 @@ def build(output, *, checkpoint=None, model_storage=None):
     data = load_catalog()
     output.mkdir(parents=True, exist_ok=True)
     (output / 'labs').mkdir(exist_ok=True)
-    for name in ('inspection/details.js', 'execution/model-service.js', 'execution/model-storage.js', 'execution/client.generated.js', 'execution/worker.generated.js', 'theme.css', 'style.css', 'app.js', 'journey.js', 'inference.js', 'configuration-preview.js', 'execution-path.js', 'inference.css', 'cache.js', 'cache.css', 'contract-validators.generated.js', 'contract-runtime.js', 'declarations.generated.js', 'inspection-session.js'):
+    for name in ('app.js', 'contract-runtime.js', 'contract-validators.generated.js', 'declarations.generated.js', 'execution/client.generated.js', 'execution/component-engine.js', 'execution/controls.js', 'execution/decoder.js', 'execution/model-service.js', 'execution/model-storage.js', 'execution/observations.js', 'execution/worker.generated.js', 'inspection/configuration.js', 'inspection/details.js', 'inspection/page.css', 'inspection/page.js', 'inspection/path.js', 'inspection/resources.js', 'inspection/session.js', 'inspection/system-map.js', 'style.css', 'theme.css'):
         (output / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / 'web' / name, output / name)
     # Retired generated pages must not survive an incremental build.
-    for retired in ('model-size.html','models/page.js','labs/model-size-quality.html','execution/evidence-client.js'):
+    for retired in ('inspection/page.html','kv-cache.html','cache.js','cache.css','atlas.html','request-cost.html','journey.js','model-contract.html','model-size.html','models/page.js','models/layout.css','labs/model-size-quality.html','execution/evidence-client.js','configuration-preview.js','inference.js','inspection-session.js','execution-path.js','inference.css'):
         (output/retired).unlink(missing_ok=True)
-    layers = {x['id']: x for x in data['layers']}
-    nav = ''.join(f'<a href="#layer-{x["id"]}">{i:02d} {esc(x["name"])}</a>'
-                  for i, x in enumerate(data['layers'], 1))
-    cards = []
-    for i, layer in enumerate(data['layers'], 1):
-        linked = [x for x in data['innovations']
-                  if layer['id'] in [x['primary'], *x['related']]]
-        links = ''.join(f'<a class="lab-link" href="labs/{x["id"]}.html">{esc(x["name"])}'
-                        f' <small>{STATUS[x["status"]]} · {"primary" if x["primary"] == layer["id"] else "related"}</small></a>'
-                        for x in linked) or '<p class="muted">No dedicated lab indexed yet.</p>'
-        cards.append(f'''<article class="layer" id="layer-{layer['id']}" data-search>
-<div class="number">{i:02d}</div><div><h2>{esc(layer['name'])}</h2>
-<p class="invariant">{esc(layer['invariant'])}</p>
-<dl><dt>Watch mechanically</dt><dd>{esc(layer['observe'])}</dd>
-<dt>Innovation space</dt><dd>{esc(layer['examples'])}</dd>
-<dt>Potential gain</dt><dd>{esc(layer['benefit'])}</dd>
-<dt>What it can cost</dt><dd>{esc(layer['cost'])}</dd>
-<dt>What a tiny lab can tell us</dt><dd>{esc(layer['fit'])}</dd></dl>{links}</div></article>''')
-    featured = next((e for e in data['innovations'] if e['status'] == 'mechanical-demo'), None)
-    feature = (f'<section class="featured"><span class="eyebrow">EXAMPLE MECHANICAL LAB</span>'
-               f'<h2><a href="labs/{featured["id"]}.html">{esc(featured["name"])} ↗</a></h2>'
-               f'<p>{esc(featured["summary"])}</p></section>') if featured else ''
-    body = f'''<section class="hero"><p class="eyebrow">LAB CATALOG · ONE STACK, MANY EXPERIMENTS</p>
-<h1>Where does the<br>innovation land?</h1>
-<p class="lead">From a new attention rule to a new accelerator: locate the change,
-watch the mechanism, and ask what the evidence actually supports.</p></section>
-{warning()}<section class="orientation"><h2>Follow boundaries, not brands</h2>
-<p>These are stable responsibilities, not a strict execution order or a company ranking.
-An innovation has one primary home and may cross several layers. Training is provenance
-for the model; quality, latency, throughput, memory, energy, and cost cut across the whole stack.</p>
-<p><b>Request → tokens → prefill → sequence state → decode → output.</b>
-Execution software, placement, and physical resources determine how that path runs.</p>
-<p>“Model framework” can mean a model architecture, an execution framework, or a serving engine.
-Classify the actual changed boundary, and link the others.</p></section>
-{feature}
-<label class="search" for="search">Find a mechanism, layer, or innovation
-<input id="search" type="search" placeholder="Try Kimi, prompt, framework, topology…"></label>
-<p id="result-count" role="status"></p><div class="atlas"><nav aria-label="Stack layers">{nav}</nav>
-<section aria-label="Inference stack">{''.join(cards)}<p id="no-results" hidden>No matching area. Try a broader term.</p></section></div>
-<section class="orientation"><h2>Every lab has an evidence contract</h2>
-<p><b>Locate</b> the changed boundary. <b>Show</b> actual inputs, state transitions, and outputs.
-<b>Compare</b> a stated baseline under controlled conditions. <b>Separate</b> mathematical properties,
-toy observations, simulated costs, and real measurements. <b>Declare</b> failure cases and what cannot transfer.</p>
-<p>Catalog entries: {sum(e["status"] == "mechanical-demo" for e in data["innovations"])} mechanical demo(s) and {sum(e["status"] == "planned" for e in data["innovations"])} planned lab(s).
-The landing page executes the selected model in the browser; the 8K model exposes numerical tensors and larger models expose logits. A separate lab models bounded request costs. Neither path establishes production language quality or real-system performance.</p></section>'''
-    (output / 'atlas.html').write_text(shell('Lab catalog', body))
     terms = ontology_terms()
-    visual_source = (ROOT / 'web/inference.html').read_text()
+    visual_source = (ROOT / 'web/inspection/page.html').read_text()
     visual_terms = entities(visual_source, anchors=True)
-    cost_source = (ROOT / 'web/journey.html').read_text()
-    cost_terms = entities(cost_source)
-    cache_source = (ROOT / 'web/cache.html').read_text()
-    cache_terms = entities(cache_source)
-    if not (set(visual_terms) | set(cost_terms) | set(cache_terms)) <= terms.keys():
+    if not set(visual_terms) <= terms.keys():
         raise ValueError('Visual references an unknown ontology term')
     ontology_body = '<h1>Visuals have meanings.</h1><p>Every visual concept maps to fields admitted by the machine-readable ontology. '
     ontology_body += 'These define the model; they do not prove its real-world validity.</p>'
     for term, entry in terms.items():
         scene_link = f'<a href="index.html#{visual_terms[term]}">Inspect in the request scene ↗</a>' if term in visual_terms else ''
-        cost_link = f'<a href="request-cost.html#inspect-{cost_terms[term]}">Inspect in the separate cost simulation ↗</a>' if term in cost_terms else ''
-        cache_link = f'<a href="kv-cache.html#{cache_terms[term]}">Inspect in the KV residency lab ↗</a>' if term in cache_terms else ''
         bindings = ', '.join(f'{schema}.{field}' for schema, fields in entry['fields'].items() for field in fields)
-        ontology_body += f'<section id="{entry["anchor"]}"><h2>{esc(term)}</h2><p>{esc(entry["meaning"])}</p><p><a href="declarations.html#{entry["owner"]}">{esc(entry["owner"])}</a>: {esc(bindings)}</p>{scene_link} {cost_link} {cache_link}</section>'
+        ontology_body += f'<section id="{entry["anchor"]}"><h2>{esc(term)}</h2><p>{esc(entry["meaning"])}</p><p><a href="declarations.html#{entry["owner"]}">{esc(entry["owner"])}</a>: {esc(bindings)}</p>{scene_link}</section>'
     labs_body = lab_index(load_declarations(), data, STATUS)
     subjects = {e['ontology_binding']['primary'] for e in data['innovations'] if e['status'] == 'mechanical-demo'}
     for owner, definition in load_declarations()['terms'].items():
@@ -187,26 +132,10 @@ The landing page executes the selected model in the browser; the 8K model expose
         ontology_body += f'<section id="{owner}"><h2>{esc(owner)}</h2><p>{esc(definition["meaning"])}</p><p>{esc(definition["lifetime"])}</p><p>Owns: {esc("; ".join(definition["owns"]))}</p><p>Excludes: {esc("; ".join(definition["excludes"]))}</p><a href="declarations.html#{owner}">Owned declarations ↗</a>{lab_link}</section>'
     (output / 'labs-by-concept.html').write_text(shell('Explore inference concepts', '<div class="reference-index">' + labs_body + '</div>'))
     (output / 'ontology.html').write_text(shell('Inference ontology', '<div class="reference-index">' + ontology_body + '</div>'))
-    step_labs = {step: [dict(id=e['id'], name=e['name'], status=STATUS[e['status']])
-                        for e in data['innovations'] if step in e['journey_steps']]
-                 for step in ('prefill', 'decode')}
-    landing = (ROOT / 'web/journey.html').read_text().replace(
-        '__JOURNEY_DATA__', json.dumps(scenarios()).replace('<', '\\u003c')).replace(
-        '__JOURNEY_BASELINE__', json.dumps(simulate()).replace('<', '\\u003c')).replace(
-        '__ONTOLOGY_DATA__', json.dumps(terms).replace('<', '\\u003c')).replace(
-        '__STEP_LABS__', json.dumps(step_labs).replace('<', '\\u003c'))
-    (output / 'request-cost.html').write_text(shell('Request cost simulation', landing))
-    numerical = (ROOT / 'web/inference.html').read_text().replace(
-        '__INFERENCE_DATA__', json.dumps(initial_generation(), allow_nan=False).replace('<', '\\u003c')).replace(
-        '__ONTOLOGY_DATA__', json.dumps(terms).replace('<', '\\u003c'))
-    numerical = '<link rel="stylesheet" href="inference.css">' + numerical
+    numerical = (ROOT / 'web/inspection/page.html').read_text().replace(
+        '__INFERENCE_DATA__', json.dumps(initial_generation(), allow_nan=False).replace('<', '\\u003c'))
+    numerical = '<link rel="stylesheet" href="inspection/page.css">' + numerical
     (output / 'index.html').write_text(shell('What happens if you change this?', numerical, landing=True))
-    cache_record = default_experiment()
-    cache = (ROOT / 'web/cache.html').read_text().replace(
-        '__CACHE_DATA__', json.dumps(cache_record, allow_nan=False).replace('<', '\\u003c')).replace(
-        '__ONTOLOGY_DATA__', json.dumps(terms).replace('<', '\\u003c')).replace(
-        '__CACHE_TOKENS__', json.dumps([t.piece for t in Tokenizer().tokens]).replace('<', '\\u003c'))
-    (output / 'kv-cache.html').write_text(shell('What if the cache is not here?', cache))
     contract = (ROOT / 'docs/labs/kv-residency.md').read_text()
     (output / 'kv-contract.html').write_text(shell('KV residency experiment contract',
         '<h1>KV residency evidence contract</h1><pre class="contract-text">' + esc(contract) + '</pre>'))
@@ -232,16 +161,10 @@ The landing page executes the selected model in the browser; the 8K model expose
     contract_text = (ROOT / 'docs/labs/naive-gpt.md').read_text()
     (output / 'naive-gpt-contract.html').write_text(shell('Naïve GPT contract',
         '<h1>Naïve GPT evidence contract</h1><pre class="contract-text">' + esc(contract_text) + '</pre>'))
-    contract = (ROOT / 'docs/labs/request-playground.md').read_text()
-    (output / 'model-contract.html').write_text(shell('Request model contract',
-        '<h1>Request playground</h1><p>Abstraction and evidence boundary</p><pre class="contract-text">'
-        + esc(contract) + '</pre>'))
     for entry in data['innovations']:
-        homes = ' · '.join(f'<a href="../atlas.html#layer-{identifier}">{esc(layers[identifier]["name"])}</a>'
-                           for identifier in [entry['primary'], *entry['related']])
         sources = ''.join(f'<li><a href="{esc(s["url"])}">{esc(s["title"])}</a></li>' for s in entry['sources'])
         content = f'''<p class="eyebrow">{STATUS[entry['status']]}</p><h1>{esc(entry['name'])}</h1>
-<p>{homes}</p><p class="lead">{esc(entry['summary'])}</p>{warning()}
+<p class="lead">{esc(entry['summary'])}</p>{warning()}
 <dl class="brief"><dt>Mechanism</dt><dd>{esc(entry['mechanism'])}</dd>
 <dt>Potential benefit</dt><dd>{esc(entry['benefit'])}</dd><dt>Tradeoff</dt><dd>{esc(entry['cost'])}</dd>
 <dt>Evidence boundary</dt><dd>{esc(entry['limit'])}</dd>
@@ -284,7 +207,7 @@ kernel measurements at representative shapes. No universal winner follows from t
         elif entry['id'] == 'naive-gpt':
             content += '<p><a href="../index.html">Inspect the actual naïve GPT execution ↗</a></p>'
         elif entry['id'] == 'prefix-cache':
-            content += '<p><a href="../kv-cache.html">Run the KV residency experiment: cold, warm, remote hit, and eviction ↗</a></p><p><a href="../kv-contract.html">Read its abstraction and evidence contract ↗</a></p>'
+            content += '<p><a href="../index.html#resource-settings">Run the KV residency experiment: cold, warm, remote hit, and eviction ↗</a></p><p><a href="../kv-contract.html">Read its abstraction and evidence contract ↗</a></p>'
         else:
             content += '<p class="warning"><b>Planned lab:</b> this is a specification only. No experiment or measured result is available.</p>'
         binding = entry['ontology_binding']

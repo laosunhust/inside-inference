@@ -15,60 +15,47 @@ from it. Generated files are checked in and are never edited by hand. `make _dat
 
 ## Declared layers
 
-ModelArtifactReference → fixed parameter/tokenizer identity and architecture.
-InferenceSystem → execution strategy and supported limits.
-InferenceRequest → text and a nested generation policy.
-Workload → chronologically ordered, identified request arrivals.
-RunBinding / KVRunBinding → the resolved model, system, workload, and ontology subjects consumed by execution.
-RequestBinding → the resolved request context and the same ontology binding within a numerical trace.
-OntologyBinding → one primary subject and distinct related concepts from admitted ontology.
-RunRecord → the bound workload, typed events, and linked numerical traces.
-RunOutcome → observed counts and termination; it is not a requested configuration.
-PreparedInput → retained reference-tooling binding and tokenizer output, without inference.
-GenerationExperiment → selected model and ontology subjects for the main page.
-GenerationInput → that experiment and its request workload.
-GenerationPrepared / GenerationStep / GenerationPrediction → tokenized input, submitted prefix and actual selected-model observations.
-InspectionState → one prefix/observation cursor; execution identity is null until a token step exists.
+- `ModelArtifactReference`: resolved weights, tokenizer and architecture.
+- `ExperimentSpec`: an ontology-bound intervention; `ExecutionSpec` composes them.
+- `GenerationInput`: execution configuration and a separate `Workload`.
+- `GenerationPrepared`, `GenerationStep`, `GenerationPrediction`: encoded input,
+  submitted prefix and observed selected-model computation.
+- `ResourceExecution`: the same submitted configuration/workload, cache simulation
+  evidence and decoded output.
+- `CacheRun` / `KVRunBinding`: resolved model and resource configuration, causal
+  events, computations, KV states, provenance and observed completion outcomes.
+- `InspectionState`: selection over accepted evidence, not a second execution.
 
-Architecture constraints come from generated ModelArchitecture. Runtime capability
-limits belong to InferenceSystem, while a request's maximum new tokens references
-that limit. Increasing a ceiling cannot override a selected terminal token. A run
-records why it stopped and how much allowance remained unused. Counts include
-selected control IDs; visible output count is separate. Model initialization remains
-checkpoint preparation and is removed from the request form.
+## Composed execution
 
-## Control plane and data plane
+`ExecutionSpec.experiments` is the sole editable execution configuration. Each
+`ExperimentSpec` names a declared control, its value and its ontology binding.
+Conflicting assignments and unsupported controls fail before computation; list
+order does not decide which value wins. The current executable controls select a
+model, enable or disable KV reuse, and optionally configure KV residency. Model architecture remains owned by the
+artifact; cache policy is independent of model size.
 
-Source request text belongs to the data plane. The control plane defines rules over
-that source (linguistic variants and arrival spacing), inference mechanisms, and
-client consumption. A transformation rule is not an initialized request array.
-Workload remains the instantiated, ordered input consumed by execution.
-
-ConfigurationPreview composes separately owned workload transformations, system
-mechanism choices and client intent. Its fields, choices and defaults generate the
-controls; declaration ownership joins those controls to data-plane highlights and
-Zoom 3 details. Adding a supported field must not require a parallel UI registry.
-
-This is currently an interface preview. Nondefault transformations, KDA and paused
-consumption cannot execute in the landing engine. They mark their declared boundary;
-Next Token is unavailable until the executable baseline is restored. Applying input
-only prepares the baseline input; it never generates an answer. SHA identities remain
-in machine records, not visible presentation.
+`Workload` supplies customer input and per-request generation settings separately.
+There is no parallel UI preview object. Unimplemented transformations and client
+conditions are unavailable, rather than settings the engine silently ignores.
+`GenerationPrediction` retains the consumed specification and actual processed /
+retained position counts. Matrix FLOP counts exclude scalar normalization,
+activation and softmax; they are not hardware timings.
 
 ## Interaction lifecycle
 
 One selected experiment, workload, prepared input and optional prediction govern
 the main page. [Inspection architecture](inspection.md#model-selection-and-live-stepping)
 owns its selection, switching and reset behavior. Generated declarations validate
-submissions and results; the session checks model identity, prefix, logits and
-stopping relations. A model card is a projection of the catalog's descriptor,
+submissions and results; the session rejects stale model, request and prefix identities. Numerical selection
+and stopping are owned by execution and verified by the harness. A model card is a projection of the catalog's descriptor,
 not a second configuration authority.
 
 ## Behavioral evidence
 
 Schema generation cannot prove execution semantics. Tests must also establish:
 changing the budget changes executed passes unless the raw-logit winner is
-the selected model's declared end token. Controlled reference checkpoints also test immediate and later TURN_END selection;
+the selected model's declared end token. Adversarial selection tests cover terminal and nonterminal IDs, including byte/control IDs;
 the observed stop and unused budget must explain the actual execution. Editing without submitting, failed submissions,
 in-flight edits, stale responses, offline viewing, and moving the inspection
 cursor must preserve the lifecycle rules. Numerical correctness remains covered
@@ -83,10 +70,9 @@ related subjects cross-reference a single primary listing. Browser operation own
 come from generated declarations. Templates select operations by reference, which
 frontend admission checks against the selected ontology projection.
 
-Request controls consume generated field constraints. Standalone KDA controls and
-request-cost choices consume the Python-produced traces; neither is a configurable
-replacement for the GPT baseline. These older standalone traces do not yet carry
-the full ExperimentSpec/execution envelope used by the GPT and KV labs.
+Request controls consume generated field constraints. Standalone KDA controls consume Python-produced recurrence traces; they are not
+a configurable replacement for the GPT baseline. That component demo remains
+outside the main execution envelope. KV residency uses the main page.
 
 Governance rejects unknown literal ontology/lab references, mismatched template
 operation owners, authored lab listings, and common forms of handwritten browser
@@ -97,11 +83,10 @@ browser tests compare interactive displays with numerical and cost evidence.
 
 ## Composing inference mechanisms
 
-InferenceSystem now binds the reference `model_execution` configuration.
-KVResidencySystemConfig binds `model_execution`, `scheduling`, `kv_cache`,
+KVResidencySystemConfig binds `scheduling`, `kv_cache`,
 `transfer`, and `compute_service`, retaining only system-wide admission ceilings
 at the composition level. Each component's declaration has its own ontology owner.
-The cache form traverses those generated references, and execution reads the same
+The main-page resource editor traverses those generated references, and execution reads the same
 nested configurations. Legacy flat settings fail validation rather than being
 silently migrated or ignored.
 

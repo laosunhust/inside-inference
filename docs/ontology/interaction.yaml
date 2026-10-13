@@ -7,8 +7,6 @@ terms:
     - Ordered customer actions; equal-time array order breaks ties. Each submission creates one invocation.
     - Consumption describes client demand; cancellation expresses intent, not acknowledgment or immediate
       server termination.
-    - Client consumption intent in configuration previews; previewing a pause does not execute a transport
-      or buffer.
     excludes:
     - No browser rendering, API protocol, network delivery, retry grouping or agent tool orchestration
       is implemented.
@@ -16,13 +14,12 @@ terms:
     capability_reads: []
     projections:
       Client:
-        meaning: Client-side consumption intent; a preview does not establish delivery or executed backpressure.
+        meaning: Customer submissions, output consumption and cancellation.
         fields:
-          ClientConfigurationPreview:
-          - consumption
+          CustomerInteraction:
+          - actions
     schemas:
     - CustomerSubmission
     - CustomerConsumption
     - CustomerCancellation
     - CustomerInteraction
-    - ClientConfigurationPreview

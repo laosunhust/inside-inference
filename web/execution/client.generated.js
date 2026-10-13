@@ -1,7 +1,7 @@
 // Generated; DO NOT EDIT.
 (() => {
   'use strict';
-  const operations={"capabilities": {"request": null, "response": "Capabilities"}, "run": {"request": "Workload", "response": "ExecutionReceipt"}, "cacheRun": {"request": "KVExperimentInput", "response": "CacheRun"}, "cacheCapabilities": {"request": null, "response": "CacheCapabilities"}, "tokenStep": {"request": "TokenStepRequest", "response": "ExecutionReceipt"}, "artifact": {"request": "ArtifactReference", "response": "ArtifactResponse"}, "prepareInput": {"request": "Workload", "response": "PreparedInput"}, "replayTokenStep": {"request": "ExecutionReplayInput", "response": "TokenStepResult"}, "replayCache": {"request": "ExecutionReplayInput", "response": "CacheRun"}, "modelCatalog": {"request": null, "response": "ModelCatalog"}, "loadModel": {"request": "ModelSelection", "response": "ModelLoadResult"}, "prepareGeneration": {"request": "GenerationInput", "response": "GenerationPrepared"}, "generateToken": {"request": "GenerationStep", "response": "GenerationPrediction"}};
+  const operations={"replayCache": {"request": "ExecutionReplayInput", "response": "CacheRun"}, "modelCatalog": {"request": null, "response": "ModelCatalog"}, "loadModel": {"request": "ModelSelection", "response": "ModelLoadResult"}, "prepareGeneration": {"request": "GenerationInput", "response": "GenerationPrepared"}, "generateToken": {"request": "GenerationStep", "response": "GenerationPrediction"}, "simulateResources": {"request": "GenerationInput", "response": "ResourceExecution"}};
   const workerURL=new URL('worker.generated.js',document.currentScript.src);
   function create(transport) {
     return Object.freeze(Object.fromEntries(Object.entries(operations).map(([name,spec]) =>

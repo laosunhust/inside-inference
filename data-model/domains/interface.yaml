@@ -9,6 +9,7 @@ $defs:
     - observation_id
     - surface
     - architecture_step
+    - computation_index
     properties:
       run_id:
         type:
@@ -51,6 +52,13 @@ $defs:
         minimum: 0
         description: Index in the selected architecture walkthrough; never an observation ID.
         default: null
+      computation_index:
+        type:
+        - integer
+        - 'null'
+        minimum: 0
+        default: null
+        description: Selected computation in a resource execution; null for ordinary token generation.
     allOf:
     - if:
         properties:
@@ -88,25 +96,6 @@ $defs:
         properties:
           architecture_step:
             type: 'null'
-  Capabilities:
-    type: object
-    x-owner: ExecutionCapabilities
-    additionalProperties: false
-    required:
-    - engine
-    - contract_sha256
-    properties:
-      engine:
-        type: string
-        title: Engine version
-        description: Engine version
-        const: workload-engine-v1
-        default: workload-engine-v1
-      contract_sha256:
-        type: string
-        title: Contract identity
-        description: Contract identity
-        pattern: ^[0-9a-f]{64}$
   ApiError:
     type: object
     x-owner: ApiError
@@ -118,21 +107,3 @@ $defs:
         type: string
         title: Explicit rejection reason
         description: Explicit rejection reason
-  CacheCapabilities:
-    type: object
-    x-owner: ExecutionCapabilities
-    additionalProperties: false
-    required:
-    - contract_sha256
-    - backends
-    properties:
-      contract_sha256:
-        type: string
-      backends:
-        type: array
-        items:
-          type: string
-          enum:
-          - reference
-        minItems: 1
-        uniqueItems: true

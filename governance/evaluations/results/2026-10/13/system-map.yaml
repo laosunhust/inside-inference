@@ -1,0 +1,38 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/system-map.yaml
+evaluation_sha256: fbc00a93c46c16952a997d08e1bf04402f01f5c4859a29d4bd19778caec31283
+outcome: passed
+summary: 'Implemented one generated system-responsibility map for all three models, with the engine expanded
+  by default. Each area exposes admitted concept owners, primary implemented lab links, undeclared gaps
+  and structural relationships. Removed the hardcoded request/direct-dispatch strip. Customer interaction
+  remains outside the system map. Concepts remain available for every model; separate Numerics disclosure
+  follows declared tensor capability, preserves larger-model token scores, and owns the 8K tensor-inspection
+  switch. Disclosure does not execute or replace evidence. Rejection tests cover invented references,
+  duplicate IDs/homes, missing lab/operation subjects, incorrect initial expansion, and dangling edges.
+  Browser checks exercise every disclosure, keyboard activation, persistence through generation/model
+  changes, replay revealing the engine, concept/numerics separation, export and all three numerical paths.
+  Desktop and narrow layouts reviewed. Unit harness: 113 tests, 7.52s; final integration: 61.22s, within
+  unchanged limits.
+
+  Earlier runs exposed the pre-existing cold worker module/WASM download cancellation. Diagnostic first
+  loads failed with worker Network attachment both paused and unpaused; fresh unattached browser loads
+  succeeded. Removed worker debugger attachment from the harness and audited page/worker requests at both
+  static fixture servers instead. Full integration passed twice after that change (61.47s before numerical-panel
+  separation; 61.22s after). This is bounded evidence for the harness change, not a universal browser
+  reliability claim. No production runtime or model weights changed. Initial unit failures were stale
+  ownership expectations, corrected to cover the new composition records while retaining field-projection
+  checks. No claim that every future paper already has an executable specification; routing, controllers,
+  collectives and other missing subjects remain explicit gaps.'
+evidence:
+- data-model/domains/system-map.yaml
+- docs/ontology/inference-system.yaml
+- docs/ontology/README.md
+- web/inspection/system-map.js
+- web/inspection/details.js
+- web/inference.js
+- scripts/check/governance/frontend.py
+- tests/unit/contracts/test_governance.py
+- scripts/check/story_models/system-map.mjs
+- scripts/check/story_models/check.mjs
+- scripts/check/browser_check.py
+- scripts/check/browser_check.mjs

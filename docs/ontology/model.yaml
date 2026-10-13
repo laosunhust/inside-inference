@@ -4,7 +4,8 @@ terms:
     lifetime: Fixed within an identified model artifact.
     owns:
     - Dimensions and numerical conventions that define the supported GPT computation.
-    - Declared explanatory stage templates for supported runtimes; these are not captured observations or timing.
+    - Declared explanatory stage templates for supported runtimes; these are not captured observations
+      or timing.
     excludes:
     - request text
     - generation limits
@@ -17,13 +18,11 @@ terms:
     - ArchitectureStage
     - ArchitectureWalkthrough
   KVState:
-    meaning: Immutable actual keys and values for a prefix, bound to checkpoint, tokenizer,
-      positions, and precision.
-    lifetime: Immutable snapshot; continuation creates a new snapshot. Residency is
-      separate.
+    meaning: Immutable actual keys and values for a prefix, bound to checkpoint, tokenizer, positions,
+      and precision.
+    lifetime: Immutable snapshot; continuation creates a new snapshot. Residency is separate.
     owns:
-    - Immutable actual keys and values for a prefix, bound to checkpoint, tokenizer,
-      positions, and precision.
+    - Immutable actual keys and values for a prefix, bound to checkpoint, tokenizer, positions, and precision.
     excludes:
     - resource placement
     - cached answers
@@ -31,9 +30,9 @@ terms:
     capability_reads: []
     projections:
       Sequence state:
-        meaning: Actual attention keys and values retained per layer for a token prefix
-          and its positions. This declaration represents KV state, not arbitrary recurrent
-          state; weights and cached final answers are separate.
+        meaning: Actual attention keys and values retained per layer for a token prefix and its positions.
+          This declaration represents KV state, not arbitrary recurrent state; weights and cached final
+          answers are separate.
         fields:
           KVState:
           - token_ids
@@ -41,9 +40,8 @@ terms:
           - values
           - precision
       State artifact:
-        meaning: An identified snapshot or reusable portion of sequence state, tied
-          to the computation and input history that produced it. Logical identity
-          is distinct from physical placement.
+        meaning: An identified snapshot or reusable portion of sequence state, tied to the computation
+          and input history that produced it. Logical identity is distinct from physical placement.
         fields:
           KVState:
           - checkpoint_sha256
@@ -55,10 +53,9 @@ terms:
     - KVState
     - KVStateOperation
   ModelArtifact:
-    meaning: An immutable inference artifact binding numerical weights to architecture,
-      tokenizer identity, and preparation provenance.
-    lifetime: Immutable for an artifact identity. Preparation seed is provenance,
-      never a request control.
+    meaning: An immutable inference artifact binding numerical weights to architecture, tokenizer identity,
+      and preparation provenance.
+    lifetime: Immutable for an artifact identity. Preparation seed is provenance, never a request control.
     owns:
     - The full inference payload and its lightweight identity reference.
     - Preparation provenance attached to the artifact.
@@ -82,12 +79,11 @@ terms:
     - ModelSource
     - ModelSources
   ModelWeights:
-    meaning: 'Numerical tensors consumed by the model: embeddings, projection weights,
-      biases, and normalization scales.'
+    meaning: 'Numerical tensors consumed by the model: embeddings, projection weights, biases, and normalization
+      scales.'
     lifetime: Immutable within its identified artifact or recorded execution.
     owns:
-    - Numerical tensor values indexed by model operation; block tensors have an explicit
-      layer axis.
+    - Numerical tensor values indexed by model operation; block tensors have an explicit layer axis.
     excludes:
     - Architecture dimensions and execution conventions
     - Request and generation configuration

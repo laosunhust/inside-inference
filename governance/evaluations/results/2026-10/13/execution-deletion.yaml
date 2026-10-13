@@ -1,0 +1,79 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/execution-deletion-main.yaml
+evaluation_sha256: 863e65a56da1133197dd5acf5035d915baa033e0377b2ec9996232c6bd3835e6
+outcome: passed
+summary: 'Completed the deletion/consolidation against HEAD e003a79, including the owner''s additional
+  requirement that KV residency run through the main page. Rename-aware accounting includes untracked
+  additions and excludes generated files: backend +346/-864 (net -518), frontend +546/-956 (net -410),
+  tooling net -31 and tests net -328. Combined authored product reduction is 928 lines; no production
+  logic was relocated into tooling and no formatting compression was used to meet the criterion. Generated
+  consumers separately shrink by 10,120 lines.
+
+
+  Removed the unused request/receipt/store/replay protocol and its schemas, old atlas and aggregate request-cost
+  page, dedicated KV page and duplicate tensor viewer. Removed unused fixed reference-backend/full-prefix
+  declarations. The main page composes model, KV reuse and optional ontology-owned cache, scheduling,
+  transfer and compute-service ExperimentSpecs. Workload editing remains in Interaction; resource settings
+  live in Experiment; selected resource computations feed the existing diagram and numerical inspector.
+  No lab-specific catch-all control or hidden checkpoint remains. Browser resource computation uses the
+  selected 8K weights, BOS-plus-text framing and EOS termination. Unsupported larger-model resource states
+  or disabled KV reuse fail explicitly. All three models retain ordinary stepping, generation, branching,
+  reset and both cache modes.
+
+
+  Verification: make test passed 91 tests, 3.79s total against 10s. make test-integration passed 22 integration
+  tests plus browser checks, 39.94s total against 100s. Coverage retains the independent scalar/WASM oracle,
+  all-token selector/stop cases, cached-versus-recomputed numerics, actual main-page/headless resource
+  parity, ordinary/resource framing and first-token logit agreement, local/remote hits, eviction, admission/backpressure,
+  replay, shared inspector tensor equality and stale-evidence reset. Desktop/narrow screenshots were inspected.
+  All 57 final local release files match the integration-tested release byte for byte. No remote origin
+  was deployed or tested.
+
+
+  Intermediate failures were visible and fixed: retired-endpoint fixtures and a hardcoded RunBinding root
+  blocked deletion; scoped owner approvals allowed their checks to be repaired without relaxing governance.
+  Removed request-cost generation initially removed a needed build prefix as well; import/link tests caught
+  this and the shared builder was restored. Plain-text framing changed prefix identities and resource
+  timing fixtures; cases now use distinct complete prefixes, with revised hand-derived timing and explicit
+  remote-hit assertions. Browser JSON can serialize 0.0 as 0: replay now compares validated numeric values
+  rather than textual JSON digests, while preserving model/source identity checks. Resource computation
+  selection initially selected an uncomputed position; the shared cursor now selects a position in that
+  actual computation. No criteria were weakened.
+
+
+  Governance warnings remain at existing flat ontology/data-model directories, the package root, and historical
+  evaluation month folders. No limits were relaxed. The next cohesive cleanup is an ontology/domain manifest
+  split, a preparation subpackage with corresponding harness admission, and an integrity-preserving historical
+  evaluation migration; new evaluation files already use day directories. The additional day-folder warning
+  calls for grouping subsequent work records cohesively, not raising the cap. These structural follow-ups
+  do not affect the checked execution boundaries. Browser navigation may log connection resets when abandoning
+  asset requests; all required assets, browser checks and static-only network assertions passed.
+
+
+  Retained limitations: resource service is hypothetical and serialized, KV budgets exclude weights/workspace,
+  and this work does not establish accelerator calibration or larger-model resource scheduling. Native
+  scalar computation remains only an independent component/preparation oracle. Historical evaluation records,
+  research evidence and model artifacts are preserved. No commit was requested or made.'
+evidence:
+- data-model/execution.yaml
+- data-model/domains/model-family.yaml
+- docs/ontology/experiment.yaml
+- inside_inference/cache_lab.py
+- inside_inference/generation.py
+- web/execution/model-service.js
+- web/execution/controls.js
+- web/inspection/resources.js
+- web/inspection/session.js
+- web/inspection/details.js
+- scripts/build/http_transport.py
+- scripts/build/generate_data_models.py
+- scripts/check/governance/http.py
+- tests/unit/contracts/test_http_boundary.py
+- tests/unit/contracts/test_declarations.py
+- tests/unit/contracts/test_governance.py
+- tests/integration/test_execution_identity.py
+- tests/integration/decoder_reference.mjs
+- tests/integration/inspection_session.mjs
+- scripts/check/cache_browser_check.mjs
+- docs/architecture/workloads.md
+- docs/labs/kv-residency.md

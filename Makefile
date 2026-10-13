@@ -139,11 +139,6 @@ _model-family-evaluate: _data-models-check
 
 .PHONY: _model-family-evaluate
 
-_model-family-browser: _data-models-check
-	@$(PYTHON) -m scripts.check.model_family.browser
-
-.PHONY: _model-family-browser
-
 # Optional model assets use the same verified HTTP reader locally and from S3/CDN.
 # MODEL_ASSET_BASE is a URL prefix ending in /; defaults come from data/models/models.yaml.
 # Example deployment configuration: MODEL_ASSET_BASE=https://assets.example/models/

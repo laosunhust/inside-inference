@@ -20,9 +20,6 @@
         "transfer": {
           "link_bytes_per_us": 100,
           "link_latency_us": 10
-        },
-        "model_execution": {
-          "backend": "reference"
         }
       },
       "workload": {
@@ -32,11 +29,11 @@
             "request_id": "r1",
             "arrival_us": 0,
             "request": {
-              "text": "the ball",
+              "text": "the ball.",
               "generation": {
                 "max_new_tokens": 2,
                 "selection": "greedy-lowest-id-tie",
-                "stopping": "turn-end-or-budget"
+                "stopping": "model-end-or-budget"
               }
             }
           },
@@ -44,11 +41,11 @@
             "request_id": "r2",
             "arrival_us": 0,
             "request": {
-              "text": "the ball",
+              "text": "the ball.",
               "generation": {
                 "max_new_tokens": 2,
                 "selection": "greedy-lowest-id-tie",
-                "stopping": "turn-end-or-budget"
+                "stopping": "model-end-or-budget"
               }
             }
           }
@@ -76,7 +73,7 @@
         "max_requests": 8,
         "max_new_tokens_cap": 16,
         "kv_cache": {
-          "device_kv_bytes": 1024,
+          "device_kv_bytes": 768,
           "host_kv_bytes": 32768,
           "retention_policy": "whole-prefix-lru"
         },
@@ -90,9 +87,6 @@
         "transfer": {
           "link_bytes_per_us": 100,
           "link_latency_us": 10
-        },
-        "model_execution": {
-          "backend": "reference"
         }
       },
       "workload": {
@@ -102,11 +96,11 @@
             "request_id": "r1",
             "arrival_us": 0,
             "request": {
-              "text": "the ball",
+              "text": "the ball.",
               "generation": {
                 "max_new_tokens": 2,
                 "selection": "greedy-lowest-id-tie",
-                "stopping": "turn-end-or-budget"
+                "stopping": "model-end-or-budget"
               }
             }
           },
@@ -114,11 +108,11 @@
             "request_id": "r2",
             "arrival_us": 0,
             "request": {
-              "text": "the cup",
+              "text": "the cup.",
               "generation": {
                 "max_new_tokens": 2,
                 "selection": "greedy-lowest-id-tie",
-                "stopping": "turn-end-or-budget"
+                "stopping": "model-end-or-budget"
               }
             }
           },
@@ -126,11 +120,11 @@
             "request_id": "r3",
             "arrival_us": 0,
             "request": {
-              "text": "the ball",
+              "text": "the ball.",
               "generation": {
                 "max_new_tokens": 2,
                 "selection": "greedy-lowest-id-tie",
-                "stopping": "turn-end-or-budget"
+                "stopping": "model-end-or-budget"
               }
             }
           }
@@ -159,7 +153,7 @@
         "max_requests": 8,
         "max_new_tokens_cap": 16,
         "kv_cache": {
-          "device_kv_bytes": 1024,
+          "device_kv_bytes": 768,
           "host_kv_bytes": 0,
           "retention_policy": "whole-prefix-lru"
         },
@@ -173,9 +167,6 @@
         "transfer": {
           "link_bytes_per_us": 100,
           "link_latency_us": 10
-        },
-        "model_execution": {
-          "backend": "reference"
         }
       },
       "workload": {
@@ -185,11 +176,11 @@
             "request_id": "r1",
             "arrival_us": 0,
             "request": {
-              "text": "the ball",
+              "text": "the ball.",
               "generation": {
                 "max_new_tokens": 2,
                 "selection": "greedy-lowest-id-tie",
-                "stopping": "turn-end-or-budget"
+                "stopping": "model-end-or-budget"
               }
             }
           },
@@ -197,11 +188,11 @@
             "request_id": "r2",
             "arrival_us": 0,
             "request": {
-              "text": "the cup",
+              "text": "the cup.",
               "generation": {
                 "max_new_tokens": 2,
                 "selection": "greedy-lowest-id-tie",
-                "stopping": "turn-end-or-budget"
+                "stopping": "model-end-or-budget"
               }
             }
           },
@@ -209,11 +200,11 @@
             "request_id": "r3",
             "arrival_us": 0,
             "request": {
-              "text": "the ball",
+              "text": "the ball.",
               "generation": {
                 "max_new_tokens": 2,
                 "selection": "greedy-lowest-id-tie",
-                "stopping": "turn-end-or-budget"
+                "stopping": "model-end-or-budget"
               }
             }
           }
@@ -256,9 +247,6 @@
         "transfer": {
           "link_bytes_per_us": 100,
           "link_latency_us": 10
-        },
-        "model_execution": {
-          "backend": "reference"
         }
       },
       "workload": {
@@ -268,11 +256,11 @@
             "request_id": "r1",
             "arrival_us": 0,
             "request": {
-              "text": "the ball",
+              "text": "the ball.",
               "generation": {
                 "max_new_tokens": 2,
                 "selection": "greedy-lowest-id-tie",
-                "stopping": "turn-end-or-budget"
+                "stopping": "model-end-or-budget"
               }
             }
           },
@@ -280,11 +268,11 @@
             "request_id": "r2",
             "arrival_us": 0,
             "request": {
-              "text": "the ball",
+              "text": "the ball.",
               "generation": {
                 "max_new_tokens": 2,
                 "selection": "greedy-lowest-id-tie",
-                "stopping": "turn-end-or-budget"
+                "stopping": "model-end-or-budget"
               }
             }
           }

@@ -99,8 +99,8 @@ simulation decisions or computed metrics.
 
 Measure host runtime, memory, and trace growth on an identified workload and
 platform before saying an experiment is cheap enough for interactive use. Record
-simulation time separately. Feasibility evidence for the bounded landing-page simulator lives in its
-[lab contract](request-playground.md). This does not establish feasibility
+simulation time separately. Feasibility evidence for the bounded resource simulator lives in its
+[lab contract](kv-residency.md). This does not establish feasibility
 for larger or more detailed connected simulations.
 
 ## Declared subjects

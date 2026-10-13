@@ -1,0 +1,25 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/local-reference-warnings.yaml
+evaluation_sha256: a10f5d629cb20c1a5a0e66a13d0c438507efdf8f37c81f358ce267d5bdd581dc
+outcome: passed
+summary: 'Added only docs/local to the approved inventory exclusions, preserving the owner''s gitignore
+  edit and all numerical limits. Boundary tests show nested local PDFs are excluded while oversized docs/local-copy
+  and docs/purpose files still fail. Governance warnings now use [inside-inference:governance] warning:,
+  separately tested from hard failures. The constitution requires proactive agent triage and justified
+  cleanup without routine owner escalation; protected changes still require explicit authorization. Corresponding
+  approval source, scope and hashes recorded. Governance and the complete unit/integration workflows pass.
+
+  Triaged soft folder warnings: new UI/harness modules use inspection/ and story_models/ subfolders; new
+  evaluation records/results use the dated 13/ child, leaving full historical month folders intact. Data-model
+  domains intentionally remain separate semantic modules (13 below the hard 18); further numerical/serving
+  grouping would need a coordinated manifest-loader change, not an ad hoc exception. Ontology remains
+  within its declared flat structure (12). Existing research (12), core modules (16), root unit tests
+  (14), and root web assets (17) were not expanded here. Future additions should use cohesive research-topic,
+  numerical/runtime, corresponding test, and inspection/execution subfolders; no deletion of evidence
+  or unrelated bulk reshuffle is justified by a soft warning alone.'
+evidence:
+- AGENTS.md
+- governance/limits.yaml
+- governance/approval-lock.yaml
+- scripts/check/governance/__main__.py
+- tests/unit/contracts/test_governance.py

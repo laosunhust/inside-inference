@@ -58,7 +58,7 @@ training, and separate arithmetic comparison from language quality.
 
 ## Connecting numerical execution to resource simulation
 
-The uncached adapter does not model resources. The KV residency adapter implements
+Ordinary generation does not model resource service. The optional KV residency experiment implements
 this connection for exact-prefix reuse, bounded KV reservations, and serial service.
 Actual execution supplies identified operations, tensor shapes, and state contents.
 An explicit mapping supplies modeled work, memory traffic, allocation, and transfer
@@ -102,11 +102,13 @@ Current working code remains small:
 | `inside_inference/labs/journey.py` | Aggregate event/cost simulator, without GPT execution. |
 | `inside_inference/labs/kda.py` | Standalone numerical recurrence, without a trained model. |
 | `scripts/build/intro_page.py` | Build views and links from canonical definitions and catalog metadata. |
-| `inside_inference/model.py` | One or two single-head decoder blocks, explicit checkpoint validation, and layer-identified tensor observations. |
+| `inside_inference/model.py` | Checkpoint validation and the lab computation interface. |
+| `inside_inference/runtimes/engine.c` and `decoder.h` | One browser decoder algorithm, with declared architecture and scalar precision. |
+| `web/execution/decoder.js` and `observations.js` | Artifact loading, retained state, and observations of executed C values. |
 | `inside_inference/cache_lab.py` | Cached computation linked to admission, retention, retrieval, and virtual resource service. |
-| `inside_inference/kv_runtime.py` | Reference execution and logical residency pools. |
+| `inside_inference/kv_runtime.py` | Shared-engine lab orchestration and logical residency pools. |
 | `inside_inference/tensor_model.py` | Tensor equations used only by optional checkpoint preparation. |
-| `inside_inference/generation.py` | Unmasked greedy selection, uncached continuation, run identity, and replay. |
+| `inside_inference/generation.py` | Shared unmasked greedy selection. |
 | `scripts/dev/serve_intro.py` | Static-only local preview server. |
 | `inside_inference/tokenizer.py` | Exact lexical/byte codec, conversation framing, and actual encoding traces. |
 | `inside_inference/corpus.py` | Bounded task recipe, grouping, scoring forms, and corpus audit. |
@@ -116,8 +118,7 @@ Current working code remains small:
 | `tests/` | Independent arithmetic checks and generated-site checks. |
 
 The `inside_inference/` package owns tokenizer, corpus, model, and generation responsibilities.
-As additional mechanisms arrive, keep their simulation and trace responsibilities explicit. Move the
-existing engines into the applicable modules and update callers together; keep
+As additional mechanisms arrive, keep their simulation and trace responsibilities explicit. Keep computation in the shared decoder and update callers together; keep
 `scripts/` for entry points and site generation. Add maintained vocabulary/corpus
 assets and serialized configurations with their first consumers. Do not create
 empty packages, speculative plugin loaders, or a second computation in JavaScript
@@ -139,15 +140,14 @@ an advanced-attention plugin framework before the baseline.
 ## Model selection and live stepping
 
 The generated landing page embeds only an initial `GenerationInput`, derived from
-[data/models/initial.yaml](../../data/models/initial.yaml) and the catalog's model-execution
-ontology binding. It does not embed a completed run or checkpoint. The browser
+[data/models/initial.yaml](../../data/models/initial.yaml) with the admitted control bindings. It does not embed a completed run or checkpoint. The browser
 loads the selected model through the same declared interface used headlessly.
 The input row's **Edit** opens model selection and request settings. Selecting
 loads immediately, preserves input and generation settings, and clears prior tokens,
 output, observations, replay and exports. A late load or prediction cannot repopulate
 another model's state. Incompatible input/settings fail visibly without repair.
 
-`GenerationExperiment` owns the selected model and ontology binding. `Workload`
+`ExecutionSpec` composes ontology-bound `ExperimentSpec` controls for model selection and KV reuse. `Workload`
 owns request input and generation policy. Preparation tokenizes without inference;
 **Next Token** submits a `GenerationStep` and accepts a `GenerationPrediction`.
 **Generate** repeats that same operation until stopping or the user stops it.
@@ -163,7 +163,7 @@ cursor without moving the selected prefix. Input/model changes, reset and new
 execution cancel journey replay. Replay navigates the selected architecture or recorded work; its animation interval
 is not execution timing.
 
-`ArchitectureWalkthrough` declares runtime-specific stage labels and ontology owners;
+`ArchitectureWalkthrough` declares one shared graph, stage labels, operation homes and ontology owners;
 `ArchitectureStage` references are mechanically checked against admitted ontology.
 The selected artifact supplies the layer count. A compact generic schematic shows
 one repeated transformer block; the layer picker and playback use the same cursor.
@@ -174,11 +174,22 @@ branches; they do not claim captured tensor dependencies. These stages are expla
 `InspectionState.architecture_step` selects one of them; `observation_id` selects
 captured evidence. These are mutually exclusive surfaces of the same cursor.
 
-The 8K diagram uses recorded numerical dependencies once a prediction is available;
-its inspector reads actual tensors and parameters. Larger models expose actual tokens
-and logits plus an explicitly labeled architecture walkthrough. **Switch to 8K for
-inspection** changes the model and clears output; it never explains a larger model's
-output using the tiny model's tensors.
+The diagram has the same shape before and after execution, for every model.
+Actual observations attach to declared stages; they never construct a second graph.
+Token IDs expose the actual encoded input, and embedding inspection identifies the
+selected vocabulary row and vector width. The 8K inspector exposes captured tensors
+and parameters. Causal attention observations contain only keys actually visited by
+each query; masked future cells are not fabricated. With reuse enabled, an earlier
+query may not have executed in this pass; the inspector says so rather than showing
+an unrelated row. Larger models expose real tokens and logits while intermediate
+tensor capture remains unavailable. **Switch to 8K for tensors** changes the model
+and clears output; it never explains a larger model's output using tiny-model values.
+
+KV reuse is an execution control for every model. Full-prefix execution recomputes
+all supplied positions; reuse evaluates only a verified retained prefix's extension.
+A divergent or shortened prefix recomputes. Model changes and input preparation
+clear retained state. Evidence distinguishes processed and retained positions;
+these are computation facts, not simulated latency or accelerator placement.
 
 Streaming text is decoded from the selected IDs. The 384-ID codec needs three IDs
 per fallback byte; a complete character can require several bytes. Valid unfinished

@@ -25,8 +25,11 @@ The two larger checkpoints come from the retained seed1337 runs of the independe
 TinyStories size study. [Export evidence](../preparation/story-models/export.json)
 records their source checkpoint identities and original numerical references.
 Their legacy llama2.c binaries include unused RoPE-table slots required by that
-format; download bytes therefore exceed parameter bytes. The browser executes
-unmodified upstream numerical code, compiled with a small lifecycle bridge.
+format; download bytes therefore exceed parameter bytes. One browser decoder executes all three models. It adapts the pinned llama2.c
+arithmetic into a shared precision-specialized source and adds the tiny model’s
+learned positions, LayerNorm, GELU and tensor capture. Artifact formats select
+readers, never a different execution engine. The original export references remain
+independent numerical checks.
 
 ## Sources and attribution
 
@@ -42,7 +45,7 @@ unmodified upstream numerical code, compiled with a small lifecycle bridge.
 
 Workflow commands and environment arguments belong to the root [Makefile](../../Makefile).
 
-[Browser evaluation](../../docs/research/browser-model-family-2026-10-12.md) records
+[Browser evaluation](../../docs/research/browser/browser-model-family-2026-10-12.md) records
 what was measured, rejected, and left unproven.
 
 Three size tiers are the current offering, not a hard maximum on checkpoint

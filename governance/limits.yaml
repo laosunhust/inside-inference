@@ -12,6 +12,7 @@ excluded_directories:
 - .git
 - out
 - references
+- docs/local
 - .venv
 - node_modules
 - __pycache__

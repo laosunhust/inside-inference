@@ -22,7 +22,7 @@ def prefix_state(state, count):
 
 
 class ReferenceRuntime:
-    """CPU reference with explicit logical device/host pools; no file-backed state."""
+    """Shared numerical component with explicit logical device/host pools."""
     def __init__(self, checkpoint):
         self.model = Model(checkpoint)
         self.device, self.host = {}, {}
@@ -34,7 +34,7 @@ class ReferenceRuntime:
             values=tuple(() for _ in range(self.model.config.layers)))
 
     def describe(self):
-        return dict(compute_device='CPU scalar reference', device_state_storage='Logical pool in system DRAM',
+        return dict(compute_device='Browser WASM decoder' if sys.platform=='emscripten' else 'CPU scalar reference', device_state_storage='Logical pool in system DRAM',
             host_state_storage='Separate logical pool in system DRAM; Python objects',
             library='Python '+platform.python_version()+' ('+sys.platform+')', precision='binary64')
 

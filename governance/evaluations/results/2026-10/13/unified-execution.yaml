@@ -1,0 +1,74 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/unified-execution.yaml
+evaluation_sha256: c568dadbb8bc323daa02a242a85453593aeb74ab79869d900fde56a800a69637
+outcome: passed
+summary: 'One declared ExecutionSpec now composes model and KV-reuse controls against separate Workload input.
+  All three main-page models use one C decoder algorithm specialized by declared precision and architecture;
+  the old Python browser forward and upstream model-specific C forward are removed. An independent scalar reference
+  remains only for preparation/component verification and is excluded from the browser package. One declared
+  conceptual graph supplies all model diagrams before and after generation; actual input IDs, embedding rows,
+  observations and retained-state work attach to that graph. Approved governance rejects competing runtime/graph
+  authorities, missing or duplicate operation homes, invalid edges and misplaced inspection operations.
+
+
+  The candidate worker also routes standalone request/KV orchestration through that same WASM engine. Candidate
+  integration passed 25 tests (13.39s) and browser checks for model loading, cache toggles, branches, reset,
+  exports, actual input association, diagram shape, KV residency and replay. Cached/recomputed logits and selections
+  were identical for all shipped models. Independent scalar fixtures cover every captured value for one and
+  two layers; larger-model export fixtures remained within their existing tolerance. Rendered desktop and narrow
+  diagrams were reviewed. Final release verification: make test passed 114 tests in 7.56s under its 10s budget;
+  make test-integration passed in 60.21s under its 100s budget. Desktop and narrow release screenshots were
+  reviewed after the final frontend grouping.
+
+
+  The owner approved the pending shared-engine boundary and recursive theme enforcement changes on 2026-10-13.
+  They are applied to the protected generator/checks/tests with scoped approval sources and updated hashes.
+  The generated worker now initializes the same WASM decoder for standalone request/KV operations. The final
+  integration harness tests the ordinary release build, without candidate substitutions. Web inspection HTML,
+  CSS and JavaScript are grouped together, and theme enforcement rejects nested appearance overrides. No commit
+  was requested or made.
+
+
+  Candidate checks exposed a missing precision field on returned KV state, now fixed. A candidate-only worker
+  caused the reproducible-build comparison to fail as expected; testing the same candidate on both builds passed.
+  That comparison now reports file digests instead of constructing a hundreds-of-megabytes binary dictionary
+  diff. Chrome page Network instrumentation also cancelled a cold module load; browser traffic is observed
+  at fixture servers rather than through debugger Network attachment. This is bounded harness evidence, not
+  a general browser reliability claim.
+
+
+  Existing research reports and model artifacts are preserved. The standalone KV lab still consumes its explicitly
+  identified baseline checkpoint, which differs from the main-page 8K artifact; the misleading Uncached reference
+  link was removed. Unit execution tests and browser research were grouped to resolve their folder warnings.
+  Remaining flat ontology/data-model warnings need a coordinated manifest/path-admission split; the package
+  warning needs a preparation subpackage with corresponding protected harness admission changes. Historical
+  monthly evaluation records need an integrity-preserving migration rather than silent moves. The web folder
+  warning is resolved by the inspection grouping, with recursive theme enforcement in place. Limits were not
+  relaxed.'
+evidence:
+- data-model/domains/model-family.yaml
+- docs/ontology/experiment.yaml
+- inside_inference/runtimes/engine.c
+- inside_inference/runtimes/decoder.h
+- inside_inference/runtimes/component.py
+- inside_inference/runtimes/reference.py
+- web/execution/decoder.js
+- web/execution/observations.js
+- web/execution/component-engine.js
+- web/inspection/session.js
+- web/inspection/page.js
+- scripts/check/governance/frontend.py
+- tests/unit/contracts/test_governance.py
+- tests/integration/decoder_reference.mjs
+- scripts/check/story_models/execution.mjs
+- scripts/check/story_models/system-map.mjs
+- scripts/check/cache_browser_check.mjs
+- scripts/build/http_transport.py
+- scripts/check/governance/http.py
+- tests/unit/contracts/test_http_boundary.py
+- scripts/build/theme.py
+- tests/unit/test_theme.py
+- web/inspection/page.html
+- web/inspection/page.css
+- docs/architecture/website.md
+- docs/architecture/delivery.md

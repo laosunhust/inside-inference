@@ -5,28 +5,17 @@ header,main,footer{max-width:1220px;margin:auto;padding:24px 38px}
 header{display:flex;justify-content:space-between;gap:20px}
 h1{margin:20px 0 25px;max-width:1000px}
 h3{margin:0}
-.hero{padding:35px 0 25px}
 .lead{max-width:850px}
 .warning{padding:20px 24px;margin:24px 0}
 .warning strong{display:block;margin-bottom:6px}
 .orientation{max-width:950px;margin:40px 0}
-.featured{padding:28px 32px;margin:34px 0}
-.featured p{max-width:800px}
-.search{display:block;margin-top:35px}
-input[type=search]{display:block;width:100%;padding:16px;margin-top:10px}
-.atlas{display:grid;grid-template-columns:245px minmax(0,1fr);gap:34px}
-nav{position:sticky;top:20px;align-self:start}
-nav a{display:block;padding:8px 0}
-.layer{display:grid;grid-template-columns:42px minmax(0,1fr);gap:12px;padding:26px 0 34px;scroll-margin-top:20px}
-.layer h2{margin-top:0}
 dt{margin-top:17px}
 dd{margin:3px 0 0}
-.lab-link{display:block;padding:12px 15px;margin:10px 0}
-.lab-link small{display:block}
 .brief{max-width:900px}
 .experiment{margin-top:35px;padding-top:15px}
 pre{padding:15px;overflow:auto}
 select{padding:8px}
+button{padding:10px 15px}
 .step-label{display:block;margin-top:20px}
 input[type=range]{width:min(100%,500px)}
 #trace{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:24px 0}
@@ -36,128 +25,14 @@ details{margin:25px 0}
 footer{margin-top:40px}
 [hidden]{display:none!important}
 @media(max-width:780px){header,main,footer{padding:20px}
-.atlas{grid-template-columns:1fr}
-nav{position:static;display:flex;flex-wrap:wrap;gap:8px}
-nav a{padding:5px 8px}
 #trace{grid-template-columns:repeat(2,minmax(0,1fr))}
-header span:not(.landing-links){display:none}
-.featured{padding:22px}}
-@media(max-width:440px){#trace{grid-template-columns:1fr}
-.layer{grid-template-columns:30px minmax(0,1fr)}}
+header span:not(.landing-links){display:none}}
+@media(max-width:440px){#trace{grid-template-columns:1fr}}
 .play-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:24px 0 16px}
 .play-heading h1{margin:12px 0}
 .play-heading p:not(.eyebrow){margin:14px 0}
-.atlas-button{padding:10px 16px;white-space:nowrap}
-.experiment-presets{display:flex;align-items:center;gap:10px;margin:14px 0 22px;flex-wrap:wrap}
-.experiment-presets>span{margin-right:4px}
-.playground button{padding:10px 15px}
-.simulation-layout{display:grid;grid-template-columns:minmax(0,1fr) 232px;gap:16px}
-.world{overflow:hidden}
-.world-top{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;gap:10px}
-.live-dot{display:inline-block;width:7px;height:7px;margin-right:6px}
-.scene-scroll{overflow-x:auto}
-#scene{display:block;width:100%;min-width:650px}
-.transport{display:flex;align-items:center;gap:9px;padding:14px 16px}
-.transport .primary{min-width:82px}
-.transport #time{min-width:30px;flex:1;width:auto}
-.transport>span{white-space:nowrap}
-.control-panel{padding:21px 18px}
-.control-panel label{display:block;margin-top:23px}
-.control-panel output{float:right}
-.control-panel input[type=range]{width:100%;margin-top:14px}
-.control-panel select{width:100%;margin-top:10px;padding:9px}
-.control-panel .toggle-label{display:flex;align-items:center;justify-content:space-between;margin-top:17px}
-.toggle-label small{display:block;margin-top:3px}
-.toggle-label input{width:19px;height:19px}
-.range-labels{display:flex;justify-content:space-between}
-.control-hint{margin-top:14px}
-.metric{margin-top:23px;padding-top:17px}
-.metric>span,.metric small{display:block}
-.mini-comparison{margin-top:12px}
-.mini-comparison>div{display:flex;align-items:center;gap:8px;margin:6px 0}
-.mini-comparison span{width:42px;flex-shrink:0}
-.mini-comparison i{display:block;height:6px;max-width:calc(100% - 50px)}
-.scope-badge{margin:20px 0 0}
-.under-scene{display:grid;grid-template-columns:minmax(0,1fr) 232px;gap:16px;margin-top:16px}
-.timeline-panel{padding:18px}
 .panel-heading{display:flex;align-items:center;justify-content:space-between;gap:15px}
-.panel-heading h2{margin:0 0 14px}
-.legend{display:flex;align-items:center;gap:5px;white-space:nowrap}
-.legend i{width:7px;height:7px;display:inline-block;margin-left:4px}
-.timeline-row{display:flex;align-items:center;gap:12px;margin:13px 0}
-.timeline-row>span{width:55px;flex-shrink:0}
-.timeline-track{height:17px;position:relative;flex:1}
-.segment{position:absolute;height:100%}
-.time-cursor{height:23px;position:absolute;top:-3px;z-index:2}
-.timeline-axis{text-align:right;margin-bottom:0}
-.inspector{padding:16px 19px}
-.inspector p:not(.eyebrow){margin:9px 0}
-.inside-model{display:flex;flex-wrap:wrap;align-items:center;gap:13px;padding:22px 0}
-.inside-model a{padding:7px 11px}
-.model-notes{margin:20px 0}
-.model-notes>div{max-width:850px;padding:12px 0}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-body:has(.playground) footer{margin-top:10px}
-@media(min-width:1400px){body:has(.playground) header,body:has(.playground) main,body:has(.playground) footer{max-width:1400px}}
-@media(max-width:950px){.simulation-layout,.under-scene{grid-template-columns:1fr}
-.control-panel{display:grid;grid-template-columns:1fr 1fr;gap:10px 25px}
-.control-panel .eyebrow{grid-column:1/-1}
-.control-panel label{margin-top:0}
-.control-panel>input,.control-panel .range-labels{grid-column:2}
-.metric{margin-top:0;grid-column:1}
-.control-panel .scope-badge{margin:0}
-.play-heading{align-items:flex-start}
-.atlas-button{white-space:normal}
-.panel-heading{flex-wrap:wrap}
-.inside-model{gap:8px}}
-@media(max-width:550px){.play-heading{display:block}
-.play-heading .atlas-button{display:inline-block;margin:5px 0 10px}
-.experiment-presets{gap:7px}
-.experiment-presets>span{width:100%}
-.playground button{padding:9px 10px}
-.world-top{padding:12px}
-.transport{padding:12px 9px;gap:5px}
-.control-panel{display:block}
-.control-panel label{margin-top:18px}
-.control-panel .metric{margin-top:18px}
-.scope-badge{margin-top:18px!important}
-.legend{margin-bottom:7px}
-.inside-model>span,.inside-model small{width:100%}}
 .contract-text{white-space:pre-wrap;overflow-wrap:anywhere}
-.mini-comparison i{width:calc(100% - 50px);transform-origin:left center}
-.pan-hint{display:none}
-.play-heading{padding-top:10px}
-@media(max-width:700px){.pan-hint{display:block;margin:0;padding:4px 12px;text-align:right}}
-.source-row{display:flex;align-items:center;gap:22px;margin:12px 0 24px}
-.source-row fieldset{display:flex;gap:17px;padding:9px 17px 13px;flex-shrink:0}
-.source-row legend{padding:0 7px}
-.source-row p{max-width:320px}
-.explain-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;margin-top:20px}
-.ontology-inspector{padding:20px 24px}
-.ontology-inspector h2{margin:8px 0}
-.ontology-inspector dt{margin-top:10px}
-.event-explanation{padding:12px 0 0}
-.event-explanation h3{margin:9px 0}
-.event-explanation code{display:block;padding:13px;overflow-wrap:anywhere}
-#timeline{display:flex;flex-wrap:wrap;gap:7px}
-.playground .phase-button{padding:8px 10px;text-align:left}
-.phase-button span,.phase-button small{display:block}
-.phase-button small{margin-top:3px}
-#state-transition{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:17px 0}
-#state-transition>div{padding:10px}
-#state-transition span{display:block}
-.model-boundary{margin:17px 0}
-@media(max-width:950px){.explain-layout{grid-template-columns:1fr}
-.source-row{flex-wrap:wrap;gap:4px}
-.source-row p{max-width:none}
-.control-panel{display:block}
-.control-panel label{margin-top:18px}}
-@media(max-width:550px){.source-row fieldset{width:100%;justify-content:space-around}
-#state-transition{gap:5px}}
-.computation-path{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
-.computation-stage{display:flex;flex-direction:column;gap:10px;text-align:left;padding:18px}
-@media(max-width:650px){.computation-path{grid-template-columns:1fr}}
-
 .reference-index{max-width:900px}
 .reference-index>section{padding:20px 0;scroll-margin-top:20px}
 .reference-index>section>h2{margin:0 0 10px}

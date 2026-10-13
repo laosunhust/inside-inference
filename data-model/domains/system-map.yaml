@@ -1,0 +1,171 @@
+$defs:
+  InferenceMap:
+    type: object
+    x-owner: InferenceSystem
+    additionalProperties: false
+    required:
+    - areas
+    - relationships
+    properties:
+      areas:
+        type: array
+        items:
+          $ref: '#/$defs/InferenceMapArea'
+        minItems: 1
+      relationships:
+        type: array
+        items:
+          $ref: '#/$defs/InferenceMapRelationship'
+    description: Navigation across system responsibilities, not execution events or supported configuration.
+      Concepts have one navigation home; typed execution evidence remains with its owner.
+    const:
+      areas:
+      - id: deployment
+        title: Deployment & objectives
+        concepts:
+        - ModelArtifact
+        - ModelWeights
+        - ModelArchitecture
+        gaps:
+        - Service objectives, placement and rollout controllers
+        view: concepts
+        expanded: false
+      - id: requests
+        title: Request handling & routing
+        concepts:
+        - InferenceRequest
+        - Workload
+        gaps:
+        - Endpoint selection, cache affinity and routing policy
+        view: concepts
+        expanded: false
+      - id: delivery
+        title: Response delivery
+        concepts:
+        - InferenceResponse
+        gaps:
+        - Streaming protocols, network receipt and backpressure
+        view: concepts
+        expanded: false
+      - id: engine
+        title: Engine scheduling & execution
+        concepts:
+        - RequestScheduling
+        - ModelExecution
+        - Decoding
+        - Tokenizer
+        - Embedding
+        - PositionEncoding
+        - Normalization
+        - Attention
+        - ResidualAddition
+        - FeedForward
+        - OutputProjection
+        gaps: []
+        view: engine
+        expanded: true
+      - id: state
+        title: State management & transfer
+        concepts:
+        - KVState
+        - KVCache
+        - StateTransfer
+        gaps:
+        - Recurrent state, activation transfer and shared state directories
+        view: concepts
+        expanded: false
+      - id: kernels
+        title: Kernels & collectives
+        concepts: []
+        gaps:
+        - Kernel implementations and TP / PP / EP collectives
+        view: concepts
+        expanded: false
+      - id: resources
+        title: Compute, memory & interconnect
+        concepts:
+        - ResourceGraph
+        - ComputeService
+        - ExecutionBackend
+        gaps:
+        - Shared-link contention and calibrated accelerator profiles
+        view: concepts
+        expanded: false
+      relationships:
+      - source: deployment
+        target: requests
+        label: Configures
+      - source: deployment
+        target: engine
+        label: Configures
+      - source: requests
+        target: engine
+        label: Dispatches to
+      - source: engine
+        target: delivery
+        label: Produces output for
+      - source: requests
+        target: state
+        label: Consults residency in
+      - source: engine
+        target: state
+        label: Reads and writes
+      - source: engine
+        target: kernels
+        label: Executes through
+      - source: kernels
+        target: resources
+        label: Runs on
+      - source: state
+        target: resources
+        label: Occupies
+  InferenceMapArea:
+    type: object
+    x-owner: InferenceSystem
+    additionalProperties: false
+    required:
+    - id
+    - title
+    - concepts
+    - gaps
+    - view
+    - expanded
+    properties:
+      id:
+        type: string
+        pattern: ^[a-z][a-z-]*$
+      title:
+        type: string
+      concepts:
+        type: array
+        items:
+          type: string
+          x-ontology-reference: true
+        uniqueItems: true
+      gaps:
+        type: array
+        items:
+          type: string
+        uniqueItems: true
+      view:
+        type: string
+        enum:
+        - concepts
+        - engine
+      expanded:
+        type: boolean
+  InferenceMapRelationship:
+    type: object
+    x-owner: InferenceSystem
+    additionalProperties: false
+    required:
+    - source
+    - target
+    - label
+    properties:
+      source:
+        type: string
+      target:
+        type: string
+      label:
+        type: string

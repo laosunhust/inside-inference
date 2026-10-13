@@ -1,0 +1,30 @@
+version: 1
+work_item: ontology-system-map
+question: Can the same expandable overview locate inference responsibilities for all three models without implying unsupported execution?
+necessity: The current request journey reduces the system to direct dispatch and a transformer; papers about state, routing and resources have no visible home.
+baseline: Two hardcoded route buttons followed by a model-only diagram; no expandable system overview.
+reuse:
+- source: Existing ontology references, generated declarations, primary lab bindings and transformer trace renderer
+  decision: Generate the overview from admitted declarations; retain actual numerical inspection and its single cursor.
+- source: Local nano-vLLM engine scheduler, block manager and model runner; docs/local/world-inference-oct-2026-clean.pdf
+  decision: Separate responsibilities from product boundaries; no upstream runtime or performance claims imported.
+criteria:
+- One declared map supplies region names, ontology references, relationships and initial expansion. All models share it; only model internals differ.
+- Concept explanations stay available for every model. A separate Numerics disclosure follows declared tensor capability; larger models retain actual token scores. The 8K switch belongs only with numerical limitations.
+- Customer interaction remains outside the system map, in Interaction; server-side response delivery remains inside.
+- Every region expands and collapses with keyboard and pointer; only engine starts open. Expansion persists during generation and model changes; replay reveals the engine when selecting an internal step.
+- Missing ontology subjects are explicitly listed as not yet declared; region membership does not create executable support. Links to labs derive only from primary implemented bindings.
+- Unknown ontology references, duplicate region IDs, duplicate concept homes, missing operation owners and dangling relationships fail checks with useful messages.
+- No placeholder routing events or fake tensor observations. Expansion and replay cannot change the accepted computation or execute inference.
+- Preserve numerical inspection, input/output controls, and experiment preview highlighting. Review desktop and narrow layouts; pass unit and integration within existing budgets.
+checks:
+- Declaration and frontend rejection tests
+- Shared browser harness across all three models
+- Rendered desktop and narrow map review
+- make test
+- make test-integration
+- Cold-start browser verification must not depend on attaching a debugger to the compute worker; retain static-request method and API-boundary assertions at the fixture servers.
+counterexamples:
+- Transformer-based does not mean supported; a new paper may require new owners and executable semantics.
+- Deployment control, state access and resource relationships are not sequential token steps.
+- Numerical observations must still describe the selected model, never the inspectable 8K substitute.

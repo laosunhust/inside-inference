@@ -1,5 +1,4 @@
 """Package the same Python engine for static browser execution; reuse spike assets."""
-import gzip
 import hashlib
 import json
 from pathlib import Path
@@ -44,10 +43,13 @@ def package(output, checkpoint=None, *, download=False, model_storage=None):
             info=zipfile.ZipInfo(name,(2020,1,1,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED
             archive.writestr(info,raw)
         for path in sorted((ROOT/'inside_inference').rglob('*.py')):
+            if path.name in ('reference.py','tensor_model.py'): continue
             write(path.relative_to(ROOT).as_posix(),path.read_bytes())
+        for name in ('inside_inference/runtimes/engine.c','inside_inference/runtimes/decoder.h',
+                     'web/execution/component-engine.js','web/execution/decoder.js','web/execution/observations.js'):
+            write(name,(ROOT/name).read_bytes())
+        write('execution/llama/llama.wasm',(output/'execution/llama/llama.wasm').read_bytes())
         write('data/tokenizer/vocabulary.json',(ROOT/'data/tokenizer/vocabulary.json').read_bytes())
-        raw=(ROOT/'data/model/checkpoint.bin').read_bytes() if checkpoint is None else gzip.compress(json.dumps(checkpoint).encode(),mtime=0)
-        write('data/model/checkpoint.bin',raw)
         write('build-revision.txt',(revision+'\n').encode())
 
 

@@ -1,4 +1,5 @@
 // Generated; DO NOT EDIT.
+import {installComponentEngine} from './component-engine.js';
 import {executeModelOperation,handlesModelOperation} from './model-service.js';
 import {loadPyodide} from './runtime/pyodide.mjs';
 const ready=(async()=>{
@@ -7,7 +8,7 @@ const ready=(async()=>{
   const response=await fetch(new URL('./engine.zip',import.meta.url));
   if(!response.ok)throw Error('Engine package unavailable');
   py.unpackArchive(await response.arrayBuffer(),'zip',{extractDir:'/project'});
-  await py.runPythonAsync("import sys; sys.path.insert(0, '/project'); from inside_inference.delivery.service import execute_json; from inside_inference.delivery.store import MemoryStore; evidence_store=MemoryStore()");
+  await py.runPythonAsync("import sys; sys.path.insert(0, '/project'); from inside_inference.delivery.service import execute_json");
   return py;
 })();
 let queue=Promise.resolve();
@@ -22,7 +23,10 @@ onmessage=({data,ports})=>{
       if(handlesModelOperation(data.operation)) {
         await py.runPythonAsync('from inside_inference.delivery.service import validate_operation_input; validate_operation_input(operation_name, operation_input)');
         json=JSON.stringify(await executeModelOperation(data.operation,JSON.parse(data.input),py));
-      } else json=await py.runPythonAsync('execute_json(operation_name, operation_input, evidence_store)');
+      } else {
+        await installComponentEngine();
+        json=await py.runPythonAsync('execute_json(operation_name, operation_input)');
+      }
       port.postMessage({json});
     } catch(error) {port.postMessage({error:String(error)});}
     finally {port.close();}

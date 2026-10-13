@@ -8,11 +8,10 @@ request/response declarations. [Website architecture](website.md) owns placement
 ## One browser execution path
 
 The site is static assets. Its generated client validates requests and sends them
-to a worker. That worker dispatches to the model's declared numerical runtime. The
-inspectable engine runs through Pyodide; larger models run the
-pinned upstream C engine compiled to WebAssembly. Generated
-declarations validate engine inputs and outputs. The renderer neither computes
-model values nor constructs transport messages.
+to a worker. All model inference uses the shared WASM decoder; Python orchestrates
+resource simulation and supplies tokenization and evidence tooling. The
+renderer neither computes model values nor constructs transport messages. Request
+admission uses generated declarations; complete response validation belongs to the harness.
 
 Preparation tokenizes and validates without a forward pass. Execution produces
 real numerical observations. Both use the same operation interface; there is no
@@ -31,8 +30,10 @@ This export does not embed large weights or promise replay across changed runtim
 
 The main page retains one accepted prediction in memory. Reset or model/input
 changes invalidate it and disable export. There is no evidence-restoration adapter
-between two landing-page protocols. The retained checkpoint-preparation operations
-and KV lab have their own evidence formats; they do not configure the main page.
+between two landing-page protocols. The optional resource experiment exports `ResourceExecution`, retaining the same
+submitted `GenerationInput`, numerical cache run and decoded outputs. Reset and
+configuration edits invalidate this evidence as well. There is no receipt store
+or artifact-restoration API without a consumer.
 
 ## Native boundary
 
@@ -72,21 +73,29 @@ executes through a second local origin with CORS and also verifies rejection whe
 CORS is absent; it does not claim to have tested a live S3 bucket.
 
 Each explicit load admits an identified model and its matching tokenizer. Each
-`GenerationStep` declares its `GenerationExperiment`, raw prefix, prior outputs
-and per-request generation policy. `GenerationInput` binds that experiment to a
-`Workload`; unsupported request counts or nonzero arrivals fail explicitly. It returns actual selected IDs, logits and model identities.
+`GenerationStep` declares its `ExecutionSpec`, raw prefix, prior outputs
+and per-request generation policy. `GenerationInput` binds that execution configuration to a
+`Workload`; ordinary generation rejects multiple requests and nonzero arrivals. Resource
+simulation consumes chronological arrivals under its declared scheduling policy.
+Generation returns actual selected IDs, logits and model identities.
 The inspectable model also returns executed tensor observations; larger models do
 not fabricate equivalent small-model tensors. The current main page retains its latest computation in memory; export is explicit.
 
-Main-page generation uses the shared unmasked greedy selector after each runtime
+Main-page generation uses the shared unmasked greedy selector after the decoder
 produces logits. Probability normalization runs in binary64 through that selector;
 this does not change the larger model's binary32 matrix computation. The tiny story model stops on
 its trained EOS ID; the larger family stops on its trained story separator/BOS or
-EOS. Budget and context exhaustion also stop continuation. These differ from the
-existing chat lab's TURN_END framing. Every stop ID is declared in the model
+EOS. Budget and context exhaustion also stop continuation. Every stop ID is declared in the model
 catalog. Incomplete tiny byte triples remain visible as decoding diagnostics,
 with the full token stream available; generated tokens are never repaired.
 
-Local browser timing is separate from simulated hardware timing. The small engine
-recomputes prefixes and captures tensors; the compiled larger engine retains KV
-and exposes logits. Their measured speeds are not an isolated size comparison.
+Local browser timing is separate from simulated hardware timing. Every model can
+recompute the prefix or reuse KV state, as selected by `ExecutionSpec`. `GenerationWork`
+records the actual processed and retained positions and matrix-operation counts.
+The 8K model captures tensors; larger models expose logits. Capture overhead and
+precision still prevent treating their timings as an isolated size comparison.
+
+The optional KV residency experiment runs from the main page using its selected
+8K weights and the same BOS-plus-text encoding and EOS termination. It does not
+load `data/model/checkpoint.bin` into the browser. The native scalar reference and
+its retained fixture remain component/preparation tools, not website execution paths.

@@ -1,4 +1,4 @@
-"""Compile pinned upstream llama2.c; no new transformer implementation."""
+"""Compile the shared decoder and pinned upstream SentencePiece tokenizer."""
 import argparse
 import hashlib
 from pathlib import Path
@@ -23,8 +23,9 @@ def build(*, setup=False):
     expected = '9c4f2d5c6ae01b71726d1cc37530d71e60bff0ec7cc012565f16a43c1ca658bd'
     if hashlib.sha256(source.read_bytes()).hexdigest() != expected:
         raise ValueError('Upstream llama2.c source digest mismatch')
-    bridge = ROOT/'inside_inference/runtimes/llama_bridge.c'
-    fingerprint = hashlib.sha256(source.read_bytes()+bridge.read_bytes()+EMSDK_VERSION.encode()+Path(__file__).read_bytes()).hexdigest()
+    bridge = ROOT/'inside_inference/runtimes/engine.c'
+    decoder = ROOT/'inside_inference/runtimes/decoder.h'
+    fingerprint = hashlib.sha256(source.read_bytes()+bridge.read_bytes()+decoder.read_bytes()+EMSDK_VERSION.encode()+Path(__file__).read_bytes()).hexdigest()
     stamp = CACHE/'fingerprint.txt'
     if stamp.exists() and stamp.read_text()==fingerprint and all((CACHE/n).exists() for n in ['llama.mjs','llama.wasm']):return CACHE
     compiler = SDK/'upstream/emscripten/emcc'
@@ -34,10 +35,14 @@ def build(*, setup=False):
         subprocess.run([str(SDK/'emsdk'),'activate',EMSDK_VERSION],check=True)
     if not compiler.exists():raise FileNotFoundError('Model runtime compiler unavailable; run make setup')
     shutil.copyfile(bridge,CACHE/'bridge.c')
+    shutil.copyfile(decoder,CACHE/'decoder.h')
+    text=source.read_text()
+    tokenizer=text[text.index('typedef struct {',text.index('// The Byte Pair Encoding')):text.index('// The Sampler')]
+    (CACHE/'tokenizer.c').write_text(tokenizer)
     subprocess.run([str(compiler),str(CACHE/'bridge.c'),'-O3','-msimd128','-sMODULARIZE=1','-sEXPORT_ES6=1',
         '-sALLOW_MEMORY_GROWTH=1','-sENVIRONMENT=web,worker,node',
-        '-sEXPORTED_FUNCTIONS=["_load_model","_tokenize","_step","_piece","_vocab_piece","_malloc","_free"]',
-        '-sEXPORTED_RUNTIME_METHODS=["FS","ccall","UTF8ToString","HEAPF32","HEAP32","HEAPU8"]',
+        '-sEXPORTED_FUNCTIONS=["_configure","_tie_head","_allocate_weight","_load_tokenizer","_step_flops","_key_rows","_value_rows","_trace_count","_trace_name","_trace_layer","_trace_length","_trace_data","_tokenize","_step","_piece","_vocab_piece","_malloc","_free"]',
+        '-sEXPORTED_RUNTIME_METHODS=["FS","ccall","UTF8ToString","HEAPF64","HEAPF32","HEAP32","HEAPU8"]',
         '-o',str(CACHE/'llama.mjs')],check=True)
     stamp.write_text(fingerprint)
     return CACHE
