@@ -1,5 +1,5 @@
 version: 2
-active: governance/evaluations/records/2026-10/13/explanation-panels.yaml
+active: governance/evaluations/records/2026-10/13/tiny-streaming.yaml
 # Criteria live under evaluations/records/, grouped by date; results under results/.
 # Changing active does not delete earlier criteria. Amendments use a new filename
 # and an explicit supersedes reference with the same work_item.

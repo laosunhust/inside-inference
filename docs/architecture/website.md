@@ -48,7 +48,9 @@ flowchart LR
 These interfaces remain essential when components share a browser. Presentation
 must not reach into Python globals or storage internals, mutate accepted evidence,
 or reimplement model algorithms. Worker messaging must consume the same generated
-request/result declarations and enforce validation at the boundary. Runtime-specific
+request/result declarations. Admit requests before execution; verify complete response
+schemas in the integration harness, not by walking engine-produced tensors on every
+token. Retain execution bounds and stale-result checks in production. Runtime-specific
 message envelopes must be declared and governed before implementation, not invented
 inside UI code. Request correlation, failures and lifecycle behavior need explicit
 semantics; placing code in a worker does not establish them automatically.

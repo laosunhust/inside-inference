@@ -5093,7 +5093,8 @@
           "type": [
             "string",
             "null"
-          ]
+          ],
+          "description": "Malformed output or incomplete terminal encoding. Valid pending byte or UTF-8 prefixes while generation can continue have no diagnostic."
         },
         "request": {
           "$ref": "#/$defs/GenerationStep"

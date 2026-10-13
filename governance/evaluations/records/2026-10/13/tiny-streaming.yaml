@@ -1,0 +1,27 @@
+version: 1
+work_item: tiny-streaming
+question: Can the 8K model stream byte-based text without false errors and without spending most token latency validating its trace?
+necessity: Owner observes incomplete-byte warnings and slow generation after switching to 8K.
+baseline: Default story opening reproduces incomplete-byte warnings at valid intermediate prefixes. At output position 24, three warm browser samples take 368-385 ms; output validation alone takes 304-322 ms, with full captured tensors retained.
+reuse:
+- source: Existing strict tokenizer, Python incremental UTF-8 codec, jsonschema validation and shared browser generation interface
+  decision: Preserve token choices and full inspection evidence. Distinguish incomplete prefixes from invalid streams; keep full response-schema validation in the test harness, not on the production generation path, per owner direction. Preserve request admission.
+criteria:
+- Add and observe failing regressions before changing implementation.
+- Valid trailing byte triples and UTF-8 prefixes emit only complete text without an error while generation can continue.
+- Malformed bytes, invalid control/hex IDs and unfinished output at every terminal reason remain explicit diagnostics. Strict complete decoding remains strict.
+- No token filters, injected spaces, replacement characters, forced continuation, model changes, hidden KV reuse or retraining.
+- Default story continuation preserves all 32 selected IDs and checked logits from the recorded 8K weights.
+- Median warmed browser generateToken latency for the reproduced 24th selection is below 250 ms on this machine, including request admission and full trace delivery. Keep all captured nodes and values.
+- The harness validates real responses against generated schemas; production generation does not traverse complete response schemas. Request admission and execution invariants remain enforced.
+- Browser UI and headless operations agree, warnings clear on valid completion, reset and model changes; unit and integration stay within 10s and 100s.
+checks:
+- Focused red/green unit regressions
+- Browser regression and before/after latency profile
+- make test
+- make test-integration
+counterexamples:
+- Suppressing every tokenizer exception hides malformed output.
+- Returning less evidence or using KV reuse changes the computation. Moving response-schema checks to the harness is explicitly requested by the owner.
+- A byte triple is complete but UTF-8 still needs another byte.
+- Removing request admission would allow invalid inputs into execution.

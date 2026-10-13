@@ -7,7 +7,6 @@ let draft=JSON.parse($('cache-data').textContent),cursor=0,live=false,busy=false
 $('cache-status').textContent='Loading engine…';
 let serialized=await Execution.cacheRun(draft,{raw:true}),run=JSON.parse(serialized);
 const tokens=JSON.parse($('cache-tokens').textContent),ontology=JSON.parse($('cache-ontology').textContent);
-Declarations.assertShape('CacheRun',run);
 const number=x=>Number(x).toLocaleString(undefined,{maximumFractionDigits:3});
 function status(phase,text){$('cache-status').dataset.phase=phase;$('cache-status').textContent=text;}
 function dirty(){if(live&&!busy)status('dirty','Settings changed. The views still show the previous accepted run.');}

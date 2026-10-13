@@ -11,6 +11,7 @@ export async function checkCache({send,evaluate,until,click,base,file,output}) {
  let replayChecked=false;
  for(const c of cases){
   c.record=await evaluate(`Execution.cacheRun(${JSON.stringify(c.spec)})`);
+  Declarations.assertShape('CacheRun',c.record);
   const before=await evaluate(`document.getElementById('cache-run-identity').textContent`);
   await evaluate(`(() => {
    const spec=${JSON.stringify(c.spec)},$=id=>document.getElementById(id);

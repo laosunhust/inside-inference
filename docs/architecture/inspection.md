@@ -180,6 +180,12 @@ and logits plus an explicitly labeled architecture walkthrough. **Switch to 8K f
 inspection** changes the model and clears output; it never explains a larger model's
 output using the tiny model's tensors.
 
+Streaming text is decoded from the selected IDs. The 384-ID codec needs three IDs
+per fallback byte; a complete character can require several bytes. Valid unfinished
+suffixes wait without a warning. Malformed IDs and incomplete terminal output retain
+a diagnostic and the preceding valid text; no replacement characters or token repair
+are inserted. Token Details preserves all IDs, including the pending suffix.
+
 The current execution endpoint is local to the browser worker. It models no network,
 queue, placement or accelerator memory budget. A native preparation reference and
 the separately declared KV lab remain available; neither silently substitutes for

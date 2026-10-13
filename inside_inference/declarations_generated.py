@@ -4,7 +4,7 @@ from typing import Any
 from inside_inference.contract_runtime import Declaration
 
 EXECUTION_OPERATIONS = {'capabilities': {'request': None, 'response': 'Capabilities'}, 'run': {'request': 'Workload', 'response': 'ExecutionReceipt'}, 'cacheRun': {'request': 'KVExperimentInput', 'response': 'CacheRun'}, 'cacheCapabilities': {'request': None, 'response': 'CacheCapabilities'}, 'tokenStep': {'request': 'TokenStepRequest', 'response': 'ExecutionReceipt'}, 'artifact': {'request': 'ArtifactReference', 'response': 'ArtifactResponse'}, 'prepareInput': {'request': 'Workload', 'response': 'PreparedInput'}, 'replayTokenStep': {'request': 'ExecutionReplayInput', 'response': 'TokenStepResult'}, 'replayCache': {'request': 'ExecutionReplayInput', 'response': 'CacheRun'}, 'modelCatalog': {'request': None, 'response': 'ModelCatalog'}, 'loadModel': {'request': 'ModelSelection', 'response': 'ModelLoadResult'}, 'prepareGeneration': {'request': 'GenerationInput', 'response': 'GenerationPrepared'}, 'generateToken': {'request': 'GenerationStep', 'response': 'GenerationPrediction'}}
-CONTRACT_SHA256 = 'cf3bf8efdc3d230081dfab038aa744c90f2ffa59d5100a3de1f7ecd3d11829ef'
+CONTRACT_SHA256 = 'd698aecfc30d49983545ddd035b48252c006c8a32209fc071c8e38de49eccf6f'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -2639,7 +2639,26 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                          'nodes': {'type': 'array',
                                                    'items': {'$ref': '#/$defs/TensorObservation'}},
                                          'decoding_note': {'type': ['string',
-                                                                    'null']},
+                                                                    'null'],
+                                                           'description': 'Malformed '
+                                                                          'output '
+                                                                          'or '
+                                                                          'incomplete '
+                                                                          'terminal '
+                                                                          'encoding. '
+                                                                          'Valid '
+                                                                          'pending '
+                                                                          'byte '
+                                                                          'or '
+                                                                          'UTF-8 '
+                                                                          'prefixes '
+                                                                          'while '
+                                                                          'generation '
+                                                                          'can '
+                                                                          'continue '
+                                                                          'have '
+                                                                          'no '
+                                                                          'diagnostic.'},
                                          'request': {'$ref': '#/$defs/GenerationStep'},
                                          'id': {'type': 'string',
                                                 'pattern': '^[0-9a-f]{64}$'},

@@ -23,7 +23,6 @@ CLIENT = """(() => {
         else if(input!==undefined) throw new Error(name+': unexpected input');
         const text=await transport(name,input);
         const value=JSON.parse(text);
-        Declarations.assertShape(spec.response,value);
         return raw ? text : value;
       }]
     )));
@@ -83,8 +82,6 @@ onmessage=({data,ports})=>{
       if(handlesModelOperation(data.operation)) {
         await py.runPythonAsync('from inside_inference.delivery.service import validate_operation_input; validate_operation_input(operation_name, operation_input)');
         json=JSON.stringify(await executeModelOperation(data.operation,JSON.parse(data.input),py));
-        py.globals.set('operation_output',json);
-        await py.runPythonAsync('from inside_inference.delivery.service import validate_operation_output; validate_operation_output(operation_name, operation_output)');
       } else json=await py.runPythonAsync('execute_json(operation_name, operation_input, evidence_store)');
       port.postMessage({json});
     } catch(error) {port.postMessage({error:String(error)});}

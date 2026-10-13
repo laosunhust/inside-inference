@@ -1,0 +1,39 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/tiny-streaming.yaml
+evaluation_sha256: a3ac459e78c246b2453d9068481686e07c98133781983c3ed1ff0a1f7b7bc2c9
+outcome: passed
+summary: >-
+  Reproduced the warning and latency before implementation. Valid pending BYTE/hex
+  and UTF-8 prefixes now use strict incremental decoding; malformed and incomplete
+  terminal output remains explicit, without changing generation or repairing text.
+  Deleted response-schema traversal in the worker, generated client, session and
+  cache display, plus the unused output validator. Retained request admission and
+  execution/lifecycle invariants. The integration harness validates real model and
+  cache responses using generated schemas. A response-traversal regression failed
+  before deletion; it now passes. The attempted scalar-validator optimization was
+  discarded, not retained as another path.
+  Three warmed actual-browser samples at selection 24 were 68.1, 68.6 and 78.4 ms,
+  versus baseline 368-385 ms. This is request-to-result latency on this machine,
+  excluding harness-only schema checks; all 27 captured nodes remain available.
+  The 32 selected IDs match the recorded fixture exactly; checked logits agree
+  within 1e-12. Terminal byte truncation is still reported. Interactive/headless
+  parity, model switching, reset and branching pass for all three models.
+  Unit 110 tests passed in 7.38s total; full integration passed in 62.23s,
+  within unchanged 10s/100s budgets. Desktop and narrow screenshots reviewed.
+  Earlier integration attempts failed on a trailing blank line (fixed) and the
+  previously observed intermittent dynamic module-fetch error; the successful
+  final run does not establish resolution of that separate intermittent failure.
+  Generation quality is unchanged and malformed model output remains possible.
+evidence:
+- tests/fixtures/integration/tiny-stream.json
+- tests/unit/test_streaming.py
+- tests/integration/inspection_session.mjs
+- scripts/check/story_models/check.mjs
+- scripts/check/cache_browser_check.mjs
+- scripts/check/browser_check.mjs
+- inside_inference/tokenizer.py
+- inside_inference/runtimes/inspectable.py
+- inside_inference/delivery/service.py
+- scripts/build/http_transport.py
+- web/inspection-session.js
+- docs/architecture/website.md

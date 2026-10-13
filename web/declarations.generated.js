@@ -5091,7 +5091,8 @@ globalThis.Declarations = (() => {
         "type": [
           "string",
           "null"
-        ]
+        ],
+        "description": "Malformed output or incomplete terminal encoding. Valid pending byte or UTF-8 prefixes while generation can continue have no diagnostic."
       },
       "request": {
         "$ref": "#/$defs/GenerationStep"
@@ -6090,7 +6091,7 @@ globalThis.Declarations = (() => {
         }
       },
       "Detokenizer": {
-        "meaning": "The recorded output IDs and their diagnostic display under the identified tokenizer. This view renders word pieces and labeled control/byte/hex IDs; it does not establish valid decoded text or a streaming UTF-8 decoder.",
+        "meaning": "The recorded output IDs and their diagnostic display under the identified tokenizer. Selected IDs remain visible in full. Streaming text exposes only complete UTF-8; a valid pending byte triple or UTF-8 suffix is not an error until generation ends. Malformed output remains diagnostic; rendering never repairs or filters token choices.",
         "fields": {
           "Token": [
             "id",
@@ -6490,7 +6491,7 @@ globalThis.Declarations = (() => {
 };
   const operationOwners = {"token_embedding": "Embedding", "embedding": "Embedding", "position_embedding": "PositionEncoding", "ln1_mean": "Normalization", "ln1_variance": "Normalization", "ln1": "Normalization", "ln2_mean": "Normalization", "ln2_variance": "Normalization", "ln2": "Normalization", "ln_final_mean": "Normalization", "ln_final_variance": "Normalization", "ln_final": "Normalization", "query": "Attention", "key": "Attention", "value": "Attention", "scores": "Attention", "causal_mask": "Attention", "attention": "Attention", "weighted_values": "Attention", "attention_output": "Attention", "attention_residual": "ResidualAddition", "ff_residual": "ResidualAddition", "ff_up": "FeedForward", "gelu": "FeedForward", "ff_down": "FeedForward", "logits": "OutputProjection", "input_ids": "Tokenizer", "retained_keys": "KVState", "retained_values": "KVState"};
   const labs = [{"id": "naive-gpt", "name": "Model execution", "status": "mechanical-demo", "ontology_binding": {"primary": "ModelExecution", "related": ["Tokenizer", "Embedding", "PositionEncoding", "Normalization", "Attention", "ResidualAddition", "FeedForward", "OutputProjection", "Decoding", "ModelArchitecture", "ModelArtifact"]}}, {"id": "kimi-delta-attention", "name": "Kimi Delta Attention (KDA)", "status": "mechanical-demo", "ontology_binding": {"primary": "Attention", "related": []}}, {"id": "prefix-cache", "name": "Exact prefix caching", "status": "mechanical-demo", "ontology_binding": {"primary": "KVCache", "related": ["KVState", "RequestScheduling", "StateTransfer", "ComputeService"]}}, {"id": "prefill-decode", "name": "Prefill/decode KV handoff", "status": "planned", "ontology_binding": {"primary": "StateTransfer", "related": ["KVState", "ModelExecution"]}}, {"id": "speculative-decoding", "name": "Speculative decoding", "status": "planned", "ontology_binding": {"primary": "Decoding", "related": ["ModelExecution", "KVState"]}}, {"id": "positional-encoding", "name": "Positional encoding", "status": "planned", "ontology_binding": {"primary": "PositionEncoding", "related": ["Embedding", "Attention"]}}];
-  const hash = "cf3bf8efdc3d230081dfab038aa744c90f2ffa59d5100a3de1f7ecd3d11829ef";
+  const hash = "d698aecfc30d49983545ddd035b48252c006c8a32209fc071c8e38de49eccf6f";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

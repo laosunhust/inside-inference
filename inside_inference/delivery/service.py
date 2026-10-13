@@ -24,7 +24,6 @@ def execute(name, payload, store, *, checkpoint=None):
     elif name == 'replayCache': value = replay_cache(decode_json(payload["record_json"]))
     elif name == 'cacheRun': value = run_cache_experiment(payload, checkpoint=checkpoint)
     else: raise ValueError('Declared operation has no implementation')
-    MODELS[operation['response']].validate_shape(value)
     return canonical(value).decode()
 
 
@@ -50,7 +49,3 @@ def validate_operation_input(name, raw):
             policy = payload['generation']
         if policy['stopping'] != 'model-end-or-budget':
             raise ValueError('Generation requires model-end-or-budget')
-
-
-def validate_operation_output(name, raw):
-    MODELS[EXECUTION_OPERATIONS[name]['response']].validate_shape(decode_json(raw))

@@ -4,6 +4,7 @@ from dataclasses import asdict, replace
 from inside_inference.declarations_generated import Token, Span, Encoding, Turn
 from functools import lru_cache
 import hashlib
+import codecs
 import json
 from pathlib import Path
 import re
@@ -176,29 +177,44 @@ class Tokenizer:
             raise TokenizerError('Input bytes are not valid UTF-8') from exc
         return self.encode(text, context_limit=context_limit)
 
-    def decode(self, ids):
+    def decode_prefix(self, ids, *, final=False):
+        """Render a valid prefix without treating pending byte/UTF-8 suffixes as errors.
+
+        Never repair or skip malformed tokens. A diagnostic retains only the valid
+        preceding text; every selected ID remains available to the caller.
+        """
         ids = self._validate_ids(ids)
         result = bytearray()
-        position = 0
+        position, note = 0, None
         while position < len(ids):
             token = self.tokens[ids[position]]
             if token.kind in ('word', 'space', 'punctuation'):
                 result.extend(token.piece.encode('utf-8'))
                 position += 1
             elif token.kind == 'byte':
-                if position + 2 >= len(ids):
-                    raise TokenizerError(f'Incomplete byte triple at token {position}')
                 digits = [self.tokens[i] for i in ids[position + 1:position + 3]]
                 if any(t.kind != 'hex' for t in digits):
-                    raise TokenizerError(f'Expected two hex IDs at token {position}')
+                    note = f'Expected two hex IDs at token {position}'
+                    break
+                if len(digits) < 2:
+                    if final: note = f'Incomplete byte triple at token {position}'
+                    break
                 result.append(int(''.join(t.piece for t in digits), 16))
                 position += 3
             else:
-                raise TokenizerError(f'Unexpected {token.kind} token at position {position}')
+                note = f'Unexpected {token.kind} token at position {position}'
+                break
         try:
-            return result.decode('utf-8', errors='strict')
-        except UnicodeError as exc:
-            raise TokenizerError('Decoded bytes are not valid UTF-8') from exc
+            text = codecs.getincrementaldecoder('utf-8')(errors='strict').decode(bytes(result), final=final or note is not None)
+        except UnicodeDecodeError as error:
+            text = bytes(result[:error.start]).decode('utf-8', errors='strict')
+            note = 'Decoded bytes are not valid UTF-8'
+        return text, note
+
+    def decode(self, ids):
+        text, note = self.decode_prefix(ids, final=True)
+        if note is not None: raise TokenizerError(note)
+        return text
 
     def _frame(self, turns, *, prompt, context_limit):
         turns = tuple(turns)

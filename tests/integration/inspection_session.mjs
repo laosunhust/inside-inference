@@ -39,7 +39,15 @@ const calls=[];const client=ExecutionClient.create(async(name,input)=>{calls.pus
 assert.deepEqual(await client.prepareGeneration(input),prepared);assert.equal(calls[0].name,'prepareGeneration');
 await assert.rejects(()=>client.prepareGeneration({}));assert.equal(calls.length,1);
 await assert.rejects(()=>client.capabilities({}));assert.equal(client.invented,undefined);
-await assert.rejects(()=>ExecutionClient.create(async()=>JSON.stringify({})).prepareGeneration(input));
+// Responses are validated by the harness, not by the production transport.
+assert.deepEqual(await ExecutionClient.create(async()=>JSON.stringify({})).prepareGeneration(input),{});
+assert.throws(()=>Declarations.assertShape('GenerationPrepared',{}));
+const originalShape=Declarations.assertShape;
+Declarations.assertShape=(name,value)=>{assert.notEqual(name,'GenerationPrediction','No response-schema traversal in the token path');return originalShape(name,value);};
+S.accept(S.prepare(S.admitModel(S.create(input),loaded),prepared),step,request);
+await ExecutionClient.create(async()=>JSON.stringify(step)).generateToken(request);
+Declarations.assertShape=originalShape;
+Declarations.assertShape('GenerationPrediction',step);
 await assert.rejects(()=>ExecutionClient.create(async()=>{throw Error('transport failed');}).prepareGeneration(input),/transport failed/);
 assert.equal(await client.prepareGeneration(input,{raw:true}),JSON.stringify(prepared));
 console.log('Model-bound request, branch, stale-response and generated client checks passed.');

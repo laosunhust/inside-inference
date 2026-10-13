@@ -10,7 +10,6 @@
         else if(input!==undefined) throw new Error(name+': unexpected input');
         const text=await transport(name,input);
         const value=JSON.parse(text);
-        Declarations.assertShape(spec.response,value);
         return raw ? text : value;
       }]
     )));

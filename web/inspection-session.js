@@ -17,12 +17,10 @@ globalThis.InspectionSession=(()=>{
     return reset({...s,input,prepared:null});
   }
   function admitModel(s,loaded) {
-    Declarations.assertShape('ModelLoadResult',loaded);
     if(loaded.model.id!==s.input.experiment.model_id)throw Error('Loaded model differs from selected experiment');
     return {...s,loaded};
   }
   function prepare(s,prepared) {
-    Declarations.assertShape('GenerationPrepared',prepared);
     if(!s.loaded || !equal(prepared.input,s.input))throw Error('Preparation differs from current experiment and workload');
     if(prepared.prompt_ids.some(i=>i>=s.loaded.model.architecture.vocabulary))throw Error('Tokenizer ID outside selected vocabulary');
     return reset({...s,prepared});
@@ -41,7 +39,6 @@ globalThis.InspectionSession=(()=>{
     return request;
   }
   function accept(s,result,request) {
-    Declarations.assertShape('GenerationPrediction',result);
     const model=s.loaded?.model;
     if(result.contract_sha256!==Declarations.hash || !model || !equal(request,nextRequest(s)) || !equal(result.request,request) || result.model_id!==model.id || result.weights_sha256!==model.weights.sha256 || result.tokenizer_sha256!==model.tokenizer.sha256)throw Error('Prediction differs from current request/model');
     const output_ids=[...request.output_ids,result.selected_id];

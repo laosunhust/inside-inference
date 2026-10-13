@@ -5,7 +5,7 @@ from pathlib import Path
 import time
 from inside_inference.model import Model, canonical, identity
 from inside_inference.generation import select_greedy
-from inside_inference.tokenizer import Tokenizer, TokenizerError
+from inside_inference.tokenizer import Tokenizer
 from inside_inference.declarations_generated import ModelDescriptor
 
 _model = None
@@ -60,14 +60,8 @@ def execute_tiny(name, raw):
         # Literal diagnostic display preserves malformed byte/control selections.
         # No forced spaces, output repair or decoding masks.
         visible=output[:-1] if selected in model['stop_ids'] else output
-        note=None
-        try: text=_tokenizer.decode(visible)
-        except TokenizerError as error:
-            note=str(error);text=''
-            for end in range(len(visible)-1,0,-1):
-                try: text=_tokenizer.decode(visible[:end]);break
-                except TokenizerError: pass
         stop=('end_token' if selected in model['stop_ids'] else 'output_budget' if len(output)>=request['generation']['max_new_tokens'] else 'context_capacity' if len(sequence)>_model.config.context else None)
+        text,note=_tokenizer.decode_prefix(visible,final=stop is not None)
         result=dict(model_id=model['id'],weights_sha256=model['weights']['sha256'],tokenizer_sha256=model['tokenizer']['sha256'],sequence_ids=sequence,output_ids=output,text=text,pieces=_pieces(sequence),logits=logits,probabilities=selection['probabilities'],selected_id=selected,stop_reason=stop,compute_ms=(time.perf_counter()-start)*1000,nodes=run['nodes'],decoding_note=note)
     else:raise ValueError('Unknown story operation')
     return canonical(result).decode()
