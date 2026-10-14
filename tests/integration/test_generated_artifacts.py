@@ -19,7 +19,12 @@ class GeneratedArtifactIntegrationTests(unittest.TestCase):
             root = Path(directory)
             shutil.copytree(ROOT/'data-model', root/'data-model')
             shutil.copytree(ROOT/'docs/ontology', root/'docs/ontology')
-            shutil.copytree(ROOT/'catalog', root/'catalog')
+            shutil.copytree(ROOT/'data/experiments', root/'data/experiments')
+            from scripts.build.structured import read_yaml
+            for experiment in read_yaml(ROOT/'data/experiments/catalog.yaml')['experiments']:
+                for evidence in experiment['evidence']:
+                    (root/evidence).parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(ROOT/evidence, root/evidence)
             generate(root)
             generate(root,check=True)
             target = root/'inside_inference/declarations_generated.py'

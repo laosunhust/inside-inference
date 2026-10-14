@@ -8,6 +8,9 @@ which additions would?
 This is a planned scenario connecting the [learning and decision goals](../purpose/README.md#learning-and-decision-goals):
 P0 explains each mechanism, P1 screens options on the fixed fleet, and P2 screens
 hardware additions when P1 has no acceptable candidate. Nothing here is implemented.
+Its declared composite is `constrained-fleet` in the
+[experiment catalog](../../data/experiments/catalog.yaml); the Inference system
+configuration lists the controls it still lacks.
 Numbers are illustrative arithmetic on assumed configurations, not measurements
 or vendor claims. Screening evidence follows the
 [candidate-screening rules](README.md#candidate-screening).

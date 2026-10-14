@@ -51,22 +51,6 @@ try {
   mark('model family and object storage');
   await checkCache({send,evaluate,until,click,base,file,output});
   mark('cache lab');
-  // The small standalone labs must also project their headless evidence exactly.
-  await send('Page.navigate', {url:base+'/labs/kimi-delta-attention.html'});
-  await until(`document.querySelector('#trace pre')`);
-  const recurrence = await evaluate(`JSON.parse(document.getElementById('trace-data').textContent)`);
-  assert.deepEqual(await evaluate(`Array.from(document.querySelector('#scenario').options,o=>o.value)`),Object.keys(recurrence));
-  const formatValue = value => Array.isArray(value) ? '['+value.map(formatValue).join(Array.isArray(value[0])?',\n ':', ')+']' : Number(value.toFixed(5)).toString();
-  const fields=['before','key','value','query','alpha','beta','decayed','prediction','error','delta','after','output'];
-  for(const [label,events] of Object.entries(recurrence)) {
-    await evaluate(`document.getElementById('scenario').value=${JSON.stringify(label)};document.getElementById('scenario').dispatchEvent(new Event('change'));`);
-    assert.equal(await evaluate(`Number(document.getElementById('step').max)`),events.length-1);
-    for(let i=0;i<events.length;i++) {
-      await evaluate(`document.getElementById('step').value=${i};document.getElementById('step').dispatchEvent(new Event('input'));`);
-      assert.deepEqual(await evaluate(`Array.from(document.querySelectorAll('#trace pre'),n=>n.textContent)`),fields.map(k=>formatValue(events[i][k])));
-    }
-  }
-  mark('existing standalone labs');
   // Failure is explicit; there is no native service to fall back to.
   const workerPath=output+'/site/execution/worker.generated.js';
   await rename(workerPath,workerPath+'.missing');

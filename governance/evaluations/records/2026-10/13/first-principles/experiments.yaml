@@ -1,0 +1,30 @@
+version: 1
+work_item: experiments-as-declarations
+question: Can every lab become a declared experiment, made only of ExperimentSpec settings plus an abstraction contract, selectable from the Inference system configuration, with no standalone lab pages or free-form lab catalog?
+necessity: Labs live in three parallel authorities, catalog/stack.json, prose specifications under docs/labs and generated standalone pages, plus a standalone KDA recurrence demo that the main engine does not execute. Their abstraction contracts are prose, so nothing checks that a lab names its question, regime, omissions and evidence plan. Executable experiments are configured through ExperimentSpec, but the catalog cannot apply them, and planned studies cannot state which configuration they lack.
+baseline: Six catalog entries (three mechanical demos, three planned), each generating labs/<id>.html, plus labs-by-concept.html, kv-contract.html, model-contract.html, header and inspector lab links and the KDA page. ExperimentSpec has six controls. The constrained-fleet scenario is prose only.
+reuse:
+- source: ExperimentSpec controls, OntologyBinding and the existing whole-input change used by the residency editor
+  decision: Represent an experiment's configuration as a list of ExperimentSpec records and apply it through the existing change path; add no second configuration model.
+- source: Abstraction contract in docs/labs/README.md and the naive-GPT and KV-residency specifications
+  decision: Make the contract fields required declaration fields and migrate each specification's durable content into them; keep method guidance in docs/labs.
+- source: Generated declaration consumers
+  decision: Publish the admitted experiment catalog to Python and the browser from generation; delete the hand-maintained catalog and its page generator.
+criteria:
+- An ontology-owned ExperimentCatalog declares every experiment with id, name, question, ontology binding, ExperimentSpec settings, missing controls, an abstraction contract (target regime, preserved relationships, omissions, evidence plan, limits), sources and evidence paths. Admission rejects duplicate ids, unknown ontology concepts, duplicate or invalid settings, missing controls that are declared controls, executable experiments whose settings do not form a valid execution, and missing evidence files.
+- An experiment is executable exactly when it lacks no controls; status is derived, never authored.
+- The Inference system configuration lists every experiment. Applying an executable experiment replaces the ExecutionSpec with its settings and invalidates prior evidence as any configuration change does. Planned experiments and the constrained-fleet composite cannot be applied and name each missing control.
+- The constrained fleet is a composite experiment over InferenceSystem whose settings and missing controls describe the scenario; its document remains as the scenario narrative and links to the declaration.
+- catalog/, the standalone KDA demo and page, labs-by-concept.html, generated lab and contract pages, header and inspector lab links, and the naive-GPT, KV-residency and speculative-decoding specifications are deleted after their durable content moves; incoming links are updated. Evaluation records and research evidence remain.
+- Governance rejects reintroduced standalone lab links, handwritten experiment registries and experiment subjects without system-map homes. Browser checks apply an executable experiment from the configuration and verify that a planned one is not applicable.
+- Unit and integration harnesses stay within budgets; desktop and narrow layouts are reviewed.
+checks:
+- Catalog admission rejection fixtures
+- Browser application of an executable experiment and rejection of a planned one
+- make test
+- make test-integration
+- Desktop and narrow screenshot review
+counterexamples:
+- A complete contract field is not evidence that the abstraction is valid for its question.
+- Listing missing controls is a roadmap statement, not an implementation or a commitment to their final names.
+- Deleting the KDA demo removes a recurrence illustration that no integrated attention variant replaces yet.

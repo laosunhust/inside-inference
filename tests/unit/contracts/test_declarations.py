@@ -223,7 +223,8 @@ class DeclarationTests(unittest.TestCase):
     def test_experiment_concepts_separate_specs_events_and_observations(self):
         module = read(ROOT/'docs/ontology/experiment.yaml')
         self.assertEqual(set(module['terms']), {'ExperimentSpec', 'ExecutionSpec', 'ExperimentExecution',
-            'ExperimentEvent', 'ExperimentObservation'})
+            'ExperimentEvent', 'ExperimentObservation', 'ExperimentDesign'})
+        self.assertEqual(read(ROOT/'data-model/inference.schema.json')['$defs']['ExperimentDesign']['x-owner'], 'ExperimentDesign')
         ontology = load_declarations()
         spec = read(ROOT/'data-model/inference.schema.json')
         for name, owner in [('KVRunBinding','ExperimentExecution'), ('CacheRun','ExperimentExecution'),

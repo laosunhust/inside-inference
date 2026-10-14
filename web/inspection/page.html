@@ -9,7 +9,7 @@
 <button id="open-client" class="configuration-card client-card" type="button" aria-haspopup="dialog" aria-controls="client-dialog"><strong>Output</strong><small>Investigate user experience</small><span class="configuration-indicator" aria-hidden="true">›</span></button>
 </div>
 <dialog id="input-dialog" aria-labelledby="input-dialog-title"><div class="panel-heading"><h2 id="input-dialog-title">Input transformations</h2><button type="button" class="dialog-close" aria-label="Close input configuration">Done</button></div><div id="configure-input" class="configuration-fields"></div></dialog>
-<dialog id="system-dialog" aria-labelledby="system-dialog-title"><div class="panel-heading"><h2 id="system-dialog-title">Inference system</h2><button type="button" class="dialog-close" aria-label="Close system configuration">Done</button></div><div id="configure-system" class="system-map"></div></dialog>
+<dialog id="system-dialog" aria-labelledby="system-dialog-title"><div class="panel-heading"><h2 id="system-dialog-title">Inference system</h2><button type="button" class="dialog-close" aria-label="Close system configuration">Done</button></div><section id="experiments" aria-labelledby="experiments-title"><h3 id="experiments-title">Experiments</h3></section><div id="configure-system" class="system-map"></div></dialog>
 <dialog id="client-dialog" aria-labelledby="client-dialog-title"><div class="panel-heading"><h2 id="client-dialog-title">Output · Client</h2><button type="button" class="dialog-close" aria-label="Close client configuration">Done</button></div><div id="configure-client" class="configuration-fields"></div></dialog>
 </section>
 <section id="data-plane" class="pass-panel" aria-label="Interaction">
@@ -41,7 +41,7 @@
 <!-- The declared conceptual graph owns shape; observations only supply evidence. -->
 
 <section id="numerical-inspector" aria-label="Computation details">
-<div class="panel-heading"><h2 id="detail-title">Details</h2><span><a id="definition-link" href="ontology.html">Ontology ↗</a> · <a id="labs-link" hidden>Labs ↗</a><span id="labs-empty">No primary lab yet</span></span></div><p id="definition"></p>
+<div class="panel-heading"><h2 id="detail-title">Details</h2><span><a id="definition-link" href="ontology.html">Ontology ↗</a></span></div><p id="definition"></p>
 <p id="inspection-context" role="status"></p><div id="principle-view"></div><div id="concept-body"></div>
 <details id="numerics"><summary>Numerics</summary>
 <p id="inspection-unavailable" hidden>Intermediate tensors not captured. <button id="switch-inspection" type="button">Switch to 8K for tensors</button></p>
@@ -50,7 +50,7 @@
 </details>
 </section>
 </section>
-<noscript><p>JavaScript is needed to inspect the trace. <a href="naive-gpt-contract.html">Read the experiment contract</a>.</p></noscript>
+<noscript><p>JavaScript is needed to run and inspect the model.</p></noscript>
 </section>
 <script id="inference-data" type="application/json">__INFERENCE_DATA__</script>
 <script src="contract-validators.generated.js" defer></script>
@@ -61,4 +61,5 @@
 <script src="inspection/system-map.js" defer></script>
 <script src="inspection/path.js" defer></script>
 <script src="inspection/configuration.js" defer></script>
+<script src="inspection/experiments.js" defer></script>
 <script type="module" src="inspection/page.js" defer></script>

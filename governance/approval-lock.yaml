@@ -54,7 +54,9 @@ approval:
     \ on 2026-10-13: \"deletion/consolidation that do not break the purpose is almost always welcome.\
     \ this is especially true for SSOT cleanups. Examples include what we just did: converting multiple\
     \ languages into one language. let's continue\", following the agreed plan to replace C/WASM and\
-    \ JavaScript model execution with one NumPy Python engine and delete the C code."
+    \ JavaScript model execution with one NumPy Python engine and delete the C code. Owner reply on\
+    \ 2026-10-13: \"yes. approve. let's finish this\", approving the scoped experiment-catalog governance\
+    \ changes."
   scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile
     and ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content
     remains unlocked. Retain approved folder and file-size limits. This approval does not authorize future
@@ -143,14 +145,20 @@ approval:
     and extend tests/unit/contracts/test_principles.py with its rejection fixtures. The marker parser lives
     in scripts/build/contracts.py so the build can publish spans without importing governance. Record the
     new module hash and refresh only __main__.py, contracts.py and test_principles.py. No limits, constitution
-    or other inventory changes.'
+    or other inventory changes. For experiments as declarations, replace lab_bindings in scripts/build/contracts.py
+    with experiment_catalog admission of data/experiments/catalog.yaml, including unknown-concept suggestions;
+    publish EXPERIMENTS and Declarations.experiments instead of LAB_BINDINGS and Declarations.labs in
+    generate_data_models.py; make scripts/check/governance/frontend.py reject standalone lab page links
+    and handwritten experiment registries and require homes for experiment subjects; and retarget the
+    existing lab cases in tests/unit/contracts/test_governance.py without removing coverage. Refresh only
+    these four hashes. No limits, constitution or inventory changes.'
 files:
   AGENTS.md: a1311d34d5b743a4b023f00b59b7f227d94ef1f44d097d5f8634c2eb4b9e5c92
   governance/limits.yaml: 4218f778ada890585c448c4664f4a8275576daef70e5421b29ed1c7ac0862c30
   scripts/__init__.py: 07cf2de9025005ac8dbafe1162d8cd39cf4f99dab454bd0388b597a5585db2ea
   scripts/build/compile_validators.mjs: 8d226d90bad36a219aa69af05a511b665f2b7149b6ba50557b778e51c6a52795
-  scripts/build/contracts.py: 3afbd74bdfecb93627d39ef2a5426e9ac23876179f74f2a4fe07ec05ffa1079e
-  scripts/build/generate_data_models.py: 94285b5df4ed40fe07178b89c138160d41fa8b0ce2e299da13e5206f6efcfe03
+  scripts/build/contracts.py: 7834df0f09d28520c7d12754f5d34dfd4e75bda51b432456e6a751a04de85a1a
+  scripts/build/generate_data_models.py: 9dc56a4e4335731c4f9ecc1693c7ca922270495d7e2ed16b5c772008939e2248
   scripts/build/ontology.py: 9f5271f975a3c877906abad76fba1eb58496bf4399691e77c3bfa4bba7e35454
   scripts/build/structured.py: f548e8e5f85e47297091182e45702fbfe5d1196463727dd387b91beedd138b06
   scripts/check/governance/__init__.py: f90f2f4c5a46fe4fa0deb54d71f7a463cc6368400b54fee101c89aab7e6aba50
@@ -161,9 +169,9 @@ files:
   scripts/check/governance/structure.py: b6f927698a5b3676219c4eb96c2906ebab8a19cb0c2a5e9a68e45dcb6dfbfc52
   scripts/check/layout.py: 54e53c43a5ce571375c049e9ebf740631ab24c14acdd1efaafca5eb2f63679e2
   scripts/check/make_interface.py: 298a6bd1e6f90becabbd0d12ba369c5a0d697f0b81f758fabf56423f01cd26b8
-  tests/unit/contracts/test_governance.py: 2cde6fd44ee67db494a76b554dd5f2ef4236643bde901c745ca2258c6715339f
+  tests/unit/contracts/test_governance.py: 6faa994da535f855f0189ba66084d067b42d72abe0f75c148f60dadab16f75e4
   tests/unit/contracts/test_governance_locks.py: acf09b594c79261c3c40a854cfc0dde0848b208e6996946ee6ef65de23348ef7
-  scripts/check/governance/frontend.py: 0509759f444c8bffc04f4f2ea7eb5099a11e34d64a16cb02f03e252be8509780
+  scripts/check/governance/frontend.py: 2db91bfae33ec0209dab27df947ce283467b6bbb6036e2ec678f0c43dcee2a8b
   scripts/check/governance/harness.py: 31ea6e97f860f971745a04f8188015815697183b83a1ab6382dff2abcca59a79
   tests/unit/contracts/test_harness.py: 1ba20fd6e4e3a9a0bed83d99d8b1f3e87e50dc97f99deec7b1e30f8c08ae7de2
   scripts/check/governance/budget.py: d1c09b74ec64a35e5523d23658b1251e65499ed4cba6aeceb1de7e7c257e10ab

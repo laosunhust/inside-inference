@@ -7,10 +7,10 @@ Generated-page and interactive parity tests cover the rendered consumers.
 from pathlib import PurePosixPath
 import re
 from scripts.build.presentation import Elements
-from scripts.build.contracts import operation_owners, lab_bindings
+from scripts.build.contracts import operation_owners, experiment_catalog
 
 
-def audit_frontend_source(path, source, ontology, spec, labs):
+def audit_frontend_source(path, source, ontology, spec, experiments):
     terms = ontology['terms']
     projections = {label: owner for owner, term in terms.items() for label in term['projections']}
     anchors = set(terms) | {label.lower().replace(' ', '-') for label in projections}
@@ -32,25 +32,25 @@ def audit_frontend_source(path, source, ontology, spec, labs):
                 fail('handwritten operation labels; consume ArchitectureWalkthrough')
             if 'data-map-area' in attrs or 'data-map-node' in attrs or 'data-map-parent' in attrs:
                 fail('handwritten system map; generate from InferenceMap')
-            if 'data-owner' in attrs or 'data-primary' in attrs or 'data-lab' in attrs:
-                fail('handwritten ownership/lab listing; generate from ontology and catalog')
+            if 'data-owner' in attrs or 'data-primary' in attrs or 'data-lab' in attrs or 'data-experiment' in attrs:
+                fail('handwritten ownership/experiment listing; generate from ontology and the experiment catalog')
     for anchor in re.findall(r'ontology\.html#([A-Za-z][A-Za-z0-9-]*)(?=["\'`])', source):
         if anchor not in anchors: fail(f'unknown ontology anchor {anchor!r}')
-    for lab in re.findall(r'labs/([a-z][a-z0-9-]*)\.html', source):
-        if lab not in labs: fail(f'unknown lab {lab!r}; register in catalog/stack.json')
+    for lab in re.findall(r'labs(?:-by-concept|/[a-z0-9-]+)\.html', source):
+        fail(f'retired standalone lab page {lab!r}; declare an experiment in data/experiments/catalog.yaml and apply it from the Inference system configuration')
     if path.suffix in ('.js', '.mjs'):
         if re.search(r'\b(?:minimum|maximum)\s*:\s*-?\d', source):
             fail('handwritten field limit; consume generated schema constraints')
         if re.search(r'\bontology_binding\s*:\s*\{', source):
-            fail('handwritten ontology_binding; consume generated Declarations.labs or a validated execution binding')
-        if re.search(r'\b(?:const|let|var)\s+(?:operationOwners|meanings|labs|inferenceMap)\s*=\s*[\[{]', source):
+            fail('handwritten ontology_binding; consume generated Declarations.experiments or a validated execution binding')
+        if re.search(r'\b(?:const|let|var)\s+(?:operationOwners|meanings|experiments|labs|inferenceMap)\s*=\s*[\[{]', source):
             fail('handwritten semantic registry; consume generated Declarations')
-        if re.search(r'\bDeclarations\.(?:operationOwners|meanings|labs|inferenceMap)\s*=(?!=)', source):
+        if re.search(r'\bDeclarations\.(?:operationOwners|meanings|experiments|inferenceMap)\s*=(?!=)', source):
             fail('cannot replace a generated semantic registry')
     return failures
 
 
-def audit_system_map(ontology, spec, labs):
+def audit_system_map(ontology, spec, experiments):
     """One containment tree; cross-component relationships never create second parents."""
     model = spec['$defs']['InferenceMap']['const']
     if 'areas' in model or 'nodes' not in model:
@@ -92,9 +92,9 @@ def audit_system_map(ontology, spec, labs):
         for owner in [binding['primary'], *binding['related']]:
             if owner not in owners:
                 fail(f'experiment control {name!r} has no explanation/concept home for {owner!r}')
-    subjects = {owner for binding in labs.values() for owner in [binding['primary'], *binding['related']]}
+    subjects = {owner for binding in experiments.values() for owner in [binding['primary'], *binding['related']]}
     missing = (subjects | set(operation_owners(spec).values())) - set(owners)
-    if missing: fail(f'missing navigation homes for lab or operation owners: {sorted(missing)}')
+    if missing: fail(f'missing navigation homes for experiment or operation owners: {sorted(missing)}')
     for edge in model['relationships']:
         if edge['source'] not in by_id or edge['target'] not in by_id:
             fail(f'dangling relationship {edge["source"]!r} -> {edge["target"]!r}')
@@ -134,12 +134,12 @@ def audit_frontend(root, generated):
     from scripts.build.ontology import load_declarations
     from scripts.build.contracts import load_schema
     ontology, spec = load_declarations(root), load_schema(root)
-    labs = lab_bindings(root, ontology, spec)
-    failures = audit_system_map(ontology, spec, labs) + audit_execution_journey(spec)
+    experiments = {e['id']: e['ontology_binding'] for e in experiment_catalog(root, ontology, spec)}
+    failures = audit_system_map(ontology, spec, experiments) + audit_execution_journey(spec)
     for name in ('inside_inference/runtimes/inspectable.py', 'inside_inference/runtimes/llama_bridge.c'):
         if (root/name).exists(): failures.append(name + ': superseded model-specific browser execution')
     for path in (root/'web').rglob('*'):
         relative = path.relative_to(root)
         if relative.as_posix() in generated or path.suffix not in ('.html', '.js', '.mjs'): continue
-        failures.extend(audit_frontend_source(PurePosixPath(relative), path.read_text(), ontology, spec, labs))
+        failures.extend(audit_frontend_source(PurePosixPath(relative), path.read_text(), ontology, spec, experiments))
     return failures

@@ -25,7 +25,6 @@ globalThis.SystemMap=(()=>{
       else {
         const description=el('details');description.className='map-description';description.append(el('summary',node.parent===null?'About this system':'First principles'),...Principles.of(node.owner).map(Principles.render),el('p',Declarations.meanings[node.owner].meaning));body.append(description);
         const links=el('div');links.className='map-links';links.append(link('Ontology ↗',`ontology.html#${node.owner}`));
-        for(const lab of Declarations.labs.filter(l=>l.ontology_binding.primary===node.owner&&l.status==='mechanical-demo'))links.append(link(lab.name+' ↗',`labs/${lab.id}.html`));
         description.append(links);
         for(const definition of controls){const control=definition.properties.control.const,projection=el('div');projection.dataset.explanationControl=control;body.append(projection);settings.set(control,{projection,definition});}
         if(node.view==='engine')body.append(engine);

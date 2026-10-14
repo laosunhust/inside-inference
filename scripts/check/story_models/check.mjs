@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {checkExecution} from './execution.mjs';
 import {checkMap,checkJourney} from './system-map.mjs';
-import {recompute} from './recompute.mjs';
+import {checkRecomputation} from './recompute.mjs';
+import {checkExperiments} from './experiments.mjs';
 import {readFile,writeFile,rename,access} from 'node:fs/promises';
 
 export async function checkModels({send,evaluate,until,base,output,site,assetBase,requests=[]}) {
@@ -54,10 +55,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         prediction.logits.forEach((v,i)=>assert.ok(Math.abs(v-fixture.logits_at_selection_24[i])<1e-12));
         assert.ok(prediction.nodes.some(n=>n.operation.name==='attention'&&n.positions.at(-1)===request.prefix_ids.length+22),'Capture the final query attention without inventing masked cells');
         // A reader can reproduce displayed values from their displayed inputs and the stated equations.
-        const recomputed=recompute(prediction.nodes,loaded.parameters,model.architecture);
-        assert.deepEqual(recomputed.operations,['attention','attention_residual','ff_residual','ln1','ln2','ln_final','logits','scores','weighted_values']);
-        assert.ok(recomputed.max_error<1e-12,`Hand recomputation differs by ${recomputed.max_error}`);
-        evidence.recomputation=recomputed;
+        evidence.recomputation=checkRecomputation(prediction.nodes,loaded.parameters,model.architecture);
         const terminal=structuredClone(request);terminal.generation.max_new_tokens=24;
         const stopped=await evaluate(`Execution.generateToken(${JSON.stringify(terminal)})`);assert.equal(stopped.decoding_note,null);assert.equal(stopped.stop_reason,'output_budget');
         evidence.streaming={timings,selected_id:prediction.selected_id,nodes:prediction.nodes.length};
@@ -200,6 +198,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
     await click('next-token');await ready();const configured=await snapshot();
     assert.equal(configured.request.execution.experiments.find(e=>e.control==='kv_reuse').value,true);
     await evaluate("document.getElementById('kv-reuse').checked=false;document.getElementById('kv-reuse').dispatchEvent(new Event('change'))");await ready();
+    evidence.experiments=await checkExperiments({evaluate,ready,click,snapshot});
     // Input edits during weight loading keep the newly typed source, but never stale tokens.
     await click('edit-input');
     await evaluate("document.getElementById('model-choice').value='tinyllm-500k';document.getElementById('model-choice').dispatchEvent(new Event('change'));document.getElementById('prompt').value='a dog';document.getElementById('prompt').dispatchEvent(new Event('input'))");await ready();await empty();

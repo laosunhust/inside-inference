@@ -357,3 +357,111 @@ $defs:
         type: string
         title: Exported evidence
         description: Exact exported JSON bytes; preserve numeric lexemes for replay.
+  ExperimentCatalog:
+    type: object
+    x-owner: ExperimentDesign
+    additionalProperties: false
+    required:
+    - experiments
+    properties:
+      experiments:
+        type: array
+        minItems: 1
+        items:
+          $ref: '#/$defs/ExperimentDesign'
+  ExperimentDesign:
+    type: object
+    x-owner: ExperimentDesign
+    additionalProperties: false
+    required:
+    - id
+    - name
+    - question
+    - ontology_binding
+    - settings
+    - missing_controls
+    - contract
+    - sources
+    - evidence
+    properties:
+      id:
+        type: string
+        pattern: ^[a-z][a-z0-9-]*$
+      name:
+        type: string
+        pattern: '[\s\S]+'
+      question:
+        type: string
+        pattern: '[\s\S]+'
+      ontology_binding:
+        $ref: '#/$defs/OntologyBinding'
+      settings:
+        type: array
+        items:
+          $ref: '#/$defs/ExperimentSpec'
+        description: Controls applied together. An experiment with no missing controls must form a valid ExecutionSpec.
+      missing_controls:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: ^[a-z][a-z0-9_]*$
+        description: Undeclared controls the question needs; any entry makes the experiment planned, not executable.
+      contract:
+        $ref: '#/$defs/AbstractionContract'
+      sources:
+        type: array
+        items:
+          $ref: '#/$defs/ExperimentSource'
+      evidence:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          pattern: ^[a-zA-Z0-9][a-zA-Z0-9._/-]*$
+        description: Repository paths of evaluation results or research records supporting current conclusions.
+  AbstractionContract:
+    type: object
+    x-owner: ExperimentDesign
+    additionalProperties: false
+    required:
+    - target_regime
+    - preserved
+    - omissions
+    - evidence_plan
+    - limits
+    properties:
+      target_regime:
+        type: string
+        title: Target regime
+        pattern: '[\s\S]+'
+      preserved:
+        type: string
+        title: Preserved
+        pattern: '[\s\S]+'
+      omissions:
+        type: string
+        title: Omitted
+        pattern: '[\s\S]+'
+      evidence_plan:
+        type: string
+        title: Evidence plan
+        pattern: '[\s\S]+'
+      limits:
+        type: string
+        title: Limits
+        pattern: '[\s\S]+'
+  ExperimentSource:
+    type: object
+    x-owner: ExperimentDesign
+    additionalProperties: false
+    required:
+    - title
+    - url
+    properties:
+      title:
+        type: string
+        pattern: '[\s\S]+'
+      url:
+        type: string
+        pattern: ^https://

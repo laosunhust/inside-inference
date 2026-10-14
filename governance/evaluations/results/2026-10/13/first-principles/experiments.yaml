@@ -1,0 +1,45 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/first-principles/experiments.yaml
+evaluation_sha256: 40adbca0cf9c42efb6681093bad30ae3c2a9a84839588ad710a2cd575a2c1c30
+outcome: passed
+summary: 'Labs are now declared experiments. A new ExperimentDesign concept owns data/experiments/catalog.yaml,
+  whose six experiments each carry a question, ontology binding, ExperimentSpec settings, missing controls,
+  a required abstraction contract (target regime, preserved, omitted, evidence plan, limits), sources and
+  evidence paths. Status is derived: reference-execution and kv-residency are executable; prefill-decode,
+  speculative-decoding and positional-encoding are planned; constrained-fleet is a composite over InferenceSystem
+  lacking hardware pool, network topology, service requirements, execution placement, tensor parallelism
+  and expert placement. Durable content of the naive-GPT, KV-residency and speculative-decoding specifications
+  moved into contract fields; the stale claim that only learned positions execute was corrected.
+
+
+  The Inference system dialog lists every experiment. Apply replaces the ExecutionSpec with the declared
+  settings and reloads the model when it changes; planned experiments show the controls they need and
+  offer no Apply. Deleted: catalog/, the KDA recurrence demo, its page script and tests, labs-by-concept.html,
+  generated lab and contract pages, header, inspector and system-map lab links, the three migrated specifications
+  and 21 dead lab stylesheet rules. Incoming links were updated; methodology and the constrained-fleet
+  narrative remain.
+
+
+  Admission rejects duplicate ids, controls assigned twice, missing controls that are declared, absent
+  evidence files, unknown ontology concepts (with suggestions), incomplete contracts, authored status
+  and non-HTTPS sources. A unit test proves every executable experiment resolves through the real resolve_execution
+  rule rather than a copy. Governance now rejects standalone lab page links and handwritten experiment
+  registries and requires homes for experiment subjects; the existing lab cases were retargeted under recorded
+  owner approval. The browser check verifies all six cards, applies kv-residency and then reference-execution,
+  and confirms the executed request carries exactly the declared settings.
+
+
+  make test passed 103 tests in 4.88s of 10s; make test-integration passed in 45.07s of 100s. Desktop and
+  390 px screenshots were reviewed after removing an inherited 35 px margin from a dead KDA rule; no horizontal
+  overflow. check.mjs reached the authored-file limit, so experiment and recomputation checks moved to their
+  own modules without removing assertions.
+
+
+  Limits: missing controls are roadmap names, not implementations. A complete contract is not evidence
+  that its abstraction is valid. Deleting the KDA demo removes a recurrence illustration with no integrated
+  replacement.'
+evidence:
+- data/experiments/catalog.yaml
+- tests/unit/contracts/test_experiments.py
+- scripts/check/story_models/experiments.mjs
+- web/inspection/experiments.js

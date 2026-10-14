@@ -242,12 +242,11 @@ class GovernanceTests(unittest.TestCase):
 
     def test_ontology_binding_rejects_invented_duplicate_and_missing_subjects(self):
         from inside_inference.declarations_generated import OntologyBinding
-        from scripts.build.contracts import lab_bindings
-        import json
+        from scripts.build.contracts import experiment_catalog, CATALOG
         ontology, schema = load_declarations(), load_schema()
         good = {'primary':'PositionEncoding', 'related':['Embedding','Attention']}
         OntologyBinding.from_dict(good)
-        catalog = json.loads((ROOT/'catalog/stack.json').read_text())
+        catalog = read_yaml(ROOT/CATALOG)
         for bad in ({'primary':'PositionEncodng','related':[]},
                     {'primary':'PositionEncoding','related':['ImaginaryAttention']},
                     {'primary':'PositionEncoding','related':['Attention','Attention']},
@@ -255,21 +254,21 @@ class GovernanceTests(unittest.TestCase):
                     {'related':['Attention']}, {'primary':['Attention'],'related':[]}):
             with self.subTest(binding=bad):
                 with self.assertRaises(ValueError): OntologyBinding.from_dict(bad)
-                forged = copy.deepcopy(catalog); forged['innovations'][0]['ontology_binding'] = bad
-                with self.assertRaisesRegex(ValueError, r'innovations\[naive-gpt\]\.ontology_binding'):
-                    lab_bindings(ROOT, ontology, schema, catalog=forged)
+                forged = copy.deepcopy(catalog); forged['experiments'][0]['ontology_binding'] = bad
+                with self.assertRaisesRegex(ValueError, r'experiments\[0\]\.ontology_binding'):
+                    experiment_catalog(ROOT, ontology, schema, catalog=forged)
         forged = copy.deepcopy(catalog)
-        forged['innovations'][0]['ontology_binding'] = {'primary':'PositionEncodng','related':[]}
+        forged['experiments'][0]['ontology_binding'] = {'primary':'PositionEncodng','related':[]}
         with self.assertRaisesRegex(ValueError, "Suggestions:.*PositionEncoding"):
-            lab_bindings(ROOT, ontology, schema, catalog=forged)
+            experiment_catalog(ROOT, ontology, schema, catalog=forged)
         missing = copy.deepcopy(ontology); del missing['terms']['PositionEncoding']
         with self.assertRaisesRegex(ValueError,'unknown ontology concept'):
-            lab_bindings(ROOT, missing, schema, catalog=catalog)
+            experiment_catalog(ROOT, missing, schema, catalog=catalog)
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory)
-            for folder in ('docs/ontology','data-model','catalog'):
+            for folder in ('docs/ontology','data-model','data/experiments'):
                 shutil.copytree(ROOT/folder,root/folder)
-            (root/'catalog/stack.json').write_text(json.dumps(forged))
+            (root/CATALOG).write_text(yaml.safe_dump(forged))
             with self.assertRaisesRegex(ValueError, 'unknown ontology concept'):
                 outputs(root)
 
@@ -312,9 +311,9 @@ class GovernanceTests(unittest.TestCase):
 class FrontendGovernanceTests(unittest.TestCase):
     def test_frontend_rejects_semantic_drift(self):
         from scripts.check.governance.frontend import audit_frontend_source, audit_frontend
-        from scripts.build.contracts import lab_bindings
+        from scripts.build.contracts import experiment_catalog
         ontology, spec = load_declarations(), load_schema()
-        labs = lab_bindings(ROOT, ontology, spec)
+        labs = {e['id']: e['ontology_binding'] for e in experiment_catalog(ROOT, ontology, spec)}
         def check(source, suffix='.html'):
             return audit_frontend_source(Path('web/probe'+suffix), source, ontology, spec, labs)
         self.assertEqual(check('<button data-operation="attention" data-term="Attention"></button>'), [])
@@ -325,13 +324,13 @@ class FrontendGovernanceTests(unittest.TestCase):
             ('<button data-term="Attention" data-operation="invented"></button>', '.html', 'does not belong'),
             ('<a href="ontology.html#Invented">x</a>', '.html', 'unknown ontology anchor'),
             ('const url="ontology.html#Invented";', '.js', 'unknown ontology anchor'),
-            ('<a href="labs/invented.html">x</a>', '.html', 'unknown lab'),
+            ('<a href="labs/invented.html">x</a>', '.html', 'retired standalone lab'),
             ('<section data-primary="Attention">x</section>', '.html', 'handwritten ownership'),
             ('<details data-map-area="engine"></details>', '.html', 'handwritten system map'),
             ('const inferenceMap=[];', '.js', 'handwritten semantic registry'),
             ("const x={ontology_binding:{primary:'Attention',related:[]}};", '.js', 'handwritten ontology_binding'),
             ('const operationOwners={attention:"Embedding"};', '.js', 'handwritten semantic registry'),
-            ('Declarations.labs=[];', '.js', 'cannot replace'),
+            ('Declarations.experiments=[];', '.js', 'cannot replace'),
             ('const field={minimum:1};', '.js', 'handwritten field limit'),
         ]
         for source, suffix, message in cases:
@@ -341,9 +340,9 @@ class FrontendGovernanceTests(unittest.TestCase):
 
     def test_system_map_admits_one_tree_and_rejects_unexplainable_controls(self):
         from scripts.check.governance.frontend import audit_system_map
-        from scripts.build.contracts import lab_bindings
+        from scripts.build.contracts import experiment_catalog
         ontology, spec = load_declarations(), load_schema()
-        labs = lab_bindings(ROOT, ontology, spec)
+        labs = {e['id']: e['ontology_binding'] for e in experiment_catalog(ROOT, ontology, spec)}
         self.assertEqual(audit_system_map(ontology, spec, labs), [])
         def duplicate(m): m['nodes'].append(copy.deepcopy(m['nodes'][1]))
         def owner(m): m['nodes'][1]['owner'] = m['nodes'][2]['owner']

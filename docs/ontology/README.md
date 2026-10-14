@@ -75,7 +75,7 @@ without duplicating their capacity.
 Calibrated hardware profiles, topology execution, deployment controllers, and
 optimization objectives are pending. ResourceGraph now declares hypothetical nodes
 and directed links; it does not execute a fleet. The separately owned components of `KVResidencySystemConfig` carry hypothetical limits and rates; `ExecutionBackend` identifies actual execution.
-Neither is a calibrated hardware model. The [KV lab](../labs/kv-residency.md) owns
+Neither is a calibrated hardware model. The [KV residency experiment](../../data/experiments/catalog.yaml) owns
 the implemented boundary and evidence.
 
 ## System optimization direction
@@ -112,15 +112,17 @@ therefore derived from the same declarations as the execution evidence.
 
 ExperimentSpec owns `OntologyBinding`: exactly one `primary` concept and unique
 `related` concepts that exclude the primary. Reference choices are generated
-from admitted ontology; do not maintain an enum elsewhere. Catalog experiments
-must declare this binding. The build reports unknown concepts with their catalog
-path and suggestions; generated Python and browser validators enforce the same
+from admitted ontology; do not maintain an enum elsewhere. Every declared
+experiment in the [experiment catalog](../../data/experiments/catalog.yaml) carries
+this binding. The build reports unknown concepts with their catalog path and suggestions; generated Python and browser validators enforce the same
 reference and uniqueness rules in records and submitted inputs.
 
-Fixed lab endpoints retain their declared subjects in resolved specifications and
-reject incompatible bindings. Association identifies what is being studied, not
+The KV residency execution retains its declared subjects in resolved specifications
+and rejects incompatible bindings. Association identifies what is being studied, not
 proof that an experiment is correct or that every associated concept is changed.
-The generated step-level Ontology and Labs links use these owners and bindings.
+ExperimentDesign owns experiments: settings, missing controls and an abstraction
+contract. Planned experiments name controls that do not exist yet; that is a roadmap
+statement, not an implementation.
 
 ## Shared system hierarchy
 
@@ -131,7 +133,7 @@ boundary declarations; a component is not necessarily a separate process or prod
 Artifacts and numerical mechanisms appear below their containing responsibilities.
 Cross-component relationships are references, not additional containment parents.
 
-Every ExperimentSpec primary and related owner, operation owner and lab subject
+Every ExperimentSpec primary and related owner, operation owner and experiment subject
 must have a home. Every node has an ontology explanation; every configurable control
 also exposes its applied value in Explanation. An unavailable editor means that an
 experiment has not been implemented yet, not that the component is permanently
@@ -145,8 +147,8 @@ explanation ownership. One renderer supplies the structure to both surfaces.
 Customer interaction stays outside the system boundary. Response publication is not
 proof of customer receipt. Expanding a component changes navigation only; replay opens
 ancestors of the selected computation. Numerical evidence still describes the selected
-model and supported capture capability. Primary lab links do not imply that their
-mechanism is selectable in the current execution.
+model and supported capture capability. A listed experiment is selectable only when
+it lacks no controls.
 
 These boundaries remain hypotheses. A paper may require new semantics, configuration
 or evidence; Transformer ancestry does not guarantee coverage. Vendor software may

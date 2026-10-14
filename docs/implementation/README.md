@@ -11,7 +11,7 @@ representativeness.
 | --- | --- |
 | Exact input encoding, framing, byte fallback, and trace decisions | [Tokenizer](tokenizer.md) |
 | Decoder block, full-prefix recomputation, numerical precision, selection | [Naïve inference](naive-inference.md) |
-| Cached continuation, exact prefix reuse, residency and resource evidence | [KV residency lab](../labs/kv-residency.md) |
+| Cached continuation, exact prefix reuse, residency and resource evidence | [KV residency experiment](../../data/experiments/catalog.yaml) |
 | Obtaining compatible weights as supporting infrastructure | [Model preparation](model-preparation.md) |
 
 Read [architecture](../architecture/README.md) for workload and presentation boundaries,

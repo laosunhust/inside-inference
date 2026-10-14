@@ -9,8 +9,7 @@ export async function checkMap({evaluate,send},initial=false) {
       return {id:e.dataset.mapNode,owner:e.dataset.owner,parent:e.parentElement.closest('.map-node')?.dataset.mapNode??null,path:ids,label:e.querySelector(':scope>button')?.textContent??null,meaning:e.querySelector(':scope>.map-body>.map-description>p')?.textContent,open:!e.querySelector(':scope>.map-body').hidden};
     });
     return {expected:map.nodes.map(n=>({...n,path:path(n),meaning:Declarations.meanings[n.owner].meaning})),explanation:actual('#system-map'),configuration:actual('#configure-system'),
-      links:Array.from(document.querySelectorAll('#system-map .map-links a'),a=>a.getAttribute('href')),
-      labLinks:Declarations.labs.filter(l=>l.status==='mechanical-demo').map(l=>'labs/'+l.id+'.html')};
+      links:Array.from(document.querySelectorAll('#system-map .map-links a'),a=>a.getAttribute('href'))};
   })()`);
   const structure=nodes=>nodes.map(({id,owner,parent,path,label})=>({id,owner,parent,path,label}));
   assert.deepEqual(structure(result.configuration),structure(result.explanation),'Configuration and Explanation must have identical full containment paths');
@@ -21,7 +20,7 @@ export async function checkMap({evaluate,send},initial=false) {
   assert.equal(await evaluate("document.getElementById('numerics').contains(document.getElementById('switch-inspection')) && !document.getElementById('system-map').contains(document.getElementById('switch-inspection'))"),true);
   assert.equal(await evaluate("document.getElementById('numerics').open"),await evaluate("document.getElementById('inspection-unavailable').hidden"));
   assert.ok(!result.expected.some(n=>['CustomerInteraction','GenerationPolicy'].includes(n.owner)));
-  assert.deepEqual(result.links.filter(l=>l.startsWith('labs/')).sort(),result.labLinks.sort());
+  assert.deepEqual(result.links.filter(l=>l.startsWith('labs/')),[],'Experiments are configured on the main page, not standalone lab pages');
   const principles=await evaluate(`Array.from(document.querySelectorAll('#system-map .map-node'),e=>({owner:e.dataset.owner,root:e.classList.contains('map-root'),
     summary:e.querySelector(':scope>.map-body>.map-description>summary').textContent,
     rendered:Array.from(e.querySelectorAll(':scope>.map-body>.map-description>.principle'),p=>({id:p.dataset.principle,math:p.querySelectorAll('.katex').length,errors:p.querySelectorAll('.katex-error').length,code:p.querySelector('.principle-code code').textContent.length})),

@@ -18,9 +18,6 @@ globalThis.InspectionDetails=(()=>{
     $('detail-title').textContent=stage?.label || node?.operation.name || ({request:'Input tokens',workload:'Workload',system:'Execution',client:'Client',selection:'Next-token selection',response:'Output'})[view.surface];
     $('definition').textContent='';
     $('definition-link').href='ontology.html#'+owner;
-    const labs=Declarations.labs.filter(l=>l.ontology_binding.primary===owner&&l.status==='mechanical-demo');
-    $('labs-link').hidden=!labs.length;$('labs-empty').hidden=!!labs.length;
-    $('labs-link').textContent=`Labs (${labs.length}) ↗`;if(labs.length)$('labs-link').href='labs-by-concept.html#'+owner;else $('labs-link').removeAttribute('href');
     $('inspection-context').dataset.observationId=node?.id || '';
     $('inspection-context').dataset.surface=view.surface;
     $('inspection-context').dataset.position=view.position;

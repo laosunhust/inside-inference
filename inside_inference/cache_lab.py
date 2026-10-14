@@ -3,7 +3,7 @@ from collections import OrderedDict, deque
 import math
 from time import perf_counter_ns
 
-from inside_inference.declarations_generated import OntologyBinding, LAB_BINDINGS, KVExperimentInput, KVRunBinding, ModelArtifactReference, CacheRun, RunOutcome
+from inside_inference.declarations_generated import OntologyBinding, EXPERIMENTS, KVExperimentInput, KVRunBinding, ModelArtifactReference, CacheRun, RunOutcome
 from inside_inference.generation import select_greedy
 from inside_inference.kv_runtime import ReferenceRuntime, state_bytes
 from inside_inference.model import Model, identity, default_checkpoint, parameter_shapes
@@ -19,7 +19,7 @@ def default_experiment():
     workload['requests'] = [dict(first, request_id=f'r{i+1}', arrival_us=t)
                             for i,t in enumerate((0, 0, 10000))]
     return {'system':KVResidencySystemConfig().to_dict(), 'workload':workload,
-            'ontology_binding':OntologyBinding.from_dict(LAB_BINDINGS['prefix-cache']).to_dict()}
+            'ontology_binding':OntologyBinding.from_dict(EXPERIMENTS['kv-residency']['ontology_binding']).to_dict()}
 
 
 def logical_record(record):
@@ -47,7 +47,7 @@ def replay_cache(record):
 
 def run_cache_experiment(spec=None, *, checkpoint=None):
     spec = KVExperimentInput.from_dict(default_experiment() if spec is None else spec)
-    if spec.ontology_binding.to_dict() != LAB_BINDINGS['prefix-cache']:
+    if spec.ontology_binding.to_dict() != EXPERIMENTS['kv-residency']['ontology_binding']:
         raise ValueError('KV residency ontology binding differs from the declared experiment')
     codec = Tokenizer()
     checkpoint = default_checkpoint() if checkpoint is None else checkpoint

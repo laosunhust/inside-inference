@@ -4,7 +4,7 @@ This document owns code boundaries and navigation for the connected instrument.
 [Purpose](../purpose/README.md) owns the fixed-vocabulary learning scope;
 [ontology](../ontology/README.md) owns shared meanings; the catalog owns lab
 placement. The main page selects identified artifacts from the [model inventory](../../data/models/README.md),
-with the 4M continuation model initially selected and the 8K model available for numerical inspection. The [KV residency lab](../labs/kv-residency.md) adds cached
+with the 4M continuation model initially selected and the 8K model available for numerical inspection. The [KV residency experiment](../../data/experiments/catalog.yaml) adds cached
 execution and a bounded resource scheduler alongside that explicit reference.
 
 ## One experiment, three panels
@@ -27,9 +27,8 @@ naïve inference, KV reuse, lossless state handoff, ordinary multi-head attentio
 then shared-KV variants.
 Both prefill and decode use the same declared attention configuration.
 
-KDA is a possible later choice. Its existing standalone recurrence demo is a side
-lab, not a foundation dependency or an integrated model option. Do not offer an
-enabled switch before its execution path and correctness checks exist.
+Recurrent state mechanisms such as KDA are possible later choices. Do not offer an
+enabled switch before their execution path and correctness checks exist.
 
 ## First principles
 

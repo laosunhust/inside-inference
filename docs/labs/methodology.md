@@ -127,7 +127,7 @@ A first connected simulator should be deliberately small: a reproducible request
 bounded execution resources, prefix-state residency, and explicit service
 and transfer assumptions. Add queues and competing requests when studying contention. First make its baseline timeline inspectable. Then
 change one policy and replay the same workload. The main-page
-[KV residency experiment](kv-residency.md) implements a bounded,
+[KV residency experiment](../../data/experiments/catalog.yaml) implements a bounded,
 idealized instance of this direction. It is not a production serving engine
 or a validated predictor of real-system timings.
 

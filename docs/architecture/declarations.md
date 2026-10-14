@@ -63,16 +63,16 @@ by independent forward calculations.
 
 ## Generated presentation
 
-`catalog/stack.json` owns lab identities, availability, questions, and ontology
-bindings. Ontology YAML owns concept meanings and declaration ownership. The build
-projects both into `labs-by-concept.html`, individual lab pages, and ontology views;
-related subjects cross-reference a single primary listing. Browser operation owners
+The [experiment catalog](../../data/experiments/catalog.yaml) declares every lab as
+ExperimentSpec settings, missing controls and an abstraction contract; ExperimentDesign
+owns it and generation publishes it to Python and the browser. An experiment is
+executable exactly when it lacks no controls. The Inference system configuration
+applies executable experiments; there are no standalone lab pages. Browser operation owners
 come from generated declarations. Templates select operations by reference, which
 frontend admission checks against the selected ontology projection.
 
-Request controls consume generated field constraints. Standalone KDA controls consume Python-produced recurrence traces; they are not
-a configurable replacement for the GPT baseline. That component demo remains
-outside the main execution envelope. KV residency uses the main page.
+Request controls consume generated field constraints. KV residency and every other
+executable experiment use the main page.
 
 Governance rejects unknown literal ontology/lab references, mismatched template
 operation owners, authored lab listings, and common forms of handwritten browser

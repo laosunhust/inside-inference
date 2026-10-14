@@ -153,6 +153,16 @@ import './session.js';
   configuration=ExecutionConfiguration.mount(()=>state.input.execution,async(control,value)=>{
     stop();state=S.configure(state,control,value);clearPanels();await prepare();
   });
+  async function applyExperiment(experiment) {
+    // An experiment replaces the whole ExecutionSpec; prior evidence is invalidated like any change.
+    stop();const execution={experiments:structuredClone(experiment.settings)};
+    Declarations.assertShape('ExecutionSpec',execution);
+    const model=execution.experiments.find(e=>e.control==='model').value,same=state.loaded?.model.id===model;
+    state=S.reset({...state,input:{...state.input,execution},prepared:null,loaded:same?state.loaded:null});
+    $('model-choice').value=model;clearPanels();
+    if(same){render();await prepare();}else await changeModel(model);
+  }
+  Experiments.mount($('experiments'),applyExperiment);
   resources=resourceExperiment(()=>state.input,async input=>{
     stop();state=S.reset({...state,input,prepared:null});$('prompt').value=input.workload.requests[0].request.text;$('output-budget').value=input.workload.requests[0].request.generation.max_new_tokens;clearPanels();render();await prepare();
   },view=>inspect(view),configuration);

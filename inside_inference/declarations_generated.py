@@ -4,7 +4,7 @@ from typing import Any
 from inside_inference.contract_runtime import Declaration
 
 EXECUTION_OPERATIONS = {'replayCache': {'request': 'ExecutionReplayInput', 'response': 'CacheRun'}, 'modelCatalog': {'request': None, 'response': 'ModelCatalog'}, 'loadModel': {'request': 'ModelSelection', 'response': 'ModelLoadResult'}, 'prepareGeneration': {'request': 'GenerationInput', 'response': 'GenerationPrepared'}, 'generateToken': {'request': 'GenerationStep', 'response': 'GenerationPrediction'}, 'simulateResources': {'request': 'GenerationInput', 'response': 'ResourceExecution'}}
-CONTRACT_SHA256 = 'f010b7bb52f4092f8442d6995d0774dd0d41c75d5332be79a3d9e45490a8398f'
+CONTRACT_SHA256 = '9b5bcf0d7d9b9941c83e4f8f3759e7da6e3503c98ea1f5d4f4a42367e5677952'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -770,6 +770,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                          'Embedding',
                                                          'ExecutionBackend',
                                                          'ExecutionSpec',
+                                                         'ExperimentDesign',
                                                          'ExperimentEvent',
                                                          'ExperimentExecution',
                                                          'ExperimentObservation',
@@ -821,6 +822,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                    'Embedding',
                                                                    'ExecutionBackend',
                                                                    'ExecutionSpec',
+                                                                   'ExperimentDesign',
                                                                    'ExperimentEvent',
                                                                    'ExperimentExecution',
                                                                    'ExperimentObservation',
@@ -884,6 +886,9 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                {'if': {'properties': {'primary': {'const': 'ExecutionSpec'}}},
                                 'then': {'properties': {'related': {'type': 'array',
                                                                     'not': {'contains': {'const': 'ExecutionSpec'}}}}}},
+                               {'if': {'properties': {'primary': {'const': 'ExperimentDesign'}}},
+                                'then': {'properties': {'related': {'type': 'array',
+                                                                    'not': {'contains': {'const': 'ExperimentDesign'}}}}}},
                                {'if': {'properties': {'primary': {'const': 'ExperimentEvent'}}},
                                 'then': {'properties': {'related': {'type': 'array',
                                                                     'not': {'contains': {'const': 'ExperimentEvent'}}}}}},
@@ -990,6 +995,110 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                         'lexemes '
                                                                         'for '
                                                                         'replay.'}}},
+ 'ExperimentCatalog': {'type': 'object',
+                       'x-owner': 'ExperimentDesign',
+                       'additionalProperties': False,
+                       'required': ['experiments'],
+                       'properties': {'experiments': {'type': 'array',
+                                                      'minItems': 1,
+                                                      'items': {'$ref': '#/$defs/ExperimentDesign'}}}},
+ 'ExperimentDesign': {'type': 'object',
+                      'x-owner': 'ExperimentDesign',
+                      'additionalProperties': False,
+                      'required': ['id',
+                                   'name',
+                                   'question',
+                                   'ontology_binding',
+                                   'settings',
+                                   'missing_controls',
+                                   'contract',
+                                   'sources',
+                                   'evidence'],
+                      'properties': {'id': {'type': 'string',
+                                            'pattern': '^[a-z][a-z0-9-]*$'},
+                                     'name': {'type': 'string',
+                                              'pattern': '[\\s\\S]+'},
+                                     'question': {'type': 'string',
+                                                  'pattern': '[\\s\\S]+'},
+                                     'ontology_binding': {'$ref': '#/$defs/OntologyBinding'},
+                                     'settings': {'type': 'array',
+                                                  'items': {'$ref': '#/$defs/ExperimentSpec'},
+                                                  'description': 'Controls '
+                                                                 'applied '
+                                                                 'together. An '
+                                                                 'experiment '
+                                                                 'with no '
+                                                                 'missing '
+                                                                 'controls '
+                                                                 'must form a '
+                                                                 'valid '
+                                                                 'ExecutionSpec.'},
+                                     'missing_controls': {'type': 'array',
+                                                          'uniqueItems': True,
+                                                          'items': {'type': 'string',
+                                                                    'pattern': '^[a-z][a-z0-9_]*$'},
+                                                          'description': 'Undeclared '
+                                                                         'controls '
+                                                                         'the '
+                                                                         'question '
+                                                                         'needs; '
+                                                                         'any '
+                                                                         'entry '
+                                                                         'makes '
+                                                                         'the '
+                                                                         'experiment '
+                                                                         'planned, '
+                                                                         'not '
+                                                                         'executable.'},
+                                     'contract': {'$ref': '#/$defs/AbstractionContract'},
+                                     'sources': {'type': 'array',
+                                                 'items': {'$ref': '#/$defs/ExperimentSource'}},
+                                     'evidence': {'type': 'array',
+                                                  'uniqueItems': True,
+                                                  'items': {'type': 'string',
+                                                            'pattern': '^[a-zA-Z0-9][a-zA-Z0-9._/-]*$'},
+                                                  'description': 'Repository '
+                                                                 'paths of '
+                                                                 'evaluation '
+                                                                 'results or '
+                                                                 'research '
+                                                                 'records '
+                                                                 'supporting '
+                                                                 'current '
+                                                                 'conclusions.'}}},
+ 'AbstractionContract': {'type': 'object',
+                         'x-owner': 'ExperimentDesign',
+                         'additionalProperties': False,
+                         'required': ['target_regime',
+                                      'preserved',
+                                      'omissions',
+                                      'evidence_plan',
+                                      'limits'],
+                         'properties': {'target_regime': {'type': 'string',
+                                                          'title': 'Target '
+                                                                   'regime',
+                                                          'pattern': '[\\s\\S]+'},
+                                        'preserved': {'type': 'string',
+                                                      'title': 'Preserved',
+                                                      'pattern': '[\\s\\S]+'},
+                                        'omissions': {'type': 'string',
+                                                      'title': 'Omitted',
+                                                      'pattern': '[\\s\\S]+'},
+                                        'evidence_plan': {'type': 'string',
+                                                          'title': 'Evidence '
+                                                                   'plan',
+                                                          'pattern': '[\\s\\S]+'},
+                                        'limits': {'type': 'string',
+                                                   'title': 'Limits',
+                                                   'pattern': '[\\s\\S]+'}}},
+ 'ExperimentSource': {'type': 'object',
+                      'x-owner': 'ExperimentDesign',
+                      'additionalProperties': False,
+                      'required': ['title', 'url'],
+                      'properties': {'title': {'type': 'string',
+                                               'pattern': '[\\s\\S]+'},
+                                     'url': {'type': 'string',
+                                             'pattern': '^https://'}}},
  'InspectionState': {'type': 'object',
                      'x-owner': 'InspectionState',
                      'additionalProperties': False,
@@ -2002,6 +2111,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                          'Embedding',
                                                          'ExecutionBackend',
                                                          'ExecutionSpec',
+                                                         'ExperimentDesign',
                                                          'ExperimentEvent',
                                                          'ExperimentExecution',
                                                          'ExperimentObservation',
@@ -2069,6 +2179,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                      'Embedding',
                                                                      'ExecutionBackend',
                                                                      'ExecutionSpec',
+                                                                     'ExperimentDesign',
                                                                      'ExperimentEvent',
                                                                      'ExperimentExecution',
                                                                      'ExperimentObservation',
@@ -2465,6 +2576,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                         'Embedding',
                                                         'ExecutionBackend',
                                                         'ExecutionSpec',
+                                                        'ExperimentDesign',
                                                         'ExperimentEvent',
                                                         'ExperimentExecution',
                                                         'ExperimentObservation',
@@ -2552,6 +2664,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                'Embedding',
                                                                'ExecutionBackend',
                                                                'ExecutionSpec',
+                                                               'ExperimentDesign',
                                                                'ExperimentEvent',
                                                                'ExperimentExecution',
                                                                'ExperimentObservation',
@@ -2615,6 +2728,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                              'Embedding',
                                                              'ExecutionBackend',
                                                              'ExecutionSpec',
+                                                             'ExperimentDesign',
                                                              'ExperimentEvent',
                                                              'ExperimentExecution',
                                                              'ExperimentObservation',
@@ -2678,6 +2792,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                'Embedding',
                                                                'ExecutionBackend',
                                                                'ExecutionSpec',
+                                                               'ExperimentDesign',
                                                                'ExperimentEvent',
                                                                'ExperimentExecution',
                                                                'ExperimentObservation',
@@ -2740,6 +2855,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                             'Embedding',
                                                             'ExecutionBackend',
                                                             'ExecutionSpec',
+                                                            'ExperimentDesign',
                                                             'ExperimentEvent',
                                                             'ExperimentExecution',
                                                             'ExperimentObservation',
@@ -2802,6 +2918,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                             'Embedding',
                                                             'ExecutionBackend',
                                                             'ExecutionSpec',
+                                                            'ExperimentDesign',
                                                             'ExperimentEvent',
                                                             'ExperimentExecution',
                                                             'ExperimentObservation',
@@ -2865,6 +2982,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                              'Embedding',
                                                              'ExecutionBackend',
                                                              'ExecutionSpec',
+                                                             'ExperimentDesign',
                                                              'ExperimentEvent',
                                                              'ExperimentExecution',
                                                              'ExperimentObservation',
@@ -2928,6 +3046,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                              'Embedding',
                                                              'ExecutionBackend',
                                                              'ExecutionSpec',
+                                                             'ExperimentDesign',
                                                              'ExperimentEvent',
                                                              'ExperimentExecution',
                                                              'ExperimentObservation',
@@ -2991,6 +3110,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                        'Embedding',
                                                                        'ExecutionBackend',
                                                                        'ExecutionSpec',
+                                                                       'ExperimentDesign',
                                                                        'ExperimentEvent',
                                                                        'ExperimentExecution',
                                                                        'ExperimentObservation',
@@ -3354,6 +3474,46 @@ class ExecutionReplayInput(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class AbstractionContract(Declaration):
+    target_regime: str
+    preserved: str
+    omissions: str
+    evidence_plan: str
+    limits: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class ExperimentSource(Declaration):
+    title: str
+    url: str
+
+
+@dataclass(frozen=True, kw_only=True)
+class ExperimentSpec(Declaration):
+    control: str
+    value: str | bool | dict[str, Any]
+    ontology_binding: OntologyBinding
+
+
+@dataclass(frozen=True, kw_only=True)
+class ExperimentDesign(Declaration):
+    id: str
+    name: str
+    question: str
+    ontology_binding: OntologyBinding
+    settings: tuple[ExperimentSpec, ...]
+    missing_controls: tuple[str, ...]
+    contract: AbstractionContract
+    sources: tuple[ExperimentSource, ...]
+    evidence: tuple[str, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class ExperimentCatalog(Declaration):
+    experiments: tuple[ExperimentDesign, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
 class InspectionState(Declaration):
     run_id: str | None
     position: int
@@ -3522,13 +3682,6 @@ class ModelLoadResult(Declaration):
     load_ms: float
     token_pieces: tuple[str, ...]
     parameters: ModelWeights | None
-
-
-@dataclass(frozen=True, kw_only=True)
-class ExperimentSpec(Declaration):
-    control: str
-    value: str | bool | dict[str, Any]
-    ontology_binding: OntologyBinding
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -3746,9 +3899,383 @@ class InferenceMap(Declaration):
     relationships: tuple[InferenceMapRelationship, ...]
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'RunOutcome': RunOutcome, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'OntologyBinding': OntologyBinding, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'TokenSelection': TokenSelection, 'CacheComputation': CacheComputation, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ExecutionReplayInput': ExecutionReplayInput, 'InspectionState': InspectionState, 'ApiError': ApiError, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Token': Token, 'Span': Span, 'Encoding': Encoding, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'ExperimentSpec': ExperimentSpec, 'ExecutionSpec': ExecutionSpec, 'GenerationInput': GenerationInput, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationWork': GenerationWork, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough, 'ResourceExecution': ResourceExecution, 'CollectiveCommunicationBoundary': CollectiveCommunicationBoundary, 'ComputeKernelBoundary': ComputeKernelBoundary, 'DeviceRuntimeBoundary': DeviceRuntimeBoundary, 'InferenceEngineBoundary': InferenceEngineBoundary, 'RequestEndpointBoundary': RequestEndpointBoundary, 'RequestRouterBoundary': RequestRouterBoundary, 'ResourcePoolBoundary': ResourcePoolBoundary, 'StateManagerBoundary': StateManagerBoundary, 'InferenceMapNode': InferenceMapNode, 'InferenceMapRelationship': InferenceMapRelationship, 'InferenceMap': InferenceMap}
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'RunOutcome': RunOutcome, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'OntologyBinding': OntologyBinding, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'TokenSelection': TokenSelection, 'CacheComputation': CacheComputation, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ExecutionReplayInput': ExecutionReplayInput, 'AbstractionContract': AbstractionContract, 'ExperimentSource': ExperimentSource, 'ExperimentSpec': ExperimentSpec, 'ExperimentDesign': ExperimentDesign, 'ExperimentCatalog': ExperimentCatalog, 'InspectionState': InspectionState, 'ApiError': ApiError, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Token': Token, 'Span': Span, 'Encoding': Encoding, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'ExecutionSpec': ExecutionSpec, 'GenerationInput': GenerationInput, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationWork': GenerationWork, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough, 'ResourceExecution': ResourceExecution, 'CollectiveCommunicationBoundary': CollectiveCommunicationBoundary, 'ComputeKernelBoundary': ComputeKernelBoundary, 'DeviceRuntimeBoundary': DeviceRuntimeBoundary, 'InferenceEngineBoundary': InferenceEngineBoundary, 'RequestEndpointBoundary': RequestEndpointBoundary, 'RequestRouterBoundary': RequestRouterBoundary, 'ResourcePoolBoundary': ResourcePoolBoundary, 'StateManagerBoundary': StateManagerBoundary, 'InferenceMapNode': InferenceMapNode, 'InferenceMapRelationship': InferenceMapRelationship, 'InferenceMap': InferenceMap}
 OPERATION_OWNERS = {'token_embedding': 'Embedding', 'embedding': 'Embedding', 'position_embedding': 'PositionEncoding', 'ln1_mean': 'Normalization', 'ln1_variance': 'Normalization', 'ln1': 'Normalization', 'ln2_mean': 'Normalization', 'ln2_variance': 'Normalization', 'ln2': 'Normalization', 'ln_final_mean': 'Normalization', 'ln_final_variance': 'Normalization', 'ln_final': 'Normalization', 'query': 'Attention', 'key': 'Attention', 'value': 'Attention', 'scores': 'Attention', 'causal_mask': 'Attention', 'attention': 'Attention', 'weighted_values': 'Attention', 'attention_output': 'Attention', 'attention_residual': 'ResidualAddition', 'ff_residual': 'ResidualAddition', 'ff_up': 'FeedForward', 'gelu': 'FeedForward', 'ff_down': 'FeedForward', 'logits': 'OutputProjection', 'input_ids': 'Tokenizer', 'retained_keys': 'KVState', 'retained_values': 'KVState'}
-LAB_BINDINGS = {'naive-gpt': {'primary': 'ModelExecution', 'related': ['Tokenizer', 'Embedding', 'PositionEncoding', 'Normalization', 'Attention', 'ResidualAddition', 'FeedForward', 'OutputProjection', 'Decoding', 'ModelArchitecture', 'ModelArtifact']}, 'kimi-delta-attention': {'primary': 'Attention', 'related': []}, 'prefix-cache': {'primary': 'KVCache', 'related': ['KVState', 'RequestScheduling', 'StateTransfer', 'ComputeService']}, 'prefill-decode': {'primary': 'StateTransfer', 'related': ['KVState', 'ModelExecution']}, 'speculative-decoding': {'primary': 'Decoding', 'related': ['ModelExecution', 'KVState']}, 'positional-encoding': {'primary': 'PositionEncoding', 'related': ['Embedding', 'Attention']}}
+EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
+                         'name': 'Reference model execution',
+                         'question': 'What happens to actual intermediate '
+                                     'values, and to next-token scores, when '
+                                     'one input changes while the vocabulary '
+                                     'and parameters stay fixed?',
+                         'ontology_binding': {'primary': 'ModelExecution',
+                                              'related': ['Tokenizer',
+                                                          'Embedding',
+                                                          'PositionEncoding',
+                                                          'Normalization',
+                                                          'Attention',
+                                                          'ResidualAddition',
+                                                          'FeedForward',
+                                                          'OutputProjection',
+                                                          'Decoding',
+                                                          'ModelArchitecture',
+                                                          'ModelArtifact']},
+                         'settings': [{'control': 'model',
+                                       'value': 'tinyllm-8k',
+                                       'ontology_binding': {'primary': 'ModelArtifact',
+                                                            'related': []}},
+                                      {'control': 'kv_reuse',
+                                       'value': False,
+                                       'ontology_binding': {'primary': 'KVCache',
+                                                            'related': ['ModelExecution']}}],
+                         'missing_controls': [],
+                         'contract': {'target_regime': 'One decoder-only '
+                                                       'causal Transformer '
+                                                       'executed by the shared '
+                                                       'NumPy engine; the 8K '
+                                                       'checkpoint exposes '
+                                                       'every intermediate '
+                                                       'tensor, the 0.5M and '
+                                                       '4M checkpoints expose '
+                                                       'logits.',
+                                      'preserved': 'Token IDs, embeddings and '
+                                                   'positions, normalization, '
+                                                   'causal attention, '
+                                                   'residuals, feed-forward '
+                                                   'activation, output '
+                                                   'projection and unmasked '
+                                                   'greedy selection over '
+                                                   'every vocabulary ID, with '
+                                                   'the declared stop '
+                                                   'conditions. Every '
+                                                   'continuation recomputes '
+                                                   'the prefix when KV reuse '
+                                                   'is off.',
+                                      'omissions': 'No scheduler, network, '
+                                                   'cache tiers, accelerator '
+                                                   'or training process. Host '
+                                                   'timings are not simulated '
+                                                   'device latency.',
+                                      'evidence_plan': 'Compare every '
+                                                       'intermediate tensor '
+                                                       'with independent '
+                                                       '50-digit Decimal '
+                                                       'equations, upstream '
+                                                       'exported logits and '
+                                                       'recorded fixtures; '
+                                                       'check causal '
+                                                       'counterfactuals, '
+                                                       'context boundaries, '
+                                                       'trace on/off equality '
+                                                       'and hand recomputation '
+                                                       'of displayed values.',
+                                      'limits': 'Correct tiny arithmetic '
+                                                'supports inspection of this '
+                                                'architecture, not learned '
+                                                'quality or production '
+                                                'performance. Width, scale and '
+                                                'inputs change attention '
+                                                'patterns, creating '
+                                                'false-positive and '
+                                                'false-negative risks for '
+                                                'judging optimizations.'},
+                         'sources': [],
+                         'evidence': ['governance/evaluations/results/2026-10/13/first-principles/python-engine.yaml',
+                                      'governance/evaluations/results/2026-10/13/first-principles/panel.yaml']},
+ 'kv-residency': {'id': 'kv-residency',
+                  'name': 'KV reuse, residency and misses',
+                  'question': 'When an exact reusable prefix is present, '
+                              'absent or retained in another memory tier under '
+                              'bounded capacity, when do lookup and transfer '
+                              'cost exceed the avoided prefill work?',
+                  'ontology_binding': {'primary': 'KVCache',
+                                       'related': ['KVState',
+                                                   'RequestScheduling',
+                                                   'StateTransfer',
+                                                   'ComputeService']},
+                  'settings': [{'control': 'model',
+                                'value': 'tinyllm-8k',
+                                'ontology_binding': {'primary': 'ModelArtifact',
+                                                     'related': []}},
+                               {'control': 'kv_reuse',
+                                'value': True,
+                                'ontology_binding': {'primary': 'KVCache',
+                                                     'related': ['ModelExecution']}},
+                               {'control': 'kv_cache',
+                                'value': {'device_kv_bytes': 16384,
+                                          'host_kv_bytes': 32768,
+                                          'retention_policy': 'whole-prefix-lru'},
+                                'ontology_binding': {'primary': 'KVCache',
+                                                     'related': ['KVState']}},
+                               {'control': 'scheduling',
+                                'value': {'max_active_requests': 2},
+                                'ontology_binding': {'primary': 'RequestScheduling',
+                                                     'related': []}},
+                               {'control': 'transfer',
+                                'value': {'link_bytes_per_us': 100,
+                                          'link_latency_us': 10},
+                                'ontology_binding': {'primary': 'StateTransfer',
+                                                     'related': ['KVState']}},
+                               {'control': 'compute_service',
+                                'value': {'compute_flops_per_us': 1000,
+                                          'memory_bytes_per_us': 1000},
+                                'ontology_binding': {'primary': 'ComputeService',
+                                                     'related': []}}],
+                  'missing_controls': [],
+                  'contract': {'target_regime': 'Exact whole-prefix reuse for '
+                                                'the 8K checkpoint in two '
+                                                'logical memory pools, with '
+                                                'FIFO admission of full '
+                                                'maximum-sequence reservations '
+                                                'and one serialized service '
+                                                'resource.',
+                               'preserved': 'Actual computed K/V, checkpoint '
+                                            'and tokenizer identity, causal '
+                                            'positions, raw-logit selection '
+                                            'and termination. A hit still '
+                                            'executes a real forward step; '
+                                            'logical hit, local hit, remote '
+                                            'hit and miss stay distinct, and '
+                                            'active state is never silently '
+                                            'evicted.',
+                               'omissions': 'No partial-prefix paging, '
+                                            'batching, compute/transfer '
+                                            'overlap, preemption or network '
+                                            'fabric. Compute service is '
+                                            'max(FLOPs / compute rate, logical '
+                                            'bytes / memory rate); transfer is '
+                                            'latency plus bytes over link '
+                                            'rate. Weights and workspace sit '
+                                            'outside the KV budget.',
+                               'evidence_plan': 'Compare cached and uncached '
+                                                'execution; reject identity, '
+                                                'mask, position and context '
+                                                'mismatches; cover cold, warm, '
+                                                'changed-prefix and eviction '
+                                                'cases, resource conservation, '
+                                                'backpressure, exact logical '
+                                                'replay and browser '
+                                                'headless/interactive parity.',
+                               'limits': 'Declared service rates are '
+                                         'hypotheses for controlled '
+                                         'sensitivity, not a calibrated '
+                                         'accelerator model. Browser wall time '
+                                         'is not HBM, PCIe or GPU timing, and '
+                                         'screening real hardware needs '
+                                         'calibration.'},
+                  'sources': [],
+                  'evidence': ['docs/research/kv-residency-2026-10-09.md']},
+ 'prefill-decode': {'id': 'prefill-decode',
+                    'name': 'Prefill/decode KV handoff',
+                    'question': 'Does continuation after a lossless KV handoff '
+                                'across a declared logical boundary produce '
+                                'the same logits as uninterrupted execution?',
+                    'ontology_binding': {'primary': 'StateTransfer',
+                                         'related': ['KVState',
+                                                     'ModelExecution']},
+                    'settings': [{'control': 'model',
+                                  'value': 'tinyllm-8k',
+                                  'ontology_binding': {'primary': 'ModelArtifact',
+                                                       'related': []}},
+                                 {'control': 'kv_reuse',
+                                  'value': True,
+                                  'ontology_binding': {'primary': 'KVCache',
+                                                       'related': ['ModelExecution']}}],
+                    'missing_controls': ['execution_placement',
+                                         'state_handoff'],
+                    'contract': {'target_regime': 'Two declared execution '
+                                                  'locations for one model, '
+                                                  'with exported and imported '
+                                                  'KV state between prefill '
+                                                  'and decode.',
+                                 'preserved': 'Exact K/V payload, positions, '
+                                              'checkpoint and tokenizer '
+                                              'identity, and the '
+                                              "continuation's logits.",
+                                 'omissions': 'No placement optimizer, real '
+                                              'fabric, vendor format '
+                                              'conversion or full '
+                                              'disaggregated serving.',
+                                 'evidence_plan': 'Compare continuation logits '
+                                                  'after handoff with '
+                                                  'uninterrupted execution; '
+                                                  'reject incompatible '
+                                                  'identity, precision or '
+                                                  'positions.',
+                                 'limits': 'Lossless logical handoff only; '
+                                           'movement cost needs the resource '
+                                           'model and real measurements.'},
+                    'sources': [],
+                    'evidence': []},
+ 'speculative-decoding': {'id': 'speculative-decoding',
+                          'name': 'Speculative decoding',
+                          'question': 'What happens when the first candidate '
+                                      'is rejected, every candidate is '
+                                      'accepted, or draft overhead exceeds the '
+                                      'saved target work?',
+                          'ontology_binding': {'primary': 'Decoding',
+                                               'related': ['ModelExecution',
+                                                           'KVState']},
+                          'settings': [{'control': 'model',
+                                        'value': 'tinyllm-4m',
+                                        'ontology_binding': {'primary': 'ModelArtifact',
+                                                             'related': []}},
+                                       {'control': 'kv_reuse',
+                                        'value': True,
+                                        'ontology_binding': {'primary': 'KVCache',
+                                                             'related': ['ModelExecution']}}],
+                          'missing_controls': ['draft_model', 'speculation'],
+                          'contract': {'target_regime': 'A smaller draft '
+                                                        'proposes tokens that '
+                                                        'the target verifies '
+                                                        'under greedy '
+                                                        'decoding, with fixed '
+                                                        'target weights, '
+                                                        'tokenizer, prompt and '
+                                                        'output policy.',
+                                       'preserved': 'Exact agreement with '
+                                                    'target-only greedy '
+                                                    'output; proposals, '
+                                                    'verification, acceptance '
+                                                    'and rollback as distinct '
+                                                    'events; rejected work '
+                                                    'still counts as '
+                                                    'operations and bytes.',
+                                       'omissions': 'Distribution-preserving '
+                                                    'sampling is a separate '
+                                                    'experiment. No '
+                                                    'accelerator speedup '
+                                                    'prediction from browser '
+                                                    'timings.',
+                                       'evidence_plan': 'Compare with '
+                                                        'target-only greedy '
+                                                        'decoding, including a '
+                                                        'deliberately poor '
+                                                        'draft, first-token '
+                                                        'rejection, full '
+                                                        'acceptance, terminal '
+                                                        'tokens and budget and '
+                                                        'context boundaries.',
+                                       'limits': 'Acceptance rate alone is not '
+                                                 'a performance result; serial '
+                                                 'execution can hide efficient '
+                                                 'parallel verification.'},
+                          'sources': [{'title': 'Fast Inference from '
+                                                'Transformers via Speculative '
+                                                'Decoding, ICML 2023',
+                                       'url': 'https://proceedings.mlr.press/v202/leviathan23a.html'}],
+                          'evidence': []},
+ 'positional-encoding': {'id': 'positional-encoding',
+                         'name': 'Positional encoding',
+                         'question': 'What happens if the same token appears '
+                                     'at a different position, under each '
+                                     'declared position mechanism?',
+                         'ontology_binding': {'primary': 'PositionEncoding',
+                                              'related': ['Embedding',
+                                                          'Attention']},
+                         'settings': [{'control': 'model',
+                                       'value': 'tinyllm-8k',
+                                       'ontology_binding': {'primary': 'ModelArtifact',
+                                                            'related': []}},
+                                      {'control': 'kv_reuse',
+                                       'value': False,
+                                       'ontology_binding': {'primary': 'KVCache',
+                                                            'related': ['ModelExecution']}}],
+                         'missing_controls': ['position_encoding'],
+                         'contract': {'target_regime': 'Learned absolute '
+                                                       'positions (8K) and '
+                                                       'rotary positions (0.5M '
+                                                       'and 4M) as executed; '
+                                                       'alternatives on fixed '
+                                                       'weights need '
+                                                       'compatible training.',
+                                      'preserved': 'Where position enters the '
+                                                   'computation, as stated by '
+                                                   'the '
+                                                   'learned-absolute-position '
+                                                   'and rotary-position '
+                                                   'principles.',
+                                      'omissions': 'Comparing different '
+                                                   'checkpoints confounds '
+                                                   'position with every other '
+                                                   'trained difference; ALiBi '
+                                                   'is not implemented.',
+                                      'evidence_plan': 'Matched-training '
+                                                       'comparisons with '
+                                                       'position as the only '
+                                                       'intervention, plus '
+                                                       'counterfactual token '
+                                                       'placement.',
+                                      'limits': 'Not a hot swap or quality '
+                                                'comparison until matched '
+                                                'checkpoints exist.'},
+                         'sources': [{'title': 'Attention Is All You Need',
+                                      'url': 'https://arxiv.org/abs/1706.03762'},
+                                     {'title': 'RoFormer',
+                                      'url': 'https://arxiv.org/abs/2104.09864'},
+                                     {'title': 'ALiBi',
+                                      'url': 'https://arxiv.org/abs/2108.12409'}],
+                         'evidence': []},
+ 'constrained-fleet': {'id': 'constrained-fleet',
+                       'name': 'Constrained heterogeneous fleet',
+                       'question': 'When a model and workload must be served '
+                                   'from a fixed mixed fleet that no single '
+                                   'homogeneous island can host, what is '
+                                   'feasible, what fails first, how does '
+                                   'service degrade under failure, and which '
+                                   'additions would meet requirements?',
+                       'ontology_binding': {'primary': 'InferenceSystem',
+                                            'related': ['ResourcePool',
+                                                        'StateTransfer',
+                                                        'RequestScheduling',
+                                                        'KVCache',
+                                                        'ComputeService']},
+                       'settings': [{'control': 'model',
+                                     'value': 'tinyllm-4m',
+                                     'ontology_binding': {'primary': 'ModelArtifact',
+                                                          'related': []}},
+                                    {'control': 'kv_reuse',
+                                     'value': True,
+                                     'ontology_binding': {'primary': 'KVCache',
+                                                          'related': ['ModelExecution']}}],
+                       'missing_controls': ['hardware_pool',
+                                            'network_topology',
+                                            'service_requirements',
+                                            'execution_placement',
+                                            'tensor_parallelism',
+                                            'expert_placement'],
+                       'contract': {'target_regime': 'A composite over '
+                                                     'InferenceSystem '
+                                                     'combining a declared '
+                                                     'fleet graph, model '
+                                                     'structure, workload, '
+                                                     'requirements and '
+                                                     'constraints; see '
+                                                     'docs/labs/constrained-fleet.md.',
+                                    'preserved': 'The closed loop from batch '
+                                                 'size to expert selection, '
+                                                 'residency, transfers, step '
+                                                 'time and queueing; every '
+                                                 'link is actual computation '
+                                                 'or a declared assumption.',
+                                    'omissions': 'Real routing distributions '
+                                                 'come from the real model, '
+                                                 'not the tiny checkpoints; '
+                                                 'numbers in the narrative are '
+                                                 'illustrative arithmetic.',
+                                    'evidence_plan': 'Bounds screening against '
+                                                     'stated requirements, '
+                                                     'sensitivity to uncertain '
+                                                     'inputs, and comparison '
+                                                     'of shortlisted '
+                                                     'candidates with '
+                                                     'real-hardware '
+                                                     'measurements.',
+                                    'limits': 'A screening result supports a '
+                                              'real-hardware trial, not '
+                                              'production adoption or '
+                                              'procurement.'},
+                       'sources': [],
+                       'evidence': ['docs/labs/constrained-fleet.md']}}
 for model in MODELS.values():
     model._definitions = SCHEMAS
     model._registry = MODELS

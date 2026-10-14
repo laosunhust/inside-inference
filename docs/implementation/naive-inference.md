@@ -3,7 +3,7 @@
 Status: implemented with the [shipped trained checkpoint](../../data/model/README.md)
 and explicit compatible checkpoint loading. Owns the baseline computation boundary. The first trained pilot and its
 limits are recorded under [model preparation](model-preparation.md).
-See the [lab contract](../labs/naive-gpt.md) for evidence and limitations.
+See the `reference-execution` [experiment declaration](../../data/experiments/catalog.yaml) for its contract, evidence and limitations.
 [Milestones](milestones.md) own build order and acceptance;
 [purpose](../purpose/README.md) owns vocabulary and project scope.
 

@@ -9,7 +9,7 @@ import json
 import time
 from urllib.parse import urljoin, urlparse
 
-from inside_inference.declarations_generated import CONTRACT_SHA256, KVResidencySystemConfig, LAB_BINDINGS, ModelCatalog
+from inside_inference.declarations_generated import CONTRACT_SHA256, EXPERIMENTS, KVResidencySystemConfig, ModelCatalog
 from inside_inference.generation import select_greedy
 from inside_inference.model import canonical
 from inside_inference.runtimes import bpe, tokenization
@@ -165,7 +165,7 @@ class ModelService:
         if not controls['kv_reuse']:
             raise ValueError('KV residency simulation requires KV reuse')
         spec = {'system': {**KVResidencySystemConfig().to_dict(), **controls['resources']}, 'workload': payload['workload'],
-                'ontology_binding': LAB_BINDINGS['prefix-cache']}
+                'ontology_binding': EXPERIMENTS['kv-residency']['ontology_binding']}
         run = run_cache_experiment(spec, checkpoint=self.checkpoint)
         outputs, notes = {}, {}
         for request in payload['workload']['requests']:

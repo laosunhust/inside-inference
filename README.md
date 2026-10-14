@@ -61,7 +61,7 @@ reports preserve their original context, not current policy.
 | Numerical mechanisms and preparation | [Implementation](docs/implementation/README.md): how the instruments work within declared scope. |
 | Delivery order and completion | [Milestones](docs/implementation/milestones.md): milestone-specific acceptance and status. |
 | Experiment validity | [Lab guidance](docs/labs/README.md): claim-specific assumptions and evidence. |
-| Lab discovery | [Catalog](catalog/README.md): indexing and links to owning labs. |
+| Experiments | [Experiment catalog](data/experiments/catalog.yaml): declared labs, applied from the Inference system configuration. |
 | Prior work and reuse | [Similar products](docs/similar-products/README.md): assessments and source limitations. |
 | Research findings | [Research](docs/research): dated investigations and results, not standing requirements. |
 | Historical proposals | [History](docs/history): superseded context, not delivery commitments. |

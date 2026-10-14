@@ -9,9 +9,12 @@ boundary, and validation of abstractions.
 
 ## Abstraction contract
 
-Before implementing a lab, record these items in its owning specification. This
-is a content contract, not a requirement for a new framework or separate file for
-every entry. Small labs can satisfy it concisely.
+Every lab is a declared experiment in the [experiment catalog](../../data/experiments/catalog.yaml):
+ExperimentSpec settings, the controls it still lacks, and an `AbstractionContract`.
+Admission requires the contract's target regime, preserved relationships, omissions,
+evidence plan and limits. The table below explains what each item should say; small
+labs can satisfy it concisely. A complete field is not evidence that the abstraction
+is valid.
 
 | Item | Required content |
 | --- | --- |
@@ -100,7 +103,7 @@ simulation decisions or computed metrics.
 Measure host runtime, memory, and trace growth on an identified workload and
 platform before saying an experiment is cheap enough for interactive use. Record
 simulation time separately. Feasibility evidence for the bounded resource simulator lives in its
-[lab contract](kv-residency.md). This does not establish feasibility
+[evidence record](../research/kv-residency-2026-10-09.md). This does not establish feasibility
 for larger or more detailed connected simulations.
 
 ## Declared subjects

@@ -66,28 +66,40 @@ def operation_owners(spec):
     return owners
 
 
-def lab_bindings(root, ontology, spec, *, catalog=None):
-    from inside_inference.contract_runtime import decode_json
+CATALOG = 'data/experiments/catalog.yaml'
+
+
+def experiment_catalog(root, ontology, spec, *, catalog=None):
+    """Admit declared experiments; composition of executable settings is tested with the execution rule."""
     from jsonschema import Draft202012Validator
     import difflib
-    entries = (decode_json((root/'catalog/stack.json').read_text()) if catalog is None else catalog)['innovations']
-    result = {}
-    for entry in entries:
-        path = f"catalog/stack.json innovations[{entry['id']}].ontology_binding"
-        binding = entry.get('ontology_binding')
-        if not isinstance(binding, dict): raise ValueError(f'{path}: missing binding; declare primary and related ontology concepts')
+    data = read_yaml(root/CATALOG) if catalog is None else catalog
+    for index, experiment in enumerate(data.get('experiments', []) if isinstance(data, dict) else []):
+        binding = experiment.get('ontology_binding') if isinstance(experiment, dict) else None
+        if not isinstance(binding, dict): continue
         for field, values in (('primary', [binding.get('primary')]), ('related', binding.get('related', []))):
-            if not isinstance(values,list): raise ValueError(f'{path}.{field}: expected a list')
-            for value in values:
-                if not isinstance(value,str) or value not in ontology['terms']:
-                    hints = difflib.get_close_matches(str(value), ontology['terms'], n=3)
-                    raise ValueError(f'{path}.{field}: unknown ontology concept {value!r}; declare an owner in docs/ontology or use an existing concept. Suggestions: {hints}')
-        validator = Draft202012Validator({'$defs':spec['$defs'], **spec['$defs']['OntologyBinding']})
-        errors = list(validator.iter_errors(binding))
-        if errors: raise ValueError(f'{path}{errors[0].json_path[1:]}: {errors[0].message}; primary must be declared once and related concepts must be unique and exclude primary')
-        if entry['id'] in result: raise ValueError(f'{path}: duplicate experiment ID')
-        result[entry['id']] = binding
-    return result
+            for value in values if isinstance(values, list) else []:
+                if isinstance(value, str) and value not in ontology['terms']:
+                    hints = difflib.get_close_matches(value, ontology['terms'], n=3)
+                    raise ValueError(f'{CATALOG} experiments[{index}].ontology_binding.{field}: unknown ontology concept {value!r}; declare an owner in docs/ontology or use an existing concept. Suggestions: {hints}')
+    validator = Draft202012Validator({'$defs': spec['$defs'], **spec['$defs']['ExperimentCatalog']})
+    errors = sorted(validator.iter_errors(data), key=lambda e: list(e.absolute_path))
+    if errors:
+        error = errors[0]
+        raise ValueError(f'{CATALOG}{error.json_path[1:]}: {error.message}')
+    declared = {d['properties']['control']['const'] for d in spec['$defs']['ExperimentSpec']['oneOf']}
+    seen = set()
+    for experiment in data['experiments']:
+        where = f"{CATALOG} experiments[{experiment['id']}]"
+        if experiment['id'] in seen: raise ValueError(f'{where}: duplicate experiment id')
+        seen.add(experiment['id'])
+        controls = [setting['control'] for setting in experiment['settings']]
+        if len(controls) != len(set(controls)): raise ValueError(f'{where}.settings: each control may be assigned once')
+        overlap = sorted(set(experiment['missing_controls']) & (declared | set(controls)))
+        if overlap: raise ValueError(f'{where}.missing_controls: {overlap} are declared controls; configure them in settings instead')
+        for path in experiment['evidence']:
+            if not (root/path).is_file(): raise ValueError(f'{where}.evidence: missing file {path}')
+    return data['experiments']
 
 
 def binding_constraints(terms):

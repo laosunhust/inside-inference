@@ -1,6 +1,6 @@
 # KV reuse with explicit capacity and physical residency
 
-The [KV residency lab](../labs/kv-residency.md) connects actual tiny-model
+The [KV residency experiment](../../data/experiments/catalog.yaml) connects actual tiny-model
 computation to bounded cache retention, admission, and transfers. It answers one
 question: what changes when an exact prefix is local, offloaded, or absent?
 This is a completed checkpoint within the authorized two-hour window, not a

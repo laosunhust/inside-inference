@@ -27,7 +27,7 @@ outputs. The run binds the actual model, tokenizer, resource configuration and
 workload. It records causal cache events in virtual microseconds, actual forward
 computations, KV snapshots, completion outcomes and separate local measurements.
 The simulation starts with an empty cache. Its scheduling, transfer and memory
-assumptions belong to the [KV experiment contract](../labs/kv-residency.md).
+assumptions belong to the [KV residency experiment](../../data/experiments/catalog.yaml).
 Host time, virtual time and animation time must not be substituted for one another.
 
 Request IDs must be unique; arrival times must be nondecreasing. Event causes

@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+
 /* Recompute displayed 8K observations from their declared inputs, independently of the engine. */
 export function recompute(nodes, parameters, architecture) {
   const byId=new Map(nodes.map(n=>[n.id,n])),d=architecture.width;
@@ -38,4 +40,11 @@ export function recompute(nodes, parameters, architecture) {
     }
   }
   return {max_error:worst,operations:[...checked].sort()};
+}
+
+export function checkRecomputation(nodes, parameters, architecture) {
+  const recomputed=recompute(nodes,parameters,architecture);
+  assert.deepEqual(recomputed.operations,['attention','attention_residual','ff_residual','ln1','ln2','ln_final','logits','scores','weighted_values']);
+  assert.ok(recomputed.max_error<1e-12,`Hand recomputation differs by ${recomputed.max_error}`);
+  return recomputed;
 }

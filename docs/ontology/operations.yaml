@@ -168,7 +168,7 @@ terms:
     projections:
       Attention:
         meaning: Query and mix sequence information. The declared GPT operations implement causal softmax
-          attention; the standalone KDA lab illustrates a recurrent update.
+          attention.
         fields:
           AttentionOperation:
           - name

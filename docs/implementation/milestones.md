@@ -39,7 +39,6 @@ Current capability ledger:
 | Capability | State |
 | --- | --- |
 | Request cost simulation and ontology inspection | Main-page resource experiment with actual KV computation and explicitly hypothetical service rates; the aggregate-only playground is retired. |
-| KDA recurrence lab | Existing optional side lab with hand-selected vectors; not integrated attention or a milestone prerequisite. |
 | Vocabulary-budget audit | Implemented counting study; not a tokenizer or language model. |
 | 384-entry manifest and reversible tokenizer | Implemented candidate; independent codec checks pass, everyday coverage gaps remain. T1 is not complete. |
 | Bounded task corpus | Implemented recipe and audit; template-based and limited in lexical coverage. |
@@ -130,7 +129,7 @@ Current M1 evidence: the untrained reference implements the full path, tensor
 capture, unmasked greedy generation, and saved-run replay. Independent Decimal
 and hand-calculated fixtures cover its binary64 arithmetic; browser checks cover
 live/offline navigation and changed-input execution. See the
-[lab evidence](../labs/naive-gpt.md). This supports the implemented computation and inspection requirements; it does
+[reference-execution experiment](../../data/experiments/catalog.yaml). This supports the implemented computation and inspection requirements; it does
 not establish completion of every milestone gate. T1's reviewed coverage gate and L1's learned-behavior gate remain
 unmet. A separate [trained pilot](../research/checkpoint-pilot-2026-10-09.md) exists;
 Cached execution now has [separate M2 evidence](../research/kv-residency-2026-10-09.md);
@@ -151,7 +150,7 @@ Do not claim that a cache is faster merely because the count of operations falls
 
 Current assessment: **passed for the fixed one-block/head, width-8, binary64
 instrument**, using seeded and compatible trained weights. The
-[KV residency lab](../labs/kv-residency.md) links actual K/V and reduced numerical
+[KV residency experiment](../../data/experiments/catalog.yaml) links actual K/V and reduced numerical
 work to cache hits, misses, transfers, reservations, and queued requests. Its
 [evidence record](../research/kv-residency-2026-10-09.md) covers numerical checks,
 replay, browser parity, and local DRAM/VRAM measurements. This does not establish
