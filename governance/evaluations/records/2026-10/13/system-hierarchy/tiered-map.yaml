@@ -1,0 +1,30 @@
+version: 1
+work_item: tiered-system-map
+question: Can one ontology-owned hierarchy organize configuration and explanation without orphaned controls or competing structural authorities?
+necessity: Configuration flattens InferenceMap areas; explanation preserves them. Existing areas mix responsibilities, mechanisms and artifacts without component boundaries.
+baseline: Seven area records with flat concept arrays; separate frontend renderers; settings have concept ownership but no checked parent-path parity.
+reuse:
+- source: InferenceMap, ExperimentSpec primary bindings, ArchitectureWalkthrough, and current concept editors
+  decision: Replace the flat map and reuse existing controls and numerical diagram. No second hierarchy or numerical runtime.
+- source: vLLM architecture and NVIDIA CUDA/NCCL documentation reviewed in the preceding discussion
+  decision: Model logical responsibilities rather than vendor products; distinguish kernels, device runtime and collective communication.
+criteria:
+- Replace the area/concept arrays with one tiered hierarchy of stable node IDs, ontology owners, parent references and typed component/mechanism boundaries.
+- Configuration and Explanation render exactly the same node IDs, parent paths, labels and owners for every model. Content and available actions may differ; neither renderer owns a separate hierarchy.
+- Every configurable control has one primary node home and a nonempty explanation. All declared system nodes remain explainable even when no experiment is implemented; lack of a control is temporary capability absence, not structural exclusion.
+- New component nouns have explicit ontology meaning, exclusions and owned boundary declarations. Do not invent executable settings, measurements or separate processes to justify navigation.
+- Governance rejects unknown owners, duplicate IDs/homes, dangling parents, cycles, invalid roots, missing control/operation/lab homes and absent explanations with actionable feedback. Rejection fixtures precede consumer changes.
+- Existing model selector, KV reuse and resource editors remain usable through the hierarchy, with unchanged accepted execution and reset semantics.
+- Preserve shared transformer diagram, numerical inspection and primary lab links. Opening ancestors to inspect a mechanism must not execute inference or change accepted configuration.
+- Browser tests compare complete structural paths in both panels and exercise nested controls, navigation, model changes, desktop and narrow layouts. Unit and integration harnesses pass within current budgets.
+checks:
+- Governance rejection fixtures and admitted declaration regeneration
+- Complete rendered hierarchy comparison and nested card interactions
+- make test
+- make test-integration
+- Desktop and narrow screenshot review
+counterexamples:
+- Matching labels without matching structural paths does not establish parity.
+- Ontology explanations do not claim numerical evidence for unimplemented components.
+- NCCL is an implementation of collective communication; CUDA is not a compute kernel; product boundaries need not match logical component boundaries.
+- A placement or cross-component relationship is not a second containment parent.

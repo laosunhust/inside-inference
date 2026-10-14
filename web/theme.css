@@ -77,10 +77,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .configuration-fields label{font-size:13px}
 .configuration-fields a{font-size:12px}
 .configuration-fields textarea,.configuration-fields select,.configuration-fields input{font:14px system-ui;border:1px solid #98aaa7;border-radius:5px}
-.concept-controls>div{background:var(--surface);border:1px solid var(--line);border-radius:8px}
-.concept-controls>div:has(>button:disabled){background:#f1f2f1;border-style:dashed}
-.playground .concept-controls>div>button:disabled{color:#666;background:transparent;border:0;opacity:1}
-.concept-controls a{font-size:11px;color:#63756e}
+
 .execution-path>li.configuration-changed>button{border:2px solid var(--warning);background:var(--warning-soft)}
 .execution-path>li.configuration-changed::after{font-size:11px;color:#805d26}
 #client-boundary{border-radius:8px}
@@ -121,16 +118,20 @@ dt{text-transform:uppercase}
 .execution-path button.selected-object{background:var(--accent-soft)}
 /* Model-family lab reuses the shared action hierarchy and semantic colors. */
 
-/* Responsibility map: disclosures navigate concepts; inner buttons inspect evidence. */
-.map-area{border:1px solid var(--line);border-radius:8px;background:var(--surface)}
-.map-area>summary{font-weight:600;color:var(--ink);cursor:pointer}
-.map-area>summary:hover,.map-area>summary:focus-visible{background:var(--accent-soft)}
-.map-area[open]>summary{color:var(--accent)}
-.map-area[data-view=engine]{border-color:var(--accent)}
-.map-concept>summary,.map-concepts>summary{cursor:pointer;font-weight:500}
-.map-concept+.map-concept{border-top:1px solid var(--line)}
-.map-links,.map-relations,.map-gaps{font-size:12px}
-.map-links small,.map-gaps{color:var(--muted)}
+/* One hierarchy, two projections: controls and explanations. */
+.map-node{border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.map-node>button{font-weight:600;border:0;background:transparent;color:var(--ink)}
+.map-node>button:hover,.map-node>button:focus-visible{background:var(--accent-soft)}
+.map-node>button[aria-expanded=true]{color:var(--accent)}
+.map-node>button:not(:disabled)::after{content:'▸';float:right}
+.map-node>button[aria-expanded=true]::after{content:'▾'}
+.map-description>summary{font-size:12px;color:var(--muted);cursor:pointer}
+.map-description>p{font-size:14px}
+.map-node>button:disabled{color:var(--muted);background:var(--surface-soft)}
+.map-node[data-view=engine]{border-color:var(--accent)}
+.map-root{border:0;background:transparent}
+.map-root>.map-body>p,.map-root>.map-body>.map-links{font-size:13px;color:var(--muted)}
+.map-links,.map-relations{font-size:12px}
 .map-relations{border-top:1px solid var(--line);padding-top:8px}
 .map-relations a{color:var(--muted)}
 

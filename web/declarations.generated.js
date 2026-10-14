@@ -1308,9 +1308,12 @@ globalThis.Declarations = (() => {
         "enum": [
           "ApiError",
           "Attention",
+          "CollectiveCommunication",
+          "ComputeKernel",
           "ComputeService",
           "CustomerInteraction",
           "Decoding",
+          "DeviceRuntime",
           "Embedding",
           "ExecutionBackend",
           "ExecutionSpec",
@@ -1320,6 +1323,7 @@ globalThis.Declarations = (() => {
           "ExperimentSpec",
           "FeedForward",
           "GenerationPolicy",
+          "InferenceEngine",
           "InferenceRequest",
           "InferenceResponse",
           "InferenceSystem",
@@ -1333,9 +1337,13 @@ globalThis.Declarations = (() => {
           "Normalization",
           "OutputProjection",
           "PositionEncoding",
+          "RequestEndpoint",
+          "RequestRouter",
           "RequestScheduling",
           "ResidualAddition",
           "ResourceGraph",
+          "ResourcePool",
+          "StateManager",
           "StateTransfer",
           "Tokenizer",
           "Workload"
@@ -1351,9 +1359,12 @@ globalThis.Declarations = (() => {
           "enum": [
             "ApiError",
             "Attention",
+            "CollectiveCommunication",
+            "ComputeKernel",
             "ComputeService",
             "CustomerInteraction",
             "Decoding",
+            "DeviceRuntime",
             "Embedding",
             "ExecutionBackend",
             "ExecutionSpec",
@@ -1363,6 +1374,7 @@ globalThis.Declarations = (() => {
             "ExperimentSpec",
             "FeedForward",
             "GenerationPolicy",
+            "InferenceEngine",
             "InferenceRequest",
             "InferenceResponse",
             "InferenceSystem",
@@ -1376,9 +1388,13 @@ globalThis.Declarations = (() => {
             "Normalization",
             "OutputProjection",
             "PositionEncoding",
+            "RequestEndpoint",
+            "RequestRouter",
             "RequestScheduling",
             "ResidualAddition",
             "ResourceGraph",
+            "ResourcePool",
+            "StateManager",
             "StateTransfer",
             "Tokenizer",
             "Workload"
@@ -1423,6 +1439,48 @@ globalThis.Declarations = (() => {
               "not": {
                 "contains": {
                   "const": "Attention"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "CollectiveCommunication"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "CollectiveCommunication"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ComputeKernel"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ComputeKernel"
                 }
               }
             }
@@ -1486,6 +1544,27 @@ globalThis.Declarations = (() => {
               "not": {
                 "contains": {
                   "const": "Decoding"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "DeviceRuntime"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "DeviceRuntime"
                 }
               }
             }
@@ -1675,6 +1754,27 @@ globalThis.Declarations = (() => {
               "not": {
                 "contains": {
                   "const": "GenerationPolicy"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "InferenceEngine"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "InferenceEngine"
                 }
               }
             }
@@ -1958,6 +2058,48 @@ globalThis.Declarations = (() => {
         "if": {
           "properties": {
             "primary": {
+              "const": "RequestEndpoint"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "RequestEndpoint"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "RequestRouter"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "RequestRouter"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
               "const": "RequestScheduling"
             }
           }
@@ -2011,6 +2153,48 @@ globalThis.Declarations = (() => {
               "not": {
                 "contains": {
                   "const": "ResourceGraph"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "ResourcePool"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "ResourcePool"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "primary": {
+              "const": "StateManager"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "related": {
+              "type": "array",
+              "not": {
+                "contains": {
+                  "const": "StateManager"
                 }
               }
             }
@@ -3890,9 +4074,12 @@ globalThis.Declarations = (() => {
         "enum": [
           "ApiError",
           "Attention",
+          "CollectiveCommunication",
+          "ComputeKernel",
           "ComputeService",
           "CustomerInteraction",
           "Decoding",
+          "DeviceRuntime",
           "Embedding",
           "ExecutionBackend",
           "ExecutionSpec",
@@ -3902,6 +4089,7 @@ globalThis.Declarations = (() => {
           "ExperimentSpec",
           "FeedForward",
           "GenerationPolicy",
+          "InferenceEngine",
           "InferenceRequest",
           "InferenceResponse",
           "InferenceSystem",
@@ -3915,9 +4103,13 @@ globalThis.Declarations = (() => {
           "Normalization",
           "OutputProjection",
           "PositionEncoding",
+          "RequestEndpoint",
+          "RequestRouter",
           "RequestScheduling",
           "ResidualAddition",
           "ResourceGraph",
+          "ResourcePool",
+          "StateManager",
           "StateTransfer",
           "Tokenizer",
           "Workload"
@@ -3962,9 +4154,12 @@ globalThis.Declarations = (() => {
           "enum": [
             "ApiError",
             "Attention",
+            "CollectiveCommunication",
+            "ComputeKernel",
             "ComputeService",
             "CustomerInteraction",
             "Decoding",
+            "DeviceRuntime",
             "Embedding",
             "ExecutionBackend",
             "ExecutionSpec",
@@ -3974,6 +4169,7 @@ globalThis.Declarations = (() => {
             "ExperimentSpec",
             "FeedForward",
             "GenerationPolicy",
+            "InferenceEngine",
             "InferenceRequest",
             "InferenceResponse",
             "InferenceSystem",
@@ -3987,9 +4183,13 @@ globalThis.Declarations = (() => {
             "Normalization",
             "OutputProjection",
             "PositionEncoding",
+            "RequestEndpoint",
+            "RequestRouter",
             "RequestScheduling",
             "ResidualAddition",
             "ResourceGraph",
+            "ResourcePool",
+            "StateManager",
             "StateTransfer",
             "Tokenizer",
             "Workload"
@@ -4225,14 +4425,14 @@ globalThis.Declarations = (() => {
     "x-owner": "InferenceSystem",
     "additionalProperties": false,
     "required": [
-      "areas",
+      "nodes",
       "relationships"
     ],
     "properties": {
-      "areas": {
+      "nodes": {
         "type": "array",
         "items": {
-          "$ref": "#/$defs/InferenceMapArea"
+          "$ref": "#/$defs/InferenceMapNode"
         },
         "minItems": 1
       },
@@ -4243,145 +4443,299 @@ globalThis.Declarations = (() => {
         }
       }
     },
-    "description": "Navigation across system responsibilities, not execution events or supported configuration. Concepts have one navigation home; typed execution evidence remains with its owner.",
+    "description": "One containment hierarchy shared by configuration and explanation. Node presence declares a logical responsibility, not executable support. Relationships cross boundaries without creating second parents.",
     "const": {
-      "areas": [
+      "nodes": [
         {
-          "id": "deployment",
-          "title": "Deployment & objectives",
-          "concepts": [
-            "ModelArtifact",
-            "ModelWeights",
-            "ModelArchitecture"
-          ],
-          "gaps": [
-            "Service objectives, placement and rollout controllers"
-          ],
-          "view": "concepts",
+          "id": "system",
+          "parent": null,
+          "owner": "InferenceSystem",
+          "kind": "component",
+          "view": "concept",
+          "expanded": true
+        },
+        {
+          "id": "endpoint",
+          "parent": "system",
+          "owner": "RequestEndpoint",
+          "kind": "component",
+          "view": "concept",
           "expanded": false
         },
         {
-          "id": "requests",
-          "title": "Request handling & routing",
-          "concepts": [
-            "InferenceRequest",
-            "Workload"
-          ],
-          "gaps": [
-            "Endpoint selection, cache affinity and routing policy"
-          ],
-          "view": "concepts",
+          "id": "request",
+          "parent": "endpoint",
+          "owner": "InferenceRequest",
+          "kind": "artifact",
+          "view": "concept",
           "expanded": false
         },
         {
-          "id": "delivery",
-          "title": "Response delivery",
-          "concepts": [
-            "InferenceResponse"
-          ],
-          "gaps": [
-            "Streaming protocols, network receipt and backpressure"
-          ],
-          "view": "concepts",
+          "id": "workload",
+          "parent": "endpoint",
+          "owner": "Workload",
+          "kind": "artifact",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "response",
+          "parent": "endpoint",
+          "owner": "InferenceResponse",
+          "kind": "artifact",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "router",
+          "parent": "system",
+          "owner": "RequestRouter",
+          "kind": "component",
+          "view": "concept",
           "expanded": false
         },
         {
           "id": "engine",
-          "title": "Engine scheduling & execution",
-          "concepts": [
-            "RequestScheduling",
-            "ModelExecution",
-            "Decoding",
-            "Tokenizer",
-            "Embedding",
-            "PositionEncoding",
-            "Normalization",
-            "Attention",
-            "ResidualAddition",
-            "FeedForward",
-            "OutputProjection"
-          ],
-          "gaps": [],
+          "parent": "system",
+          "owner": "InferenceEngine",
+          "kind": "component",
+          "view": "concept",
+          "expanded": true
+        },
+        {
+          "id": "model",
+          "parent": "engine",
+          "owner": "ModelArtifact",
+          "kind": "artifact",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "weights",
+          "parent": "model",
+          "owner": "ModelWeights",
+          "kind": "artifact",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "architecture",
+          "parent": "model",
+          "owner": "ModelArchitecture",
+          "kind": "artifact",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "scheduler",
+          "parent": "engine",
+          "owner": "RequestScheduling",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "tokenizer",
+          "parent": "engine",
+          "owner": "Tokenizer",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "executor",
+          "parent": "engine",
+          "owner": "ModelExecution",
+          "kind": "component",
           "view": "engine",
           "expanded": true
         },
         {
-          "id": "state",
-          "title": "State management & transfer",
-          "concepts": [
-            "KVState",
-            "KVCache",
-            "StateTransfer"
-          ],
-          "gaps": [
-            "Recurrent state, activation transfer and shared state directories"
-          ],
-          "view": "concepts",
+          "id": "embedding",
+          "parent": "executor",
+          "owner": "Embedding",
+          "kind": "mechanism",
+          "view": "concept",
           "expanded": false
         },
         {
-          "id": "kernels",
-          "title": "Kernels & collectives",
-          "concepts": [],
-          "gaps": [
-            "Kernel implementations and TP / PP / EP collectives"
-          ],
-          "view": "concepts",
+          "id": "position",
+          "parent": "executor",
+          "owner": "PositionEncoding",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "normalization",
+          "parent": "executor",
+          "owner": "Normalization",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "attention",
+          "parent": "executor",
+          "owner": "Attention",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "residual",
+          "parent": "executor",
+          "owner": "ResidualAddition",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "feed-forward",
+          "parent": "executor",
+          "owner": "FeedForward",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "projection",
+          "parent": "executor",
+          "owner": "OutputProjection",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "decoding",
+          "parent": "engine",
+          "owner": "Decoding",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "state",
+          "parent": "system",
+          "owner": "StateManager",
+          "kind": "component",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "kv-state",
+          "parent": "state",
+          "owner": "KVState",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "kv-cache",
+          "parent": "state",
+          "owner": "KVCache",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "transfer",
+          "parent": "state",
+          "owner": "StateTransfer",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "backend",
+          "parent": "system",
+          "owner": "ExecutionBackend",
+          "kind": "component",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "kernel",
+          "parent": "backend",
+          "owner": "ComputeKernel",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "device-runtime",
+          "parent": "backend",
+          "owner": "DeviceRuntime",
+          "kind": "mechanism",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "collectives",
+          "parent": "backend",
+          "owner": "CollectiveCommunication",
+          "kind": "mechanism",
+          "view": "concept",
           "expanded": false
         },
         {
           "id": "resources",
-          "title": "Compute, memory & interconnect",
-          "concepts": [
-            "ResourceGraph",
-            "ComputeService",
-            "ExecutionBackend"
-          ],
-          "gaps": [
-            "Shared-link contention and calibrated accelerator profiles"
-          ],
-          "view": "concepts",
+          "parent": "system",
+          "owner": "ResourcePool",
+          "kind": "component",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "topology",
+          "parent": "resources",
+          "owner": "ResourceGraph",
+          "kind": "artifact",
+          "view": "concept",
+          "expanded": false
+        },
+        {
+          "id": "compute",
+          "parent": "resources",
+          "owner": "ComputeService",
+          "kind": "mechanism",
+          "view": "concept",
           "expanded": false
         }
       ],
       "relationships": [
         {
-          "source": "deployment",
-          "target": "requests",
-          "label": "Configures"
+          "source": "endpoint",
+          "target": "router",
+          "label": "Submits to"
         },
         {
-          "source": "deployment",
-          "target": "engine",
-          "label": "Configures"
-        },
-        {
-          "source": "requests",
+          "source": "router",
           "target": "engine",
           "label": "Dispatches to"
         },
         {
           "source": "engine",
-          "target": "delivery",
-          "label": "Produces output for"
+          "target": "endpoint",
+          "label": "Publishes through"
         },
         {
-          "source": "requests",
+          "source": "router",
           "target": "state",
           "label": "Consults residency in"
         },
         {
-          "source": "engine",
+          "source": "executor",
           "target": "state",
           "label": "Reads and writes"
         },
         {
-          "source": "engine",
-          "target": "kernels",
+          "source": "executor",
+          "target": "backend",
           "label": "Executes through"
         },
         {
-          "source": "kernels",
+          "source": "backend",
           "target": "resources",
           "label": "Runs on"
         },
@@ -4393,87 +4747,139 @@ globalThis.Declarations = (() => {
       ]
     }
   },
-  "InferenceMapArea": {
+  "InferenceMapNode": {
     "type": "object",
     "x-owner": "InferenceSystem",
     "additionalProperties": false,
     "required": [
       "id",
-      "title",
-      "concepts",
-      "gaps",
+      "parent",
+      "owner",
+      "kind",
       "view",
       "expanded"
     ],
     "properties": {
       "id": {
         "type": "string",
-        "pattern": "^[a-z][a-z-]*$"
+        "pattern": "^[a-z][a-z0-9-]*$"
       },
-      "title": {
-        "type": "string"
+      "parent": {
+        "type": [
+          "string",
+          "null"
+        ]
       },
-      "concepts": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "x-ontology-reference": true,
-          "enum": [
-            "ApiError",
-            "Attention",
-            "ComputeService",
-            "CustomerInteraction",
-            "Decoding",
-            "Embedding",
-            "ExecutionBackend",
-            "ExecutionSpec",
-            "ExperimentEvent",
-            "ExperimentExecution",
-            "ExperimentObservation",
-            "ExperimentSpec",
-            "FeedForward",
-            "GenerationPolicy",
-            "InferenceRequest",
-            "InferenceResponse",
-            "InferenceSystem",
-            "InspectionState",
-            "KVCache",
-            "KVState",
-            "ModelArchitecture",
-            "ModelArtifact",
-            "ModelExecution",
-            "ModelWeights",
-            "Normalization",
-            "OutputProjection",
-            "PositionEncoding",
-            "RequestScheduling",
-            "ResidualAddition",
-            "ResourceGraph",
-            "StateTransfer",
-            "Tokenizer",
-            "Workload"
-          ]
-        },
-        "uniqueItems": true
+      "owner": {
+        "type": "string",
+        "x-ontology-reference": true,
+        "enum": [
+          "ApiError",
+          "Attention",
+          "CollectiveCommunication",
+          "ComputeKernel",
+          "ComputeService",
+          "CustomerInteraction",
+          "Decoding",
+          "DeviceRuntime",
+          "Embedding",
+          "ExecutionBackend",
+          "ExecutionSpec",
+          "ExperimentEvent",
+          "ExperimentExecution",
+          "ExperimentObservation",
+          "ExperimentSpec",
+          "FeedForward",
+          "GenerationPolicy",
+          "InferenceEngine",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceSystem",
+          "InspectionState",
+          "KVCache",
+          "KVState",
+          "ModelArchitecture",
+          "ModelArtifact",
+          "ModelExecution",
+          "ModelWeights",
+          "Normalization",
+          "OutputProjection",
+          "PositionEncoding",
+          "RequestEndpoint",
+          "RequestRouter",
+          "RequestScheduling",
+          "ResidualAddition",
+          "ResourceGraph",
+          "ResourcePool",
+          "StateManager",
+          "StateTransfer",
+          "Tokenizer",
+          "Workload"
+        ]
       },
-      "gaps": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        },
-        "uniqueItems": true
+      "kind": {
+        "type": "string",
+        "enum": [
+          "component",
+          "artifact",
+          "mechanism"
+        ]
       },
       "view": {
         "type": "string",
         "enum": [
-          "concepts",
+          "concept",
           "engine"
         ]
       },
       "expanded": {
         "type": "boolean"
       }
-    }
+    },
+    "oneOf": [
+      {
+        "$ref": "#/$defs/RequestEndpointBoundary"
+      },
+      {
+        "$ref": "#/$defs/RequestRouterBoundary"
+      },
+      {
+        "$ref": "#/$defs/InferenceEngineBoundary"
+      },
+      {
+        "$ref": "#/$defs/StateManagerBoundary"
+      },
+      {
+        "$ref": "#/$defs/ResourcePoolBoundary"
+      },
+      {
+        "$ref": "#/$defs/ComputeKernelBoundary"
+      },
+      {
+        "$ref": "#/$defs/DeviceRuntimeBoundary"
+      },
+      {
+        "$ref": "#/$defs/CollectiveCommunicationBoundary"
+      },
+      {
+        "not": {
+          "properties": {
+            "owner": {
+              "enum": [
+                "RequestEndpoint",
+                "RequestRouter",
+                "InferenceEngine",
+                "StateManager",
+                "ResourcePool",
+                "ComputeKernel",
+                "DeviceRuntime",
+                "CollectiveCommunication"
+              ]
+            }
+          }
+        }
+      }
+    ]
   },
   "InferenceMapRelationship": {
     "type": "object",
@@ -4493,6 +4899,702 @@ globalThis.Declarations = (() => {
       },
       "label": {
         "type": "string"
+      }
+    }
+  },
+  "RequestEndpointBoundary": {
+    "type": "object",
+    "x-owner": "RequestEndpoint",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "parent",
+      "owner",
+      "kind",
+      "view",
+      "expanded"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "parent": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "owner": {
+        "type": "string",
+        "const": "RequestEndpoint",
+        "x-ontology-reference": true,
+        "enum": [
+          "ApiError",
+          "Attention",
+          "CollectiveCommunication",
+          "ComputeKernel",
+          "ComputeService",
+          "CustomerInteraction",
+          "Decoding",
+          "DeviceRuntime",
+          "Embedding",
+          "ExecutionBackend",
+          "ExecutionSpec",
+          "ExperimentEvent",
+          "ExperimentExecution",
+          "ExperimentObservation",
+          "ExperimentSpec",
+          "FeedForward",
+          "GenerationPolicy",
+          "InferenceEngine",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceSystem",
+          "InspectionState",
+          "KVCache",
+          "KVState",
+          "ModelArchitecture",
+          "ModelArtifact",
+          "ModelExecution",
+          "ModelWeights",
+          "Normalization",
+          "OutputProjection",
+          "PositionEncoding",
+          "RequestEndpoint",
+          "RequestRouter",
+          "RequestScheduling",
+          "ResidualAddition",
+          "ResourceGraph",
+          "ResourcePool",
+          "StateManager",
+          "StateTransfer",
+          "Tokenizer",
+          "Workload"
+        ]
+      },
+      "kind": {
+        "type": "string",
+        "const": "component"
+      },
+      "view": {
+        "type": "string",
+        "enum": [
+          "concept",
+          "engine"
+        ]
+      },
+      "expanded": {
+        "type": "boolean"
+      }
+    }
+  },
+  "RequestRouterBoundary": {
+    "type": "object",
+    "x-owner": "RequestRouter",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "parent",
+      "owner",
+      "kind",
+      "view",
+      "expanded"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "parent": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "owner": {
+        "type": "string",
+        "const": "RequestRouter",
+        "x-ontology-reference": true,
+        "enum": [
+          "ApiError",
+          "Attention",
+          "CollectiveCommunication",
+          "ComputeKernel",
+          "ComputeService",
+          "CustomerInteraction",
+          "Decoding",
+          "DeviceRuntime",
+          "Embedding",
+          "ExecutionBackend",
+          "ExecutionSpec",
+          "ExperimentEvent",
+          "ExperimentExecution",
+          "ExperimentObservation",
+          "ExperimentSpec",
+          "FeedForward",
+          "GenerationPolicy",
+          "InferenceEngine",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceSystem",
+          "InspectionState",
+          "KVCache",
+          "KVState",
+          "ModelArchitecture",
+          "ModelArtifact",
+          "ModelExecution",
+          "ModelWeights",
+          "Normalization",
+          "OutputProjection",
+          "PositionEncoding",
+          "RequestEndpoint",
+          "RequestRouter",
+          "RequestScheduling",
+          "ResidualAddition",
+          "ResourceGraph",
+          "ResourcePool",
+          "StateManager",
+          "StateTransfer",
+          "Tokenizer",
+          "Workload"
+        ]
+      },
+      "kind": {
+        "type": "string",
+        "const": "component"
+      },
+      "view": {
+        "type": "string",
+        "enum": [
+          "concept",
+          "engine"
+        ]
+      },
+      "expanded": {
+        "type": "boolean"
+      }
+    }
+  },
+  "InferenceEngineBoundary": {
+    "type": "object",
+    "x-owner": "InferenceEngine",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "parent",
+      "owner",
+      "kind",
+      "view",
+      "expanded"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "parent": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "owner": {
+        "type": "string",
+        "const": "InferenceEngine",
+        "x-ontology-reference": true,
+        "enum": [
+          "ApiError",
+          "Attention",
+          "CollectiveCommunication",
+          "ComputeKernel",
+          "ComputeService",
+          "CustomerInteraction",
+          "Decoding",
+          "DeviceRuntime",
+          "Embedding",
+          "ExecutionBackend",
+          "ExecutionSpec",
+          "ExperimentEvent",
+          "ExperimentExecution",
+          "ExperimentObservation",
+          "ExperimentSpec",
+          "FeedForward",
+          "GenerationPolicy",
+          "InferenceEngine",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceSystem",
+          "InspectionState",
+          "KVCache",
+          "KVState",
+          "ModelArchitecture",
+          "ModelArtifact",
+          "ModelExecution",
+          "ModelWeights",
+          "Normalization",
+          "OutputProjection",
+          "PositionEncoding",
+          "RequestEndpoint",
+          "RequestRouter",
+          "RequestScheduling",
+          "ResidualAddition",
+          "ResourceGraph",
+          "ResourcePool",
+          "StateManager",
+          "StateTransfer",
+          "Tokenizer",
+          "Workload"
+        ]
+      },
+      "kind": {
+        "type": "string",
+        "const": "component"
+      },
+      "view": {
+        "type": "string",
+        "enum": [
+          "concept",
+          "engine"
+        ]
+      },
+      "expanded": {
+        "type": "boolean"
+      }
+    }
+  },
+  "StateManagerBoundary": {
+    "type": "object",
+    "x-owner": "StateManager",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "parent",
+      "owner",
+      "kind",
+      "view",
+      "expanded"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "parent": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "owner": {
+        "type": "string",
+        "const": "StateManager",
+        "x-ontology-reference": true,
+        "enum": [
+          "ApiError",
+          "Attention",
+          "CollectiveCommunication",
+          "ComputeKernel",
+          "ComputeService",
+          "CustomerInteraction",
+          "Decoding",
+          "DeviceRuntime",
+          "Embedding",
+          "ExecutionBackend",
+          "ExecutionSpec",
+          "ExperimentEvent",
+          "ExperimentExecution",
+          "ExperimentObservation",
+          "ExperimentSpec",
+          "FeedForward",
+          "GenerationPolicy",
+          "InferenceEngine",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceSystem",
+          "InspectionState",
+          "KVCache",
+          "KVState",
+          "ModelArchitecture",
+          "ModelArtifact",
+          "ModelExecution",
+          "ModelWeights",
+          "Normalization",
+          "OutputProjection",
+          "PositionEncoding",
+          "RequestEndpoint",
+          "RequestRouter",
+          "RequestScheduling",
+          "ResidualAddition",
+          "ResourceGraph",
+          "ResourcePool",
+          "StateManager",
+          "StateTransfer",
+          "Tokenizer",
+          "Workload"
+        ]
+      },
+      "kind": {
+        "type": "string",
+        "const": "component"
+      },
+      "view": {
+        "type": "string",
+        "enum": [
+          "concept",
+          "engine"
+        ]
+      },
+      "expanded": {
+        "type": "boolean"
+      }
+    }
+  },
+  "ResourcePoolBoundary": {
+    "type": "object",
+    "x-owner": "ResourcePool",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "parent",
+      "owner",
+      "kind",
+      "view",
+      "expanded"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "parent": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "owner": {
+        "type": "string",
+        "const": "ResourcePool",
+        "x-ontology-reference": true,
+        "enum": [
+          "ApiError",
+          "Attention",
+          "CollectiveCommunication",
+          "ComputeKernel",
+          "ComputeService",
+          "CustomerInteraction",
+          "Decoding",
+          "DeviceRuntime",
+          "Embedding",
+          "ExecutionBackend",
+          "ExecutionSpec",
+          "ExperimentEvent",
+          "ExperimentExecution",
+          "ExperimentObservation",
+          "ExperimentSpec",
+          "FeedForward",
+          "GenerationPolicy",
+          "InferenceEngine",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceSystem",
+          "InspectionState",
+          "KVCache",
+          "KVState",
+          "ModelArchitecture",
+          "ModelArtifact",
+          "ModelExecution",
+          "ModelWeights",
+          "Normalization",
+          "OutputProjection",
+          "PositionEncoding",
+          "RequestEndpoint",
+          "RequestRouter",
+          "RequestScheduling",
+          "ResidualAddition",
+          "ResourceGraph",
+          "ResourcePool",
+          "StateManager",
+          "StateTransfer",
+          "Tokenizer",
+          "Workload"
+        ]
+      },
+      "kind": {
+        "type": "string",
+        "const": "component"
+      },
+      "view": {
+        "type": "string",
+        "enum": [
+          "concept",
+          "engine"
+        ]
+      },
+      "expanded": {
+        "type": "boolean"
+      }
+    }
+  },
+  "ComputeKernelBoundary": {
+    "type": "object",
+    "x-owner": "ComputeKernel",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "parent",
+      "owner",
+      "kind",
+      "view",
+      "expanded"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "parent": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "owner": {
+        "type": "string",
+        "const": "ComputeKernel",
+        "x-ontology-reference": true,
+        "enum": [
+          "ApiError",
+          "Attention",
+          "CollectiveCommunication",
+          "ComputeKernel",
+          "ComputeService",
+          "CustomerInteraction",
+          "Decoding",
+          "DeviceRuntime",
+          "Embedding",
+          "ExecutionBackend",
+          "ExecutionSpec",
+          "ExperimentEvent",
+          "ExperimentExecution",
+          "ExperimentObservation",
+          "ExperimentSpec",
+          "FeedForward",
+          "GenerationPolicy",
+          "InferenceEngine",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceSystem",
+          "InspectionState",
+          "KVCache",
+          "KVState",
+          "ModelArchitecture",
+          "ModelArtifact",
+          "ModelExecution",
+          "ModelWeights",
+          "Normalization",
+          "OutputProjection",
+          "PositionEncoding",
+          "RequestEndpoint",
+          "RequestRouter",
+          "RequestScheduling",
+          "ResidualAddition",
+          "ResourceGraph",
+          "ResourcePool",
+          "StateManager",
+          "StateTransfer",
+          "Tokenizer",
+          "Workload"
+        ]
+      },
+      "kind": {
+        "type": "string",
+        "const": "mechanism"
+      },
+      "view": {
+        "type": "string",
+        "enum": [
+          "concept",
+          "engine"
+        ]
+      },
+      "expanded": {
+        "type": "boolean"
+      }
+    }
+  },
+  "DeviceRuntimeBoundary": {
+    "type": "object",
+    "x-owner": "DeviceRuntime",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "parent",
+      "owner",
+      "kind",
+      "view",
+      "expanded"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "parent": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "owner": {
+        "type": "string",
+        "const": "DeviceRuntime",
+        "x-ontology-reference": true,
+        "enum": [
+          "ApiError",
+          "Attention",
+          "CollectiveCommunication",
+          "ComputeKernel",
+          "ComputeService",
+          "CustomerInteraction",
+          "Decoding",
+          "DeviceRuntime",
+          "Embedding",
+          "ExecutionBackend",
+          "ExecutionSpec",
+          "ExperimentEvent",
+          "ExperimentExecution",
+          "ExperimentObservation",
+          "ExperimentSpec",
+          "FeedForward",
+          "GenerationPolicy",
+          "InferenceEngine",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceSystem",
+          "InspectionState",
+          "KVCache",
+          "KVState",
+          "ModelArchitecture",
+          "ModelArtifact",
+          "ModelExecution",
+          "ModelWeights",
+          "Normalization",
+          "OutputProjection",
+          "PositionEncoding",
+          "RequestEndpoint",
+          "RequestRouter",
+          "RequestScheduling",
+          "ResidualAddition",
+          "ResourceGraph",
+          "ResourcePool",
+          "StateManager",
+          "StateTransfer",
+          "Tokenizer",
+          "Workload"
+        ]
+      },
+      "kind": {
+        "type": "string",
+        "const": "mechanism"
+      },
+      "view": {
+        "type": "string",
+        "enum": [
+          "concept",
+          "engine"
+        ]
+      },
+      "expanded": {
+        "type": "boolean"
+      }
+    }
+  },
+  "CollectiveCommunicationBoundary": {
+    "type": "object",
+    "x-owner": "CollectiveCommunication",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "parent",
+      "owner",
+      "kind",
+      "view",
+      "expanded"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "parent": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "owner": {
+        "type": "string",
+        "const": "CollectiveCommunication",
+        "x-ontology-reference": true,
+        "enum": [
+          "ApiError",
+          "Attention",
+          "CollectiveCommunication",
+          "ComputeKernel",
+          "ComputeService",
+          "CustomerInteraction",
+          "Decoding",
+          "DeviceRuntime",
+          "Embedding",
+          "ExecutionBackend",
+          "ExecutionSpec",
+          "ExperimentEvent",
+          "ExperimentExecution",
+          "ExperimentObservation",
+          "ExperimentSpec",
+          "FeedForward",
+          "GenerationPolicy",
+          "InferenceEngine",
+          "InferenceRequest",
+          "InferenceResponse",
+          "InferenceSystem",
+          "InspectionState",
+          "KVCache",
+          "KVState",
+          "ModelArchitecture",
+          "ModelArtifact",
+          "ModelExecution",
+          "ModelWeights",
+          "Normalization",
+          "OutputProjection",
+          "PositionEncoding",
+          "RequestEndpoint",
+          "RequestRouter",
+          "RequestScheduling",
+          "ResidualAddition",
+          "ResourceGraph",
+          "ResourcePool",
+          "StateManager",
+          "StateTransfer",
+          "Tokenizer",
+          "Workload"
+        ]
+      },
+      "kind": {
+        "type": "string",
+        "const": "mechanism"
+      },
+      "view": {
+        "type": "string",
+        "enum": [
+          "concept",
+          "engine"
+        ]
+      },
+      "expanded": {
+        "type": "boolean"
       }
     }
   }
@@ -4613,14 +5715,14 @@ globalThis.Declarations = (() => {
     "owns": [
       "Composition of separately owned execution, scheduling, cache, transfer and compute-service configurations.",
       "System-wide supported request and output-token ceilings.",
-      "The navigable composition of responsibilities, with ontology bindings, structural relationships and explicit undeclared gaps.",
+      "The shared containment hierarchy of ontology-owned logical components and mechanisms, with cross-component relationships.",
       "Declared dispatch boundary; the baseline uses one direct in-process execution endpoint."
     ],
     "excludes": [
       "Constituent mechanisms and their observations.",
       "Caller-requested generation policy and response publication.",
       "Model weights and measured results.",
-      "Navigation groupings are not new semantic owners or evidence that a mechanism executes."
+      "Containment does not claim separate processes, execution order or support for configuring every component."
     ],
     "capability_reads": [],
     "projections": {
@@ -4638,7 +5740,7 @@ globalThis.Declarations = (() => {
     },
     "schemas": [
       "InferenceMap",
-      "InferenceMapArea",
+      "InferenceMapNode",
       "InferenceMapRelationship",
       "KVResidencySystemConfig"
     ]
@@ -4753,6 +5855,142 @@ globalThis.Declarations = (() => {
     },
     "schemas": [
       "RunOutcome"
+    ]
+  },
+  "RequestEndpoint": {
+    "meaning": "Accept requests and publish responses at the inference service boundary.",
+    "lifetime": "A durable logical boundary in the declared system hierarchy; implementations and experiments may change.",
+    "owns": [
+      "Request and response contracts, streaming and cancellation semantics.",
+      "Its typed boundary in the shared configuration and explanation hierarchy."
+    ],
+    "excludes": [
+      "Routing decisions, model computation, and customer-side receipt.",
+      "The boundary declaration alone provides no executable experiment or numerical evidence."
+    ],
+    "capability_reads": [],
+    "projections": {},
+    "schemas": [
+      "RequestEndpointBoundary"
+    ]
+  },
+  "RequestRouter": {
+    "meaning": "Select an execution destination for an admitted service request.",
+    "lifetime": "A durable logical boundary in the declared system hierarchy; implementations and experiments may change.",
+    "owns": [
+      "Destination selection and affinity to model availability, capacity and resident state.",
+      "Its typed boundary in the shared configuration and explanation hierarchy."
+    ],
+    "excludes": [
+      "Scheduling work within a selected engine; no configurable router is implemented.",
+      "The boundary declaration alone provides no executable experiment or numerical evidence."
+    ],
+    "capability_reads": [],
+    "projections": {},
+    "schemas": [
+      "RequestRouterBoundary"
+    ]
+  },
+  "InferenceEngine": {
+    "meaning": "Coordinate request scheduling, model execution and decoding against a selected model artifact.",
+    "lifetime": "A durable logical boundary in the declared system hierarchy; implementations and experiments may change.",
+    "owns": [
+      "Composition of request scheduler, tokenizer, model executor and sequence decoding.",
+      "Its typed boundary in the shared configuration and explanation hierarchy."
+    ],
+    "excludes": [
+      "Public API transport, physical device ownership, and claiming a separate process or vendor product.",
+      "The boundary declaration alone provides no executable experiment or numerical evidence."
+    ],
+    "capability_reads": [],
+    "projections": {},
+    "schemas": [
+      "InferenceEngineBoundary"
+    ]
+  },
+  "StateManager": {
+    "meaning": "Coordinate the lifetime, residency and movement of inference state.",
+    "lifetime": "A durable logical boundary in the declared system hierarchy; implementations and experiments may change.",
+    "owns": [
+      "Composition of sequence-state representation, KV cache management and state transfer.",
+      "Its typed boundary in the shared configuration and explanation hierarchy."
+    ],
+    "excludes": [
+      "Model equations, kernel implementation and fabric topology; no generic state service is implemented.",
+      "The boundary declaration alone provides no executable experiment or numerical evidence."
+    ],
+    "capability_reads": [],
+    "projections": {},
+    "schemas": [
+      "StateManagerBoundary"
+    ]
+  },
+  "ResourcePool": {
+    "meaning": "The compute, memory and interconnect resources against which inference execution is constrained.",
+    "lifetime": "A durable logical boundary in the declared system hierarchy; implementations and experiments may change.",
+    "owns": [
+      "Composition of the resource graph and declared compute-service assumptions.",
+      "Its typed boundary in the shared configuration and explanation hierarchy."
+    ],
+    "excludes": [
+      "Placement decisions, measured hardware calibration and claims that graph topology is executed.",
+      "The boundary declaration alone provides no executable experiment or numerical evidence."
+    ],
+    "capability_reads": [],
+    "projections": {},
+    "schemas": [
+      "ResourcePoolBoundary"
+    ]
+  },
+  "ComputeKernel": {
+    "meaning": "An executable implementation of a bounded numerical operation on a compute device.",
+    "lifetime": "A durable logical boundary in the declared system hierarchy; implementations and experiments may change.",
+    "owns": [
+      "The boundary for algorithm, precision, fusion and memory-access choices in an operation implementation.",
+      "Its typed boundary in the shared configuration and explanation hierarchy."
+    ],
+    "excludes": [
+      "CUDA as a platform, model architecture, scheduler policy, and an implemented kernel selector.",
+      "The boundary declaration alone provides no executable experiment or numerical evidence."
+    ],
+    "capability_reads": [],
+    "projections": {},
+    "schemas": [
+      "ComputeKernelBoundary"
+    ]
+  },
+  "DeviceRuntime": {
+    "meaning": "The execution services used to launch device work and manage its memory and synchronization.",
+    "lifetime": "A durable logical boundary in the declared system hierarchy; implementations and experiments may change.",
+    "owns": [
+      "The boundary between model execution and device launch, memory and synchronization facilities.",
+      "Its typed boundary in the shared configuration and explanation hierarchy."
+    ],
+    "excludes": [
+      "Compute-kernel algorithms, physical hardware capacity, and claiming a CUDA runtime in this browser.",
+      "The boundary declaration alone provides no executable experiment or numerical evidence."
+    ],
+    "capability_reads": [],
+    "projections": {},
+    "schemas": [
+      "DeviceRuntimeBoundary"
+    ]
+  },
+  "CollectiveCommunication": {
+    "meaning": "Coordinate a communication operation across a declared group of execution participants.",
+    "lifetime": "A durable logical boundary in the declared system hierarchy; implementations and experiments may change.",
+    "owns": [
+      "The boundary for collective operation, algorithm and participant choices, such as all-reduce.",
+      "Its typed boundary in the shared configuration and explanation hierarchy."
+    ],
+    "excludes": [
+      "NCCL as a universal implementation, point-to-point state transfer, and any implemented collective simulation.",
+      "The boundary declaration alone provides no executable experiment or numerical evidence."
+    ],
+    "capability_reads": [],
+    "projections": {},
+    "schemas": [
+      "CollectiveCommunicationBoundary"
     ]
   },
   "ExperimentSpec": {
@@ -4903,7 +6141,7 @@ globalThis.Declarations = (() => {
     ]
   },
   "ExecutionBackend": {
-    "meaning": "Actual compute device, state-storage implementation, library, and precision observed for execution.",
+    "meaning": "The runtime, kernel and communication implementations used to execute model work; recorded backend evidence identifies actual compute, storage, library and precision.",
     "lifetime": "Fixed in the recorded run; a different backend requires a new run binding.",
     "owns": [
       "Actual compute device, state-storage implementation, library, and precision observed for execution."
@@ -5369,7 +6607,7 @@ globalThis.Declarations = (() => {
 };
   const operationOwners = {"token_embedding": "Embedding", "embedding": "Embedding", "position_embedding": "PositionEncoding", "ln1_mean": "Normalization", "ln1_variance": "Normalization", "ln1": "Normalization", "ln2_mean": "Normalization", "ln2_variance": "Normalization", "ln2": "Normalization", "ln_final_mean": "Normalization", "ln_final_variance": "Normalization", "ln_final": "Normalization", "query": "Attention", "key": "Attention", "value": "Attention", "scores": "Attention", "causal_mask": "Attention", "attention": "Attention", "weighted_values": "Attention", "attention_output": "Attention", "attention_residual": "ResidualAddition", "ff_residual": "ResidualAddition", "ff_up": "FeedForward", "gelu": "FeedForward", "ff_down": "FeedForward", "logits": "OutputProjection", "input_ids": "Tokenizer", "retained_keys": "KVState", "retained_values": "KVState"};
   const labs = [{"id": "naive-gpt", "name": "Model execution", "status": "mechanical-demo", "ontology_binding": {"primary": "ModelExecution", "related": ["Tokenizer", "Embedding", "PositionEncoding", "Normalization", "Attention", "ResidualAddition", "FeedForward", "OutputProjection", "Decoding", "ModelArchitecture", "ModelArtifact"]}}, {"id": "kimi-delta-attention", "name": "Kimi Delta Attention (KDA)", "status": "mechanical-demo", "ontology_binding": {"primary": "Attention", "related": []}}, {"id": "prefix-cache", "name": "Exact prefix caching", "status": "mechanical-demo", "ontology_binding": {"primary": "KVCache", "related": ["KVState", "RequestScheduling", "StateTransfer", "ComputeService"]}}, {"id": "prefill-decode", "name": "Prefill/decode KV handoff", "status": "planned", "ontology_binding": {"primary": "StateTransfer", "related": ["KVState", "ModelExecution"]}}, {"id": "speculative-decoding", "name": "Speculative decoding", "status": "planned", "ontology_binding": {"primary": "Decoding", "related": ["ModelExecution", "KVState"]}}, {"id": "positional-encoding", "name": "Positional encoding", "status": "planned", "ontology_binding": {"primary": "PositionEncoding", "related": ["Embedding", "Attention"]}}];
-  const hash = "109b8dcf77637c8ed62a0745aefd63bdde0d66ffea069b68dd388a16fdbfaa57";
+  const hash = "7fcc908aed90811b82e8e99a6c9374c9402845a351996c96a2cc0346d794b841";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

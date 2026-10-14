@@ -1,7 +1,7 @@
 terms:
   ExecutionBackend:
-    meaning: Actual compute device, state-storage implementation, library, and precision observed for
-      execution.
+    meaning: The runtime, kernel and communication implementations used to execute model work; recorded
+      backend evidence identifies actual compute, storage, library and precision.
     lifetime: Fixed in the recorded run; a different backend requires a new run binding.
     owns:
     - Actual compute device, state-storage implementation, library, and precision observed for execution.

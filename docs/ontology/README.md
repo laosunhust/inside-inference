@@ -122,31 +122,37 @@ reject incompatible bindings. Association identifies what is being studied, not
 proof that an experiment is correct or that every associated concept is changed.
 The generated step-level Ontology and Labs links use these owners and bindings.
 
-## Navigable system map
+## Shared system hierarchy
 
-InferenceSystem owns the [map declaration](../../data-model/domains/system-map.yaml).
-Its areas group existing system owners; area labels are not additional ontology concepts.
-Customer interaction stays in the Interaction panel, outside this system boundary.
-Server-side response delivery stays inside; publication is not proof of receipt.
-Each lab subject and operation owner has one navigation home. Relationships describe
-responsibilities, not chronological events or proof that a path executed. The same
-map surrounds each model's actual architecture and captured computation.
+InferenceSystem owns the [hierarchy declaration](../../data-model/domains/system-map.yaml).
+Configuration and Explanation use the same nodes, ontology owners and containment
+paths. Logical component boundaries have their own ontology meanings and typed
+boundary declarations; a component is not necessarily a separate process or product.
+Artifacts and numerical mechanisms appear below their containing responsibilities.
+Cross-component relationships are references, not additional containment parents.
 
-The frontend derives names, membership, links and initial expansion from that
-admitted declaration. Governance rejects unknown subjects, multiple homes, missing
-lab/operation owners and dangling relationships. Opening an area or the separate Numerics section changes disclosure
-only, not the experiment or inspection cursor. Concept explanations remain available
-for all models. Intermediate tensor inspection follows the declared model capability,
-not a hardcoded parameter-count threshold; available output scores remain inspectable. Replay reveals a selected computation
-inside its area. A lab link means an implemented primary lab exists; it does not
-mean that mechanism can be selected in the current main-page execution.
+Every ExperimentSpec primary and related owner, operation owner and lab subject
+must have a home. Every node has an ontology explanation; every configurable control
+also exposes its applied value in Explanation. An unavailable editor means that an
+experiment has not been implemented yet, not that the component is permanently
+outside experimentation. Do not invent executable settings to populate an empty node.
 
-Areas also list missing subjects explicitly. A paper can motivate an area without
-having an admitted ontology owner or an executable ExperimentSpec. First identify
-its primary mechanism and related owners; declare missing semantics, configuration
-and evidence before implementing a runnable experiment. Do not bind routing or
-collectives to InferenceSystem just to pass validation. New ideas may challenge the
-map itself; Transformer ancestry is not a completeness guarantee.
+Governance rejects missing explanations, unknown owners, duplicate homes, invalid
+roots, parent cycles and dangling references. Browser checks compare both complete
+rendered hierarchies, including actual DOM parent paths, and verify editor and
+explanation ownership. One renderer supplies the structure to both surfaces.
+
+Customer interaction stays outside the system boundary. Response publication is not
+proof of customer receipt. Expanding a component changes navigation only; replay opens
+ancestors of the selected computation. Numerical evidence still describes the selected
+model and supported capture capability. Primary lab links do not imply that their
+mechanism is selectable in the current execution.
+
+These boundaries remain hypotheses. A paper may require new semantics, configuration
+or evidence; Transformer ancestry does not guarantee coverage. Vendor software may
+implement several logical responsibilities. CUDA is a device programming/runtime
+platform, not a compute kernel; NCCL implements collective communication rather than
+defining its full conceptual boundary.
 
 ## Decomposition under test
 

@@ -137,11 +137,11 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         assert.match(await evaluate("document.getElementById('inspection-context').textContent"),/layer 3/);
         await evaluate("Array.from(document.querySelectorAll('#computation-path button')).find(b=>b.textContent==='Attention').click()");
         assert.match(await evaluate("document.getElementById('concept-body').textContent"),/rope/);
-        const before=await snapshot();await evaluate("document.getElementById('map-engine').open=false");await click('token-journey');
+        const before=await snapshot();await evaluate("if(!document.querySelector('#map-engine>.map-body').hidden)document.querySelector('#map-engine>button').click()");await click('token-journey');
         await until("document.getElementById('inspection-context').dataset.surface==='architecture'");
         assert.equal(await evaluate("document.getElementById('inspection-context').dataset.observationId"),'');
         assert.equal(await evaluate("document.querySelectorAll('#computation-path .selected-object').length"),1);
-        assert.equal(await evaluate("document.getElementById('map-engine').open"),true,'Replay reveals the selected computation');
+        assert.equal(await evaluate("!document.querySelector('#map-engine>.map-body').hidden"),true,'Replay reveals the selected computation');
         assert.deepEqual(await snapshot(),before,'Walkthrough must not execute or replace evidence');
         await click('token-journey');
       }
@@ -182,7 +182,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
     await click('next-token');await ready();
     await click('token-journey');await until("document.getElementById('inspection-context').dataset.surface==='architecture'");
     assert.equal(await evaluate("document.querySelectorAll('#computation-path .selected-object').length"),1);
-        assert.equal(await evaluate("document.getElementById('map-engine').open"),true,'Replay reveals the selected computation');
+        assert.equal(await evaluate("!document.querySelector('#map-engine>.map-body').hidden"),true,'Replay reveals the selected computation');
     await click('reset');await empty();await new Promise(r=>setTimeout(r,700));
     assert.equal(await evaluate("document.getElementById('token-journey').getAttribute('aria-pressed')"),'false');
     // Real configuration resets accepted output and is retained in execution evidence.

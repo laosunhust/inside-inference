@@ -192,7 +192,7 @@ class DeclarationTests(unittest.TestCase):
         spec = read(ROOT/'data-model/inference.schema.json')
         expected = {
             'InferenceRequest': ['InferenceRequest', 'RequestArrival', 'GenerationInput', 'GenerationPrepared', 'GenerationStep', 'KVExperimentInput'],
-            'InferenceSystem': ['InferenceMap', 'InferenceMapArea', 'InferenceMapRelationship', 'KVResidencySystemConfig'],
+            'InferenceSystem': ['InferenceMap', 'InferenceMapNode', 'InferenceMapRelationship', 'KVResidencySystemConfig'],
             'InferenceResponse': ['RunOutcome'],
             'Tokenizer': ['Token', 'Turn', 'Span', 'Encoding', 'TokenizerOperation'],
             'ExecutionBackend': ['ExecutionBackend'],

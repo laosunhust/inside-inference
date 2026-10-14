@@ -30,7 +30,7 @@ def audit_frontend_source(path, source, ontology, spec, labs):
                 fail(f'operation {operation!r} does not belong to projection {label!r}; use its generated ontology owner')
             if attrs.get('id') == 'operation-labels':
                 fail('handwritten operation labels; consume ArchitectureWalkthrough')
-            if 'data-map-area' in attrs:
+            if 'data-map-area' in attrs or 'data-map-node' in attrs or 'data-map-parent' in attrs:
                 fail('handwritten system map; generate from InferenceMap')
             if 'data-owner' in attrs or 'data-primary' in attrs or 'data-lab' in attrs:
                 fail('handwritten ownership/lab listing; generate from ontology and catalog')
@@ -51,32 +51,52 @@ def audit_frontend_source(path, source, ontology, spec, labs):
 
 
 def audit_system_map(ontology, spec, labs):
-    """Navigation is a checked composition, never a second ontology."""
+    """One containment tree; cross-component relationships never create second parents."""
     model = spec['$defs']['InferenceMap']['const']
-    areas = model['areas']
-    ids = [area['id'] for area in areas]
+    if 'areas' in model or 'nodes' not in model:
+        return ['InferenceMap: replace flat areas with ontology-owned nodes']
+    nodes = model['nodes']
     failures = []
-    def fail(message): failures.append(f'InferenceMap: {message}')
-    if len(ids) != len(set(ids)): fail('duplicate area ID')
-    concepts = [owner for area in areas for owner in area['concepts']]
-    if len(concepts) != len(set(concepts)): fail('concept has multiple navigation homes')
-    unknown = set(concepts) - set(ontology['terms'])
-    if unknown: fail(f'unknown ontology concepts: {sorted(unknown)}')
-    controls = spec['$defs']['ExperimentSpec']['oneOf']
-    for control in controls:
+    def fail(message): failures.append('InferenceMap: ' + message)
+    ids = [n['id'] for n in nodes]
+    owners = [n['owner'] for n in nodes]
+    by_id = {n['id']: n for n in nodes}
+    if len(ids) != len(set(ids)): fail('duplicate node ID')
+    if len(owners) != len(set(owners)): fail('concept has multiple navigation homes')
+    roots = [n for n in nodes if n['parent'] is None]
+    if len(roots) != 1 or roots[0]['owner'] != 'InferenceSystem':
+        fail('require one InferenceSystem root')
+    for node in nodes:
+        owner = node['owner']
+        term = ontology['terms'].get(owner)
+        if term is None: fail(f'unknown ontology concept {owner!r}')
+        elif not term['meaning'].strip(): fail(f'{owner}: missing explanation')
+        if node['parent'] is not None and node['parent'] not in by_id:
+            fail(f"{node['id']}: dangling parent {node['parent']!r}")
+        seen = set()
+        at = node
+        while at is not None:
+            if at['id'] in seen:
+                fail(f"{node['id']}: containment cycle")
+                break
+            seen.add(at['id'])
+            at = by_id.get(at['parent'])
+        if node['view'] == 'engine' and owner != 'ModelExecution':
+            fail('numerical diagram must belong to ModelExecution')
+    if len([n for n in nodes if n['view'] == 'engine']) != 1:
+        fail('require exactly one numerical diagram home')
+    for control in spec['$defs']['ExperimentSpec']['oneOf']:
         properties = control['properties']
         name = properties['control']['const']
-        owner = properties['ontology_binding']['const']['primary']
-        if owner not in concepts:
-            fail(f'experiment control {name!r} has no concept home for primary owner {owner!r}')
+        binding = properties['ontology_binding']['const']
+        for owner in [binding['primary'], *binding['related']]:
+            if owner not in owners:
+                fail(f'experiment control {name!r} has no explanation/concept home for {owner!r}')
     subjects = {owner for binding in labs.values() for owner in [binding['primary'], *binding['related']]}
-    missing = (subjects | set(operation_owners(spec).values())) - set(concepts)
+    missing = (subjects | set(operation_owners(spec).values())) - set(owners)
     if missing: fail(f'missing navigation homes for lab or operation owners: {sorted(missing)}')
-    engines = [area for area in areas if area['view'] == 'engine']
-    if len(engines) != 1 or [area for area in areas if area['expanded']] != engines:
-        fail('exactly one engine area must be expanded initially')
     for edge in model['relationships']:
-        if edge['source'] not in ids or edge['target'] not in ids:
+        if edge['source'] not in by_id or edge['target'] not in by_id:
             fail(f'dangling relationship {edge["source"]!r} -> {edge["target"]!r}')
         if edge['source'] == edge['target']: fail('self relationship adds no system boundary')
     return failures

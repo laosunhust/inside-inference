@@ -5,14 +5,15 @@ terms:
     owns:
     - Composition of separately owned execution, scheduling, cache, transfer and compute-service configurations.
     - System-wide supported request and output-token ceilings.
-    - The navigable composition of responsibilities, with ontology bindings, structural relationships
-      and explicit undeclared gaps.
+    - The shared containment hierarchy of ontology-owned logical components and mechanisms, with cross-component
+      relationships.
     - Declared dispatch boundary; the baseline uses one direct in-process execution endpoint.
     excludes:
     - Constituent mechanisms and their observations.
     - Caller-requested generation policy and response publication.
     - Model weights and measured results.
-    - Navigation groupings are not new semantic owners or evidence that a mechanism executes.
+    - Containment does not claim separate processes, execution order or support for configuring every
+      component.
     capability_reads: []
     projections:
       Inference system:
@@ -26,7 +27,7 @@ terms:
           - compute_service
     schemas:
     - InferenceMap
-    - InferenceMapArea
+    - InferenceMapNode
     - InferenceMapRelationship
     - KVResidencySystemConfig
   GenerationPolicy:
@@ -114,3 +115,116 @@ terms:
           - complete
     schemas:
     - RunOutcome
+  RequestEndpoint:
+    meaning: Accept requests and publish responses at the inference service boundary.
+    lifetime: A durable logical boundary in the declared system hierarchy; implementations and experiments
+      may change.
+    owns:
+    - Request and response contracts, streaming and cancellation semantics.
+    - Its typed boundary in the shared configuration and explanation hierarchy.
+    excludes:
+    - Routing decisions, model computation, and customer-side receipt.
+    - The boundary declaration alone provides no executable experiment or numerical evidence.
+    capability_reads: []
+    projections: {}
+    schemas:
+    - RequestEndpointBoundary
+  RequestRouter:
+    meaning: Select an execution destination for an admitted service request.
+    lifetime: A durable logical boundary in the declared system hierarchy; implementations and experiments
+      may change.
+    owns:
+    - Destination selection and affinity to model availability, capacity and resident state.
+    - Its typed boundary in the shared configuration and explanation hierarchy.
+    excludes:
+    - Scheduling work within a selected engine; no configurable router is implemented.
+    - The boundary declaration alone provides no executable experiment or numerical evidence.
+    capability_reads: []
+    projections: {}
+    schemas:
+    - RequestRouterBoundary
+  InferenceEngine:
+    meaning: Coordinate request scheduling, model execution and decoding against a selected model artifact.
+    lifetime: A durable logical boundary in the declared system hierarchy; implementations and experiments
+      may change.
+    owns:
+    - Composition of request scheduler, tokenizer, model executor and sequence decoding.
+    - Its typed boundary in the shared configuration and explanation hierarchy.
+    excludes:
+    - Public API transport, physical device ownership, and claiming a separate process or vendor product.
+    - The boundary declaration alone provides no executable experiment or numerical evidence.
+    capability_reads: []
+    projections: {}
+    schemas:
+    - InferenceEngineBoundary
+  StateManager:
+    meaning: Coordinate the lifetime, residency and movement of inference state.
+    lifetime: A durable logical boundary in the declared system hierarchy; implementations and experiments
+      may change.
+    owns:
+    - Composition of sequence-state representation, KV cache management and state transfer.
+    - Its typed boundary in the shared configuration and explanation hierarchy.
+    excludes:
+    - Model equations, kernel implementation and fabric topology; no generic state service is implemented.
+    - The boundary declaration alone provides no executable experiment or numerical evidence.
+    capability_reads: []
+    projections: {}
+    schemas:
+    - StateManagerBoundary
+  ResourcePool:
+    meaning: The compute, memory and interconnect resources against which inference execution is constrained.
+    lifetime: A durable logical boundary in the declared system hierarchy; implementations and experiments
+      may change.
+    owns:
+    - Composition of the resource graph and declared compute-service assumptions.
+    - Its typed boundary in the shared configuration and explanation hierarchy.
+    excludes:
+    - Placement decisions, measured hardware calibration and claims that graph topology is executed.
+    - The boundary declaration alone provides no executable experiment or numerical evidence.
+    capability_reads: []
+    projections: {}
+    schemas:
+    - ResourcePoolBoundary
+  ComputeKernel:
+    meaning: An executable implementation of a bounded numerical operation on a compute device.
+    lifetime: A durable logical boundary in the declared system hierarchy; implementations and experiments
+      may change.
+    owns:
+    - The boundary for algorithm, precision, fusion and memory-access choices in an operation implementation.
+    - Its typed boundary in the shared configuration and explanation hierarchy.
+    excludes:
+    - CUDA as a platform, model architecture, scheduler policy, and an implemented kernel selector.
+    - The boundary declaration alone provides no executable experiment or numerical evidence.
+    capability_reads: []
+    projections: {}
+    schemas:
+    - ComputeKernelBoundary
+  DeviceRuntime:
+    meaning: The execution services used to launch device work and manage its memory and synchronization.
+    lifetime: A durable logical boundary in the declared system hierarchy; implementations and experiments
+      may change.
+    owns:
+    - The boundary between model execution and device launch, memory and synchronization facilities.
+    - Its typed boundary in the shared configuration and explanation hierarchy.
+    excludes:
+    - Compute-kernel algorithms, physical hardware capacity, and claiming a CUDA runtime in this browser.
+    - The boundary declaration alone provides no executable experiment or numerical evidence.
+    capability_reads: []
+    projections: {}
+    schemas:
+    - DeviceRuntimeBoundary
+  CollectiveCommunication:
+    meaning: Coordinate a communication operation across a declared group of execution participants.
+    lifetime: A durable logical boundary in the declared system hierarchy; implementations and experiments
+      may change.
+    owns:
+    - The boundary for collective operation, algorithm and participant choices, such as all-reduce.
+    - Its typed boundary in the shared configuration and explanation hierarchy.
+    excludes:
+    - NCCL as a universal implementation, point-to-point state transfer, and any implemented collective
+      simulation.
+    - The boundary declaration alone provides no executable experiment or numerical evidence.
+    capability_reads: []
+    projections: {}
+    schemas:
+    - CollectiveCommunicationBoundary

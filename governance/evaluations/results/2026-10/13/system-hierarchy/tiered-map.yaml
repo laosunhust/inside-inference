@@ -1,0 +1,63 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/system-hierarchy/tiered-map.yaml
+evaluation_sha256: 3cf359d1e42d5d555bac341da07ae3df8d8c498cb1a1bd541b1096d01f196f87
+outcome: passed
+summary: 'Replaced seven flat navigation areas with a 32-node containment hierarchy rooted at InferenceSystem.
+  Six top-level logical components are RequestEndpoint, RequestRouter, InferenceEngine, StateManager,
+  ExecutionBackend and ResourcePool. Artifacts and mechanisms have nested homes. New boundary nouns have
+  owned typed declarations and explicit exclusions; they do not claim separate processes, numerical measurements
+  or implemented configuration. ComputeKernel, DeviceRuntime and CollectiveCommunication are distinct
+  backend mechanisms.
+
+
+  Both configuration and explanation now use SystemMap.mount for structural rendering. They share node
+  IDs, ontology owners, labels and actual parent paths. Editors and explanations are content at those
+  nodes rather than competing navigation authorities. All six existing ExperimentSpec controls have matching
+  explanation slots showing applied values; all 32 nodes retain ontology meanings. Disabled settings indicate
+  missing experiments, not a permanent exclusion. Configuration may keep unsupported numerical details
+  collapsed while Explanation opens the model computation by default; expansion is view state, not a different
+  hierarchy.
+
+
+  Approved governance changes reject the old flat representation, unknown owners, duplicate IDs/homes,
+  invalid roots, dangling parents and relationships, containment cycles, missing control/related/operation/lab
+  homes and missing explanations. Existing declaration ownership admission validates each new boundary
+  and generated consumer. Counterexample fixtures passed before renderer changes. Browser tests compare
+  complete actual DOM ancestry across both panels against the declaration for all three models, verify
+  every explanation text, every control home and applied KV values, exercise nested model/resource editors
+  with pointer events, preserve selector identity and reset behavior, and retain headless/interactive
+  numerical and resource parity.
+
+
+  Final make test passed 92 tests in 4.25s of 10s. Final make test-integration passed the included unit
+  harness, 22 Python integration tests and browser checks in 42.17s of 100s. Desktop and narrow configuration/explanation
+  screenshots were inspected. Descriptions use progressive disclosure; branches show expansion affordances.
+  No numerical runtime, supported model set or resource-simulation semantics changed.
+
+
+  One initial integration run failed during a cold dynamic import of llama.mjs. The built file existed;
+  the failure was not reproduced in the next two full runs (41.94s and 42.17s). No fallback or automatic
+  retry was added and the transient fetch failure is not claimed to be diagnosed. Subsequent runs include
+  normal cold browser startup.
+
+
+  Existing folder warnings remain for ontology/domain modules, the backend root and historical evaluation
+  directories. Resolving the ontology warning requires an approved manifest/enforcement change because
+  nested ontology modules are currently prohibited; historical evaluation relocation requires preserving
+  history admission. This work adds records under a cohesive subdirectory and does not relax any limit.
+  Only the two explicitly approved enforcement files and their hashes changed.
+
+
+  Final rebuild passed governance and declaration checks. All 57 served release files are byte-identical
+  to the integration-tested artifact. No commit or deployment was performed.'
+evidence:
+- data-model/domains/system-map.yaml
+- docs/ontology/inference-system.yaml
+- docs/ontology/hardware.yaml
+- docs/ontology/README.md
+- web/inspection/system-map.js
+- web/inspection/configuration.js
+- scripts/check/governance/frontend.py
+- tests/unit/contracts/test_governance.py
+- scripts/check/story_models/system-map.mjs
+- scripts/check/cache_browser_check.mjs

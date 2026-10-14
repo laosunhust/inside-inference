@@ -83,7 +83,7 @@ import './session.js';
     renderSetup();renderPath();status();
     $('numerical-inspector').hidden=(!state.prepared&&!S.controls(state).resources)||pending;
     if((state.prepared||S.controls(state).resources)&&!pending)InspectionDetails.render(state,inspect);else {$('detail-body').replaceChildren();$('concept-body').replaceChildren();$('inspection-context').textContent='';}
-    configuration?.refresh();resources?.render(state.resource,state.view);
+    configuration?.refresh();systemMap.refresh(state.input.execution);resources?.render(state.resource,state.view);
   }
   function clearPanels() {
     $('sequence-details').hidden=true;$('output-details').setAttribute('aria-expanded','false');

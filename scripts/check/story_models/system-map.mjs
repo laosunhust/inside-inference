@@ -3,46 +3,35 @@ import assert from 'node:assert/strict';
 export async function checkMap({evaluate,send},initial=false) {
   const result=await evaluate(`(()=>{
     const map=Declarations.schemas.InferenceMap.const;
-    const areas=Array.from(document.querySelectorAll('#system-map>.map-area'));
-    return {expected:map.areas.map(a=>({id:a.id,title:a.title,concepts:a.concepts,open:a.expanded})),
-      actual:areas.map(a=>({id:a.dataset.mapArea,title:a.querySelector(':scope>summary').textContent,
-        concepts:Array.from(a.querySelectorAll('[data-owner]'),c=>c.dataset.owner),open:a.open})),
+    const path=node=>node.parent===null?[node.id]:[...path(map.nodes.find(n=>n.id===node.parent)),node.id];
+    const actual=root=>Array.from(document.querySelectorAll(root+' .map-node'),e=>{
+      const ids=[];for(let at=e;at;at=at.parentElement.closest('.map-node'))ids.unshift(at.dataset.mapNode);
+      return {id:e.dataset.mapNode,owner:e.dataset.owner,parent:e.parentElement.closest('.map-node')?.dataset.mapNode??null,path:ids,label:e.querySelector(':scope>button')?.textContent??null,meaning:e.querySelector(':scope>.map-body>.map-description>p')?.textContent,open:!e.querySelector(':scope>.map-body').hidden};
+    });
+    return {expected:map.nodes.map(n=>({...n,path:path(n),meaning:Declarations.meanings[n.owner].meaning})),explanation:actual('#system-map'),configuration:actual('#configure-system'),
       links:Array.from(document.querySelectorAll('#system-map .map-links a'),a=>a.getAttribute('href')),
       labLinks:Declarations.labs.filter(l=>l.status==='mechanical-demo').map(l=>'labs/'+l.id+'.html')};
   })()`);
-  for(let i=0;i<result.expected.length;i++) {
-    const {open,...expected}=result.expected[i],{open:actualOpen,...actual}=result.actual[i];
-    assert.deepEqual(actual,expected,'Every rendered area/concept must derive from the declared map');
-    if(initial)assert.equal(actualOpen,open,'Only the engine opens by default');
-  }
-  assert.equal(result.actual.length,result.expected.length);
-  assert.equal(await evaluate("document.getElementById('numerics').contains(document.getElementById('switch-inspection')) && !document.getElementById('system-map').contains(document.getElementById('switch-inspection'))"),true,'Model switching belongs with numerical limitations, not concepts');
-  assert.equal(await evaluate("document.getElementById('numerics').open"),await evaluate("document.getElementById('inspection-unavailable').hidden"),'Initial numerical disclosure follows declared tensor capability');
-  assert.ok(!result.actual.some(a=>a.concepts.includes('CustomerInteraction')||a.concepts.includes('GenerationPolicy')),'Caller interaction and requested generation policy are outside the system map');
-  assert.deepEqual(result.links.filter(l=>l.startsWith('labs/')).sort(),result.labLinks.sort(),'Only implemented primary labs appear, once each');
-  assert.equal(await evaluate("document.getElementById('journey-dispatch')"),null,'Retire the placeholder route');
-  assert.equal(await evaluate("document.getElementById('numerics').contains(document.getElementById('concept-body'))"),false,'Concept detail remains outside numerical disclosure');
-  if(initial) {
-    // Every disclosure is a real interactive control; opening it cannot run inference.
-    assert.equal(await evaluate(`(()=>{
-      const before=document.getElementById('run-identity').textContent;
-      for(const area of document.querySelectorAll('#system-map>.map-area')) {
-        const original=area.open;area.querySelector(':scope>summary').click();
-        if(area.open===original)return false;
-        area.querySelector(':scope>summary').click();if(area.open!==original)return false;
-      }
-      const numerics=document.getElementById('numerics'),open=numerics.open;
-      numerics.querySelector('summary').click();if(numerics.open===open)return false;
-      numerics.querySelector('summary').click();
-      return before===document.getElementById('run-identity').textContent && numerics.open===open;
-    })()`),true);
-    await evaluate("document.querySelector('#system-map summary').focus()");
+  const structure=nodes=>nodes.map(({id,owner,parent,path,label})=>({id,owner,parent,path,label}));
+  assert.deepEqual(structure(result.configuration),structure(result.explanation),'Configuration and Explanation must have identical full containment paths');
+  const expected=result.expected.map(({id,owner,parent,path})=>({id,owner,parent,path}));
+  for(const nodes of [result.configuration,result.explanation])assert.deepEqual(nodes.map(({id,owner,parent,path})=>({id,owner,parent,path})),expected,'Rendered nesting must match the declared hierarchy');
+  assert.deepEqual(result.explanation.map(n=>n.meaning),result.expected.map(n=>n.meaning),'Every system node has its ontology explanation');
+  if(initial)for(let i=0;i<result.expected.length;i++)assert.equal(result.explanation[i].open,result.expected[i].expanded);
+  assert.equal(await evaluate("document.getElementById('numerics').contains(document.getElementById('switch-inspection')) && !document.getElementById('system-map').contains(document.getElementById('switch-inspection'))"),true);
+  assert.equal(await evaluate("document.getElementById('numerics').open"),await evaluate("document.getElementById('inspection-unavailable').hidden"));
+  assert.ok(!result.expected.some(n=>['CustomerInteraction','GenerationPolicy'].includes(n.owner)));
+  assert.deepEqual(result.links.filter(l=>l.startsWith('labs/')).sort(),result.labLinks.sort());
+  assert.equal(await evaluate("document.getElementById('numerics').contains(document.getElementById('concept-body'))"),false);
+  if(initial){
+    assert.equal(await evaluate(`(()=>{const before=document.getElementById('run-identity').textContent;for(const b of document.querySelectorAll('#system-map .map-node>button')){const original=b.getAttribute('aria-expanded');b.click();if(b.getAttribute('aria-expanded')===original)return false;b.click();if(b.getAttribute('aria-expanded')!==original)return false;}return before===document.getElementById('run-identity').textContent;})()`),true);
+    await evaluate("document.querySelector('#map-endpoint>button').focus()");
     for(const type of ['keyDown','keyUp'])await send('Input.dispatchKeyEvent',{type,key:'Enter',code:'Enter',windowsVirtualKeyCode:13,...(type==='keyDown'?{text:'\r'}:{})});
-    assert.equal(await evaluate("document.querySelector('#system-map>.map-area').open"),true,'Keyboard activation expands a region');
+    assert.equal(await evaluate("document.querySelector('#map-endpoint>.map-body').hidden"),false);
     for(const type of ['keyDown','keyUp'])await send('Input.dispatchKeyEvent',{type,key:'Enter',code:'Enter',windowsVirtualKeyCode:13,...(type==='keyDown'?{text:'\r'}:{})});
-    assert.equal(await evaluate("document.querySelector('#system-map>.map-area').open"),false);
-    await evaluate("document.getElementById('map-state').open=true");
-  } else assert.equal(await evaluate("document.getElementById('map-state').open"),true,'Expansion survives generation and model changes');
+    assert.equal(await evaluate("document.querySelector('#map-endpoint>.map-body').hidden"),true);
+    await evaluate("document.querySelector('#map-state>button').click()");
+  }else assert.equal(await evaluate("document.querySelector('#map-state>.map-body').hidden"),false,'Expansion survives generation and model changes');
 }
 
 export async function checkJourney({evaluate},expectedIds) {

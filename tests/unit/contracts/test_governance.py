@@ -339,27 +339,30 @@ class FrontendGovernanceTests(unittest.TestCase):
                 self.assertTrue(any(message in error for error in check(source, suffix)))
 
 
-    def test_system_map_admits_one_home_and_rejects_missing_or_invented_bindings(self):
+    def test_system_map_admits_one_tree_and_rejects_unexplainable_controls(self):
         from scripts.check.governance.frontend import audit_system_map
         from scripts.build.contracts import lab_bindings
         ontology, spec = load_declarations(), load_schema()
         labs = lab_bindings(ROOT, ontology, spec)
         self.assertEqual(audit_system_map(ontology, spec, labs), [])
-        def duplicate_id(m): m['areas'][1]['id'] = m['areas'][0]['id']
-        def duplicate_home(m): m['areas'][0]['concepts'].append('Attention')
-        def unknown(m): m['areas'][0]['concepts'].append('Invented')
-        def missing(m): next(a for a in m['areas'] if 'Attention' in a['concepts'])['concepts'].remove('Attention')
+        def duplicate(m): m['nodes'].append(copy.deepcopy(m['nodes'][1]))
+        def owner(m): m['nodes'][1]['owner'] = m['nodes'][2]['owner']
+        def unknown(m): m['nodes'][1]['owner'] = 'Invented'
+        def missing(m): m['nodes'][:] = [n for n in m['nodes'] if n['owner'] != 'Attention']
+        def parent(m): m['nodes'][1]['parent'] = 'missing'
+        def cycle(m): m['nodes'][0]['parent'] = m['nodes'][1]['id']
+        def root(m): m['nodes'][1]['parent'] = None
         def edge(m): m['relationships'][0]['target'] = 'missing'
-        def expanded(m): m['areas'][0]['expanded'] = True
-        for mutation, message in [(duplicate_id,'duplicate area'),(duplicate_home,'multiple navigation'),
-                (unknown,'unknown ontology'),(missing,'missing navigation'),(edge,'dangling relationship'),
-                (expanded,'exactly one engine')]:
+        def engine(m): next(n for n in m['nodes'] if n['view']=='engine')['view']='concept'
+        cases=[(duplicate,'duplicate node'),(owner,'multiple navigation'),(unknown,'unknown ontology'),
+            (missing,'missing navigation'),(parent,'dangling parent'),(cycle,'containment cycle'),
+            (root,'one InferenceSystem root'),(edge,'dangling relationship'),(engine,'one numerical')]
+        for mutation, message in cases:
             with self.subTest(mutation=mutation.__name__):
                 changed=copy.deepcopy(spec);mutation(changed['$defs']['InferenceMap']['const'])
                 self.assertTrue(any(message in e for e in audit_system_map(ontology,changed,labs)))
-        changed=copy.deepcopy(spec);unknown(changed['$defs']['InferenceMap']['const'])
-        with self.assertRaisesRegex(ValueError, 'Invented'):
-            admit(ontology,changed)
+        changed=copy.deepcopy(ontology);changed['terms']['KVCache']['meaning']=''
+        self.assertTrue(any('missing explanation' in e for e in audit_system_map(changed,spec,labs)))
 
     def test_journey_rejects_competing_runtime_and_operation_authorities(self):
         from scripts.check.governance.frontend import audit_execution_journey

@@ -10,6 +10,8 @@ export async function checkCache({send,evaluate,until,click,base,output}) {
  assert.equal(await evaluate(`document.getElementById('run-error').textContent`),'');
  await evaluate(`globalThis.cardModelSelector=document.getElementById('model-choice')`);
  const pointer=async selector=>{
+  const ancestors=await evaluate(`(()=>{const result=[];let at=document.querySelector(${JSON.stringify(selector)}).parentElement.closest('.map-node')?.parentElement.closest('.map-node');while(at){const b=at.querySelector(':scope>button');if(b&&b.getAttribute('aria-expanded')==='false')result.unshift('#'+at.id+'>button');at=at.parentElement.closest('.map-node');}return result;})()`);
+  for(const ancestor of ancestors)await pointer(ancestor);
   const point=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);
   await send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...point});
   await send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...point});
@@ -18,23 +20,24 @@ export async function checkCache({send,evaluate,until,click,base,output}) {
  const ownership=await evaluate(`(()=>{
   const definitions=Declarations.schemas.ExperimentSpec.oneOf;
   return {expected:definitions.map(d=>({control:d.properties.control.const,owner:d.properties.ontology_binding.const.primary})),
-   cards:Array.from(document.querySelectorAll('#configure-system>[data-concept]'),c=>({owner:c.dataset.concept,disabled:c.querySelector('button').disabled})),
-   editors:Array.from(document.querySelectorAll('#configure-system [data-control]'),e=>({control:e.dataset.control,owner:e.closest('[data-concept]').dataset.concept})),
+   cards:Array.from(document.querySelectorAll('#configure-system .map-node:not(.map-root)'),c=>({owner:c.dataset.owner,disabled:c.querySelector(':scope>button').disabled,branch:!!c.querySelector('.map-children')})),
+   editors:Array.from(document.querySelectorAll('#configure-system [data-control]'),e=>({control:e.dataset.control,owner:e.closest('.map-node').dataset.owner})),
    unowned:Array.from(document.querySelectorAll('#system-dialog input,#system-dialog select,#system-dialog textarea')).filter(e=>!e.closest('[data-control]')).map(e=>e.id)};
  })()`);
  assert.deepEqual(ownership.editors.sort((a,b)=>a.control.localeCompare(b.control)),ownership.expected.sort((a,b)=>a.control.localeCompare(b.control)),'Editors have exactly one primary concept home');
  assert.deepEqual(ownership.unowned,[],'No standalone system editors');
+ assert.deepEqual(await evaluate(`Array.from(document.querySelectorAll('#system-map [data-explanation-control]'),e=>({control:e.dataset.explanationControl,owner:e.closest('.map-node').dataset.owner})).sort((a,b)=>a.control.localeCompare(b.control))`),ownership.expected,'Every configurable control has its explanation at the same owner');
  assert.equal(new Set(ownership.cards.map(c=>c.owner)).size,ownership.cards.length);
- for(const card of ownership.cards)assert.equal(card.disabled,!ownership.expected.some(e=>e.owner===card.owner),'Enabled iff a declared editor exists');
+ for(const card of ownership.cards)assert.equal(card.disabled,!card.branch&&!ownership.expected.some(e=>e.owner===card.owner),'Branches navigate; leaf settings are enabled iff a declared editor exists');
  for(const c of ownership.expected){
-  await pointer(`#configure-system>[data-concept="${c.owner}"]>button`);
+  await pointer(`#configure-system [data-owner="${c.owner}"]>button`);
   assert.equal(await evaluate(`document.getElementById('system-dialog').open`),true,'Concept cards must reveal settings in place');
-  assert.equal(await evaluate(`(()=>{const card=document.querySelector('#configure-system>[data-concept="${c.owner}"]'),button=card.querySelector('button'),panel=document.getElementById(button.getAttribute('aria-controls'));return button.getAttribute('aria-expanded')==='true'&&!panel.hidden&&!!panel.querySelector('input,select,textarea');})()`),true,'Expanded card must contain its usable editor');
-  await pointer(`#configure-system>[data-concept="${c.owner}"]>button`);
+  assert.equal(await evaluate(`(()=>{const card=document.querySelector('#configure-system [data-owner="${c.owner}"]'),button=card.querySelector('button'),panel=document.getElementById(button.getAttribute('aria-controls'));return button.getAttribute('aria-expanded')==='true'&&!panel.hidden&&!!panel.querySelector('input,select,textarea');})()`),true,'Expanded card must contain its usable editor');
+  await pointer(`#configure-system [data-owner="${c.owner}"]>button`);
  }
  // The same model selector works inside the card and returns to Interaction on close.
  const modelOwner=ownership.expected.find(c=>c.control==='model').owner;
- await pointer(`#configure-system>[data-concept="${modelOwner}"]>button`);
+ await pointer(`#configure-system [data-owner="${modelOwner}"]>button`);
  assert.equal(await evaluate(`document.querySelectorAll('#model-choice').length===1&&document.getElementById('model-choice')===cardModelSelector`),true);
  await evaluate(`document.getElementById('model-choice').value='tinyllm-500k';document.getElementById('model-choice').dispatchEvent(new Event('change'))`);
  await until(`['ready','failed'].includes(document.getElementById('binding-status').dataset.phase)`,300);
@@ -54,13 +57,15 @@ export async function checkCache({send,evaluate,until,click,base,output}) {
  await until(`!document.getElementById('system-dialog').open&&document.getElementById('inference-form').contains(cardModelSelector)`);
  assert.equal(await evaluate(`document.querySelectorAll('#model-choice').length`),1);
  await click('open-system');
- await pointer(`#configure-system>[data-concept="${modelOwner}"]>button`);
+ await pointer(`#configure-system [data-owner="${modelOwner}"]>button`);
  await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
  let configShot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/concept-controls-desktop.png',Buffer.from(configShot.data,'base64'));
- await evaluate(`document.querySelector('#configure-system>[data-concept="KVCache"]>button').click()`);
+ await pointer('#configure-system [data-owner="KVCache"]>button');
  await click('kv-reuse');await click('resource-enabled');
+ assert.equal(await evaluate(`document.querySelector('[data-explanation-control="kv_reuse"]').dataset.value`),'true');
+ assert.equal(await evaluate(`JSON.parse(document.querySelector('[data-explanation-control="kv_cache"]').dataset.value).device_kv_bytes`),await evaluate(`Number(document.getElementById('resource-device_kv_bytes').value)`));
  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
- await evaluate(`document.querySelector('#configure-system>[data-concept="KVCache"]').scrollIntoView({block:'start'})`);
+ await evaluate(`document.querySelector('#configure-system [data-owner="KVCache"]').scrollIntoView({block:'start'})`);
  assert.ok(await evaluate(`document.getElementById('system-dialog').scrollWidth<=document.getElementById('system-dialog').clientWidth`));
  configShot=await send('Page.captureScreenshot',{format:'png'});await writeFile(output+'/concept-controls-mobile.png',Buffer.from(configShot.data,'base64'));
  await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
