@@ -2442,6 +2442,78 @@ globalThis.Declarations = (() => {
       }
     }
   },
+  "BrowserTokenTiming": {
+    "type": "object",
+    "x-owner": "ExperimentObservation",
+    "additionalProperties": false,
+    "required": [
+      "prediction_id",
+      "token_index",
+      "segment",
+      "mode",
+      "started_ms",
+      "updated_ms",
+      "publishes_text"
+    ],
+    "properties": {
+      "prediction_id": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "token_index": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "One-based generated token index in the accepted output, including terminal tokens."
+      },
+      "segment": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "One Generate or Next Token gesture; intervals never cross this boundary."
+      },
+      "mode": {
+        "type": "string",
+        "enum": [
+          "continuous",
+          "manual"
+        ]
+      },
+      "started_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "performance.now at the start of the generation gesture, after prior model loading and input preparation."
+      },
+      "updated_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "performance.now after the accepted token updates the output DOM; not a physical paint timestamp."
+      },
+      "publishes_text": {
+        "type": "boolean",
+        "description": "This token changed visible decoded output; an end-token-only response does not establish TTFT."
+      }
+    }
+  },
+  "BrowserGenerationTiming": {
+    "type": "object",
+    "x-owner": "ExperimentObservation",
+    "additionalProperties": false,
+    "required": [
+      "clock",
+      "samples"
+    ],
+    "properties": {
+      "clock": {
+        "type": "string",
+        "const": "browser-monotonic-ms"
+      },
+      "samples": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/BrowserTokenTiming"
+        }
+      }
+    }
+  },
   "InspectionState": {
     "type": "object",
     "x-owner": "InspectionState",
@@ -4014,11 +4086,15 @@ globalThis.Declarations = (() => {
     "x-owner": "ExperimentExecution",
     "additionalProperties": false,
     "required": [
+      "timing",
       "input",
       "model",
       "prediction"
     ],
     "properties": {
+      "timing": {
+        "$ref": "#/$defs/BrowserGenerationTiming"
+      },
       "input": {
         "$ref": "#/$defs/GenerationInput"
       },
@@ -6318,7 +6394,8 @@ globalThis.Declarations = (() => {
     "lifetime": "Captured during execution and retained unchanged with its evidence.",
     "owns": [
       "Recorded intermediate tensors and their dependencies.",
-      "Local wall-time measurements with their measurement boundaries."
+      "Local wall-time measurements with their measurement boundaries.",
+      "Browser token-update observations on a monotonic clock, separated by generation gestures; these are not physical paint timestamps or server benchmarks."
     ],
     "excludes": [
       "Requested settings and hypothetical service rates",
@@ -6330,7 +6407,9 @@ globalThis.Declarations = (() => {
     "schemas": [
       "TensorObservation",
       "CacheMeasurement",
-      "GenerationPrediction"
+      "GenerationPrediction",
+      "BrowserTokenTiming",
+      "BrowserGenerationTiming"
     ]
   },
   "ExecutionSpec": {
@@ -7798,7 +7877,7 @@ globalThis.Declarations = (() => {
     ]
   }
 };
-  const hash = "9b5bcf0d7d9b9941c83e4f8f3759e7da6e3503c98ea1f5d4f4a42367e5677952";
+  const hash = "afe2cd81ae3d524fb34c18e21569b801b5b9dbe9613093114931c39826354d08";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

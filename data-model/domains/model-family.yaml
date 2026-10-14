@@ -458,10 +458,13 @@ $defs:
     x-owner: ExperimentExecution
     additionalProperties: false
     required:
+    - timing
     - input
     - model
     - prediction
     properties:
+      timing:
+        $ref: '#/$defs/BrowserGenerationTiming'
       input:
         $ref: '#/$defs/GenerationInput'
       model:

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {checkPresentation,checkEmptyTiming,checkManualTiming,checkTimingExport} from './presentation.mjs';
 import {checkExecution} from './execution.mjs';
 import {checkMap,checkJourney} from './system-map.mjs';
 import {checkRecomputation} from './recompute.mjs';
@@ -19,7 +20,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
   async function choose(id){if(await evaluate("document.getElementById('inference-form').hidden"))await click('edit-input');await evaluate(`document.getElementById('model-choice').value=${JSON.stringify(id)};document.getElementById('model-choice').dispatchEvent(new Event('change'))`);await ready();}
   async function apply(text,budget=8){if(await evaluate("document.getElementById('inference-form').hidden"))await click('edit-input');await evaluate(`document.getElementById('prompt').value=${JSON.stringify(text)};document.getElementById('prompt').dispatchEvent(new Event('input'));document.getElementById('output-budget').value=${budget};document.getElementById('output-budget').dispatchEvent(new Event('change'));document.getElementById('inference-form').requestSubmit()`);await ready();assert.equal(await evaluate("document.getElementById('inference-form').hidden"),true);}
   const snapshot=()=>evaluate("JSON.parse(document.getElementById('run-identity').textContent)");
-  async function empty(){assert.equal(await evaluate("document.getElementById('response-preview').textContent"),'');assert.equal(await evaluate("document.getElementById('run-identity').textContent"),'');assert.equal(await evaluate("document.querySelectorAll('#computation-path [data-observations]').length"),0);assert.equal(await evaluate("document.getElementById('download-run').disabled"),true);}
+  async function empty(){await checkEmptyTiming(evaluate);assert.equal(await evaluate("document.getElementById('response-preview').textContent"),'');assert.equal(await evaluate("document.getElementById('run-identity').textContent"),'');assert.equal(await evaluate("document.querySelectorAll('#computation-path [data-observations]').length"),0);assert.equal(await evaluate("document.getElementById('download-run').disabled"),true);}
   async function rejection(expression,pattern){const message=await evaluate(`(async()=>{try{await (${expression});return null;}catch(e){return String(e);}})()`);assert.match(message||'',pattern);return message;}
   await send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:output});
   const comparable=result=>{const value=structuredClone(result);delete value.compute_ms;return value;};
@@ -120,7 +121,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         const {rm}=await import('node:fs/promises');await rm(output+'/inference-run.json',{force:true});await evaluate("document.querySelector('#numerics>summary').click()");await click('download-run');
         let exported;for(let i=0;i<100;i++){try{exported=JSON.parse(await readFile(output+'/inference-run.json','utf8'));break;}catch{await new Promise(r=>setTimeout(r,50));}}
         assert.deepEqual(exported.prediction,interactive,'Download must contain the current accepted prediction');
-        assert.deepEqual(exported.input,input);assert.deepEqual(exported.model,model);
+        checkTimingExport(exported);assert.deepEqual(exported.input,input);assert.deepEqual(exported.model,model);
         await evaluate("document.querySelector('#numerics>summary').click()");
       }
       assert.equal(await evaluate("document.getElementById('response-preview').textContent"),result.text);
@@ -163,17 +164,12 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         assert.equal(await evaluate("document.getElementById('inspection-context').dataset.observationId"),inputId);
         assert.equal(await evaluate("document.querySelectorAll('#computation-path .selected-object').length"),1,'Observed operands retain their declared diagram home');
       }
-      for(const [label,width,height] of [['desktop',1280,1000],['mobile',390,844]]) {
-        await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<500});
-        assert.ok(await evaluate('document.documentElement.scrollWidth<=window.innerWidth'),'Horizontal overflow');
-        await evaluate("document.getElementById('system-map').scrollIntoView({block:'start'})");
-        await writeFile(output+'/'+model.id+'-'+label+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
-      }
+      await checkPresentation({send,evaluate,output,model,result});
       evidence.screenshots.push(model.id);
       evidence.models.push({id:model.id,parameters:model.parameters,load_ms:loaded.load_ms,prefill_ms:times[0],warm_median_ms:median,continuation:result.text,selected_ids:result.output_ids});
       // Selection defines a new raw prefix, not a seek through recorded output.
       await evaluate("document.querySelectorAll('#sequence-strip button')[2].click()");
-      await click('next-token');await ready();const branch=await snapshot();
+      await click('next-token');await ready();await checkManualTiming(evaluate);const branch=await snapshot();
       assert.deepEqual(branch.request.prefix_ids,result.sequence_ids.slice(0,3));assert.deepEqual(branch.request.output_ids,[]);
       const repeated=await evaluate(`Execution.generateToken(${JSON.stringify(branch.request)})`);assert.deepEqual(comparable(branch),comparable(repeated));
       await click('reset');await empty();

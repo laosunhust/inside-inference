@@ -94,6 +94,7 @@ export async function checkCache({send,evaluate,until,click,base,output}) {
   await click('continue-tokens');await until(`!document.getElementById('continue-tokens').disabled`,300);
   assert.equal(await evaluate(`document.getElementById('run-error').textContent`),'');
   const actual=await evaluate(`JSON.parse(document.getElementById('resource-explanation').dataset.execution)`);
+  assert.equal(await evaluate("document.getElementById('timing-measurements').hidden && !document.getElementById('timing-simulation').hidden"),true,'Virtual simulation never displays browser timings');
   assert.deepEqual(logical(actual.run),logical(expected.run),c.id+': main-page/headless parity');assert.deepEqual(actual.outputs,expected.outputs);
   assert.equal(await evaluate(`document.querySelectorAll('#resource-explanation table tr').length`),actual.run.events.length+1);
   // Resource numerics use the main diagram and inspector, not a second tensor viewer.

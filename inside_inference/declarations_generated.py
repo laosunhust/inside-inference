@@ -4,7 +4,7 @@ from typing import Any
 from inside_inference.contract_runtime import Declaration
 
 EXECUTION_OPERATIONS = {'replayCache': {'request': 'ExecutionReplayInput', 'response': 'CacheRun'}, 'modelCatalog': {'request': None, 'response': 'ModelCatalog'}, 'loadModel': {'request': 'ModelSelection', 'response': 'ModelLoadResult'}, 'prepareGeneration': {'request': 'GenerationInput', 'response': 'GenerationPrepared'}, 'generateToken': {'request': 'GenerationStep', 'response': 'GenerationPrediction'}, 'simulateResources': {'request': 'GenerationInput', 'response': 'ResourceExecution'}}
-CONTRACT_SHA256 = '9b5bcf0d7d9b9941c83e4f8f3759e7da6e3503c98ea1f5d4f4a42367e5677952'
+CONTRACT_SHA256 = 'afe2cd81ae3d524fb34c18e21569b801b5b9dbe9613093114931c39826354d08'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -1099,6 +1099,95 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                'pattern': '[\\s\\S]+'},
                                      'url': {'type': 'string',
                                              'pattern': '^https://'}}},
+ 'BrowserTokenTiming': {'type': 'object',
+                        'x-owner': 'ExperimentObservation',
+                        'additionalProperties': False,
+                        'required': ['prediction_id',
+                                     'token_index',
+                                     'segment',
+                                     'mode',
+                                     'started_ms',
+                                     'updated_ms',
+                                     'publishes_text'],
+                        'properties': {'prediction_id': {'type': 'string',
+                                                         'pattern': '^[0-9a-f]{64}$'},
+                                       'token_index': {'type': 'integer',
+                                                       'minimum': 1,
+                                                       'description': 'One-based '
+                                                                      'generated '
+                                                                      'token '
+                                                                      'index '
+                                                                      'in the '
+                                                                      'accepted '
+                                                                      'output, '
+                                                                      'including '
+                                                                      'terminal '
+                                                                      'tokens.'},
+                                       'segment': {'type': 'integer',
+                                                   'minimum': 1,
+                                                   'description': 'One '
+                                                                  'Generate or '
+                                                                  'Next Token '
+                                                                  'gesture; '
+                                                                  'intervals '
+                                                                  'never cross '
+                                                                  'this '
+                                                                  'boundary.'},
+                                       'mode': {'type': 'string',
+                                                'enum': ['continuous',
+                                                         'manual']},
+                                       'started_ms': {'type': 'number',
+                                                      'minimum': 0,
+                                                      'description': 'performance.now '
+                                                                     'at the '
+                                                                     'start of '
+                                                                     'the '
+                                                                     'generation '
+                                                                     'gesture, '
+                                                                     'after '
+                                                                     'prior '
+                                                                     'model '
+                                                                     'loading '
+                                                                     'and '
+                                                                     'input '
+                                                                     'preparation.'},
+                                       'updated_ms': {'type': 'number',
+                                                      'minimum': 0,
+                                                      'description': 'performance.now '
+                                                                     'after '
+                                                                     'the '
+                                                                     'accepted '
+                                                                     'token '
+                                                                     'updates '
+                                                                     'the '
+                                                                     'output '
+                                                                     'DOM; not '
+                                                                     'a '
+                                                                     'physical '
+                                                                     'paint '
+                                                                     'timestamp.'},
+                                       'publishes_text': {'type': 'boolean',
+                                                          'description': 'This '
+                                                                         'token '
+                                                                         'changed '
+                                                                         'visible '
+                                                                         'decoded '
+                                                                         'output; '
+                                                                         'an '
+                                                                         'end-token-only '
+                                                                         'response '
+                                                                         'does '
+                                                                         'not '
+                                                                         'establish '
+                                                                         'TTFT.'}}},
+ 'BrowserGenerationTiming': {'type': 'object',
+                             'x-owner': 'ExperimentObservation',
+                             'additionalProperties': False,
+                             'required': ['clock', 'samples'],
+                             'properties': {'clock': {'type': 'string',
+                                                      'const': 'browser-monotonic-ms'},
+                                            'samples': {'type': 'array',
+                                                        'items': {'$ref': '#/$defs/BrowserTokenTiming'}}}},
  'InspectionState': {'type': 'object',
                      'x-owner': 'InspectionState',
                      'additionalProperties': False,
@@ -1942,8 +2031,9 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
  'GenerationEvidence': {'type': 'object',
                         'x-owner': 'ExperimentExecution',
                         'additionalProperties': False,
-                        'required': ['input', 'model', 'prediction'],
-                        'properties': {'input': {'$ref': '#/$defs/GenerationInput'},
+                        'required': ['timing', 'input', 'model', 'prediction'],
+                        'properties': {'timing': {'$ref': '#/$defs/BrowserGenerationTiming'},
+                                       'input': {'$ref': '#/$defs/GenerationInput'},
                                        'model': {'$ref': '#/$defs/ModelDescriptor'},
                                        'prediction': {'$ref': '#/$defs/GenerationPrediction'}}},
  'ArchitectureWalkthrough': {'type': 'object',
@@ -3514,6 +3604,23 @@ class ExperimentCatalog(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class BrowserTokenTiming(Declaration):
+    prediction_id: str
+    token_index: int
+    segment: int
+    mode: str
+    started_ms: float
+    updated_ms: float
+    publishes_text: bool
+
+
+@dataclass(frozen=True, kw_only=True)
+class BrowserGenerationTiming(Declaration):
+    clock: str
+    samples: tuple[BrowserTokenTiming, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
 class InspectionState(Declaration):
     run_id: str | None
     position: int
@@ -3766,6 +3873,7 @@ class GenerationDefaults(Declaration):
 
 @dataclass(frozen=True, kw_only=True)
 class GenerationEvidence(Declaration):
+    timing: BrowserGenerationTiming
     input: GenerationInput
     model: ModelDescriptor
     prediction: GenerationPrediction
@@ -3899,7 +4007,7 @@ class InferenceMap(Declaration):
     relationships: tuple[InferenceMapRelationship, ...]
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'RunOutcome': RunOutcome, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'OntologyBinding': OntologyBinding, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'TokenSelection': TokenSelection, 'CacheComputation': CacheComputation, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ExecutionReplayInput': ExecutionReplayInput, 'AbstractionContract': AbstractionContract, 'ExperimentSource': ExperimentSource, 'ExperimentSpec': ExperimentSpec, 'ExperimentDesign': ExperimentDesign, 'ExperimentCatalog': ExperimentCatalog, 'InspectionState': InspectionState, 'ApiError': ApiError, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Token': Token, 'Span': Span, 'Encoding': Encoding, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'ExecutionSpec': ExecutionSpec, 'GenerationInput': GenerationInput, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationWork': GenerationWork, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough, 'ResourceExecution': ResourceExecution, 'CollectiveCommunicationBoundary': CollectiveCommunicationBoundary, 'ComputeKernelBoundary': ComputeKernelBoundary, 'DeviceRuntimeBoundary': DeviceRuntimeBoundary, 'InferenceEngineBoundary': InferenceEngineBoundary, 'RequestEndpointBoundary': RequestEndpointBoundary, 'RequestRouterBoundary': RequestRouterBoundary, 'ResourcePoolBoundary': ResourcePoolBoundary, 'StateManagerBoundary': StateManagerBoundary, 'InferenceMapNode': InferenceMapNode, 'InferenceMapRelationship': InferenceMapRelationship, 'InferenceMap': InferenceMap}
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'RunOutcome': RunOutcome, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'OntologyBinding': OntologyBinding, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'TokenSelection': TokenSelection, 'CacheComputation': CacheComputation, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ExecutionReplayInput': ExecutionReplayInput, 'AbstractionContract': AbstractionContract, 'ExperimentSource': ExperimentSource, 'ExperimentSpec': ExperimentSpec, 'ExperimentDesign': ExperimentDesign, 'ExperimentCatalog': ExperimentCatalog, 'BrowserTokenTiming': BrowserTokenTiming, 'BrowserGenerationTiming': BrowserGenerationTiming, 'InspectionState': InspectionState, 'ApiError': ApiError, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Token': Token, 'Span': Span, 'Encoding': Encoding, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'ExecutionSpec': ExecutionSpec, 'GenerationInput': GenerationInput, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationWork': GenerationWork, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough, 'ResourceExecution': ResourceExecution, 'CollectiveCommunicationBoundary': CollectiveCommunicationBoundary, 'ComputeKernelBoundary': ComputeKernelBoundary, 'DeviceRuntimeBoundary': DeviceRuntimeBoundary, 'InferenceEngineBoundary': InferenceEngineBoundary, 'RequestEndpointBoundary': RequestEndpointBoundary, 'RequestRouterBoundary': RequestRouterBoundary, 'ResourcePoolBoundary': ResourcePoolBoundary, 'StateManagerBoundary': StateManagerBoundary, 'InferenceMapNode': InferenceMapNode, 'InferenceMapRelationship': InferenceMapRelationship, 'InferenceMap': InferenceMap}
 OPERATION_OWNERS = {'token_embedding': 'Embedding', 'embedding': 'Embedding', 'position_embedding': 'PositionEncoding', 'ln1_mean': 'Normalization', 'ln1_variance': 'Normalization', 'ln1': 'Normalization', 'ln2_mean': 'Normalization', 'ln2_variance': 'Normalization', 'ln2': 'Normalization', 'ln_final_mean': 'Normalization', 'ln_final_variance': 'Normalization', 'ln_final': 'Normalization', 'query': 'Attention', 'key': 'Attention', 'value': 'Attention', 'scores': 'Attention', 'causal_mask': 'Attention', 'attention': 'Attention', 'weighted_values': 'Attention', 'attention_output': 'Attention', 'attention_residual': 'ResidualAddition', 'ff_residual': 'ResidualAddition', 'ff_up': 'FeedForward', 'gelu': 'FeedForward', 'ff_down': 'FeedForward', 'logits': 'OutputProjection', 'input_ids': 'Tokenizer', 'retained_keys': 'KVState', 'retained_values': 'KVState'}
 EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                          'name': 'Reference model execution',

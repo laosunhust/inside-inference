@@ -2444,6 +2444,78 @@
         }
       }
     },
+    "BrowserTokenTiming": {
+      "type": "object",
+      "x-owner": "ExperimentObservation",
+      "additionalProperties": false,
+      "required": [
+        "prediction_id",
+        "token_index",
+        "segment",
+        "mode",
+        "started_ms",
+        "updated_ms",
+        "publishes_text"
+      ],
+      "properties": {
+        "prediction_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "token_index": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "One-based generated token index in the accepted output, including terminal tokens."
+        },
+        "segment": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "One Generate or Next Token gesture; intervals never cross this boundary."
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "continuous",
+            "manual"
+          ]
+        },
+        "started_ms": {
+          "type": "number",
+          "minimum": 0,
+          "description": "performance.now at the start of the generation gesture, after prior model loading and input preparation."
+        },
+        "updated_ms": {
+          "type": "number",
+          "minimum": 0,
+          "description": "performance.now after the accepted token updates the output DOM; not a physical paint timestamp."
+        },
+        "publishes_text": {
+          "type": "boolean",
+          "description": "This token changed visible decoded output; an end-token-only response does not establish TTFT."
+        }
+      }
+    },
+    "BrowserGenerationTiming": {
+      "type": "object",
+      "x-owner": "ExperimentObservation",
+      "additionalProperties": false,
+      "required": [
+        "clock",
+        "samples"
+      ],
+      "properties": {
+        "clock": {
+          "type": "string",
+          "const": "browser-monotonic-ms"
+        },
+        "samples": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BrowserTokenTiming"
+          }
+        }
+      }
+    },
     "InspectionState": {
       "type": "object",
       "x-owner": "InspectionState",
@@ -4016,11 +4088,15 @@
       "x-owner": "ExperimentExecution",
       "additionalProperties": false,
       "required": [
+        "timing",
         "input",
         "model",
         "prediction"
       ],
       "properties": {
+        "timing": {
+          "$ref": "#/$defs/BrowserGenerationTiming"
+        },
         "input": {
           "$ref": "#/$defs/GenerationInput"
         },

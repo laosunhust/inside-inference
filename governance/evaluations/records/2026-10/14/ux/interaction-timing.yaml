@@ -1,0 +1,30 @@
+version: 1
+work_item: interaction-timing
+question: Does a two-thirds functional panel and one-third measured timing panel make generation responsiveness inspectable without confusing manual pauses, browser latency and virtual simulation?
+necessity: Owner approves TTFT, chronological inter-token latency and generated-token count, excluding redundant throughput.
+baseline: Interaction has input/output and generation controls but no timing history; worker compute_ms exists and resource simulation has a distinct virtual clock.
+reuse:
+- source: Existing ExperimentObservation ownership, generated declarations, accepted predictions and browser harness
+  decision: Add owned browser timing observations; derive metrics from recorded monotonic timestamps and retain the same prediction/sequence authority.
+- source: Existing theme and native SVG
+  decision: Use current ink, neutral surfaces and teal accents with system typography; a compact chronological plot beside input/output, stacked beneath on narrow screens. No chart dependency or decorative cards.
+criteria:
+- Desktop functional/performance columns use a 2-to-1 ratio; narrow screens stack with no page overflow.
+- TTFT measures Generate invocation to the first text-bearing DOM output update of a new sequence, excluding prior model loading and input preparation.
+- Inter-token latency is the chronological difference between consecutive accepted token output updates within the same continuous generation segment; manual clicks, stop/resume gaps and branching never become intervals.
+- Manual steps show their own click-to-update latency; count derives from the accepted prediction and includes terminal tokens, with measurement definitions disclosed.
+- Reset, input/model/configuration changes and branching clear inapplicable timing evidence; stale responses cannot add samples.
+- Browser observations have an ontology owner and generated data-model validation, and are included in downloadable generation evidence.
+- Simulated virtual times are never presented as measured browser latency. Zero/one token, empty output, errors and missing intervals have explicit empty states.
+- Deterministic timing checks and real browser execution/layout checks pass within existing budgets; review desktop/narrow output and verify the same artifact on dev.
+counterexamples:
+- A delay between Next Token clicks is user think time, not model inter-token latency.
+- Worker compute_ms omits browser transport and rendering work and is not end-to-end TTFT.
+- End-token-only output does not establish a first visible text token.
+- Resuming after Stop must not draw an interval across the pause.
+- Earlier branches and canceled requests must not leave misleading timing points.
+checks:
+- Generated declaration admission and deterministic browser timing arithmetic/lifecycle checks
+- Existing full browser harness extended for generation, reset, branch, manual and layout behavior
+- make test and make test-integration
+- Hosted byte verification and Chrome execution

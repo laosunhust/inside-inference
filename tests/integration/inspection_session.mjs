@@ -53,3 +53,4 @@ Declarations.assertShape('GenerationPrediction',step);
 await assert.rejects(()=>ExecutionClient.create(async()=>{throw Error('transport failed');}).prepareGeneration(input),/transport failed/);
 assert.equal(await client.prepareGeneration(input,{raw:true}),JSON.stringify(prepared));
 console.log('Model-bound request, branch, stale-response and generated client checks passed.');
+await import('./timing_observation.mjs');

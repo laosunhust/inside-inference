@@ -69,6 +69,7 @@ terms:
     owns:
     - Recorded intermediate tensors and their dependencies.
     - Local wall-time measurements with their measurement boundaries.
+    - Browser token-update observations on a monotonic clock, separated by generation gestures; these are not physical paint timestamps or server benchmarks.
     excludes:
     - Requested settings and hypothetical service rates
     - Equating selected tokens with published response tokens
@@ -79,6 +80,8 @@ terms:
     - TensorObservation
     - CacheMeasurement
     - GenerationPrediction
+    - BrowserTokenTiming
+    - BrowserGenerationTiming
   ExecutionSpec:
     meaning: A composition of experiment controls used together to execute customer input. The list specifies
       one setup, not a sweep.

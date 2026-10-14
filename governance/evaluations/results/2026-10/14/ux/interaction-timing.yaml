@@ -1,0 +1,50 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/14/ux/interaction-timing.yaml
+evaluation_sha256: a9edfb8bbaf759c6a3223352b51f419edf530074f1df39b4569692373c8f5694
+outcome: passed
+summary: 'Implemented the 2:1 functional/performance layout, stacked narrow layout, TTFT, chronological
+  inter-token latency and generated-token count. Throughput is omitted. Browser monotonic observations
+  are owned by ExperimentObservation, validated by generated contracts and exported with GenerationEvidence.
+  TTFT ends at the first text-bearing DOM update, after prior loading/preparation. Continuous segments
+  exclude manual and stop/resume pauses; manual gestures show step latency. Simulation is separate. These
+  observations do not measure physical paint or server/accelerator performance.
+
+
+  make test passed 109 tests in 5.20s (10s budget). Final make test-integration passed 109 unit tests,
+  21 integration tests and browser checks in 45.86s (100s budget). Deterministic coverage includes decreasing
+  intervals, first visible text, manual pauses, resumed segments, branches, reset and invalid timestamps.
+  Existing numerical and replay coverage remains intact. Desktop and narrow local and hosted screenshots
+  were reviewed. Initial schema admission rejected an optional timing field; it was corrected to required.
+  A temporary test-refactoring syntax error was corrected. Visual review found a hidden SVG despite populated
+  points; the fix now has rendered-height regression coverage. Criteria were not weakened.
+
+
+  Final release 97c5d8211c7d1f58dcce0f7cbddc4c831d8a3053caa451b2219359dedb28199f is live on dev.insideinference.dev.
+  Hosted verification passed all 65 files, fresh/warm execution and eight generated tokens with seven
+  visible intervals. Root returns 200 without redirect. Durable qualification reports and matching release
+  bytes are retained privately at s3://inside-inference-dev-assets-oq91bcj6mrut/qualifications/97c5d8211c7d1f58dcce0f7cbddc4c831d8a3053caa451b2219359dedb28199f/hosted.json
+  with local.json. Production distribution E20WLQK5FYH5UZ remains disabled.
+
+
+  A new web/inspection folder warning was resolved by a cohesive performance subdirectory separating capture
+  and rendering. Six existing folder warnings remain in data-model/domains, docs/ontology, inside_inference
+  and historical evaluation directories; no files were added to those folders. Semantic splits should
+  precede growth; historical path migration requires scoped approval under preservation enforcement. No
+  warning was suppressed or limit relaxed. Verification is Chrome-only. No protected files changed. Changes
+  are uncommitted.'
+evidence:
+- docs/ontology/experiment.yaml
+- data-model/domains/experiment.yaml
+- data-model/domains/model-family.yaml
+- web/inspection/performance/observations.js
+- web/inspection/performance/panel.js
+- web/inspection/page.js
+- web/inspection/page.html
+- web/inspection/page.css
+- web/theme.css
+- tests/integration/timing_observation.mjs
+- scripts/check/story_models/presentation.mjs
+- scripts/check/story_models/check.mjs
+- scripts/check/cache_browser_check.mjs
+- scripts/check/hosting/smoke.mjs
+- docs/architecture/website.md

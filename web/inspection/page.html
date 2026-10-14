@@ -14,6 +14,7 @@
 </section>
 <section id="data-plane" class="pass-panel" aria-label="Interaction">
 <h2>Interaction</h2>
+<div class="interaction-layout"><div class="interaction-functional">
 <div id="workload-boundary">
 <div class="request-preview"><small id="source-label">Input</small> <strong id="request-preview"></strong><span class="request-actions"><button id="edit-input" type="button" aria-expanded="false" aria-controls="inference-form">Edit</button></span></div>
 <form id="inference-form" class="source-editor" hidden><div class="configuration-fields"><fieldset><legend>Model</legend><label for="model-choice">Checkpoint</label><select id="model-choice" disabled></select><p id="model-loading" role="status"></p><button id="retry-model" type="button" hidden>Retry loading</button><details><summary>Model details</summary><div id="active-model-details"></div></details></fieldset></div><div id="request-fields"><label for="prompt">Input<textarea id="prompt" rows="2"></textarea></label><label for="output-budget">Maximum new tokens<input id="output-budget" type="number"></label></div>
@@ -23,6 +24,20 @@
 <div id="client-boundary" class="request-preview"><small>Output</small><strong id="response-preview"></strong><span class="request-actions"><button id="reset" type="button" disabled>Reset</button><button id="output-details" type="button" data-entity="response" data-term="Response" aria-expanded="false" aria-controls="sequence-details">Details</button></span></div>
 <p id="generation-note" class="muted" role="status"></p>
 <div class="prediction-controls"><button id="next-token" class="primary" type="button" disabled>Next Token</button><button id="continue-tokens" class="secondary" type="button" disabled>Generate</button><button id="stop-tokens" type="button" hidden>Stop</button></div>
+</div>
+<aside id="interaction-performance" aria-labelledby="performance-title">
+<h3 id="performance-title">Performance</h3>
+<p id="timing-simulation" class="muted" hidden>Simulation uses a virtual clock. See the resource timeline below.</p>
+<div id="timing-measurements">
+<p class="timing-source">Measured in this browser</p>
+<dl class="timing-summary"><div><dt>Time to first token</dt><dd id="timing-ttft">—</dd></div><div><dt>Generated tokens</dt><dd id="timing-count">0</dd></div></dl>
+<p id="timing-step" hidden></p>
+<h4>Inter-token latency</h4>
+<svg id="latency-chart" viewBox="0 0 320 164" role="img" aria-label="Chronological inter-token latency" hidden></svg>
+<p id="latency-empty" class="muted">Use Generate to measure token spacing.</p>
+<details id="timing-values" hidden><summary>Interval values</summary><div class="table-scroll"><table><thead><tr><th>Token</th><th>Latency</th></tr></thead><tbody id="timing-samples"></tbody></table></div></details>
+<details class="timing-method"><summary>How this is measured</summary><p>Time to first token runs from Generate to the first visible text update of a new sequence. Model loading and input preparation happen beforehand.</p><p>Intervals measure consecutive token updates within one continuous generation. Pauses and manual clicks are excluded. Last step measures one manual click to its output update.</p><p>These browser timings include execution, transport and UI work, not physical screen paint. The token count includes end tokens. Timing samples are included in Download evidence.</p></details>
+</div></aside></div>
 </section>
 <section id="explanation" class="numerical-inspector" aria-label="Explanation"><h2>Explanation</h2>
 <section id="resource-explanation" hidden></section><div id="sequence-details" hidden><p id="pass-caption"></p><div id="sequence-strip" class="token-strip" aria-label="Combined input and output tokens"></div></div>

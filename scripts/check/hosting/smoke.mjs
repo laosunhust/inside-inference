@@ -47,9 +47,19 @@ try{
   await evaluate("document.getElementById('inference-form').requestSubmit()");await ready();
   await evaluate("document.getElementById('next-token').click()");await ready();
   report.models=['tinyllm-4m interactive/headless parity','tinyllm-8k independent logits and UI execution'];
+  assert.equal(await evaluate("document.getElementById('timing-step').hidden"),false);
+  await evaluate("document.getElementById('edit-input').click();document.getElementById('prompt').value='the dog had a';document.getElementById('prompt').dispatchEvent(new Event('input'));document.getElementById('output-budget').value=8;document.getElementById('output-budget').dispatchEvent(new Event('change'));document.getElementById('inference-form').requestSubmit()");await ready();
+  await evaluate("document.getElementById('continue-tokens').click()");await ready();
+  const count=await evaluate("Number(document.getElementById('timing-count').textContent)");
+  assert.equal(count,8);
+  assert.equal(await evaluate("document.querySelectorAll('#latency-chart circle').length"),count-1);
+  assert.match(await evaluate("document.getElementById('timing-ttft').textContent"),/\d.* ms$/);
+  assert.ok(await evaluate("document.getElementById('latency-chart').getBoundingClientRect().height>100"));
+  report.timing={generated_tokens:count,intervals:count-1};
   for(const [label,width,height] of [['desktop',1280,1000],['narrow',390,844]]){
     await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<500});
     assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth'));
+    await evaluate("document.getElementById('data-plane').scrollIntoView({block:'start'})");
     await writeFile(output+'/'+label+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
   }
   const assetURL=await evaluate("document.querySelector('script[src*=client]').src");

@@ -86,7 +86,7 @@ body:has(#control-plane) .landing-links{display:inline}
 #request-fields input{width:100%;min-width:0}
 
 #explanation>.execution-journey{margin-top:0;padding-top:0}
-#data-plane>.prediction-controls{justify-content:flex-end;margin-top:12px}
+#data-plane .interaction-functional>.prediction-controls{justify-content:flex-end;margin-top:12px}
 #explanation #numerical-inspector{margin-top:18px}
 
 
@@ -109,3 +109,21 @@ body:has(#control-plane) .landing-links{display:inline}
 .token-readout{display:grid;gap:2px;padding:3px 7px}
 
 .configuration-fields textarea{width:100%;min-height:60px}
+
+.interaction-layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start}
+.interaction-functional,#interaction-performance{min-width:0}
+#interaction-performance{padding-left:20px}
+#performance-title{margin:0 0 4px}
+.timing-source{margin:0 0 14px}
+.timing-summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 12px}
+.timing-summary dt{margin:0}
+.timing-summary dd{margin:4px 0 0}
+#interaction-performance h4{margin:16px 0 6px}
+#latency-chart{display:block;width:100%;height:auto;overflow:visible}
+#latency-chart[hidden]{display:none}
+#latency-empty{margin:8px 0 16px}
+.timing-method{margin-top:14px}
+.timing-method p{margin:8px 0}
+#timing-step{margin:8px 0}
+#timing-values .table-scroll{max-height:180px;margin:6px 0}
+@media(max-width:800px){.interaction-layout{grid-template-columns:1fr;gap:18px}#interaction-performance{padding:16px 0 0}#latency-chart{max-width:480px}}

@@ -201,3 +201,18 @@ is limited to the installed Chrome. It does not establish all-region rollout ato
 
 Runtime and model downloads incur S3/CloudFront transfer charges even though inference
 runs on-device. DNS and annual registration are separate costs.
+
+## Interaction timing
+
+The Interaction panel separates functional input/output from measured browser responsiveness.
+`ExperimentObservation` owns browser token timings in the generated contracts. Each sample binds
+an accepted prediction to a monotonic gesture-start and output-DOM-update timestamp. Downloaded
+generation evidence retains the samples; the display derives its metrics from them.
+
+TTFT is available for a fresh continuous generation that produces decoded text. It excludes prior
+model loading/input preparation and does not claim physical screen-paint timing. Inter-token
+intervals stay within one Generate gesture; manual clicks and stop/resume gaps are excluded.
+Manual stepping shows its own gesture-to-update latency. Reset and configuration changes clear
+the trace; branching starts a new trace. Token count comes from accepted output IDs, including
+terminal tokens. Browser/UI overhead is included, so these are not isolated model benchmarks.
+Resource simulation retains its separate virtual clock and does not populate measured timings.

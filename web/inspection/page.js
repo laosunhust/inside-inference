@@ -1,9 +1,13 @@
 import {resourceExperiment} from './resources.js';
 import './session.js';
+import {createTiming} from './performance/observations.js';
+import {mountTiming} from './performance/panel.js';
 /* The selected experiment and its accepted request own every projection on this page. */
 (async()=>{
   const $=id=>document.getElementById(id), S=InspectionSession;
   let resources;
+  const timing=createTiming(),performancePanel=mountTiming($('interaction-performance'));
+  const renderPerformance=()=>performancePanel(timing.evidence(),state.step?.output_ids.length||0,!!S.controls(state).resources);
   let state=S.create(JSON.parse($('inference-data').textContent)),catalog=null;
   let epoch=0,loadEpoch=0,loading=false,pending=false,running=false,error='',configuration;
   const playback=ExecutionPath.playback(()=>status());
@@ -12,7 +16,7 @@ import './session.js';
   const compact=n=>n.toLocaleString('en-US',{notation:'compact',maximumFractionDigits:0});
   const label=id=>(state.loaded?.token_pieces[id] || '').replaceAll(' ','␠');
   const setError=e=>{error=e.message.trim().split('\n').at(-1);console.error(e);};
-  const stop=()=>{epoch++;pending=false;running=false;playback.stop();error='';};
+  const stop=()=>{timing.clear();epoch++;pending=false;running=false;playback.stop();error='';};
   function inspect(view,automatic=false) {
     if(!automatic)playback.stop();
     state=S.inspect(state,view);
@@ -80,7 +84,7 @@ import './session.js';
     }));
     $('run-identity').textContent=state.step&&!pending?JSON.stringify(state.step):'';
     $('generation-note').textContent=state.resource?Object.entries(state.resource.decoding_notes).map(([id,note])=>id+': '+note).join(' · '):state.step?.decoding_note || ({end_token:state.step?.text?'End token':'Model ended without text',output_budget:'Token budget reached',context_capacity:'Context full'})[state.step?.stop_reason] || '';
-    renderSetup();renderPath();status();
+    renderSetup();renderPath();status();renderPerformance();
     $('numerical-inspector').hidden=(!state.prepared&&!S.controls(state).resources)||pending;
     if((state.prepared||S.controls(state).resources)&&!pending)InspectionDetails.render(state,inspect);else {$('detail-body').replaceChildren();$('concept-body').replaceChildren();$('inspection-context').textContent='';}
     configuration?.refresh();systemMap.refresh(state.input.execution);resources?.render(state.resource,state.view);
@@ -90,7 +94,7 @@ import './session.js';
   }
   async function prepare() {
     if(!state.loaded||S.controls(state).resources)return;
-    const ticket=epoch,input=structuredClone(state.input);pending=true;render();
+    const ticket=epoch,input=structuredClone(state.input);timing.clear();pending=true;render();
     try {
       const prepared=await Execution.prepareGeneration(input);if(ticket!==epoch)return;
       state=S.prepare(state,prepared);
@@ -106,6 +110,7 @@ import './session.js';
     }catch(e){if(ticket===loadEpoch){loading=false;setError(e);render();}}
   }
   async function generate(all=false) {
+    const started=performance.now();
     if(pending||loading)return;
     if(S.controls(state).resources){
       stop();const ticket=epoch;pending=true;state=S.reset(state);render();
@@ -114,12 +119,19 @@ import './session.js';
       finally{if(ticket===epoch){pending=false;render();}}return;
     }
     if(!state.prepared)return;
-    playback.stop();const ticket=epoch;running=all;
+    playback.stop();const ticket=epoch;running=all;let first=true;
     try {
       do {
-        const request=S.nextRequest(state);pending=true;render();
+        const request=S.nextRequest(state);
+        if(first){
+          const previous=state.step,continuation=!!previous&&JSON.stringify(request.prefix_ids)===JSON.stringify(previous.request.prefix_ids)&&JSON.stringify(request.output_ids)===JSON.stringify(previous.output_ids);
+          timing.begin(all?'continuous':'manual',started,continuation);first=false;
+        }
+        pending=true;render();
         const result=await Execution.generateToken(request);if(ticket!==epoch)return;
+        const before=S.output(state);
         state=S.accept(state,result,request);pending=false;render();
+        timing.record(result,performance.now(),S.output(state)!==before&&S.output(state).length>0);renderPerformance();
       }while(running&&!state.step.stop_reason);
     }catch(e){if(ticket===epoch)setError(e);}
     finally{if(ticket===epoch){pending=false;running=false;render();}}
@@ -149,7 +161,7 @@ import './session.js';
   $('output-details').onclick=()=>{const panel=$('sequence-details');panel.hidden=!panel.hidden;$('output-details').setAttribute('aria-expanded',String(!panel.hidden));if(state.prepared||state.resource)inspect({surface:state.step?'selection':'request',observation_id:null});if(!panel.hidden)$('explanation').scrollIntoView({block:'start'});};
   $('explanation-layer').onchange=()=>inspect(S.chooseLayer(state,Number($('explanation-layer').value)));
   $('token-journey').onclick=()=>{if(playback.running())return playback.stop();playback.start(S.journey(state),view=>inspect(view,true));};
-  $('download-run').onclick=()=>{if(!state.step&&!state.resource)return;const evidence=state.resource||{input:state.input,model:state.loaded.model,prediction:state.step};Declarations.assertShape(state.resource?'ResourceExecution':'GenerationEvidence',evidence);const url=URL.createObjectURL(new Blob([JSON.stringify(evidence)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='inference-run.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+  $('download-run').onclick=()=>{if(!state.step&&!state.resource)return;const evidence=state.resource||{input:state.input,model:state.loaded.model,prediction:state.step,timing:timing.evidence()};Declarations.assertShape(state.resource?'ResourceExecution':'GenerationEvidence',evidence);const url=URL.createObjectURL(new Blob([JSON.stringify(evidence)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='inference-run.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
   configuration=ExecutionConfiguration.mount(()=>state.input.execution,async(control,value)=>{
     stop();state=S.configure(state,control,value);clearPanels();await prepare();
   });

@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {createTiming,timingMetrics} from '../../web/inspection/performance/observations.js';
+const timing=createTiming(),prediction=n=>({id:String(n).padStart(64,'0'),output_ids:Array(n).fill(1)});
+timing.begin('continuous',100,false);timing.record(prediction(1),140,false);
+assert.equal(timingMetrics(timing.evidence()).ttft,null,'No visible text is not TTFT');
+timing.record(prediction(2),155,true);timing.record(prediction(3),190,true);
+assert.deepEqual(timingMetrics(timing.evidence()),{ttft:55,step:null,intervals:[{token:2,ms:15,segment:1},{token:3,ms:35,segment:1}]});
+timing.begin('continuous',900,true);timing.record(prediction(4),930,true);timing.record(prediction(5),980,true);timing.record(prediction(6),990,true);
+assert.deepEqual(timingMetrics(timing.evidence()).intervals.map(p=>p.ms),[15,35,50,10],'Chronological intervals, without the stop/resume pause');
+timing.begin('manual',5000,true);timing.record(prediction(7),5012,true);
+assert.equal(timingMetrics(timing.evidence()).step,12);assert.equal(timingMetrics(timing.evidence()).intervals.length,4);
+const preserved=timing.evidence();preserved.samples.length=0;assert.equal(timing.evidence().samples.length,7);
+timing.begin('manual',6000,false);timing.record(prediction(1),6010,true);
+assert.deepEqual(timingMetrics(timing.evidence()),{ttft:null,step:10,intervals:[]},'Branch replaces the previous trace');
+timing.clear();assert.deepEqual(timingMetrics(timing.evidence()),{ttft:null,step:null,intervals:[]});
+timing.begin('continuous',10,false);assert.throws(()=>timing.record(prediction(1),9,true),/monotonic/);
+Declarations.assertShape('BrowserGenerationTiming',timing.evidence());
+assert.throws(()=>Declarations.assertShape('BrowserGenerationTiming',{...timing.evidence(),clock:'scenario-virtual-us'}));
