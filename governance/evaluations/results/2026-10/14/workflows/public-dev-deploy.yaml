@@ -1,0 +1,33 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/14/workflows/public-dev-deploy.yaml
+evaluation_sha256: 7b011ccc86499632bd82d8a3fe76a7ebb0dd8bfdbc913f24c41d2998cf41e834
+outcome: passed
+summary: 'Promoted the existing _publish-dev workflow to public deploy-dev, with no duplicate alias. make
+  help lists it. The existing private _deploy-dev still accepts a specific qualified release for deliberate
+  artifact deployment. Public deploy-dev validates, packages, derives the content identity and invokes
+  deployment plus hosted verification without a caller-supplied RELEASE.
+
+
+  Owner authorization for the new public target is recorded in approval-lock.yaml. Only the make_interface.py
+  protected content hash changed; lock inventory, other public names and limits are unchanged. Existing
+  help inventory and rejection tests passed. An initial attempt to append the approval grant failed in-memory
+  YAML parsing before writing the manifest; resulting stale-hash checks blocked execution. The correctly
+  serialized scoped grant then passed. Formatting was narrowed while preserving the exact parsed grant.
+
+
+  make test passed 109 tests in 4.91s. Actual make deploy-dev with no arguments passed its complete local
+  harness (109 unit tests, 21 integration tests and browser checks) in 44.84s, then deployed ac78944f4dbaad9ed2f9a8a6e0ba1b953397f106d3b2e24de7f02e0bc1cbda3f
+  and passed hosted verification of all 63 files, clean-root navigation and model execution. Local and
+  hosted qualification reports remain retained with that release in the dev S3 bucket. No production action
+  was run and no application/UI behavior changed.
+
+
+  Six pre-existing folder-count warnings remain unchanged. This work does not grow those folders; prior
+  triage remains applicable: historical paths require an authorized preservation migration, while declaration/docs/core
+  boundaries need semantic splits before additional growth. No warnings were suppressed or budgets relaxed.
+  No commit was created.'
+evidence:
+- Makefile
+- scripts/check/make_interface.py
+- tests/unit/test_make_interface.py
+- governance/approval-lock.yaml

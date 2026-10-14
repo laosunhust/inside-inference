@@ -187,11 +187,11 @@ _verify-hosted:
 	@$(PYTHON) -m scripts.check.hosting.verify --environment "$(ENVIRONMENT)" --release "$(RELEASE)"
 
 # One local-to-dev workflow, matching CNCRover's staging deployment boundary.
-_publish-dev: test-integration
+deploy-dev: test-integration ## Validate, package, deploy to dev and verify; no release ID required.
 	@release="$$( $(PYTHON) -m scripts.build.hosting.release )"; \
 	$(MAKE) --no-print-directory _deploy-dev RELEASE="$$release"
 
 _hosting-disable: _governance-check
 	@$(PYTHON) -m scripts.build.hosting.aws disable --environment "$(ENVIRONMENT)"
 
-.PHONY: _release-package _hosting-create _hosting-status _serve-release _release-restore _deploy-dev _verify-hosted _publish-dev _hosting-disable
+.PHONY: _release-package _hosting-create _hosting-status _serve-release _release-restore _deploy-dev _verify-hosted deploy-dev _hosting-disable

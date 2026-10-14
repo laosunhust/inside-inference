@@ -56,7 +56,7 @@ approval:
     \ languages into one language. let's continue\", following the agreed plan to replace C/WASM and\
     \ JavaScript model execution with one NumPy Python engine and delete the C code. Owner reply on\
     \ 2026-10-13: \"yes. approve. let's finish this\", approving the scoped experiment-catalog governance\
-    \ changes."
+    \ changes. Owner instruction on 2026-10-14: \"we need a new public makefile target. I sometimes need to depoloy to dev, and I don't want this requirement on release id.\""
   scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile
     and ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content
     remains unlocked. Retain approved folder and file-size limits. This approval does not authorize future
@@ -151,7 +151,7 @@ approval:
     generate_data_models.py; make scripts/check/governance/frontend.py reject standalone lab page links
     and handwritten experiment registries and require homes for experiment subjects; and retarget the
     existing lab cases in tests/unit/contracts/test_governance.py without removing coverage. Refresh only
-    these four hashes. No limits, constitution or inventory changes.'
+    these four hashes. No limits, constitution or inventory changes. This instruction authorizes public deploy-dev using the existing qualified publication workflow, updating scripts/check/make_interface.py and its recorded hash plus the existing help inventory test. No other public names, protected files, limits or lock inventory changes.'
 files:
   AGENTS.md: a1311d34d5b743a4b023f00b59b7f227d94ef1f44d097d5f8634c2eb4b9e5c92
   governance/limits.yaml: 4218f778ada890585c448c4664f4a8275576daef70e5421b29ed1c7ac0862c30
@@ -168,7 +168,7 @@ files:
   scripts/check/governance/locks.py: 317b69c72e3991c20b5353cd10fce63d7496308183504ff1f93f1cb4e47ff923
   scripts/check/governance/structure.py: b6f927698a5b3676219c4eb96c2906ebab8a19cb0c2a5e9a68e45dcb6dfbfc52
   scripts/check/layout.py: 54e53c43a5ce571375c049e9ebf740631ab24c14acdd1efaafca5eb2f63679e2
-  scripts/check/make_interface.py: 298a6bd1e6f90becabbd0d12ba369c5a0d697f0b81f758fabf56423f01cd26b8
+  scripts/check/make_interface.py: f09bbb3f9d6a285665b90117901e1226084ddda05c2430d2580ac5671f64870c
   tests/unit/contracts/test_governance.py: 6faa994da535f855f0189ba66084d067b42d72abe0f75c148f60dadab16f75e4
   tests/unit/contracts/test_governance_locks.py: acf09b594c79261c3c40a854cfc0dde0848b208e6996946ee6ef65de23348ef7
   scripts/check/governance/frontend.py: 2db91bfae33ec0209dab27df947ce283467b6bbb6036e2ec678f0c43dcee2a8b

@@ -6,7 +6,7 @@ import re
 from scripts import ROOT
 
 # Approval-locked public surface. Makefile owns recipes and help descriptions.
-PUBLIC_TARGETS = frozenset({'setup', 'serve-intro', 'test', 'test-integration'})
+PUBLIC_TARGETS = frozenset({'setup', 'serve-intro', 'test', 'test-integration', 'deploy-dev'})
 
 
 def inventory(text):

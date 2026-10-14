@@ -1,0 +1,20 @@
+version: 1
+work_item: public-dev-deploy
+question: Can a user deploy the current application to dev through one discoverable Makefile command without selecting a release ID?
+necessity: Owner explicitly requests a new public target after make _deploy-dev fails without RELEASE.
+baseline: Internal _publish-dev already validates, packages and deploys; the public interface omits it and _deploy-dev requires an explicit artifact identity.
+reuse:
+- source: Existing _publish-dev recipe and Makefile interface admission
+  decision: Promote the existing workflow to public deploy-dev; preserve explicit artifact deployment as an internal operation and avoid a duplicate wrapper.
+criteria:
+- make help lists deploy-dev and make deploy-dev requires no RELEASE argument.
+- The public workflow validates current sources, packages the qualified artifact and passes its derived identity to deployment and hosted verification.
+- Record the owner's explicit authorization and refresh only the affected protected interface checker hash; unrelated public names, locks and limits remain unchanged.
+- Existing unit and full integration checks pass; the public command completes a real dev deployment and hosted verification.
+counterexamples:
+- Selecting a stale latest artifact instead of validating current sources can publish unintended bytes.
+- A public alias that still requires RELEASE does not solve the user's workflow.
+checks:
+- Makefile help inventory and existing rejection tests
+- make test
+- make deploy-dev including full integration and hosted verification

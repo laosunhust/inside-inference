@@ -6,7 +6,7 @@ from scripts.check.make_interface import ROOT, inventory
 class MakeInterfaceTests(unittest.TestCase):
     def test_repository_help_is_derived_from_rules(self):
         public = inventory((ROOT / 'Makefile').read_text())
-        self.assertEqual(set(public), {'setup', 'serve-intro', 'test', 'test-integration'})
+        self.assertEqual(set(public), {'setup', 'serve-intro', 'test', 'test-integration', 'deploy-dev'})
 
     def test_internal_workflows_remain_extensible(self):
         source = (ROOT/'Makefile').read_text()
