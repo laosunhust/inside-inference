@@ -6,13 +6,14 @@ import tempfile
 import threading
 import time
 from scripts import ROOT
+from scripts.build.hosting.layout import asset_root
 from scripts.dev.http_runtimes_generated import socket_server
 
 
 def main():
     out=ROOT/'out/experiments/story-models';out.mkdir(parents=True,exist_ok=True)
     server=socket_server(('127.0.0.1',0),directory=ROOT/'out/intro-page')
-    assets=socket_server(('127.0.0.1',0),directory=ROOT/'out/intro-page/models',cors_origin='*')
+    assets=socket_server(('127.0.0.1',0),directory=asset_root(ROOT/'out/intro-page')/'models',cors_origin='*')
     asset_thread=threading.Thread(target=assets.serve_forever,daemon=True);asset_thread.start()
     thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
     try:
@@ -28,7 +29,7 @@ def main():
                     time.sleep(.1)
                 else:raise RuntimeError('Chrome did not start')
                 port=portfile.read_text().splitlines()[0]
-                subprocess.run(['node',str(ROOT/'scripts/check/story_models/runner.mjs'),port,f'http://127.0.0.1:{server.server_port}',str(out),str(ROOT/'out/intro-page'),f'http://127.0.0.1:{assets.server_port}/'],check=True,timeout=120)
+                subprocess.run(['node',str(ROOT/'scripts/check/story_models/runner.mjs'),port,f'http://127.0.0.1:{server.server_port}',str(out),str(asset_root(ROOT/'out/intro-page')),f'http://127.0.0.1:{assets.server_port}/'],check=True,timeout=120)
             finally:process.terminate();process.wait(timeout=10)
     finally:
         server.shutdown();server.server_close();thread.join()

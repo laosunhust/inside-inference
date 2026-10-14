@@ -24,7 +24,7 @@ globalThis.SystemMap=(()=>{
       if(configure)configure(node,body,controls);
       else {
         const description=el('details');description.className='map-description';description.append(el('summary',node.parent===null?'About this system':'First principles'),...Principles.of(node.owner).map(Principles.render),el('p',Declarations.meanings[node.owner].meaning));body.append(description);
-        const links=el('div');links.className='map-links';links.append(link('Ontology ↗',`ontology.html#${node.owner}`));
+        const links=el('div');links.className='map-links';links.append(link('Ontology ↗',`/ontology/#${node.owner}`));
         description.append(links);
         for(const definition of controls){const control=definition.properties.control.const,projection=el('div');projection.dataset.explanationControl=control;body.append(projection);settings.set(control,{projection,definition});}
         if(node.view==='engine')body.append(engine);

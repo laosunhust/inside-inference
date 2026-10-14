@@ -3,7 +3,7 @@ import {readFile,writeFile} from 'node:fs/promises';
 export async function checkCache({send,evaluate,until,click,base,output}) {
  await send('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
  const cases=JSON.parse(await readFile(output+'/cache-references.json','utf8'));
- await send('Page.navigate',{url:base+'/index.html'});
+ await send('Page.navigate',{url:base+'/'});
  await until(`document.getElementById('model-choice')?.disabled===false`,300);
  await evaluate(`document.getElementById('model-choice').value='tinyllm-8k';document.getElementById('model-choice').dispatchEvent(new Event('change'))`);
  await until(`['ready','failed'].includes(document.getElementById('binding-status').dataset.phase)`,300);

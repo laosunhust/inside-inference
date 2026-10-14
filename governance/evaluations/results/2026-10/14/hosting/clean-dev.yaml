@@ -1,0 +1,73 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/14/hosting/clean-dev.yaml
+evaluation_sha256: 5e8af1a6a7a0f46f37da5a4be9026594fcbaae9ec22d24dd88f66814744d6e3f
+outcome: passed
+summary: 'The earlier aws-publication result passed its own checks but encoded an incorrect user experience:
+  root redirects exposed internal release storage, browser tests bypassed the root, and production was
+  published prematurely. That historical result is preserved, not treated as acceptance of those decisions.
+
+
+  Reviewed CNCRover AGENTS.md, mk/release.mk, mk/dev.mk, scripts/deploy-helper/cloud-deploy-staging.sh
+  and deploy-cloud-staging.sh, scripts/build-gen/release/package-cloud-website.sh, omnicarve-cloud/cdk/lib/static-site-stack.ts,
+  omnicarve-cloud/cdk/bin/omnicarve-cloud.ts, and docs/architecture/cloud.md. Its staging workflow, internal
+  directory-index routing, and commented-out production stack establish the intended boundaries. Its missing-file
+  HTML success fallback was deliberately not adopted. This repository retains its simpler browser-only
+  runtime and CloudFormation template; no neighbor files were modified.
+
+
+  Published exact locally qualified release 4e620877845e42bcd105e6b1ec1ebae21fbc4ba1406d1b816d1d56934520114e
+  to dev. The root returns 200 with no Location and Cache-Control no-cache. Browser entry starts at slash
+  and stays there through fresh and warm model execution; ontology and declarations navigation use clean
+  directory URLs. All 65 served files (39,101,155 bytes) match the release inventory. MIME types, immutable
+  asset caching, security headers, gzip, missing payload errors and anonymous S3 denial (403) passed.
+  Internal HTML release paths and unknown routes return 404. Hosted desktop and narrow screenshots were
+  reviewed. Fresh readiness was 7.68s and warm readiness 2.30s on this host; these are observations, not
+  latency guarantees.
+
+
+  Payload identity 03e5943d64718f276d614c38eb323ef1e567137b677de02baf4cbe4f3d1ba367 is independent of
+  HTML and active release selection. Component checks prove document-only edits retain asset identity
+  and payload edits change it. The actual edge function is executed in integration tests against two release
+  pointers; asset requests resolve identically while document resolution changes. This establishes URL
+  pinning, not all-region rollout atomicity. The old archive retains evidence-client.js, a stale output
+  absent from the current builder and clean payload; no original archive was deleted.
+
+
+  Production stack inside-inference-prod reached UPDATE_COMPLETE; distribution E20WLQK5FYH5UZ is Deployed
+  with Enabled=false. Authoritative Route 53 inspection finds no apex A/AAAA records. Production bucket
+  inside-inference-prod-assets-hndbgp10ewyp, domain registration and historical evidence are retained.
+  Production promotion code and Makefile target were removed; disabled environments reject deployment
+  before AWS writes. Makefile now owns one local-test/package/dev-deploy/hosted-verify workflow plus explicit
+  release operations. Public Makefile names and approval locks are unchanged.
+
+
+  make test passed 109 tests in 4.85s; make test-integration passed 109 unit tests, 21 integration tests
+  and the full browser harness in 44.94s. A first layout iteration failed on a remaining ontology.html
+  link; the source link was fixed and the full harness rerun. An initial broad test-path edit exceeded
+  a file-size limit and was narrowed; no limit was relaxed. Existing ConnectionResetError server logs
+  appeared during canceled browser requests; the browser harness passed. Hosted verification is retained
+  privately at s3://inside-inference-dev-assets-oq91bcj6mrut/qualifications/4e620877845e42bcd105e6b1ec1ebae21fbc4ba1406d1b816d1d56934520114e/hosted.json
+  alongside local qualification and retained release bytes.
+
+
+  Six pre-existing folder-count warnings remain: data-model/domains, docs/ontology, inside_inference and
+  three historical evaluation directories. This change adds no files to those warned directories. Historical
+  evaluation relocation is blocked by path-preservation enforcement; a separately authorized migration
+  is needed before changing those paths. Before growing domain declarations, ontology docs or core modules,
+  split by semantic responsibility and update their owning manifests/imports. Current work is confined
+  to hosting/build/check adapters and uses nested evaluation directories. No warnings were suppressed,
+  protected files changed or commits created. Browser coverage remains Chrome-only; no claim of traffic-scale
+  or multi-region qualification is made.'
+evidence:
+- infrastructure/aws/deployment.yaml
+- infrastructure/aws/site.yaml
+- scripts/build/hosting/layout.py
+- scripts/build/hosting/aws.py
+- scripts/check/hosting/verify.py
+- scripts/check/hosting/smoke.mjs
+- scripts/build/intro_page.py
+- tests/unit/contracts/test_release.py
+- tests/integration/test_hosting_routes.py
+- tests/integration/test_site.py
+- docs/architecture/website.md
+- Makefile

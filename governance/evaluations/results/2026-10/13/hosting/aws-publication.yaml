@@ -1,0 +1,63 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/hosting/aws-publication.yaml
+evaluation_sha256: d25d41669e6a6601624a1020378ad4f3c179650feb5e193872e37d76deffd73c
+outcome: passed
+summary: 'Registered insideinference.dev for one year at the observed USD 17 price in the declared AWS
+  account. Privacy, auto-renew and transfer lock are enabled; existing OmniCarve registration contacts
+  were reused without persisting them in this repository. Registration and contact verification completed.
+  Both CloudFormation stacks reached UPDATE_COMPLETE with correct project/environment tags.
+
+
+  Published release 88baa2065691ff1b7af98dbd930b6c8a0dbd6aca73fa7956ace001f2e39036ac to https://dev.insideinference.dev
+  and https://insideinference.dev. Both origins passed comparison of all 66 asset hashes (39,104,016 uncompressed
+  bytes), TLS/HTTP redirects, immutable caching, MIME types, security headers, gzip delivery and explicit
+  missing-file errors. Anonymous S3 reads returned 403. Chrome exercised default 4M interactive/headless
+  parity and 8K logits against the independent recorded fixture, with fresh and warm loads. Production
+  readiness measured 7.77s fresh and 2.14s warm on this host; these are bounded browser observations,
+  not universal latency promises. Deployed desktop and narrow screenshots were reviewed without overflow.
+
+
+  Retained release bytes and private local/hosted qualification reports live in the two stack-owned buckets
+  inside-inference-dev-assets-oq91bcj6mrut and inside-inference-prod-assets-hndbgp10ewyp. Files are under
+  releases/88baa2065691ff1b7af98dbd930b6c8a0dbd6aca73fa7956ace001f2e39036ac/; reports are under qualifications/88baa2065691ff1b7af98dbd930b6c8a0dbd6aca73fa7956ace001f2e39036ac/.
+  A real restoration from production S3 reproduced the exact complete checksum inventory and local qualification
+  after moving the local site aside. An actual rollback between two different production releases has
+  not been exercised because this is the initial release; the explicit restore/dev-verify/promote path
+  supports it.
+
+
+  Final full harness passed 108 unit tests, 20 integration tests and browser checks in 45.31s against
+  the same release digest. Final make test passed all 108 tests in 4.98s, within its 10s budget; full
+  integration remained within its 100s budget. No approval-locked file was changed and no commit was created.
+
+
+  Failures retained: the first registration CLI attempt failed locally to parse stdin JSON and sent no
+  registration request; using a temporary private input file succeeded and that file was deleted. Initial
+  placement of release tooling in scripts/dev was rejected by the static-runtime boundary; moved the artifact
+  delivery tooling to scripts/build/hosting without modifying enforcement. The first dev stack update
+  omitted tags, causing the ownership guard to block promotion; exact known-stack ownership tags were
+  restored. An initial correction used create-stack tag syntax with the deploy convenience command, which
+  AWS rejected before changing production. Deployment now uses the documented command-specific tag encoding
+  and a regression checks it; successful production tags were independently read back. The pre-existing
+  connection-reset traceback appeared during successful local browser checks and remains an unrelated
+  server logging limitation.
+
+
+  Six pre-existing folder-count warnings remain in ontology, data-model domains, core implementation and
+  historical evaluation directories. Hosting adds no files to those folders and uses nested evaluation
+  directories. Relocating committed historical evaluations is forbidden by the current path-preservation
+  gate; a future migration needs scoped owner authorization, rather than rewriting history or relaxing
+  limits. Before those other boundaries grow, plan cohesive module splits within their owning declaration
+  and import contracts. This deployment does not extend them. Multi-browser/device qualification, traffic-scale
+  performance, spend guarantees and rollback across distinct releases remain outside this evidence.'
+evidence:
+- infrastructure/aws/deployment.yaml
+- infrastructure/aws/site.yaml
+- scripts/build/hosting/release.py
+- scripts/build/hosting/aws.py
+- scripts/check/hosting/verify.py
+- scripts/check/hosting/smoke.mjs
+- scripts/check/browser_check.py
+- tests/unit/contracts/test_release.py
+- docs/architecture/website.md
+- Makefile

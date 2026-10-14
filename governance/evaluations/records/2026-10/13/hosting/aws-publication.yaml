@@ -1,0 +1,31 @@
+version: 1
+work_item: aws-publication
+question: Can one locally qualified browser release be delivered through AWS dev and promoted unchanged to the public domain?
+necessity: Owner requests registration of insideinference.dev in the existing AWS account and a local/dev/prod workflow informed by neighboring CNCRover.
+baseline: Local static browser integration passes; no domain registration, hosted origin qualification or release promotion workflow exists in this repository.
+reuse:
+- source: CNCRover private S3, CloudFront, Route 53, ACM and packaged release workflow
+  decision: Reuse the delivery architecture with CloudFormation, origin access control and retained immutable releases; omit its application server and build Lambda because this product executes in the browser.
+- source: Existing browser integration harness and standard SHA256SUMS format
+  decision: Seal the already-tested site rather than rebuilding for deployment. Use standard file checksums and AWS-owned infrastructure schemas instead of inventing another application interface.
+criteria:
+- Register only insideinference.dev for one year at the observed USD 17 price, reusing existing account contacts with privacy and auto-renew enabled; preserve unrelated account resources.
+- CloudFormation declares private S3, restricted CloudFront read access, DNS-validated TLS, dev and prod delivery and HTTPS redirects; bucket and releases survive stack deletion.
+- Root Makefile owns internal release, infrastructure, dev, verification and promotion workflows without changing the locked public target set.
+- Packaging rejects absent or failed local qualification and changed site bytes; immutable releases use content-derived identities. Tests demonstrate rejection of tampering and unsafe paths.
+- Dev and production consume exactly the same release bytes, including models and Python/WASM assets. Promotion requires successful dev verification bound to that release.
+- Hosted verification checks complete asset digests, TLS, redirects, MIME types, caching, missing assets and actual default plus inspectable model execution in fresh and warmed Chrome sessions.
+- Retain previous release bytes and allow explicit rollback through the same verified promotion path; no implicit deletion or rebuilding on promotion.
+- make test and make test-integration stay within existing budgets; hosted network checks remain an explicit deployment gate outside the local harness.
+counterexamples:
+- A successful HTML fetch does not establish worker/WASM startup or model execution.
+- Rebuilding after local testing or deploying a mutated directory breaks qualification.
+- A 200 HTML fallback for a missing JavaScript file hides deployment errors.
+- Changed CDN pointers must not mix assets for an already-open release; versioned URLs keep its requests pinned.
+- Domain registration can require contact verification; pending registration or DNS validation is not a completed public deployment.
+checks:
+- In-process release tampering and traversal rejection tests
+- CloudFormation template validation and stack events
+- make test
+- make test-integration
+- Dev and production asset checks and Chrome smoke execution

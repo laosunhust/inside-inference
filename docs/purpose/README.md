@@ -110,8 +110,8 @@ appear to be executed experiments. Visual polish is an inspection aid, not evide
 Reuse established explainers, engines, and simulators where their semantics fit;
 keep small reference implementations where inspectability warrants them. The
 [similar-products assessment](../similar-products/README.md) owns reuse choices and
-presentation references. The intended public home is **insideinference.dev**;
-registration and deployment are not established by this document.
+presentation references. The [root README](../../README.md) links the public laboratory;
+[website architecture](../architecture/website.md#aws-dev-delivery) owns delivery.
 
 The root [documentation map](../../README.md#start-exploring) identifies the owners
 of design, declarations, implementation, acceptance criteria, and historical context.

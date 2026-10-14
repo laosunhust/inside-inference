@@ -17,7 +17,7 @@ globalThis.InspectionDetails=(()=>{
     const meaning=Declarations.meanings[owner];
     $('detail-title').textContent=stage?.label || node?.operation.name || ({request:'Input tokens',workload:'Workload',system:'Execution',client:'Client',selection:'Next-token selection',response:'Output'})[view.surface];
     $('definition').textContent='';
-    $('definition-link').href='ontology.html#'+owner;
+    $('definition-link').href='/ontology/#'+owner;
     $('inspection-context').dataset.observationId=node?.id || '';
     $('inspection-context').dataset.surface=view.surface;
     $('inspection-context').dataset.position=view.position;

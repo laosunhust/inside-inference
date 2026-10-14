@@ -157,3 +157,41 @@ _story-models-train:
 	@$(STORY_PYTHON) -m scripts.experiments.story_models.train --study "$(STORY_STUDY)"
 
 .PHONY: _story-models-check _story-models-export _story-models-train
+
+# AWS delivery: qualify once locally, deploy the same bytes to dev, then verify.
+# RELEASE is the SHA256SUMS digest printed by _release-package; never inferred as latest.
+# Environment/account/hostnames belong to infrastructure/aws/deployment.yaml.
+_release-package: test-integration
+	@$(PYTHON) -m scripts.build.hosting.release
+
+_hosting-create: _governance-check
+	@$(PYTHON) -m scripts.build.hosting.aws infrastructure --environment "$(ENVIRONMENT)"
+
+_hosting-status:
+	@$(PYTHON) -m scripts.build.hosting.aws status --environment "$(ENVIRONMENT)"
+
+_serve-release:
+	@$(PYTHON) -m scripts.build.hosting.release --verify "$(RELEASE)"
+	@$(PYTHON) -m scripts.dev.serve_intro --directory "out/releases/$(RELEASE)/site"
+
+# Restore retained bytes and their local qualification after disposable out/ is cleaned.
+# Rollback uses restore and _deploy-dev with an explicit prior RELEASE.
+_release-restore:
+	@$(PYTHON) -m scripts.build.hosting.aws restore --environment "$(ENVIRONMENT)" --release "$(RELEASE)"
+
+_deploy-dev: _governance-check
+	@$(PYTHON) -m scripts.build.hosting.aws deploy --environment dev --release "$(RELEASE)"
+	@$(MAKE) --no-print-directory _verify-hosted ENVIRONMENT=dev RELEASE="$(RELEASE)"
+
+_verify-hosted:
+	@$(PYTHON) -m scripts.check.hosting.verify --environment "$(ENVIRONMENT)" --release "$(RELEASE)"
+
+# One local-to-dev workflow, matching CNCRover's staging deployment boundary.
+_publish-dev: test-integration
+	@release="$$( $(PYTHON) -m scripts.build.hosting.release )"; \
+	$(MAKE) --no-print-directory _deploy-dev RELEASE="$$release"
+
+_hosting-disable: _governance-check
+	@$(PYTHON) -m scripts.build.hosting.aws disable --environment "$(ENVIRONMENT)"
+
+.PHONY: _release-package _hosting-create _hosting-status _serve-release _release-restore _deploy-dev _verify-hosted _publish-dev _hosting-disable

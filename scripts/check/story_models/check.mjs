@@ -15,7 +15,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
   const started=performance.now();
   const click=id=>evaluate(`document.getElementById(${JSON.stringify(id)}).click()`);
   async function ready(){await until("['ready','failed'].includes(document.getElementById('binding-status')?.dataset.phase)");assert.equal(await evaluate("document.getElementById('binding-status').dataset.phase"),'ready',await evaluate("document.getElementById('binding-status').textContent"));}
-  async function navigate(){await send('Page.navigate',{url:base+'/index.html'});await ready();}
+  async function navigate(){await send('Page.navigate',{url:base+'/'});await ready();}
   async function choose(id){if(await evaluate("document.getElementById('inference-form').hidden"))await click('edit-input');await evaluate(`document.getElementById('model-choice').value=${JSON.stringify(id)};document.getElementById('model-choice').dispatchEvent(new Event('change'))`);await ready();}
   async function apply(text,budget=8){if(await evaluate("document.getElementById('inference-form').hidden"))await click('edit-input');await evaluate(`document.getElementById('prompt').value=${JSON.stringify(text)};document.getElementById('prompt').dispatchEvent(new Event('input'));document.getElementById('output-budget').value=${budget};document.getElementById('output-budget').dispatchEvent(new Event('change'));document.getElementById('inference-form').requestSubmit()`);await ready();assert.equal(await evaluate("document.getElementById('inference-form').hidden"),true);}
   const snapshot=()=>evaluate("JSON.parse(document.getElementById('run-identity').textContent)");
@@ -217,8 +217,8 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
     if(assetBase) {
       const remote=JSON.parse(catalogBytes);remote.storage.base_url=assetBase;await writeFile(catalogPath,JSON.stringify(remote));await navigate();
       await click('next-token');await ready();assert.equal((await snapshot()).model_id,'tinyllm-4m');evidence.storage.push('Cross-origin default-model execution passed');
-      remote.storage.base_url=base.replace('127.0.0.1','localhost')+'/models/';await writeFile(catalogPath,JSON.stringify(remote));
-      await send('Page.navigate',{url:base+'/index.html'});await until("document.getElementById('binding-status')?.dataset.phase==='failed'");
+      remote.storage.base_url=base.replace('127.0.0.1','localhost')+new URL(await evaluate("document.querySelector('script[src*=client]').src")).pathname.replace(/execution\/client.generated.js$/, 'models/');await writeFile(catalogPath,JSON.stringify(remote));
+      await send('Page.navigate',{url:base+'/'});await until("document.getElementById('binding-status')?.dataset.phase==='failed'");
       assert.equal(await evaluate("document.getElementById('next-token').disabled"),true);evidence.storage.push('CORS failure blocks execution');
     }
     for(const retired of ['model-size.html','models/page.js','labs/model-size-quality.html'])await assert.rejects(access(site+'/'+retired));

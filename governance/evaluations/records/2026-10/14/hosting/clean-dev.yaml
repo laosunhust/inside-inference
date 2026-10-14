@@ -1,0 +1,25 @@
+version: 1
+work_item: clean-dev
+question: Can dev serve clean page URLs with pinned assets while production is unavailable?
+necessity: Owner rejects exposed release HTML URLs and premature production publication.
+baseline: Both origins redirect to release index.html; previous checks encoded that incorrect UX as success and bypassed root browser navigation.
+reuse:
+- source: Existing private S3, CloudFront function, static builder and browser harness
+  decision: Use internal document rewrites and content-addressed asset directories; preserve one locally tested artifact and existing static server.
+criteria:
+- Dev root returns HTTP 200 without Location and the browser remains at slash during fresh and warm model execution.
+- Ontology and declaration navigation use clean directory URLs locally and hosted; missing routes fail rather than falling back to HTML.
+- Asset identities derive from payload bytes independently of documents; existing documents retain their asset URLs after release changes.
+- Production A and AAAA aliases are removed and its CloudFront distribution is disabled; deployment refuses disabled environments before uploading or updating.
+- Preserve private retained release data, domain registration and unrelated account resources.
+- Local and hosted checks cover exact bytes, worker startup, numerical execution, navigation and desktop/narrow presentation within existing harness budgets.
+counterexamples:
+- Merely rewriting all relative paths to the current release can mix old documents and new workers.
+- Navigating a smoke test directly to a versioned index bypasses the broken entry route.
+- Removing DNS alone leaves cached DNS and the distribution hostname serving production.
+- An unknown JavaScript URL returning HTML masks a missing asset.
+checks:
+- In-process packaging and disabled-environment rejection tests
+- Local full integration with clean navigation and immutable asset layout
+- Hosted complete digest and browser verification from root
+- AWS production distribution state and authoritative DNS record inspection

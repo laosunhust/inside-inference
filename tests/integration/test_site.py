@@ -8,6 +8,7 @@ import unittest
 from urllib.parse import unquote, urlsplit
 
 from scripts.build.intro_page import build
+from scripts.build.hosting.layout import asset_root
 
 
 class PageParser(HTMLParser):
@@ -66,7 +67,8 @@ class AtlasTests(unittest.TestCase):
                 parts = urlsplit(link)
                 if parts.scheme or parts.netloc:
                     continue
-                target = (path.parent / unquote(parts.path)).resolve() if parts.path else path
+                target = ((root / unquote(parts.path).lstrip('/')) if parts.path.startswith('/') else (path.parent / unquote(parts.path))).resolve() if parts.path else path
+                if target.is_dir(): target = target/'index.html'
                 self.assertTrue(target.is_relative_to(root), link)
                 self.assertTrue(target.is_file(), link)
                 if parts.fragment:
@@ -84,22 +86,22 @@ class AtlasTests(unittest.TestCase):
 
     def test_release_packages_one_python_engine(self):
         import zipfile
-        with zipfile.ZipFile(self.site/'execution/engine.zip') as package:
+        with zipfile.ZipFile(asset_root(self.site)/'execution/engine.zip') as package:
             names = set(package.namelist())
         self.assertTrue({'inside_inference/runtimes/engine.py', 'inside_inference/runtimes/bpe.py',
                          'inside_inference/delivery/models.py'} <= names)
         for retired in ('inside_inference/runtimes/reference.py', 'inside_inference/runtimes/engine.c',
                         'execution/llama/llama.wasm', 'web/execution/decoder.js'):
             self.assertNotIn(retired, names)
-        self.assertFalse((self.site/'execution/llama').exists())
-        self.assertTrue(any(p.name.startswith('numpy-2.0.2') for p in (self.site/'execution/runtime').iterdir()))
+        self.assertFalse((asset_root(self.site)/'execution/llama').exists())
+        self.assertTrue(any(p.name.startswith('numpy-2.0.2') for p in (asset_root(self.site)/'execution/runtime').iterdir()))
 
     def test_published_code_spans_equal_packaged_engine_sources(self):
         import hashlib
         import zipfile
-        text = (self.site/'principles-code.js').read_text()
+        text = (asset_root(self.site)/'principles-code.js').read_text()
         spans = json.loads(text[text.index('(') + 1:text.rindex(')')])
-        with zipfile.ZipFile(self.site/'execution/engine.zip') as package:
+        with zipfile.ZipFile(asset_root(self.site)/'execution/engine.zip') as package:
             for identifier, span in spans.items():
                 raw = package.read(span['path'])
                 self.assertEqual(hashlib.sha256(raw).hexdigest(), span['sha256'], identifier)
@@ -108,10 +110,10 @@ class AtlasTests(unittest.TestCase):
                 self.assertEqual(lines[span['end']].strip(), '# end principle ' + identifier)
                 self.assertEqual('\n'.join(lines[span['start'] - 1:span['end']]), span['code'], identifier)
         for name in ('katex.min.js', 'katex.min.css', 'LICENSE'):
-            self.assertTrue((self.site/'vendor/katex'/name).is_file())
-        css = (self.site/'vendor/katex/katex.min.css').read_text()
+            self.assertTrue((asset_root(self.site)/'vendor/katex'/name).is_file())
+        css = (asset_root(self.site)/'vendor/katex/katex.min.css').read_text()
         for font in set(re.findall(r'url\((fonts/[^)]+\.woff2)\)', css)):
-            self.assertTrue((self.site/'vendor/katex'/font).is_file(), font)
+            self.assertTrue((asset_root(self.site)/'vendor/katex'/font).is_file(), font)
 
 if __name__ == '__main__':
     unittest.main()

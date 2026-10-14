@@ -52,10 +52,10 @@ try {
   await checkCache({send,evaluate,until,click,base,file,output});
   mark('cache lab');
   // Failure is explicit; there is no native service to fall back to.
-  const workerPath=output+'/site/execution/worker.generated.js';
+  const workerPath=fileURLToPath(file)+'/execution/worker.generated.js';
   await rename(workerPath,workerPath+'.missing');
   try {
-    await send('Page.navigate',{url:base+'/index.html?missing-worker'});
+    await send('Page.navigate',{url:base+'/?missing-worker'});
     await until(`document.getElementById('binding-status')?.dataset.phase==='failed'`);
     assert.equal(await evaluate(`document.getElementById('next-token').disabled`),true);
     assert.ok(await evaluate(`document.getElementById('run-error').textContent.length>0`));

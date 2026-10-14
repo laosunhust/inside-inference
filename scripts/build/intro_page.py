@@ -12,6 +12,7 @@ from scripts.build.contracts import load_schema, experiment_catalog
 
 from scripts.build.presentation import entities
 from scripts import ROOT
+from scripts.build.hosting.layout import seal_assets
 
 
 def esc(value):
@@ -19,12 +20,12 @@ def esc(value):
 
 
 def shell(title, body, prefix='', *, landing=False):
-    navigation = f'<span class="landing-links"><a href="{prefix}ontology.html">Ontology</a></span>'
+    navigation = f'<span class="landing-links"><a href="/ontology/">Ontology</a></span>'
     footer = '' if landing else '<footer>Mechanism → evidence → limits. An open laboratory, always incomplete.</footer>'
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)} · Inside Inference</title><link rel="stylesheet" href="{prefix}theme.css"><link rel="stylesheet" href="{prefix}style.css"></head>
-<body><header><a href="{prefix}index.html">Inside Inference</a>{navigation}</header>
+<body><header><a href="/">Inside Inference</a>{navigation}</header>
 <main>{body}</main>{footer}</body></html>'''
 
 
@@ -52,6 +53,9 @@ def initial_generation():
 
 def build(output, *, checkpoint=None, model_storage=None):
     check_theme(ROOT)
+    # Rebuild the payload; stale content-addressed directories never enter its identity.
+    for folder in ('assets', 'ontology', 'declarations'):
+        shutil.rmtree(output/folder, ignore_errors=True)
     generate(check=True)
     from scripts.build.browser_runtime import package
     package(output,checkpoint,model_storage=model_storage)
@@ -83,11 +87,11 @@ def build(output, *, checkpoint=None, model_storage=None):
     ontology_body = '<h1>Visuals have meanings.</h1><p>Every visual concept maps to fields admitted by the machine-readable ontology. '
     ontology_body += 'These define the model; they do not prove its real-world validity.</p>'
     for term, entry in terms.items():
-        scene_link = f'<a href="index.html#{visual_terms[term]}">Inspect in the request scene ↗</a>' if term in visual_terms else ''
+        scene_link = f'<a href="/#{visual_terms[term]}">Inspect in the request scene ↗</a>' if term in visual_terms else ''
         bindings = ', '.join(f'{schema}.{field}' for schema, fields in entry['fields'].items() for field in fields)
-        ontology_body += f'<section id="{entry["anchor"]}"><h2>{esc(term)}</h2><p>{esc(entry["meaning"])}</p><p><a href="declarations.html#{entry["owner"]}">{esc(entry["owner"])}</a>: {esc(bindings)}</p>{scene_link}</section>'
+        ontology_body += f'<section id="{entry["anchor"]}"><h2>{esc(term)}</h2><p>{esc(entry["meaning"])}</p><p><a href="/declarations/#{entry["owner"]}">{esc(entry["owner"])}</a>: {esc(bindings)}</p>{scene_link}</section>'
     for owner, definition in load_declarations()['terms'].items():
-        ontology_body += f'<section id="{owner}"><h2>{esc(owner)}</h2><p>{esc(definition["meaning"])}</p><p>{esc(definition["lifetime"])}</p><p>Owns: {esc("; ".join(definition["owns"]))}</p><p>Excludes: {esc("; ".join(definition["excludes"]))}</p><a href="declarations.html#{owner}">Owned declarations ↗</a></section>'
+        ontology_body += f'<section id="{owner}"><h2>{esc(owner)}</h2><p>{esc(definition["meaning"])}</p><p>{esc(definition["lifetime"])}</p><p>Owns: {esc("; ".join(definition["owns"]))}</p><p>Excludes: {esc("; ".join(definition["excludes"]))}</p><a href="/declarations/#{owner}">Owned declarations ↗</a></section>'
     (output / 'ontology.html').write_text(shell('Inference ontology', '<div class="reference-index">' + ontology_body + '</div>'))
     numerical = (ROOT / 'web/inspection/page.html').read_text().replace(
         '__INFERENCE_DATA__', json.dumps(initial_generation(), allow_nan=False).replace('<', '\\u003c'))
@@ -110,8 +114,9 @@ def build(output, *, checkpoint=None, model_storage=None):
                     description = esc(definition.get('description', definition.get('type', 'Declared alternatives')))
                 declarations += f'<dt>{esc(field)}</dt><dd>{description}</dd>'
             declarations += '</dl>'
-        declarations += '<a href="index.html">Inspect the bound run ↗</a></section>'
+        declarations += '<a href="/">Inspect the bound run ↗</a></section>'
     (output / 'declarations.html').write_text(shell('Declaration ownership', declarations))
+    seal_assets(output)
     return output / 'index.html'
 
 

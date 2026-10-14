@@ -151,3 +151,52 @@ requirement. Speeding up these tiny models is not such a requirement.
 
 Model assets may be served from S3 through ordinary public HTTPS/CORS; no AWS SDK
 or credentials enter the browser. [Delivery](delivery.md) owns operation and storage details.
+
+## AWS dev delivery
+
+[Deployment configuration](../../infrastructure/aws/deployment.yaml) owns the account,
+region and environment state. Only dev is enabled. Production was published prematurely;
+its distribution is disabled and its A/AAAA aliases are removed. The registered domain,
+private retained bucket and previous release evidence remain. Production publication is
+future work, not a step in the current workflow.
+
+The [Makefile](../../Makefile) owns local serving, qualification, packaging, dev publication,
+hosted verification and explicit release restoration. The integrated dev publication target
+runs the full local harness, seals its exact output, deploys it and checks the actual origin.
+An existing sealed release can also be deployed explicitly. There is no production-promotion
+target. Disabled environments are rejected before any deployment writes.
+
+CNCRover's reference implementation is `mk/release.mk` and
+`omnicarve-cloud/cdk/lib/static-site-stack.ts`: staging deployment is distinct from a
+commented-out production stack, and CloudFront resolves clean routes internally. Its
+release archives are delivery artifacts, not navigation URLs. We use those boundaries
+with the existing CloudFormation and browser-only application. We do not inherit its
+missing-file-to-HTML success fallback or application/build Lambdas.
+
+Documents are served at `/`, `/ontology/` and `/declarations/`. CloudFront internally
+selects the active release's document; it sends no navigation redirect. HTML requires
+cache revalidation. The release ID remains an internal storage and qualification identity.
+A function update changes the document selection without rewriting the visitor's URL.
+
+The static builder places scripts, styles, workers, Python/WASM and models in one
+content-addressed payload under `/assets/<sha256>/`. Documents reference that payload
+explicitly. Worker-relative imports and model loading stay inside the same payload.
+Changing the active document release cannot change an existing tab's resource URLs.
+The payload hash excludes HTML, avoiding a self-referential release hash. Local and
+hosted environments consume the same built directory, including clean directory indexes.
+
+S3 retains complete checksum-qualified releases plus immutable payloads. The CloudFront
+origin access policy denies anonymous S3 reads. Missing routes and assets remain errors;
+internal HTML release paths are not public entry points. Legacy non-HTML release resources
+remain readable so already-open tabs survive this layout migration. Restoring an archive
+does not itself qualify its layout for current deployment.
+
+Verification starts at the public root, requires HTTP 200 without Location, compares all
+served bytes, checks HTTPS, MIME types, caching, compression and missing-file failures,
+and exercises model execution and clean navigation in fresh and warm Chrome sessions.
+Edge-function tests evaluate document selection and invariant asset paths across a release
+change. Hosted verification is separate from the budgeted local harness; browser coverage
+is limited to the installed Chrome. It does not establish all-region rollout atomicity.
+
+Runtime and model downloads incur S3/CloudFront transfer charges even though inference
+runs on-device. DNS and annual registration are separate costs.

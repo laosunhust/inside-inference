@@ -16,7 +16,7 @@ def main():
         parser.error('Generated site directory must be under out/')
     release_port(args.port)
     server = socket_server(('127.0.0.1', args.port), directory=directory)
-    print(f'Inside Inference: http://127.0.0.1:{args.port}/index.html', flush=True)
+    print(f'Inside Inference: http://127.0.0.1:{args.port}/', flush=True)
     try: server.serve_forever()
     except KeyboardInterrupt: pass
     finally: server.server_close()

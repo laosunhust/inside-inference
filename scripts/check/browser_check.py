@@ -14,6 +14,8 @@ import unittest
 from scripts.check.governance.harness import run_suite
 
 from scripts.build.intro_page import ROOT, build
+from scripts.build.hosting.layout import asset_root
+from scripts.build.hosting.release import checksums, digest
 from scripts.dev.http_runtimes_generated import socket_server
 
 
@@ -58,7 +60,7 @@ def main():
             result_path.write_text(json.dumps({'passed':False,'status':'integration tests failed'}))
             raise SystemExit(1)
     server = socket_server(('127.0.0.1', 0), directory=site)
-    assets=socket_server(('127.0.0.1',0),directory=site/'models',cors_origin='*')
+    assets=socket_server(('127.0.0.1',0),directory=asset_root(site)/'models',cors_origin='*')
     requests=[]
     for endpoint in (server, assets): observe_requests(endpoint, requests)
     asset_thread=threading.Thread(target=assets.serve_forever,daemon=True);asset_thread.start()
@@ -93,11 +95,11 @@ def main():
                     else: raise RuntimeError('Chrome debugging did not start')
                     port = int(portfile.read_text().splitlines()[0])
                     subprocess.run([node, str(ROOT / 'scripts/check/browser_check.mjs'), str(port),
-                        f'http://127.0.0.1:{server.server_port}', site.as_uri(), str(output),f'http://127.0.0.1:{assets.server_port}/'], check=True, timeout=120)
+                        f'http://127.0.0.1:{server.server_port}', asset_root(site).as_uri(), str(output),f'http://127.0.0.1:{assets.server_port}/'], check=True, timeout=120)
                     (output/'static-requests.json').write_text(json.dumps(requests,indent=2))
                     if not requests or any(r['method'] != 'GET' or urlsplit(r['path']).path.startswith('/api/') for r in requests):
                         raise AssertionError('Browser and worker must use static GET requests, never a compute API')
-                    result_path.write_text(json.dumps({'passed':True,
+                    result_path.write_text(json.dumps({'passed':True, 'site_sha256':digest(checksums(site)),
                         'scope':'static-only site; interactive/headless calls in the same browser worker',
                         'parity':['browser headless operations','interactive computation','verified model assets','browser export']},indent=2))
                 finally:

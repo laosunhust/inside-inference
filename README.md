@@ -77,6 +77,8 @@ maintenance targets begin with `_`.
 
 The laboratory is evolving. The [milestone scorecard](docs/implementation/milestones.md)
 distinguishes working instruments, planned experiments, and missing evidence.
-The intended public home is **insideinference.dev**; this is not a deployment announcement.
+The development laboratory is [dev.insideinference.dev](https://dev.insideinference.dev/).
+The [AWS delivery workflow](docs/architecture/website.md#aws-dev-delivery) publishes
+one locally tested artifact to dev. Production is disabled.
 
 [MIT license](LICENSE).
