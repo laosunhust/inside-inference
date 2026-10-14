@@ -61,6 +61,7 @@ class AtlasTests(unittest.TestCase):
 
     def test_portable_links_and_no_standalone_labs(self):
         root = self.site
+        self.assertEqual([p.relative_to(root).as_posix() for p in root.rglob('*.html')], ['index.html'])
         pages = {p.resolve(): PageParser(p.read_text()) for p in root.rglob('*.html')}
         for path, page in pages.items():
             for link in page.links:

@@ -37,7 +37,7 @@ def fetch(url, encoding='identity'):
 
 def assets(origin, release, manifest):
     inventory = entries(manifest)
-    pages = {'index.html':'/', 'ontology/index.html':'/ontology/', 'declarations/index.html':'/declarations/'}
+    pages = {'index.html':'/'}
     status, headers = redirect(origin+'/')
     headers = {k.lower():v for k,v in headers.items()}
     if status != 200 or 'location' in headers:
@@ -64,7 +64,7 @@ def assets(origin, release, manifest):
         return len(raw)
     with ThreadPoolExecutor(max_workers=8) as pool:
         sizes = list(pool.map(check, entries(manifest).items()))
-    for path in ('/missing-route', '/missing.js', '/index.html', '/releases/'+release+'/index.html'):
+    for path in ('/ontology/', '/declarations/', '/missing-route', '/missing.js', '/index.html', '/releases/'+release+'/index.html'):
         missing, _ = redirect(origin+path)
         if missing != 404: raise ValueError('Unknown or internal page must be 404: '+path)
     runtime = next(name for name in inventory if name.endswith('/execution/runtime/pyodide.asm.js'))

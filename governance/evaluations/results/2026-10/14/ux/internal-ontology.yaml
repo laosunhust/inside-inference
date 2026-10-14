@@ -1,0 +1,40 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/14/ux/internal-ontology.yaml
+evaluation_sha256: 7843b8cc4aae7511480258083d7f93930afae2e7fdcb1c877456818b64a7f204
+outcome: passed
+summary: 'Removed public Ontology navigation from the header, configuration dialogs, detail view and first-principles
+  panels. Deleted generation of the ontology and declaration ownership reference pages and removed their
+  CloudFront routes. Internal ontology declarations, generated contracts, meanings, ownership admission,
+  system map and principle rendering remain intact. No approval-locked file was changed.
+
+
+  make test passed 109 tests in 4.91s. make _publish-dev ran the full integration workflow: 109 unit tests,
+  21 integration tests and browser checks passed in 44.89s. Current-run desktop and narrow configuration
+  screenshots were reviewed. An initially inspected system-setup-mobile screenshot was an obsolete retained
+  output dated October 12; it was excluded from evidence and replaced with current concept-controls screenshots.
+
+
+  Deployed release 3c64af5db7712e5304a540dec81fa2b3ed4092ec31657ddec6df662b72e93a11 through the Makefile
+  workflow. Hosted verification passed for all 63 files, model execution in fresh and warm Chrome sessions,
+  and absence of ontology/declaration navigation links. Root returns 200 without redirect; both retired
+  reference routes return 404. Production distribution E20WLQK5FYH5UZ remains disabled. Qualification
+  evidence is retained privately at s3://inside-inference-dev-assets-oq91bcj6mrut/qualifications/3c64af5db7712e5304a540dec81fa2b3ed4092ec31657ddec6df662b72e93a11/hosted.json
+  with the matching local qualification and release archive.
+
+
+  Six existing folder-count warnings remain unchanged in data-model/domains, docs/ontology, inside_inference
+  and historical evaluation directories. This work does not grow those folders. Their prior triage remains
+  applicable: historical path migration requires scoped approval under preservation enforcement; semantic
+  module splits should precede growth in the other directories. No warning was suppressed or limit relaxed.
+  Browser verification remains Chrome-only. Changes are not committed.'
+evidence:
+- scripts/build/intro_page.py
+- web/inspection/configuration.js
+- web/inspection/details.js
+- web/inspection/system-map.js
+- web/inspection/page.html
+- infrastructure/aws/site.yaml
+- tests/integration/test_site.py
+- tests/integration/test_hosting_routes.py
+- scripts/check/hosting/smoke.mjs
+- scripts/check/hosting/verify.py

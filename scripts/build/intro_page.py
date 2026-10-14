@@ -20,12 +20,11 @@ def esc(value):
 
 
 def shell(title, body, prefix='', *, landing=False):
-    navigation = f'<span class="landing-links"><a href="/ontology/">Ontology</a></span>'
     footer = '' if landing else '<footer>Mechanism → evidence → limits. An open laboratory, always incomplete.</footer>'
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)} · Inside Inference</title><link rel="stylesheet" href="{prefix}theme.css"><link rel="stylesheet" href="{prefix}style.css"></head>
-<body><header><a href="/">Inside Inference</a>{navigation}</header>
+<body><header><a href="/">Inside Inference</a></header>
 <main>{body}</main>{footer}</body></html>'''
 
 
@@ -77,45 +76,17 @@ def build(output, *, checkpoint=None, model_storage=None):
     # Retired generated pages must not survive an incremental build.
     for directory in ('execution/llama', 'labs'):
         shutil.rmtree(output/directory, ignore_errors=True)
-    for retired in ('inspection/page.html','kv-cache.html','cache.js','cache.css','atlas.html','request-cost.html','journey.js','model-contract.html','model-size.html','models/page.js','models/layout.css','labs/model-size-quality.html','execution/evidence-client.js','configuration-preview.js','inference.js','inspection-session.js','execution-path.js','inference.css','execution/component-engine.js','execution/controls.js','execution/decoder.js','execution/model-service.js','execution/model-storage.js','execution/observations.js','labs-by-concept.html','kv-contract.html','naive-gpt-contract.html','app.js'):
+    for retired in ('ontology.html','declarations.html','inspection/page.html','kv-cache.html','cache.js','cache.css','atlas.html','request-cost.html','journey.js','model-contract.html','model-size.html','models/page.js','models/layout.css','labs/model-size-quality.html','execution/evidence-client.js','configuration-preview.js','inference.js','inspection-session.js','execution-path.js','inference.css','execution/component-engine.js','execution/controls.js','execution/decoder.js','execution/model-service.js','execution/model-storage.js','execution/observations.js','labs-by-concept.html','kv-contract.html','naive-gpt-contract.html','app.js'):
         (output/retired).unlink(missing_ok=True)
     terms = ontology_terms()
     visual_source = (ROOT / 'web/inspection/page.html').read_text()
     visual_terms = entities(visual_source, anchors=True)
     if not set(visual_terms) <= terms.keys():
         raise ValueError('Visual references an unknown ontology term')
-    ontology_body = '<h1>Visuals have meanings.</h1><p>Every visual concept maps to fields admitted by the machine-readable ontology. '
-    ontology_body += 'These define the model; they do not prove its real-world validity.</p>'
-    for term, entry in terms.items():
-        scene_link = f'<a href="/#{visual_terms[term]}">Inspect in the request scene ↗</a>' if term in visual_terms else ''
-        bindings = ', '.join(f'{schema}.{field}' for schema, fields in entry['fields'].items() for field in fields)
-        ontology_body += f'<section id="{entry["anchor"]}"><h2>{esc(term)}</h2><p>{esc(entry["meaning"])}</p><p><a href="/declarations/#{entry["owner"]}">{esc(entry["owner"])}</a>: {esc(bindings)}</p>{scene_link}</section>'
-    for owner, definition in load_declarations()['terms'].items():
-        ontology_body += f'<section id="{owner}"><h2>{esc(owner)}</h2><p>{esc(definition["meaning"])}</p><p>{esc(definition["lifetime"])}</p><p>Owns: {esc("; ".join(definition["owns"]))}</p><p>Excludes: {esc("; ".join(definition["excludes"]))}</p><a href="/declarations/#{owner}">Owned declarations ↗</a></section>'
-    (output / 'ontology.html').write_text(shell('Inference ontology', '<div class="reference-index">' + ontology_body + '</div>'))
     numerical = (ROOT / 'web/inspection/page.html').read_text().replace(
         '__INFERENCE_DATA__', json.dumps(initial_generation(), allow_nan=False).replace('<', '\\u003c'))
     numerical = '<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="inspection/page.css">' + numerical
     (output / 'index.html').write_text(shell('What happens if you change this?', numerical, landing=True))
-    declaration_ontology = load_declarations()
-    declaration_schemas = read(ROOT / 'data-model/inference.schema.json')['$defs']
-    declarations = '<h1>What governs this run?</h1><p>Meanings from the declaration ontology; fields from the executable contract. Generated views are not authorities.</p>'
-    for name, term in declaration_ontology['terms'].items():
-        declarations += f'<section id="{name}"><h2>{name}</h2><p>{esc(term["meaning"])}</p><p>{esc(term["lifetime"])}</p><p>Owns: {esc(", ".join(term["owns"]))}. Excludes: {esc(", ".join(term["excludes"]))}.</p>'
-        for schema_name in term['schemas']:
-            declarations += f'<h3>{schema_name}</h3><dl>'
-            for field, definition in declaration_schemas[schema_name]['properties'].items():
-                reference = definition.get('$ref')
-                if reference:
-                    target = reference.split('/')[-1]
-                    target_owner = declaration_schemas[target]['x-owner']
-                    description = f'<a href="#{target_owner}">{esc(target)}</a> · owned by {esc(target_owner)}'
-                else:
-                    description = esc(definition.get('description', definition.get('type', 'Declared alternatives')))
-                declarations += f'<dt>{esc(field)}</dt><dd>{description}</dd>'
-            declarations += '</dl>'
-        declarations += '<a href="/">Inspect the bound run ↗</a></section>'
-    (output / 'declarations.html').write_text(shell('Declaration ownership', declarations))
     seal_assets(output)
     return output / 'index.html'
 

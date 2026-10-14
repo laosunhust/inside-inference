@@ -100,7 +100,6 @@ body:has(#control-plane) .landing-links{display:inline}
 .map-children{margin-top:10px;padding-left:12px}
 .map-root>.map-body{padding:0}
 .map-root>.map-body>.map-children{padding:0}
-.map-links{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .map-relations{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px}
 .map-body table{max-width:100%}
 @media(max-width:650px){.map-children{padding-left:6px}.map-body{padding:0 8px 8px}}

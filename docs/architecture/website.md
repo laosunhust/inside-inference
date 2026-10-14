@@ -173,7 +173,8 @@ release archives are delivery artifacts, not navigation URLs. We use those bound
 with the existing CloudFormation and browser-only application. We do not inherit its
 missing-file-to-HTML success fallback or application/build Lambdas.
 
-Documents are served at `/`, `/ontology/` and `/declarations/`. CloudFront internally
+The application is served at `/`. Ontology declarations remain internal inputs to the
+system map and explanations; their reference pages are not published. CloudFront internally
 selects the active release's document; it sends no navigation redirect. HTML requires
 cache revalidation. The release ID remains an internal storage and qualification identity.
 A function update changes the document selection without rewriting the visitor's URL.

@@ -68,8 +68,7 @@ Resources:
               return {statusCode: 503, statusDescription: 'Not published',
                 headers: {'cache-control': {value: 'no-store'}}};
             }
-            var pages = {'/': 'index.html', '/ontology/': 'ontology/index.html',
-                         '/declarations/': 'declarations/index.html'};
+            var pages = {'/': 'index.html'};
             if (pages[request.uri]) {
               request.uri = '/releases/${Release}/' + pages[request.uri];
               return request;

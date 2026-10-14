@@ -150,8 +150,8 @@ dt{text-transform:uppercase}
 .map-node>button:disabled{color:var(--muted);background:var(--surface-soft)}
 .map-node[data-view=engine]{border-color:var(--accent)}
 .map-root{border:0;background:transparent}
-.map-root>.map-body>p,.map-root>.map-body>.map-links{font-size:13px;color:var(--muted)}
-.map-links,.map-relations{font-size:12px}
+.map-root>.map-body>p{font-size:13px;color:var(--muted)}
+.map-relations{font-size:12px}
 .map-relations{border-top:1px solid var(--line);padding-top:8px}
 .map-relations a{color:var(--muted)}
 

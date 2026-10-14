@@ -54,16 +54,11 @@ try{
   }
   const assetURL=await evaluate("document.querySelector('script[src*=client]').src");
   assert.match(new URL(assetURL).pathname,/^\/assets\/[0-9a-f]{64}\/execution\/client.generated.js$/);
-  await evaluate("document.querySelector('header a[href=\"/ontology/\"]').click()");
-  for(let i=0;i<100 && await evaluate('location.pathname')!=='/ontology/';i++)await new Promise(r=>setTimeout(r,50));
-  assert.equal(await evaluate('location.pathname'),'/ontology/');
-  await send('Page.navigate',{url:origin+'/declarations/'});
-  for(let i=0;i<100 && await evaluate('location.pathname')!=='/declarations/';i++)await new Promise(r=>setTimeout(r,50));
-  assert.equal(await evaluate('location.pathname'),'/declarations/');
+  assert.equal(await evaluate("Array.from(document.querySelectorAll('a')).some(a=>/ontology|declarations/i.test(a.textContent+' '+a.getAttribute('href')))"),false);
   await send('Page.navigate',{url:origin+'/'});await ready();
   assert.equal(await evaluate('location.pathname'),'/');
   assert.equal(await evaluate("document.querySelector('script[src*=client]').src"),assetURL);
-  report.routes=['/','/ontology/','/declarations/'];report.asset_url=assetURL;
+  report.routes=['/'];report.asset_url=assetURL;
   assert.deepEqual(errors,[]);
   report.passed=true;await writeFile(output+'/browser.json',JSON.stringify(report,null,2));
 }finally{socket.close();}

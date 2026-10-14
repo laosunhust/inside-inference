@@ -11,8 +11,6 @@ globalThis.ExecutionConfiguration=(()=>{
     }
     const definitions=Declarations.schemas.ExperimentSpec.oneOf;
     const hierarchy=SystemMap.mount(document.getElementById('configure-system'),null,(node,panel,controls)=>{
-      const owner=node.owner;
-      const link=document.createElement('a');link.href='/ontology/#'+owner;link.textContent='Ontology ↗';if(node.parent!==null)panel.append(link);
       panel.classList.add('configuration-fields');
       for(const definition of controls){
         const control=definition.properties.control.const,field=definition.properties.value;
@@ -29,8 +27,8 @@ globalThis.ExecutionConfiguration=(()=>{
         fields.push({control,input,field});
       }
     });
-    for(const [id,owner] of [['configure-input',Declarations.schemas.Workload['x-owner']],['configure-client',Declarations.schemas.CustomerInteraction['x-owner']]]){
-      const p=document.createElement('p'),link=document.createElement('a');p.textContent='Not adjustable yet. ';link.href='/ontology/#'+owner;link.textContent='Ontology ↗';p.append(link);document.getElementById(id).append(p);
+    for(const id of ['configure-input','configure-client']){
+      const p=document.createElement('p');p.textContent='Not adjustable yet.';document.getElementById(id).append(p);
     }
     function refresh(){
       const spec=read();

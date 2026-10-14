@@ -1,0 +1,22 @@
+version: 1
+work_item: internal-ontology
+question: Can the website remove ontology navigation without losing the internal semantic backbone or useful inference explanations?
+necessity: Owner identifies public Ontology references as distracting and requests keeping ontology internal.
+baseline: Header, configuration, first-principles panels and details expose Ontology links; two generated reference pages publish internal ownership metadata.
+reuse:
+- source: Existing declarations, semantic admission, system map and explanation components
+  decision: Retain their semantic inputs and behavior; delete only reference navigation and public reference page generation.
+criteria:
+- No website navigation exposes Ontology or internal declaration-reference pages; both reference routes return 404 on dev.
+- Generated declarations, semantic admission, system map, first-principles explanations and model execution remain operational.
+- Local and deployed artifacts share the change; production stays disabled.
+- Existing unit and integration harnesses pass within their budgets, and desktop/narrow rendered layouts are reviewed.
+counterexamples:
+- Hiding only the header leaves links in dialogs and detail panels.
+- Removing ontology data rather than its public reference UI breaks concept ownership and explanations.
+- Removing pages without links and routes together leaves dead ends or stale public surfaces.
+checks:
+- Existing component, semantic and full browser integration harnesses
+- Existing page inventory and edge routing checks updated for retired references
+- Hosted byte verification and browser execution with no reference links
+- Desktop and narrow screenshot review
