@@ -9,6 +9,8 @@ from scripts.check.governance.evaluation import audit_evaluation
 from scripts.check.governance.frontend import audit_frontend
 from scripts.check.governance.harness import audit_scope
 from scripts.check.governance.http import audit_http
+from scripts.check.governance.principles import audit_principle_spans
+from scripts.build.ontology import load_declarations
 
 
 def audit(root=ROOT, *, warnings=None):
@@ -31,6 +33,8 @@ def audit(root=ROOT, *, warnings=None):
     try: failures.extend(audit_interfaces(root, paths, generated))
     except (ValueError,FileNotFoundError) as exc: failures.append(str(exc))
     try: failures.extend(audit_frontend(root, generated))
+    except (ValueError,FileNotFoundError) as exc: failures.append(str(exc))
+    try: failures.extend(audit_principle_spans(root, load_declarations(root)['terms']))
     except (ValueError,FileNotFoundError) as exc: failures.append(str(exc))
     try: failures.extend(audit_evaluation(root))
     except (ValueError,FileNotFoundError) as exc: failures.append(str(exc))

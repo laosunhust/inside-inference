@@ -9,7 +9,9 @@ from inside_inference.declarations_generated import KVState
 
 def state_bytes(state):
     """Logical packed binary64 K+V payload, not Python process memory."""
+    # principle kv-payload-bytes
     return sum(len(row) for tensor in (state.keys, state.values) for matrix in tensor for row in matrix) * 8
+    # end principle kv-payload-bytes
 
 
 def prefix_state(state, count):

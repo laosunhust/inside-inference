@@ -1,4 +1,5 @@
 """Compose authored YAML contracts; JSON bundles are generated transport artifacts."""
+import hashlib
 import re
 from scripts import ROOT
 from scripts.build.structured import read_yaml
@@ -173,3 +174,49 @@ def admit_principles(terms, definitions):
             if len(claimed) > 1:
                 failures.append(f'{architecture}: operation {operation!r} is bound by several applicable {owners[operation]} principles {sorted(claimed)}')
     return failures
+
+
+MARKER = re.compile(r'^\s*# (end )?principle ([a-z0-9-]+)\s*$')
+
+
+def scan_principle_spans(root):
+    """Marked spans of packaged engine code, keyed by principle id, and structural failures."""
+    spans, failures = {}, []
+    for path in sorted((root / 'inside_inference').rglob('*.py')):
+        name = path.relative_to(root).as_posix()
+        raw = path.read_bytes()
+        lines = raw.decode().splitlines()
+        digest = hashlib.sha256(raw).hexdigest()
+        open_id = open_line = None
+        for number, line in enumerate(lines, 1):
+            match = MARKER.match(line)
+            if not match:
+                continue
+            closing, identifier = bool(match.group(1)), match.group(2)
+            if not closing:
+                if open_id is not None:
+                    failures.append(f'{name}:{number}: principle {identifier!r} is nested inside {open_id!r}; spans must not nest')
+                    continue
+                open_id, open_line = identifier, number
+                continue
+            if open_id != identifier:
+                failures.append(f'{name}:{number}: end of principle {identifier!r} without an opening marker')
+                continue
+            if number == open_line + 1:
+                failures.append(f'{name}:{open_line}: principle {identifier!r} has an empty code span')
+            elif identifier in spans:
+                failures.append(f'{name}:{open_line}: principle {identifier!r} has more than one code span')
+            else:
+                spans[identifier] = {'path': name, 'start': open_line + 1, 'end': number - 1, 'sha256': digest,
+                                     'code': '\n'.join(lines[open_line:number - 1])}
+            open_id = None
+        if open_id is not None:
+            failures.append(f'{name}:{open_line}: principle {open_id!r} is unclosed')
+    return spans, failures
+
+
+def principle_spans(root):
+    spans, failures = scan_principle_spans(root)
+    if failures:
+        raise ValueError('Invalid principle code spans:\n' + '\n'.join(failures))
+    return spans

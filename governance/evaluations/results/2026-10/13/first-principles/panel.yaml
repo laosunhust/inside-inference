@@ -1,0 +1,40 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/first-principles/panel.yaml
+evaluation_sha256: b32b24f4d793c8e7bd09975338e133ddf981b4ac53f8e16dab95513dac11615d
+outcome: passed
+summary: 'System-map disclosures are now "First principles". Each concept renders its declared principles
+  with KaTeX 0.18.9, with variant conditions labelled by declared architecture field titles, then its prose
+  meaning; concepts without principles show prose only. Symbols and executed code open on demand. The inspector
+  renders the applicable principle and its code above the selected observation''s values.
+
+
+  Code spans: every one of the 17 principles has exactly one span between "# principle <id>" and "# end
+  principle <id>" markers. The engine was restructured so each equation maps to one contiguous span; three
+  small helpers were added and the attention output projection moved into the value-mixing step. Execution
+  order and observations are unchanged, and all engine oracle tests still pass. scripts/build/contracts.py
+  parses the markers; the build publishes principles-code.js; scripts/check/governance/principles.py rejects
+  unknown ids, duplicate, nested, unclosed or empty spans and principles without a span. Integration confirms
+  the published spans equal engine.zip sources byte for byte, including digests and marker lines.
+
+
+  Browser checks: every principle renders with KaTeX and no rendering error in its concept''s disclosure;
+  the inspector shows the applicable principle for the selected 8K observation; hand recomputation from displayed
+  8K records (layer normalizations, scores, softmax, value mixing, both residuals, logits) agrees within 8.9e-16
+  against a 1e-12 criterion. Desktop and 390 px screenshots were reviewed; no horizontal page overflow, and
+  wide equations and code scroll within their boxes. Review found and fixed an inherited dt uppercase rule
+  that rendered gamma as Gamma.
+
+
+  make test passed 105 tests in 4.52s of 10s; make test-integration passed in 44.64s of 100s. KaTeX adds
+  its script, stylesheet and woff2 fonts to the static release.
+
+
+  Limits: Llama-family equations and code show without live tensors. Markers placed around unrelated code
+  would pass structural checks; span contents were reviewed against equations, and recomputation covers
+  only the 8K operations listed. Lab links remain until the ExperimentSpec item.'
+evidence:
+- web/inspection/principles.js
+- scripts/check/governance/principles.py
+- scripts/check/story_models/recompute.mjs
+- tests/integration/test_site.py
+- inside_inference/runtimes/engine.py

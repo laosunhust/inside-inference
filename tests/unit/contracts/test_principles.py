@@ -67,6 +67,40 @@ class FirstPrinciplesTests(unittest.TestCase):
                 failures = self.failures(mutation)
                 self.assertTrue(any(message in f for f in failures), failures)
 
+    def test_every_principle_has_exactly_one_marked_code_span(self):
+        from scripts import ROOT
+        from scripts.build.contracts import principle_spans
+        from scripts.check.governance.principles import audit_principle_spans
+        terms = self.ontology['terms']
+        self.assertEqual(audit_principle_spans(ROOT, terms), [])
+        spans = principle_spans(ROOT)
+        identifiers = {p['id'] for term in terms.values() for p in term.get('principles', [])}
+        self.assertEqual(set(spans), identifiers)
+        for identifier, span in spans.items():
+            source = (ROOT / span['path']).read_text().splitlines()
+            self.assertEqual(span['code'], '\n'.join(source[span['start'] - 1:span['end']]))
+
+    def test_code_span_markers_reject_drift(self):
+        import tempfile
+        from pathlib import Path
+        from scripts.check.governance.principles import audit_principle_spans
+        terms = self.ontology['terms']
+        good = '# principle causal-attention\nx = 1\n# end principle causal-attention\n'
+        cases = [('# principle invented\nx = 1\n# end principle invented\n', 'unknown principle'),
+                 (good + good, 'more than one code span'),
+                 ('# principle causal-attention\nx = 1\n', 'unclosed'),
+                 ('x = 1\n# end principle causal-attention\n', 'without an opening'),
+                 ('# principle causal-attention\n# end principle causal-attention\n', 'empty'),
+                 ('# principle causal-attention\n# principle stable-softmax\nx = 1\n# end principle stable-softmax\n# end principle causal-attention\n', 'nested'),
+                 ('', "has no code span")]
+        for source, message in cases:
+            with self.subTest(message=message), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / 'inside_inference').mkdir()
+                (root / 'inside_inference/engine.py').write_text(source)
+                failures = audit_principle_spans(root, terms)
+                self.assertTrue(any(message in f for f in failures), failures)
+
     def test_admission_blocks_generation(self):
         from scripts.build.generate_data_models import admit
         changed = copy.deepcopy(self.ontology)

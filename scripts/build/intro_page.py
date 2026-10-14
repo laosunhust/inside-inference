@@ -108,9 +108,20 @@ def build(output, *, checkpoint=None, model_storage=None):
     data = load_catalog()
     output.mkdir(parents=True, exist_ok=True)
     (output / 'labs').mkdir(exist_ok=True)
-    for name in ('app.js', 'contract-runtime.js', 'contract-validators.generated.js', 'declarations.generated.js', 'execution/client.generated.js', 'execution/worker.generated.js', 'inspection/configuration.js', 'inspection/details.js', 'inspection/page.css', 'inspection/page.js', 'inspection/path.js', 'inspection/resources.js', 'inspection/session.js', 'inspection/system-map.js', 'style.css', 'theme.css'):
+    for name in ('app.js', 'contract-runtime.js', 'contract-validators.generated.js', 'declarations.generated.js', 'execution/client.generated.js', 'execution/worker.generated.js', 'inspection/configuration.js', 'inspection/details.js', 'inspection/page.css', 'inspection/page.js', 'inspection/path.js', 'inspection/principles.js', 'inspection/resources.js', 'inspection/session.js', 'inspection/system-map.js', 'style.css', 'theme.css'):
         (output / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / 'web' / name, output / name)
+    # Executed code spans come from the same sources packaged in engine.zip.
+    from scripts.build.contracts import principle_spans
+    (output/'principles-code.js').write_text('globalThis.PrincipleCode=Object.freeze('+json.dumps(principle_spans(ROOT),sort_keys=True)+');\n')
+    katex = ROOT/'node_modules/katex'
+    shutil.rmtree(output/'vendor/katex', ignore_errors=True)
+    (output/'vendor/katex/fonts').mkdir(parents=True)
+    for name in ('katex.min.js', 'katex.min.css'):
+        shutil.copyfile(katex/'dist'/name, output/'vendor/katex'/name)
+    for font in (katex/'dist/fonts').glob('*.woff2'):
+        shutil.copyfile(font, output/'vendor/katex/fonts'/font.name)
+    shutil.copyfile(katex/'LICENSE', output/'vendor/katex/LICENSE')
     # Retired generated pages must not survive an incremental build.
     shutil.rmtree(output/'execution/llama', ignore_errors=True)
     for retired in ('inspection/page.html','kv-cache.html','cache.js','cache.css','atlas.html','request-cost.html','journey.js','model-contract.html','model-size.html','models/page.js','models/layout.css','labs/model-size-quality.html','execution/evidence-client.js','configuration-preview.js','inference.js','inspection-session.js','execution-path.js','inference.css','execution/component-engine.js','execution/controls.js','execution/decoder.js','execution/model-service.js','execution/model-storage.js','execution/observations.js','execution/llama/llama.mjs','execution/llama/llama.wasm','execution/llama/LICENSE.txt'):
@@ -135,7 +146,7 @@ def build(output, *, checkpoint=None, model_storage=None):
     (output / 'ontology.html').write_text(shell('Inference ontology', '<div class="reference-index">' + ontology_body + '</div>'))
     numerical = (ROOT / 'web/inspection/page.html').read_text().replace(
         '__INFERENCE_DATA__', json.dumps(initial_generation(), allow_nan=False).replace('<', '\\u003c'))
-    numerical = '<link rel="stylesheet" href="inspection/page.css">' + numerical
+    numerical = '<link rel="stylesheet" href="vendor/katex/katex.min.css"><link rel="stylesheet" href="inspection/page.css">' + numerical
     (output / 'index.html').write_text(shell('What happens if you change this?', numerical, landing=True))
     contract = (ROOT / 'docs/labs/kv-residency.md').read_text()
     (output / 'kv-contract.html').write_text(shell('KV residency experiment contract',

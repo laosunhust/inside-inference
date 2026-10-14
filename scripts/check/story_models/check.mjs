@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {checkExecution} from './execution.mjs';
 import {checkMap,checkJourney} from './system-map.mjs';
+import {recompute} from './recompute.mjs';
 import {readFile,writeFile,rename,access} from 'node:fs/promises';
 
 export async function checkModels({send,evaluate,until,base,output,site,assetBase,requests=[]}) {
@@ -52,6 +53,11 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         assert.equal(prediction.decoding_note,null,'Covered checkpoint continuation must decode without repair');
         prediction.logits.forEach((v,i)=>assert.ok(Math.abs(v-fixture.logits_at_selection_24[i])<1e-12));
         assert.ok(prediction.nodes.some(n=>n.operation.name==='attention'&&n.positions.at(-1)===request.prefix_ids.length+22),'Capture the final query attention without inventing masked cells');
+        // A reader can reproduce displayed values from their displayed inputs and the stated equations.
+        const recomputed=recompute(prediction.nodes,loaded.parameters,model.architecture);
+        assert.deepEqual(recomputed.operations,['attention','attention_residual','ff_residual','ln1','ln2','ln_final','logits','scores','weighted_values']);
+        assert.ok(recomputed.max_error<1e-12,`Hand recomputation differs by ${recomputed.max_error}`);
+        evidence.recomputation=recomputed;
         const terminal=structuredClone(request);terminal.generation.max_new_tokens=24;
         const stopped=await evaluate(`Execution.generateToken(${JSON.stringify(terminal)})`);assert.equal(stopped.decoding_note,null);assert.equal(stopped.stop_reason,'output_budget');
         evidence.streaming={timings,selected_id:prediction.selected_id,nodes:prediction.nodes.length};
@@ -151,6 +157,9 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         await evaluate("Array.from(document.querySelectorAll('#computation-path button')).find(b=>b.textContent==='Attention').click()");
         const shown=await evaluate("JSON.parse(document.querySelector('#detail-body script').textContent)");
         assert.deepEqual(shown,result.nodes.find(n=>n.id===shown.id));
+        const principle=await evaluate(`Principles.applicable(${JSON.stringify(shown.operation.name)},${JSON.stringify(model.architecture)})?.id`);
+        assert.equal(await evaluate("document.querySelector('#principle-view [data-principle]')?.dataset.principle"),principle,'Inspector shows the applicable principle');
+        assert.equal(await evaluate("document.querySelectorAll('#principle-view .katex').length>0 && !document.querySelector('#principle-view .katex-error')"),true);
         const inputId=shown.inputs.find(id=>result.nodes.some(n=>n.id===id));
         await evaluate(`document.querySelector('#observation-inputs [data-observation-id="${inputId}"]').click()`);
         assert.equal(await evaluate("document.getElementById('inspection-context').dataset.observationId"),inputId);

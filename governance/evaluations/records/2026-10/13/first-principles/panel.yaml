@@ -1,0 +1,33 @@
+version: 1
+work_item: first-principles-panel
+question: Can a reader follow one operation from its rendered governing equation to the exact executed code to the displayed numbers, with every link mechanically derived rather than handwritten?
+necessity: Principles exist as ontology declarations but appear only as raw LaTeX in the inspector. System-map nodes still offer a prose-only "Concept & labs" disclosure, and no executed code is visible. Without a checked equation-to-code binding, displayed code could drift from the engine and a reader cannot verify a value from its inputs.
+baseline: Seventeen principles with symbol bindings; one NumPy engine packaged in engine.zip; the inspector prints the applicable equation as unrendered text; the system-map disclosure shows the owner's meaning plus lab links; no code spans or recomputation checks exist.
+reuse:
+- source: KaTeX 0.18.9 (MIT), pinned with integrity in package-lock.json
+  decision: Render the declared LaTeX with the standard library and bundle its script, stylesheet and fonts into the static release; no CDN dependency at runtime and no custom math renderer.
+- source: Ontology principles, operation owners and the existing inspector cursor
+  decision: Derive which equation and code span to show from the operation owner and loaded architecture; add no second registry.
+- source: The packaged engine sources
+  decision: Extract code spans at build time from the same bytes packaged in engine.zip, delimited by checked principle markers, recording file path, line range and source digest.
+criteria:
+- Every principle has exactly one code span, delimited by balanced "# principle <id>" and "# end principle <id>" markers in packaged inside_inference sources. Unknown ids, duplicate or unbalanced markers, empty spans and principles without a span fail governance with actionable messages; rejection fixtures precede the UI.
+- The release contains a generated span table whose code, path, line range and digest equal the corresponding lines of the packaged engine.zip sources; the integration harness checks this byte for byte.
+- System-map disclosures are titled "First principles". Concepts with principles show rendered equations first, then prose meaning; concepts without principles show prose only. Variant conditions are visible when a concept has several principles. Symbols and code use progressive disclosure.
+- The inspector renders the principle applicable to the selected observation's operation and the loaded model's architecture, with its code span, above the observation's values.
+- Every declared equation renders with KaTeX without errors in the browser; a rendering error fails the harness.
+- Hand recomputation from displayed records passes for the 8K model. From each observation's declared inputs, the harness recomputes layer-normalization, scores, stable softmax, value mixing, residual additions and logits with an independent implementation within 1e-12.
+- Lab links remain unchanged until the ExperimentSpec item. Desktop and narrow layouts have no horizontal overflow; screenshots are reviewed. Unit and integration harnesses stay within budgets.
+checks:
+- Governance rejection fixtures for code-span markers
+- Integration comparison of the generated span table with engine.zip sources
+- Browser KaTeX rendering of every principle without errors
+- Browser hand-recomputation from displayed 8K observations
+- make test
+- make test-integration
+- Desktop and narrow screenshot review
+counterexamples:
+- A rendered equation next to the right numbers does not prove that the code computes that equation; the recomputation check and source comparison supply that evidence.
+- Markers placed around unrelated code would pass structural checks; span contents are reviewed against equations, and recomputation checks the arithmetic.
+- Llama-family observations remain unavailable, so their equations and code are shown without live tensors.
+- KaTeX rendering correctness of notation is not semantic correctness of the declared equation.

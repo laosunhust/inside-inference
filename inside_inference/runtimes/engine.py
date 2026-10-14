@@ -98,23 +98,48 @@ class Decoder:
         return y
 
     def _norm(self, trace, x, name, layer):
-        """Principles layer-normalization and rms-normalization."""
         scale = self.w[name + '_scale'] if layer < 0 else self.w[name + '_scale'][layer]
         eps = self.dtype(self.a['epsilon'])
         if self.a['normalization'] == 'pre-layernorm':
             bias = self.w[name + '_bias'] if layer < 0 else self.w[name + '_bias'][layer]
+            # principle layer-normalization
             mean = x.mean(axis=1, keepdims=True)
             variance = ((x - mean) ** 2).mean(axis=1, keepdims=True)
+            y = (x - mean) / np.sqrt(variance + eps) * scale + bias
+            # end principle layer-normalization
             trace.record(layer, name + '_mean', mean)
             trace.record(layer, name + '_variance', variance)
-            y = (x - mean) / np.sqrt(variance + eps) * scale + bias
         else:
+            # principle rms-normalization
             y = scale * (x / np.sqrt((x * x).mean(axis=1, keepdims=True) + eps))
+            # end principle rms-normalization
         trace.record(layer, name, y)
         return y
 
+    def _embed(self, trace, ids, start, end):
+        if self.a['position'] == 'learned-absolute':
+            # principle embedding-with-learned-positions
+            e = self.w['token_embedding'][ids[start:end]]
+            p = self._learned_positions(start, end)
+            x = e + p
+            # end principle embedding-with-learned-positions
+            trace.record(-1, 'token_embedding', e)
+            trace.record(-1, 'position_embedding', p)
+            trace.record(-1, 'embedding', x)
+        else:
+            # principle embedding-without-position-vector
+            x = self.w['token_embedding'][ids[start:end]]
+            # end principle embedding-without-position-vector
+            trace.record(-1, 'token_embedding', x)
+        return x
+
+    def _learned_positions(self, start, end):
+        # principle learned-absolute-position
+        return self.w['position_embedding'][start:end]
+        # end principle learned-absolute-position
+
     def _rotate(self, x, positions):
-        """Principle rotary-position: rotate adjacent channel pairs by position."""
+        # principle rotary-position
         channel = np.arange(0, self.a['width'], 2)
         frequency = self.dtype(1) / np.power(self.dtype(10000), (channel % self.head).astype(self.dtype) / self.dtype(self.head))
         angle = positions[:, None].astype(self.dtype) * frequency
@@ -124,71 +149,92 @@ class Decoder:
         rotated[:, 0::2] = even * cos - odd * sin
         rotated[:, 1::2] = even * sin + odd * cos
         return rotated
+        # end principle rotary-position
 
     def _attention(self, trace, q, layer, start, end):
-        """Principles causal-attention, stable-softmax and value-mixing, per head."""
-        mixed = np.empty_like(q)
+        """Each head scores visible keys, normalizes the scores, then mixes values."""
         scale = np.sqrt(self.dtype(self.head))
+        mixed = []
         for h in range(self.a['heads']):
             cols = slice(h * self.head, (h + 1) * self.head)
             keys, values = self.keys[layer, :end, cols], self.values[layer, :end, cols]
-            scores = (q[:, cols] @ keys.T) / scale
+            # principle causal-attention
             visible = np.arange(end)[None, :] <= np.arange(start, end)[:, None]
-            if h == 0:
-                trace.mask(layer, visible)
-            scores = np.where(visible, scores, -np.inf)
+            scores = np.where(visible, (q[:, cols] @ keys.T) / scale, -np.inf)
+            # end principle causal-attention
+            # principle stable-softmax
             weights = np.exp(scores - scores.max(axis=1, keepdims=True))
             weights = weights / weights.sum(axis=1, keepdims=True)
-            mixed[:, cols] = weights @ values
+            # end principle stable-softmax
+            mixed.append(weights @ values)
+            if h == 0:
+                trace.mask(layer, visible)
             if self.a['heads'] == 1:
                 for row, position in enumerate(range(start, end)):
                     trace.record_row(layer, 'scores', position, scores[row, :position + 1])
                     trace.record_row(layer, 'attention', position, weights[row, :position + 1])
         trace.flops += 4.0 * self.a['width'] * sum(p + 1 for p in range(start, end))
-        return mixed
+        # principle value-mixing
+        u = np.concatenate(mixed, axis=1)
+        o = self._linear(trace, u, 'attention_output', layer)
+        # end principle value-mixing
+        trace.record(layer, 'weighted_values', u)
+        trace.record(layer, 'attention_output', o)
+        return o
+
+    def _feed_forward(self, trace, y, layer):
+        if self.a['activation'] == 'gelu-tanh':
+            # principle gelu-feed-forward
+            z = self._linear(trace, y, 'ff_up', layer)
+            g = self.dtype(0.5) * z * (1 + np.tanh(np.sqrt(self.dtype(2) / self.dtype(np.pi)) * (z + self.dtype(0.044715) * z ** 3)))
+            f = self._linear(trace, g, 'ff_down', layer)
+            # end principle gelu-feed-forward
+            trace.record(layer, 'ff_up', z)
+            trace.record(layer, 'gelu', g)
+        else:
+            # principle silu-gated-feed-forward
+            z = self._linear(trace, y, 'ff_up', layer)
+            r = self._linear(trace, y, 'ff_gate', layer)
+            with np.errstate(over='ignore'):
+                f = self._linear(trace, z / (1 + np.exp(-z)) * r, 'ff_down', layer)
+            # end principle silu-gated-feed-forward
+            trace.record(layer, 'ff_up', z)
+        trace.record(layer, 'ff_down', f)
+        return f
+
+    @staticmethod
+    def _residual(x, branch):
+        # principle residual-addition
+        return x + branch
+        # end principle residual-addition
 
     def _forward(self, ids, start, trace):
         a, end = self.a, len(ids)
         positions = np.arange(start, end)
-        x = self.w['token_embedding'][ids[start:]]
-        trace.record(-1, 'token_embedding', x)
-        if a['position'] == 'learned-absolute':
-            p = self.w['position_embedding'][start:end]
-            trace.record(-1, 'position_embedding', p)
-            x = x + p
-            trace.record(-1, 'embedding', x)
+        x = self._embed(trace, ids, start, end)
         for layer in range(a['layers']):
             y = self._norm(trace, x, 'ln1', layer)
+            # principle qkv-projection
             q, k, v = (self._linear(trace, y, name, layer) for name in ('query', 'key', 'value'))
+            # end principle qkv-projection
             trace.record(layer, 'query', q)
             trace.record(layer, 'key', k)
             trace.record(layer, 'value', v)
             if a['position'] == 'rope':
                 q, k = self._rotate(q, positions), self._rotate(k, positions)
+            # principle kv-append
             self.keys[layer, start:end], self.values[layer, start:end] = k, v
+            # end principle kv-append
             trace.retained(layer, self.keys[layer, :end], self.values[layer, :end])
-            mixed = self._attention(trace, q, layer, start, end)
-            trace.record(layer, 'weighted_values', mixed)
-            o = self._linear(trace, mixed, 'attention_output', layer)
-            trace.record(layer, 'attention_output', o)
-            x = x + o
+            x = self._residual(x, self._attention(trace, q, layer, start, end))
             trace.record(layer, 'attention_residual', x)
             y = self._norm(trace, x, 'ln2', layer)
-            up = self._linear(trace, y, 'ff_up', layer)
-            trace.record(layer, 'ff_up', up)
-            if a['activation'] == 'gelu-tanh':
-                hidden = self.dtype(0.5) * up * (1 + np.tanh(np.sqrt(self.dtype(2) / self.dtype(np.pi)) * (up + self.dtype(0.044715) * up ** 3)))
-                trace.record(layer, 'gelu', hidden)
-            else:
-                gate = self._linear(trace, y, 'ff_gate', layer)
-                with np.errstate(over='ignore'):
-                    hidden = up / (1 + np.exp(-up)) * gate
-            f = self._linear(trace, hidden, 'ff_down', layer)
-            trace.record(layer, 'ff_down', f)
-            x = x + f
+            x = self._residual(x, self._feed_forward(trace, y, layer))
             trace.record(layer, 'ff_residual', x)
         y = self._norm(trace, x, 'ln_final', -1)
+        # principle vocabulary-logits
         logits = self._linear(trace, y, 'lm_head')
+        # end principle vocabulary-logits
         trace.record(-1, 'logits', logits)
         return logits
 

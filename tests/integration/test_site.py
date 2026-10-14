@@ -178,5 +178,24 @@ class AtlasTests(unittest.TestCase):
         self.assertFalse((self.site/'execution/llama').exists())
         self.assertTrue(any(p.name.startswith('numpy-2.0.2') for p in (self.site/'execution/runtime').iterdir()))
 
+    def test_published_code_spans_equal_packaged_engine_sources(self):
+        import hashlib
+        import zipfile
+        text = (self.site/'principles-code.js').read_text()
+        spans = json.loads(text[text.index('(') + 1:text.rindex(')')])
+        with zipfile.ZipFile(self.site/'execution/engine.zip') as package:
+            for identifier, span in spans.items():
+                raw = package.read(span['path'])
+                self.assertEqual(hashlib.sha256(raw).hexdigest(), span['sha256'], identifier)
+                lines = raw.decode().splitlines()
+                self.assertEqual(lines[span['start'] - 2].strip(), '# principle ' + identifier)
+                self.assertEqual(lines[span['end']].strip(), '# end principle ' + identifier)
+                self.assertEqual('\n'.join(lines[span['start'] - 1:span['end']]), span['code'], identifier)
+        for name in ('katex.min.js', 'katex.min.css', 'LICENSE'):
+            self.assertTrue((self.site/'vendor/katex'/name).is_file())
+        css = (self.site/'vendor/katex/katex.min.css').read_text()
+        for font in set(re.findall(r'url\((fonts/[^)]+\.woff2)\)', css)):
+            self.assertTrue((self.site/'vendor/katex'/font).is_file(), font)
+
 if __name__ == '__main__':
     unittest.main()

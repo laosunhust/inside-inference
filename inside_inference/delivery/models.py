@@ -117,10 +117,12 @@ class ModelService:
         if len(payload['workload']['requests']) != 1:
             raise ValueError('This execution supports one request')
         text = payload['workload']['requests'][0]['request']['text']
+        # principle token-ids
         if self.checkpoint is not None:
             ids, encoding = tokenization.encode(self.tokenizer, text)
         else:
             ids, encoding = self.tokenizer.encode(bpe.normalize(text)), None
+        # end principle token-ids
         if len(ids) > model['architecture']['context']:
             raise ValueError('Input exceeds model context')
         self.decoder.prefix = []

@@ -22,6 +22,16 @@ export async function checkMap({evaluate,send},initial=false) {
   assert.equal(await evaluate("document.getElementById('numerics').open"),await evaluate("document.getElementById('inspection-unavailable').hidden"));
   assert.ok(!result.expected.some(n=>['CustomerInteraction','GenerationPolicy'].includes(n.owner)));
   assert.deepEqual(result.links.filter(l=>l.startsWith('labs/')).sort(),result.labLinks.sort());
+  const principles=await evaluate(`Array.from(document.querySelectorAll('#system-map .map-node'),e=>({owner:e.dataset.owner,root:e.classList.contains('map-root'),
+    summary:e.querySelector(':scope>.map-body>.map-description>summary').textContent,
+    rendered:Array.from(e.querySelectorAll(':scope>.map-body>.map-description>.principle'),p=>({id:p.dataset.principle,math:p.querySelectorAll('.katex').length,errors:p.querySelectorAll('.katex-error').length,code:p.querySelector('.principle-code code').textContent.length})),
+    declared:(Declarations.meanings[e.dataset.owner].principles||[]).map(p=>p.id)}))`);
+  for(const node of principles){
+    assert.equal(node.summary,node.root?'About this system':'First principles');
+    assert.deepEqual(node.rendered.map(p=>p.id),node.declared,'Each concept renders exactly its declared principles: '+node.owner);
+    for(const p of node.rendered)assert.ok(p.math>0&&p.errors===0&&p.code>0,'Rendered equation and executed code: '+p.id);
+  }
+  assert.equal(principles.reduce((n,x)=>n+x.rendered.length,0),await evaluate("Object.values(Declarations.meanings).reduce((n,t)=>n+(t.principles||[]).length,0)"),'Every declared principle has a rendered home');
   assert.equal(await evaluate("document.getElementById('numerics').contains(document.getElementById('concept-body'))"),false);
   if(initial){
     assert.equal(await evaluate(`(()=>{const before=document.getElementById('run-identity').textContent;for(const b of document.querySelectorAll('#system-map .map-node>button')){const original=b.getAttribute('aria-expanded');b.click();if(b.getAttribute('aria-expanded')===original)return false;b.click();if(b.getAttribute('aria-expanded')!==original)return false;}return before===document.getElementById('run-identity').textContent;})()`),true);

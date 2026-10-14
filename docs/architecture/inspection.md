@@ -31,6 +31,22 @@ KDA is a possible later choice. Its existing standalone recurrence demo is a sid
 lab, not a foundation dependency or an integrated model option. Do not offer an
 enabled switch before its execution path and correctness checks exist.
 
+## First principles
+
+Each system-map concept's **First principles** disclosure renders its ontology
+principles with KaTeX, then its prose meaning; concepts without principles show
+prose only. Symbols and the executed code open on demand. The inspector shows the
+principle applicable to the selected observation's operation and the loaded
+architecture above its values, so a reader can follow equation → code → numbers.
+
+Equations come only from [ontology principles](../ontology/operations.yaml). Code
+comes only from spans between `# principle <id>` and `# end principle <id>` markers
+in the packaged engine; the build publishes them with path, lines and source digest.
+Governance requires exactly one span per principle, and integration compares the
+published spans with `engine.zip` byte for byte. Matching markers do not prove the
+code computes the equation: the harness also recomputes displayed 8K values from
+their displayed inputs.
+
 ## Computation and simulation boundaries
 
 Keep these responsibilities separate, with explicit inputs and recorded outputs:
@@ -105,6 +121,7 @@ Current working code remains small:
 | `inside_inference/model.py` | Checkpoint validation and the lab computation interface. |
 | `inside_inference/runtimes/engine.py` | One NumPy decoder for every architecture, retained K/V state, and observations of executed values. |
 | `inside_inference/runtimes/bpe.py` | Byte-pair tokenizer for the 4096-ID models, ported from pinned llama2.c. |
+| `web/inspection/principles.js` | Render declared principles and their published code spans; authors no equations or code. |
 | `inside_inference/delivery/models.py` | Declared model operations: catalog, verified asset loading, tokenization, generation and KV simulation. |
 | `inside_inference/cache_lab.py` | Cached computation linked to admission, retention, retrieval, and virtual resource service. |
 | `inside_inference/kv_runtime.py` | Shared-engine lab orchestration and logical residency pools. |

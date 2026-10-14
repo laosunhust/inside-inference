@@ -137,18 +137,24 @@ approval:
     jsonschema and numpy and routes every operation through execute_json; scripts/check/governance/http.py
     to require that route, forbid other worker imports and all web fetches, and reject reintroduced C/WASM
     and JavaScript model-execution files; and tests/unit/contracts/test_http_boundary.py for those rejections.
-    Refresh only these three hashes. No limits, inventory or constitution changes.'
+    Refresh only these three hashes. No limits, inventory or constitution changes. Under the recorded
+    code-span authorization, add scripts/check/governance/principles.py to admit exactly one balanced
+    principle code span per declared principle in inside_inference sources, wire it into governance/__main__.py,
+    and extend tests/unit/contracts/test_principles.py with its rejection fixtures. The marker parser lives
+    in scripts/build/contracts.py so the build can publish spans without importing governance. Record the
+    new module hash and refresh only __main__.py, contracts.py and test_principles.py. No limits, constitution
+    or other inventory changes.'
 files:
   AGENTS.md: a1311d34d5b743a4b023f00b59b7f227d94ef1f44d097d5f8634c2eb4b9e5c92
   governance/limits.yaml: 4218f778ada890585c448c4664f4a8275576daef70e5421b29ed1c7ac0862c30
   scripts/__init__.py: 07cf2de9025005ac8dbafe1162d8cd39cf4f99dab454bd0388b597a5585db2ea
   scripts/build/compile_validators.mjs: 8d226d90bad36a219aa69af05a511b665f2b7149b6ba50557b778e51c6a52795
-  scripts/build/contracts.py: a93fcea18857ab313680af27321de3c922644976277e85a38dd82f50760412a7
+  scripts/build/contracts.py: 3afbd74bdfecb93627d39ef2a5426e9ac23876179f74f2a4fe07ec05ffa1079e
   scripts/build/generate_data_models.py: 94285b5df4ed40fe07178b89c138160d41fa8b0ce2e299da13e5206f6efcfe03
   scripts/build/ontology.py: 9f5271f975a3c877906abad76fba1eb58496bf4399691e77c3bfa4bba7e35454
   scripts/build/structured.py: f548e8e5f85e47297091182e45702fbfe5d1196463727dd387b91beedd138b06
   scripts/check/governance/__init__.py: f90f2f4c5a46fe4fa0deb54d71f7a463cc6368400b54fee101c89aab7e6aba50
-  scripts/check/governance/__main__.py: bd513efa97c2c605ba1a549ef250590de051dbd67cab107ff0d6bc95724a99f3
+  scripts/check/governance/__main__.py: 09f3926dc2c53fb46ed6366d03e49e56fdea03847d6c45c091455505dd6210d7
   scripts/check/governance/evaluation.py: 2e8584123755b3723d494225aa188ec68ab8a0ff25cbcbc3fc7f9c8c17b49b82
   scripts/check/governance/interfaces.py: c77bd3ba3350912007ca86f0f2d7ba7efc66d0519a6f7916254a4f4c26c2f0bc
   scripts/check/governance/locks.py: 317b69c72e3991c20b5353cd10fce63d7496308183504ff1f93f1cb4e47ff923
@@ -167,4 +173,5 @@ files:
   scripts/build/http_transport.py: 1f284729036391f1e925d914d1a6856f6bf80d1ca1bbf177475c6709c0754c62
   scripts/check/governance/http.py: 2085036cbda8376627a54ecda04772841aadfb117d79951f35a4da2b65f2b9e2
   tests/unit/contracts/test_http_boundary.py: 38c73d5e4e6c6cca324e27980322140c20b6b2d245558697b8a272e5258eca9b
-  tests/unit/contracts/test_principles.py: e14c1e521fd6c83f47f48c386fe4d2673dbd5ab84e6628f3790a1f94791f1f28
+  tests/unit/contracts/test_principles.py: 907817e52d01e5022a3d151185f8c9f590d1df673b01a37d0e164239a74b988f
+  scripts/check/governance/principles.py: 723fd9751d0c8265063911fca9bbe63e40ab7e8d4e771aa2fbfa14d22761db6c
