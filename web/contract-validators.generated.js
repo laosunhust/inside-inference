@@ -10,9 +10,9 @@ var CompiledContracts = (() => {
     }
   };
 
-  // node_modules/fast-deep-equal/index.js
+  // ../../../../../../mnt/cncrover-fast/workspace/observable-GPT/node_modules/fast-deep-equal/index.js
   var require_fast_deep_equal = __commonJS({
-    "node_modules/fast-deep-equal/index.js"(exports, module) {
+    "../../../../../../mnt/cncrover-fast/workspace/observable-GPT/node_modules/fast-deep-equal/index.js"(exports, module) {
       "use strict";
       module.exports = function equal(a, b) {
         if (a === b) return true;
@@ -45,9 +45,9 @@ var CompiledContracts = (() => {
     }
   });
 
-  // node_modules/ajv/dist/runtime/equal.js
+  // ../../../../../../mnt/cncrover-fast/workspace/observable-GPT/node_modules/ajv/dist/runtime/equal.js
   var require_equal = __commonJS({
-    "node_modules/ajv/dist/runtime/equal.js"(exports) {
+    "../../../../../../mnt/cncrover-fast/workspace/observable-GPT/node_modules/ajv/dist/runtime/equal.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       var equal = require_fast_deep_equal();

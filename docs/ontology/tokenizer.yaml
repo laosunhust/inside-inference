@@ -40,3 +40,14 @@ terms:
     - Span
     - Encoding
     - TokenizerOperation
+    principles:
+    - id: token-ids
+      when: {}
+      equation: 't_{1..n} = \operatorname{encode}(\text{text}), \quad t_i \in \{0, \dots, V-1\}'
+      symbols:
+      - symbol: t_i
+        meaning: Vocabulary ID at sequence position i.
+        binds: [operation:input_ids]
+      - symbol: V
+        meaning: Vocabulary size declared by the architecture.
+        binds: [architecture:vocabulary]

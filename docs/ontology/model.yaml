@@ -52,6 +52,42 @@ terms:
     schemas:
     - KVState
     - KVStateOperation
+    principles:
+    - id: kv-append
+      when: {}
+      equation: 'K^{(\ell)}_{1..i} = \begin{bmatrix} K^{(\ell)}_{1..i-1} \\ k^{(\ell)}_i \end{bmatrix}, \quad V^{(\ell)}_{1..i} = \begin{bmatrix} V^{(\ell)}_{1..i-1} \\ v^{(\ell)}_i \end{bmatrix}'
+      symbols:
+      - symbol: K^{(\ell)}_{1..i}
+        meaning: Keys retained by layer ell for positions 1 through i; earlier rows are reused, never recomputed.
+        binds: [operation:retained_keys]
+      - symbol: V^{(\ell)}_{1..i}
+        meaning: Values retained by layer ell for positions 1 through i.
+        binds: [operation:retained_values]
+      - symbol: k^{(\ell)}_i
+        meaning: Key projected for the newest position.
+        binds: [operation:key]
+      - symbol: v^{(\ell)}_i
+        meaning: Value projected for the newest position.
+        binds: [operation:value]
+    - id: kv-payload-bytes
+      when: {}
+      equation: 'B_{KV} = 2 \cdot L \cdot n \cdot d \cdot b'
+      symbols:
+      - symbol: B_{KV}
+        meaning: Logical packed key plus value payload; not process memory.
+        binds: []
+      - symbol: L
+        meaning: Decoder blocks, each retaining its own keys and values.
+        binds: [architecture:layers]
+      - symbol: n
+        meaning: Retained token positions.
+        binds: []
+      - symbol: d
+        meaning: Key or value channels per position, summed over heads.
+        binds: [architecture:width]
+      - symbol: b
+        meaning: Bytes per scalar; the KV simulation packs binary64, so b = 8.
+        binds: [architecture:precision]
   ModelArtifact:
     meaning: An immutable inference artifact binding numerical weights to architecture, tokenizer identity,
       and preparation provenance.

@@ -25,6 +25,7 @@ PROTECTED = (
     'tests/unit/contracts/test_governance.py',
     'tests/integration/test_evaluation_history.py',
     'tests/unit/contracts/test_governance_locks.py',
+    'tests/unit/contracts/test_principles.py',
 )
 
 

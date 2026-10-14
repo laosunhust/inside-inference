@@ -13,7 +13,7 @@ from inside_inference.contract_runtime import validate, decode_json
 
 from scripts import ROOT
 from scripts.build.ontology import load_declarations
-from scripts.build.contracts import load_schema, operation_owners, lab_bindings, binding_constraints
+from scripts.build.contracts import load_schema, operation_owners, lab_bindings, binding_constraints, admit_principles
 from scripts.build.structured import read_yaml
 
 
@@ -34,7 +34,7 @@ def admit(ontology, spec):
     owners = {}
     terms, definitions = ontology['terms'], spec['$defs']
     for term, entry in terms.items():
-        if set(entry) != {'meaning', 'lifetime', 'owns', 'excludes', 'schemas', 'capability_reads', 'projections'}:
+        if set(entry) - {'principles'} != {'meaning', 'lifetime', 'owns', 'excludes', 'schemas', 'capability_reads', 'projections'}:
             raise ValueError(f'{term}: malformed semantic owner')
         if not re.fullmatch('[A-Z][A-Za-z0-9]*', term):
             raise ValueError(f'{term}: invalid semantic owner name')
@@ -82,6 +82,9 @@ def admit(ontology, spec):
             or binding.get('allOf') != binding_constraints(terms)):
         raise ValueError('OntologyBinding must enforce admitted subjects, unique related concepts, and primary exclusion')
     operation_owners(spec)
+    principles = admit_principles(terms, definitions)
+    if principles:
+        raise ValueError('First-principles admission failed:\n' + '\n'.join(principles))
     operation_schemas = {name for name, definition in definitions.items() if definition.get('x-operation')}
     referenced = definitions['TensorObservation']['properties']['operation'].get('anyOf', [])
     if {r.get('$ref') for r in referenced} != {'#/$defs/' + name for name in operation_schemas} or len(referenced) != len(operation_schemas):

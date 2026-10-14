@@ -93,3 +93,83 @@ def binding_constraints(terms):
     return [{'if': {'properties': {'primary': {'const': term}}},
              'then': {'properties': {'related': {'type': 'array', 'not': {'contains': {'const': term}}}}}}
             for term in sorted(terms)]
+
+
+VARIANT_FIELDS = ('position', 'normalization', 'activation')
+
+
+def architectures(definitions):
+    """Declared architectures and the variant values each one permits."""
+    result = {}
+    for name, declaration in definitions.items():
+        properties = declaration.get('properties', {})
+        if declaration.get('x-owner') != 'ModelArchitecture' or not set(VARIANT_FIELDS) <= set(properties): continue
+        result[name] = {field: set(properties[field].get('enum') or [properties[field]['const']]) for field in VARIANT_FIELDS}
+    return result
+
+
+def admit_principles(terms, definitions):
+    """Governing equations are owned by concepts; architecture variants select them."""
+    failures = []
+    owners = operation_owners({'$defs': definitions})
+    variants = architectures(definitions)
+    parameters = set(definitions['ModelWeights']['properties'])
+    fields = {f for a in variants for f in definitions[a]['properties']}
+    def applies(when, allowed): return all(value in allowed.get(key, ()) for key, value in when.items())
+    seen, homes = set(), {}
+    for owner, term in terms.items():
+        for index, principle in enumerate(term.get('principles', [])):
+            where = f'{owner}.principles[{index}]'
+            if not isinstance(principle, dict) or set(principle) != {'id', 'when', 'equation', 'symbols'}:
+                failures.append(f'{where}: a principle needs exactly id, when, equation and symbols'); continue
+            identifier = principle['id']
+            if not isinstance(identifier, str) or not identifier or identifier in seen:
+                failures.append(f'{where}: duplicate principle id {identifier!r}')
+            seen.add(identifier)
+            where = f'{owner}.{identifier}'
+            when, equation = principle['when'], principle['equation']
+            if not isinstance(equation, str) or not equation.strip():
+                failures.append(f'{where}: needs a LaTeX equation'); equation = ''
+            if not isinstance(when, dict):
+                failures.append(f'{where}: when must map variant fields to values'); continue
+            for key, value in when.items():
+                if key not in VARIANT_FIELDS:
+                    failures.append(f'{where}: {key!r} is not an architecture variant field {VARIANT_FIELDS}')
+                elif not any(value in allowed[key] for allowed in variants.values()):
+                    failures.append(f'{where}: {key}={value!r} is not declared by any architecture')
+            if set(when) <= set(VARIANT_FIELDS) and not any(applies(when, allowed) for allowed in variants.values()):
+                failures.append(f'{where}: condition matches no declared architecture')
+            symbols = principle['symbols']
+            if not isinstance(symbols, list) or not symbols:
+                failures.append(f'{where}: needs symbols'); continue
+            for symbol in symbols:
+                if (not isinstance(symbol, dict) or set(symbol) != {'symbol', 'meaning', 'binds'}
+                        or not all(isinstance(symbol[k], str) and symbol[k].strip() for k in ('symbol', 'meaning'))
+                        or not isinstance(symbol['binds'], list)):
+                    failures.append(f'{where}: each symbol needs symbol, meaning and a binds list'); continue
+                if symbol['symbol'] not in equation:
+                    failures.append(f'{where}: symbol {symbol["symbol"]!r} does not appear in its equation')
+                for binding in symbol['binds']:
+                    kind, _, name = str(binding).partition(':')
+                    if kind == 'operation':
+                        if name not in owners: failures.append(f'{where}: unknown operation {name!r}')
+                        elif owners[name] == owner: homes.setdefault(name, []).append((owner, identifier, when))
+                    elif kind == 'parameter':
+                        if name not in parameters: failures.append(f'{where}: unknown parameter {name!r}; declare it in ModelWeights')
+                    elif kind == 'architecture':
+                        if name not in fields: failures.append(f'{where}: unknown architecture field {name!r}')
+                    else:
+                        failures.append(f'{where}: binding kind of {binding!r} must be operation, parameter or architecture')
+    for operation, owner in owners.items():
+        if operation not in homes:
+            failures.append(f'{owner}: operation {operation!r} has no first-principles binding; bind it in a principle owned by {owner}')
+    for architecture, allowed in variants.items():
+        for owner in sorted(set(owners.values())):
+            applicable = [p for p in terms[owner].get('principles', []) if isinstance(p, dict) and isinstance(p.get('when'), dict) and applies(p['when'], allowed)]
+            if not applicable:
+                failures.append(f'{architecture}: no applicable {owner} principle')
+        for operation, claims in homes.items():
+            claimed = {identifier for _, identifier, when in claims if applies(when, allowed)}
+            if len(claimed) > 1:
+                failures.append(f'{architecture}: operation {operation!r} is bound by several applicable {owners[operation]} principles {sorted(claimed)}')
+    return failures

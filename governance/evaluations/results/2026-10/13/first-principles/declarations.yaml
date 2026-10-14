@@ -1,0 +1,36 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/first-principles/declarations.yaml
+evaluation_sha256: 9eeb22b4a5c8148f98f6147178b1c456e33f1208625c8b8446b549cc782e1750
+outcome: passed
+summary: 'Seventeen principles now belong to the nine operation-owning concepts: Tokenizer, KVState,
+  Embedding, PositionEncoding, Normalization, Attention, ResidualAddition, FeedForward and OutputProjection.
+  Each has an id, an architecture variant condition, a LaTeX equation and symbols bound to declared operations,
+  ModelWeights parameters or architecture fields. All 31 declared operations are bound by a principle of
+  their owner. ModelArchitecture selects LayerNorm, learned absolute positions and tanh GELU; LlamaArchitecture
+  selects RMSNorm, RoPE and SiLU-gated feed-forward. Shared principles cover projections, causal scores,
+  max-subtracted softmax, value mixing, residual addition, logits, KV append and logical KV payload bytes.
+
+
+  Equations were compared by hand against engine.c, decoder.h and decoder.js: population variance, RMS
+  without mean or bias, in-head RoPE frequency 10000^(-2j/d_h) applied to projected queries and keys,
+  W1 SiLU times W3 gate, tied Llama output weights and state_bytes 2*L*n*d*8. Absent Llama biases are stated
+  in symbol meanings rather than by a separate variant.
+
+
+  Admission runs inside generate_data_models.admit and blocks generation. Rejection fixtures were written
+  before the admission and declarations and initially errored; fourteen malformed or unbound cases and three
+  architecture-coverage cases now fail with actionable messages. make test passed 96 tests in 4.50s of 10s.
+  make test-integration passed 96 unit, 22 integration and browser checks in 42.05s of 100s. No runtime,
+  observation, UI or lab behavior changed.
+
+
+  Limits: Llama rotated queries and keys, gate projection and SiLU have no captured tensors because those
+  models capture logits only. Formula strings in web/execution/observations.js remain a competing authority
+  until the Python engine derives observations from principles. Code-span and hand-recomputation checks are
+  not established by this item.'
+evidence:
+- docs/ontology/operations.yaml
+- docs/ontology/model.yaml
+- docs/ontology/tokenizer.yaml
+- scripts/build/contracts.py
+- tests/unit/contracts/test_principles.py

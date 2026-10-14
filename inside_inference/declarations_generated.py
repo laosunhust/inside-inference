@@ -4,7 +4,7 @@ from typing import Any
 from inside_inference.contract_runtime import Declaration
 
 EXECUTION_OPERATIONS = {'replayCache': {'request': 'ExecutionReplayInput', 'response': 'CacheRun'}, 'modelCatalog': {'request': None, 'response': 'ModelCatalog'}, 'loadModel': {'request': 'ModelSelection', 'response': 'ModelLoadResult'}, 'prepareGeneration': {'request': 'GenerationInput', 'response': 'GenerationPrepared'}, 'generateToken': {'request': 'GenerationStep', 'response': 'GenerationPrediction'}, 'simulateResources': {'request': 'GenerationInput', 'response': 'ResourceExecution'}}
-CONTRACT_SHA256 = '7fcc908aed90811b82e8e99a6c9374c9402845a351996c96a2cc0346d794b841'
+CONTRACT_SHA256 = '6e77882fa45ebfe66f19731b5314df65bfcfcb5919558392d45b9515766af585'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,

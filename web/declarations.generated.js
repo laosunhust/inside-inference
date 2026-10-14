@@ -5661,6 +5661,81 @@ globalThis.Declarations = (() => {
     "schemas": [
       "KVState",
       "KVStateOperation"
+    ],
+    "principles": [
+      {
+        "id": "kv-append",
+        "when": {},
+        "equation": "K^{(\\ell)}_{1..i} = \\begin{bmatrix} K^{(\\ell)}_{1..i-1} \\\\ k^{(\\ell)}_i \\end{bmatrix}, \\quad V^{(\\ell)}_{1..i} = \\begin{bmatrix} V^{(\\ell)}_{1..i-1} \\\\ v^{(\\ell)}_i \\end{bmatrix}",
+        "symbols": [
+          {
+            "symbol": "K^{(\\ell)}_{1..i}",
+            "meaning": "Keys retained by layer ell for positions 1 through i; earlier rows are reused, never recomputed.",
+            "binds": [
+              "operation:retained_keys"
+            ]
+          },
+          {
+            "symbol": "V^{(\\ell)}_{1..i}",
+            "meaning": "Values retained by layer ell for positions 1 through i.",
+            "binds": [
+              "operation:retained_values"
+            ]
+          },
+          {
+            "symbol": "k^{(\\ell)}_i",
+            "meaning": "Key projected for the newest position.",
+            "binds": [
+              "operation:key"
+            ]
+          },
+          {
+            "symbol": "v^{(\\ell)}_i",
+            "meaning": "Value projected for the newest position.",
+            "binds": [
+              "operation:value"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "kv-payload-bytes",
+        "when": {},
+        "equation": "B_{KV} = 2 \\cdot L \\cdot n \\cdot d \\cdot b",
+        "symbols": [
+          {
+            "symbol": "B_{KV}",
+            "meaning": "Logical packed key plus value payload; not process memory.",
+            "binds": []
+          },
+          {
+            "symbol": "L",
+            "meaning": "Decoder blocks, each retaining its own keys and values.",
+            "binds": [
+              "architecture:layers"
+            ]
+          },
+          {
+            "symbol": "n",
+            "meaning": "Retained token positions.",
+            "binds": []
+          },
+          {
+            "symbol": "d",
+            "meaning": "Key or value channels per position, summed over heads.",
+            "binds": [
+              "architecture:width"
+            ]
+          },
+          {
+            "symbol": "b",
+            "meaning": "Bytes per scalar; the KV simulation packs binary64, so b = 8.",
+            "binds": [
+              "architecture:precision"
+            ]
+          }
+        ]
+      }
     ]
   },
   "ModelArtifact": {
@@ -6234,6 +6309,29 @@ globalThis.Declarations = (() => {
       "Span",
       "Encoding",
       "TokenizerOperation"
+    ],
+    "principles": [
+      {
+        "id": "token-ids",
+        "when": {},
+        "equation": "t_{1..n} = \\operatorname{encode}(\\text{text}), \\quad t_i \\in \\{0, \\dots, V-1\\}",
+        "symbols": [
+          {
+            "symbol": "t_i",
+            "meaning": "Vocabulary ID at sequence position i.",
+            "binds": [
+              "operation:input_ids"
+            ]
+          },
+          {
+            "symbol": "V",
+            "meaning": "Vocabulary size declared by the architecture.",
+            "binds": [
+              "architecture:vocabulary"
+            ]
+          }
+        ]
+      }
     ]
   },
   "Embedding": {
@@ -6258,6 +6356,68 @@ globalThis.Declarations = (() => {
     },
     "schemas": [
       "EmbeddingOperation"
+    ],
+    "principles": [
+      {
+        "id": "embedding-with-learned-positions",
+        "when": {
+          "position": "learned-absolute"
+        },
+        "equation": "e_i = E_{t_i}, \\quad h^{(0)}_i = e_i + p_i",
+        "symbols": [
+          {
+            "symbol": "e_i",
+            "meaning": "Token vector looked up for the ID at position i.",
+            "binds": [
+              "operation:token_embedding"
+            ]
+          },
+          {
+            "symbol": "E",
+            "meaning": "Token embedding table, one row per vocabulary ID.",
+            "binds": [
+              "parameter:token_embedding"
+            ]
+          },
+          {
+            "symbol": "h^{(0)}_i",
+            "meaning": "Residual stream entering the first block.",
+            "binds": [
+              "operation:embedding"
+            ]
+          },
+          {
+            "symbol": "p_i",
+            "meaning": "Learned vector for absolute position i.",
+            "binds": [
+              "operation:position_embedding"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "embedding-without-position-vector",
+        "when": {
+          "position": "rope"
+        },
+        "equation": "h^{(0)}_i = e_i = E_{t_i}",
+        "symbols": [
+          {
+            "symbol": "e_i",
+            "meaning": "Token vector looked up for the ID at position i; position is applied later by rotating queries and keys.",
+            "binds": [
+              "operation:token_embedding"
+            ]
+          },
+          {
+            "symbol": "E",
+            "meaning": "Token embedding table, one row per vocabulary ID.",
+            "binds": [
+              "parameter:token_embedding"
+            ]
+          }
+        ]
+      }
     ]
   },
   "PositionEncoding": {
@@ -6282,6 +6442,73 @@ globalThis.Declarations = (() => {
     },
     "schemas": [
       "PositionEncodingOperation"
+    ],
+    "principles": [
+      {
+        "id": "learned-absolute-position",
+        "when": {
+          "position": "learned-absolute"
+        },
+        "equation": "p_i = P_i, \\quad 0 \\le i < n_{\\max}",
+        "symbols": [
+          {
+            "symbol": "p_i",
+            "meaning": "Position vector added to the token vector.",
+            "binds": [
+              "operation:position_embedding"
+            ]
+          },
+          {
+            "symbol": "P",
+            "meaning": "Learned position table, one row per position.",
+            "binds": [
+              "parameter:position_embedding"
+            ]
+          },
+          {
+            "symbol": "n_{\\max}",
+            "meaning": "Context capacity; positions beyond it have no learned row.",
+            "binds": [
+              "architecture:context"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "rotary-position",
+        "when": {
+          "position": "rope"
+        },
+        "equation": "\\begin{bmatrix} \\tilde{q}_{2j} \\\\ \\tilde{q}_{2j+1} \\end{bmatrix} = \\begin{bmatrix} \\cos i\\theta_j & -\\sin i\\theta_j \\\\ \\sin i\\theta_j & \\cos i\\theta_j \\end{bmatrix} \\begin{bmatrix} q_{2j} \\\\ q_{2j+1} \\end{bmatrix}, \\quad \\theta_j = 10000^{-2j/d_h}",
+        "symbols": [
+          {
+            "symbol": "\\tilde{q}",
+            "meaning": "Query channel pair after rotation by position i; keys are rotated identically, values are not.",
+            "binds": []
+          },
+          {
+            "symbol": "q_{2j}",
+            "meaning": "Projected query channel before rotation; 2j indexes channels within one head.",
+            "binds": [
+              "operation:query",
+              "operation:key"
+            ]
+          },
+          {
+            "symbol": "\\theta_j",
+            "meaning": "Rotation frequency of channel pair j.",
+            "binds": []
+          },
+          {
+            "symbol": "d_h",
+            "meaning": "Channels per head, width divided by heads.",
+            "binds": [
+              "architecture:width",
+              "architecture:heads"
+            ]
+          }
+        ]
+      }
     ]
   },
   "Normalization": {
@@ -6306,6 +6533,127 @@ globalThis.Declarations = (() => {
     },
     "schemas": [
       "NormalizationOperation"
+    ],
+    "principles": [
+      {
+        "id": "layer-normalization",
+        "when": {
+          "normalization": "pre-layernorm"
+        },
+        "equation": "\\mu = \\frac{1}{d}\\sum_{c=1}^{d} x_c, \\quad \\sigma^2 = \\frac{1}{d}\\sum_{c=1}^{d} (x_c - \\mu)^2, \\quad y = \\frac{x - \\mu}{\\sqrt{\\sigma^2 + \\epsilon}} \\odot \\gamma + \\beta",
+        "symbols": [
+          {
+            "symbol": "x",
+            "meaning": "Residual stream row entering the normalization.",
+            "binds": []
+          },
+          {
+            "symbol": "\\mu",
+            "meaning": "Channel mean of one row.",
+            "binds": [
+              "operation:ln1_mean",
+              "operation:ln2_mean",
+              "operation:ln_final_mean"
+            ]
+          },
+          {
+            "symbol": "\\sigma^2",
+            "meaning": "Population variance over channels; divides by d, not d - 1.",
+            "binds": [
+              "operation:ln1_variance",
+              "operation:ln2_variance",
+              "operation:ln_final_variance"
+            ]
+          },
+          {
+            "symbol": "y",
+            "meaning": "Normalized row passed to the next branch.",
+            "binds": [
+              "operation:ln1",
+              "operation:ln2",
+              "operation:ln_final"
+            ]
+          },
+          {
+            "symbol": "\\gamma",
+            "meaning": "Learned per-channel scale.",
+            "binds": [
+              "parameter:ln1_scale",
+              "parameter:ln2_scale",
+              "parameter:ln_final_scale"
+            ]
+          },
+          {
+            "symbol": "\\beta",
+            "meaning": "Learned per-channel bias.",
+            "binds": [
+              "parameter:ln1_bias",
+              "parameter:ln2_bias",
+              "parameter:ln_final_bias"
+            ]
+          },
+          {
+            "symbol": "\\epsilon",
+            "meaning": "Stabilizer that keeps the denominator nonzero.",
+            "binds": [
+              "architecture:epsilon"
+            ]
+          },
+          {
+            "symbol": "d",
+            "meaning": "Channels per position.",
+            "binds": [
+              "architecture:width"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "rms-normalization",
+        "when": {
+          "normalization": "rmsnorm"
+        },
+        "equation": "y = \\frac{x}{\\sqrt{\\frac{1}{d}\\sum_{c=1}^{d} x_c^2 + \\epsilon}} \\odot \\gamma",
+        "symbols": [
+          {
+            "symbol": "x",
+            "meaning": "Residual stream row; no mean is subtracted and no bias is added.",
+            "binds": []
+          },
+          {
+            "symbol": "y",
+            "meaning": "Normalized row passed to the next branch.",
+            "binds": [
+              "operation:ln1",
+              "operation:ln2",
+              "operation:ln_final"
+            ]
+          },
+          {
+            "symbol": "\\gamma",
+            "meaning": "Learned per-channel scale.",
+            "binds": [
+              "parameter:ln1_scale",
+              "parameter:ln2_scale",
+              "parameter:ln_final_scale"
+            ]
+          },
+          {
+            "symbol": "\\epsilon",
+            "meaning": "Stabilizer that keeps the denominator nonzero.",
+            "binds": [
+              "architecture:epsilon"
+            ]
+          },
+          {
+            "symbol": "d",
+            "meaning": "Channels per position.",
+            "binds": [
+              "architecture:width"
+            ]
+          }
+        ]
+      }
     ]
   },
   "Attention": {
@@ -6331,6 +6679,139 @@ globalThis.Declarations = (() => {
     },
     "schemas": [
       "AttentionOperation"
+    ],
+    "principles": [
+      {
+        "id": "qkv-projection",
+        "when": {},
+        "equation": "q_i = y_i W_Q + b_Q, \\quad k_i = y_i W_K + b_K, \\quad v_i = y_i W_V + b_V",
+        "symbols": [
+          {
+            "symbol": "y_i",
+            "meaning": "Normalized row at position i.",
+            "binds": [
+              "operation:ln1"
+            ]
+          },
+          {
+            "symbol": "q_i",
+            "meaning": "Query; with rotary positions it is rotated before scoring.",
+            "binds": [
+              "operation:query",
+              "parameter:query"
+            ]
+          },
+          {
+            "symbol": "k_i",
+            "meaning": "Key; retained for later positions.",
+            "binds": [
+              "operation:key",
+              "parameter:key"
+            ]
+          },
+          {
+            "symbol": "v_i",
+            "meaning": "Value; retained for later positions.",
+            "binds": [
+              "operation:value",
+              "parameter:value"
+            ]
+          },
+          {
+            "symbol": "b_Q",
+            "meaning": "Projection bias; Llama-family checkpoints have none.",
+            "binds": [
+              "parameter:query_bias",
+              "parameter:key_bias",
+              "parameter:value_bias"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "causal-attention",
+        "when": {},
+        "equation": "s^{(h)}_{ij} = \\frac{q^{(h)}_i \\cdot k^{(h)}_j}{\\sqrt{d_h}} + m_{ij}, \\quad m_{ij} = \\begin{cases} 0 & j \\le i \\\\ -\\infty & j > i \\end{cases}",
+        "symbols": [
+          {
+            "symbol": "s^{(h)}_{ij}",
+            "meaning": "Score of query position i against key position j in head h.",
+            "binds": [
+              "operation:scores"
+            ]
+          },
+          {
+            "symbol": "m_{ij}",
+            "meaning": "Causal mask; a position never reads a later position.",
+            "binds": [
+              "operation:causal_mask"
+            ]
+          },
+          {
+            "symbol": "d_h",
+            "meaning": "Channels per head, width divided by heads.",
+            "binds": [
+              "architecture:width",
+              "architecture:heads"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "stable-softmax",
+        "when": {},
+        "equation": "a^{(h)}_{ij} = \\frac{\\exp\\left(s^{(h)}_{ij} - M_i\\right)}{\\sum_{r \\le i} \\exp\\left(s^{(h)}_{ir} - M_i\\right)}, \\quad M_i = \\max_{r \\le i} s^{(h)}_{ir}",
+        "symbols": [
+          {
+            "symbol": "a^{(h)}_{ij}",
+            "meaning": "Attention weight; each row sums to one over visible positions.",
+            "binds": [
+              "operation:attention"
+            ]
+          },
+          {
+            "symbol": "M_i",
+            "meaning": "Row maximum subtracted before exponentiation; it cancels mathematically and prevents overflow.",
+            "binds": []
+          }
+        ]
+      },
+      {
+        "id": "value-mixing",
+        "when": {},
+        "equation": "u^{(h)}_i = \\sum_{j \\le i} a^{(h)}_{ij}\\, v^{(h)}_j, \\quad o_i = \\left[u^{(1)}_i; \\dots; u^{(H)}_i\\right] W_O + b_O",
+        "symbols": [
+          {
+            "symbol": "u^{(h)}_i",
+            "meaning": "Weighted sum of visible values, concatenated over heads.",
+            "binds": [
+              "operation:weighted_values"
+            ]
+          },
+          {
+            "symbol": "o_i",
+            "meaning": "Attention branch output.",
+            "binds": [
+              "operation:attention_output",
+              "parameter:attention_output"
+            ]
+          },
+          {
+            "symbol": "b_O",
+            "meaning": "Output projection bias; Llama-family checkpoints have none.",
+            "binds": [
+              "parameter:attention_output_bias"
+            ]
+          },
+          {
+            "symbol": "H",
+            "meaning": "Attention heads.",
+            "binds": [
+              "architecture:heads"
+            ]
+          }
+        ]
+      }
     ]
   },
   "ResidualAddition": {
@@ -6355,6 +6836,43 @@ globalThis.Declarations = (() => {
     },
     "schemas": [
       "ResidualAdditionOperation"
+    ],
+    "principles": [
+      {
+        "id": "residual-addition",
+        "when": {},
+        "equation": "x^{\\mathrm{attn}}_i = x_i + o_i, \\quad x^{\\mathrm{ff}}_i = x^{\\mathrm{attn}}_i + f_i",
+        "symbols": [
+          {
+            "symbol": "x^{\\mathrm{attn}}_i",
+            "meaning": "Residual stream after adding the attention branch.",
+            "binds": [
+              "operation:attention_residual"
+            ]
+          },
+          {
+            "symbol": "x^{\\mathrm{ff}}_i",
+            "meaning": "Residual stream after adding the feed-forward branch; input to the next block.",
+            "binds": [
+              "operation:ff_residual"
+            ]
+          },
+          {
+            "symbol": "o_i",
+            "meaning": "Attention branch output.",
+            "binds": [
+              "operation:attention_output"
+            ]
+          },
+          {
+            "symbol": "f_i",
+            "meaning": "Feed-forward branch output.",
+            "binds": [
+              "operation:ff_down"
+            ]
+          }
+        ]
+      }
     ]
   },
   "FeedForward": {
@@ -6379,6 +6897,87 @@ globalThis.Declarations = (() => {
     },
     "schemas": [
       "FeedForwardOperation"
+    ],
+    "principles": [
+      {
+        "id": "gelu-feed-forward",
+        "when": {
+          "activation": "gelu-tanh"
+        },
+        "equation": "z_i = y_i W_1 + b_1, \\quad g(z) = \\tfrac{1}{2} z \\left(1 + \\tanh\\left(\\sqrt{2/\\pi}\\,(z + 0.044715\\, z^3)\\right)\\right), \\quad f_i = g(z_i) W_2 + b_2",
+        "symbols": [
+          {
+            "symbol": "z_i",
+            "meaning": "Expanded hidden row.",
+            "binds": [
+              "operation:ff_up",
+              "parameter:ff_up"
+            ]
+          },
+          {
+            "symbol": "g(z)",
+            "meaning": "Tanh approximation of GELU, applied per channel.",
+            "binds": [
+              "operation:gelu"
+            ]
+          },
+          {
+            "symbol": "f_i",
+            "meaning": "Feed-forward branch output.",
+            "binds": [
+              "operation:ff_down",
+              "parameter:ff_down"
+            ]
+          },
+          {
+            "symbol": "y_i",
+            "meaning": "Normalized row at position i.",
+            "binds": [
+              "operation:ln2"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "silu-gated-feed-forward",
+        "when": {
+          "activation": "silu-gated"
+        },
+        "equation": "z_i = y_i W_1, \\quad r_i = y_i W_3, \\quad \\operatorname{SiLU}(z) = \\frac{z}{1 + e^{-z}}, \\quad f_i = \\left(\\operatorname{SiLU}(z_i) \\odot r_i\\right) W_2",
+        "symbols": [
+          {
+            "symbol": "z_i",
+            "meaning": "Activated projection.",
+            "binds": [
+              "operation:ff_up"
+            ]
+          },
+          {
+            "symbol": "r_i",
+            "meaning": "Linear gate projection multiplied channel by channel.",
+            "binds": []
+          },
+          {
+            "symbol": "\\operatorname{SiLU}(z)",
+            "meaning": "Sigmoid-weighted linear unit.",
+            "binds": []
+          },
+          {
+            "symbol": "f_i",
+            "meaning": "Feed-forward branch output.",
+            "binds": [
+              "operation:ff_down"
+            ]
+          },
+          {
+            "symbol": "y_i",
+            "meaning": "Normalized row at position i.",
+            "binds": [
+              "operation:ln2"
+            ]
+          }
+        ]
+      }
     ]
   },
   "OutputProjection": {
@@ -6403,6 +7002,51 @@ globalThis.Declarations = (() => {
     },
     "schemas": [
       "OutputProjectionOperation"
+    ],
+    "principles": [
+      {
+        "id": "vocabulary-logits",
+        "when": {},
+        "equation": "z_v = y_n W_{\\mathrm{out}} + b_{\\mathrm{out}} \\in \\mathbb{R}^{V}",
+        "symbols": [
+          {
+            "symbol": "z_v",
+            "meaning": "One score per vocabulary ID; decoding selects from these.",
+            "binds": [
+              "operation:logits",
+              "parameter:lm_head"
+            ]
+          },
+          {
+            "symbol": "y_n",
+            "meaning": "Final normalized row of the last position.",
+            "binds": [
+              "operation:ln_final"
+            ]
+          },
+          {
+            "symbol": "W_{\\mathrm{out}}",
+            "meaning": "Output weights; Llama-family checkpoints reuse the token embedding table.",
+            "binds": [
+              "parameter:lm_head"
+            ]
+          },
+          {
+            "symbol": "b_{\\mathrm{out}}",
+            "meaning": "Output bias; Llama-family checkpoints have none.",
+            "binds": [
+              "parameter:lm_bias"
+            ]
+          },
+          {
+            "symbol": "V",
+            "meaning": "Vocabulary size.",
+            "binds": [
+              "architecture:vocabulary"
+            ]
+          }
+        ]
+      }
     ]
   },
   "ModelExecution": {
@@ -6607,7 +7251,7 @@ globalThis.Declarations = (() => {
 };
   const operationOwners = {"token_embedding": "Embedding", "embedding": "Embedding", "position_embedding": "PositionEncoding", "ln1_mean": "Normalization", "ln1_variance": "Normalization", "ln1": "Normalization", "ln2_mean": "Normalization", "ln2_variance": "Normalization", "ln2": "Normalization", "ln_final_mean": "Normalization", "ln_final_variance": "Normalization", "ln_final": "Normalization", "query": "Attention", "key": "Attention", "value": "Attention", "scores": "Attention", "causal_mask": "Attention", "attention": "Attention", "weighted_values": "Attention", "attention_output": "Attention", "attention_residual": "ResidualAddition", "ff_residual": "ResidualAddition", "ff_up": "FeedForward", "gelu": "FeedForward", "ff_down": "FeedForward", "logits": "OutputProjection", "input_ids": "Tokenizer", "retained_keys": "KVState", "retained_values": "KVState"};
   const labs = [{"id": "naive-gpt", "name": "Model execution", "status": "mechanical-demo", "ontology_binding": {"primary": "ModelExecution", "related": ["Tokenizer", "Embedding", "PositionEncoding", "Normalization", "Attention", "ResidualAddition", "FeedForward", "OutputProjection", "Decoding", "ModelArchitecture", "ModelArtifact"]}}, {"id": "kimi-delta-attention", "name": "Kimi Delta Attention (KDA)", "status": "mechanical-demo", "ontology_binding": {"primary": "Attention", "related": []}}, {"id": "prefix-cache", "name": "Exact prefix caching", "status": "mechanical-demo", "ontology_binding": {"primary": "KVCache", "related": ["KVState", "RequestScheduling", "StateTransfer", "ComputeService"]}}, {"id": "prefill-decode", "name": "Prefill/decode KV handoff", "status": "planned", "ontology_binding": {"primary": "StateTransfer", "related": ["KVState", "ModelExecution"]}}, {"id": "speculative-decoding", "name": "Speculative decoding", "status": "planned", "ontology_binding": {"primary": "Decoding", "related": ["ModelExecution", "KVState"]}}, {"id": "positional-encoding", "name": "Positional encoding", "status": "planned", "ontology_binding": {"primary": "PositionEncoding", "related": ["Embedding", "Attention"]}}];
-  const hash = "7fcc908aed90811b82e8e99a6c9374c9402845a351996c96a2cc0346d794b841";
+  const hash = "6e77882fa45ebfe66f19731b5314df65bfcfcb5919558392d45b9515766af585";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

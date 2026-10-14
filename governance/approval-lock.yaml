@@ -48,7 +48,9 @@ approval:
     \ deletion enforcement changes\". Owner response: \"Approve the scoped capability-reference fix\"\
     . Owner response: \"Approve the endpoint-independent fixture fix\". Owner response on 2026-10-13:\
     \ \"Approve the scoped concept-control enforcement changes\". Owner response on 2026-10-13: \"Approve\
-    \ the scoped tiered-map enforcement changes\"."
+    \ the scoped tiered-map enforcement changes\". Owner reply on 2026-10-13: \"I approve, and let's\
+    \ get started.\" authorizing first-principles equation coverage and code-span checks in governance\
+    \ with associated lock hash updates; confirmed by \"allow the action. let's apply.\""
   scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile
     and ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content
     remains unlocked. Retain approved folder and file-size limits. This approval does not authorize future
@@ -121,21 +123,26 @@ approval:
     Extend frontend.py and test_governance.py to reject experiment controls without concept homes and
     handwritten system editors; update only their approval hashes. Limits and inventory unchanged. Replace
     frontend.py flat-map enforcement and its test_governance.py fixtures with tiered-map ownership, parent/root/cycle
-    and explanation-coverage checks; update only their hashes. Limits and inventory unchanged.'
+    and explanation-coverage checks; update only their hashes. Limits and inventory unchanged. Admit
+    optional ontology principles in generate_data_models.py and contracts.py, rejecting malformed principles,
+    unknown variant conditions, dead variants, dangling bindings, symbols absent from equations, unbound
+    operations, missing architecture coverage and overlapping applicable principles; add and protect
+    tests/unit/contracts/test_principles.py in locks.py; refresh only these four hashes. Code-span checks
+    follow with the Python engine under the same authorization. No limits or constitution changes.'
 files:
   AGENTS.md: a1311d34d5b743a4b023f00b59b7f227d94ef1f44d097d5f8634c2eb4b9e5c92
   governance/limits.yaml: 4218f778ada890585c448c4664f4a8275576daef70e5421b29ed1c7ac0862c30
   scripts/__init__.py: 07cf2de9025005ac8dbafe1162d8cd39cf4f99dab454bd0388b597a5585db2ea
   scripts/build/compile_validators.mjs: 8d226d90bad36a219aa69af05a511b665f2b7149b6ba50557b778e51c6a52795
-  scripts/build/contracts.py: fca886ce74f82593a921b318535a6731ddf71124a70f1942f5f43f419742e63e
-  scripts/build/generate_data_models.py: f87b41382c9170f23812e903fabee9efc803660a03bcf9d8f74e5c99d623f7be
+  scripts/build/contracts.py: a93fcea18857ab313680af27321de3c922644976277e85a38dd82f50760412a7
+  scripts/build/generate_data_models.py: 94285b5df4ed40fe07178b89c138160d41fa8b0ce2e299da13e5206f6efcfe03
   scripts/build/ontology.py: 9f5271f975a3c877906abad76fba1eb58496bf4399691e77c3bfa4bba7e35454
   scripts/build/structured.py: f548e8e5f85e47297091182e45702fbfe5d1196463727dd387b91beedd138b06
   scripts/check/governance/__init__.py: f90f2f4c5a46fe4fa0deb54d71f7a463cc6368400b54fee101c89aab7e6aba50
   scripts/check/governance/__main__.py: bd513efa97c2c605ba1a549ef250590de051dbd67cab107ff0d6bc95724a99f3
   scripts/check/governance/evaluation.py: 2e8584123755b3723d494225aa188ec68ab8a0ff25cbcbc3fc7f9c8c17b49b82
   scripts/check/governance/interfaces.py: c77bd3ba3350912007ca86f0f2d7ba7efc66d0519a6f7916254a4f4c26c2f0bc
-  scripts/check/governance/locks.py: b49a82dd34f4f6da2261226fecc277fffb8465f64c32e97f73a1601bfc2fdc75
+  scripts/check/governance/locks.py: 317b69c72e3991c20b5353cd10fce63d7496308183504ff1f93f1cb4e47ff923
   scripts/check/governance/structure.py: b6f927698a5b3676219c4eb96c2906ebab8a19cb0c2a5e9a68e45dcb6dfbfc52
   scripts/check/layout.py: 54e53c43a5ce571375c049e9ebf740631ab24c14acdd1efaafca5eb2f63679e2
   scripts/check/make_interface.py: 298a6bd1e6f90becabbd0d12ba369c5a0d697f0b81f758fabf56423f01cd26b8
@@ -151,3 +158,4 @@ files:
   scripts/build/http_transport.py: 21ef4582a3bdce302b3b2c8eb55b221822bbe317c79cfd6f4d87eb2eddfe00ce
   scripts/check/governance/http.py: 79f9b6117dbf40271b0eeaafaa837b394cd6d9f01978f9029f0b8ddf3b7cfbd7
   tests/unit/contracts/test_http_boundary.py: 1f9235e8dd5b2c40bd0818b580b6e549bd839a890e68579641356085715c804d
+  tests/unit/contracts/test_principles.py: e14c1e521fd6c83f47f48c386fe4d2673dbd5ab84e6628f3790a1f94791f1f28

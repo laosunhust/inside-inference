@@ -1,0 +1,30 @@
+version: 1
+work_item: first-principles-declarations
+question: Can ontology concepts own the governing equations of every declared model operation, selected by the model architecture, so that presentation and engine code derive from them instead of competing formula text?
+necessity: Explanation shows a system map and raw tensors but not the rule connecting them. Formula strings are handwritten in web/execution/observations.js, and the Llama-family normalization, positional rotation and gated activation have no declared rule. Concepts are currently taught through standalone lab prose rather than owned, checkable equations.
+baseline: Ontology terms own meaning, lifetime, ownership, exclusions, schemas and projections. Nine operation concepts own 31 operation names. Observation formulas are presentation strings. Two architecture declarations differ in position (learned-absolute, rope), normalization (pre-layernorm, rmsnorm) and activation (gelu-tanh, silu-gated). The 0.5M and 4M models capture logits only.
+reuse:
+- source: Existing ontology terms, operation declarations, ModelArchitecture/LlamaArchitecture and ModelWeights
+  decision: Attach principles to the concepts that already own the operations; bind symbols to existing operation, parameter and architecture declarations. Add no new concept, registry or data-model module.
+- source: Executed arithmetic in inside_inference/runtimes/engine.c and decoder.h, adapted from pinned llama2.c
+  decision: Transcribe equations from the executed arithmetic, including population variance, max-subtracted softmax, tanh GELU, adjacent-pair RoPE frequencies, SiLU-gated feed-forward and tied output weights. Textbook forms that differ from execution are rejected.
+- source: KaTeX-compatible LaTeX notation
+  decision: Store equations as LaTeX strings for later pinned rendering. Rendering and its checks belong to the presentation work item.
+criteria:
+- Ontology terms may declare principles with exactly id, when, equation and symbols. Ids are globally unique. Conditions use only architecture variant fields and values declared by at least one architecture; a condition matching no architecture is rejected.
+- Every declared operation is bound by a symbol of at least one principle owned by its concept. Every symbol appears in its equation, has a meaning, and binds only declared operations, ModelWeights parameters or architecture fields.
+- For each declared architecture, every operation-owning concept has at least one applicable principle, and no operation is bound by two applicable principles of its owner.
+- The tiny architecture's applicable equations match its executed LayerNorm, learned positions, single-head causal attention, GELU and biased projections. The Llama-family equations match RMSNorm, RoPE, multi-head attention, SiLU-gated feed-forward and tied output projection.
+- Concepts without principles keep their prose meaning; no principle is required for non-numerical concepts.
+- Admission rejects violations before generating consumers. Rejection fixtures are written before the declarations and fail with actionable messages.
+- No numerical runtime, observation record, UI or lab changes. Unit and integration harnesses pass within current budgets.
+checks:
+- Rejection fixtures for malformed principles, duplicate ids, unknown condition fields or values, dead variants, unbound or dangling bindings, symbols absent from equations, missing architecture coverage and overlapping applicable principles
+- Manual comparison of each equation against engine.c and decoder.h arithmetic
+- make test
+- make test-integration
+counterexamples:
+- A symbol bound to an operation does not prove that its equation describes the executed arithmetic; source comparison remains required.
+- Llama-family symbols without captured operations explain the arithmetic but provide no tensor evidence until that engine captures them.
+- Declaring an equation is not a code-span binding. Code-span and hand-recomputation checks require the Python engine and presentation work items.
+- Handwritten observation formula strings remain a known competing authority until the engine replacement derives them from principles.
