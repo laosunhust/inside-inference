@@ -3,21 +3,18 @@ import hashlib
 from pathlib import Path
 import platform
 import subprocess
-import sys
 from inside_inference.declarations_generated import ExecutionBackend, ExecutionProvenance
 from inside_inference.model import identity
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ('model.py', 'generation.py', 'tokenizer.py',
            'declarations_generated.py', 'contract_runtime.py',
-           'cache_lab.py', 'kv_runtime.py', 'provenance.py', 'runtimes/component.py')
+           'cache_lab.py', 'kv_runtime.py', 'provenance.py', 'runtimes/engine.py', 'runtimes/bpe.py',
+           'runtimes/tokenization.py', 'delivery/models.py', 'delivery/service.py')
 
 
 def source_inventory():
     paths=['inside_inference/'+name for name in SOURCES]
-    paths += (['inside_inference/runtimes/engine.c','inside_inference/runtimes/decoder.h',
-               'web/execution/component-engine.js','web/execution/decoder.js','web/execution/observations.js',
-               'execution/llama/llama.wasm'] if sys.platform == 'emscripten' else ['inside_inference/runtimes/reference.py'])
     return {name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in paths}
 
 

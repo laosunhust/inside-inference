@@ -814,9 +814,6 @@
         "dtype": {
           "type": "string"
         },
-        "formula": {
-          "type": "string"
-        },
         "id": {
           "type": "string"
         },
@@ -910,7 +907,6 @@
       "required": [
         "axes",
         "dtype",
-        "formula",
         "id",
         "inputs",
         "layer",

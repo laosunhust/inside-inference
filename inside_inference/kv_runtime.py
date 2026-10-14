@@ -34,7 +34,7 @@ class ReferenceRuntime:
             values=tuple(() for _ in range(self.model.config.layers)))
 
     def describe(self):
-        return dict(compute_device='Browser WASM decoder' if sys.platform=='emscripten' else 'CPU scalar reference', device_state_storage='Logical pool in system DRAM',
+        return dict(compute_device='NumPy decoder in a browser worker' if sys.platform=='emscripten' else 'NumPy decoder on the host CPU', device_state_storage='Logical pool in system DRAM',
             host_state_storage='Separate logical pool in system DRAM; Python objects',
             library='Python '+platform.python_version()+' ('+sys.platform+')', precision='binary64')
 

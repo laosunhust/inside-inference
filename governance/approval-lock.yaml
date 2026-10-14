@@ -50,7 +50,11 @@ approval:
     \ \"Approve the scoped concept-control enforcement changes\". Owner response on 2026-10-13: \"Approve\
     \ the scoped tiered-map enforcement changes\". Owner reply on 2026-10-13: \"I approve, and let's\
     \ get started.\" authorizing first-principles equation coverage and code-span checks in governance\
-    \ with associated lock hash updates; confirmed by \"allow the action. let's apply.\""
+    \ with associated lock hash updates; confirmed by \"allow the action. let's apply.\" Owner instruction\
+    \ on 2026-10-13: \"deletion/consolidation that do not break the purpose is almost always welcome.\
+    \ this is especially true for SSOT cleanups. Examples include what we just did: converting multiple\
+    \ languages into one language. let's continue\", following the agreed plan to replace C/WASM and\
+    \ JavaScript model execution with one NumPy Python engine and delete the C code."
   scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile
     and ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content
     remains unlocked. Retain approved folder and file-size limits. This approval does not authorize future
@@ -128,7 +132,12 @@ approval:
     unknown variant conditions, dead variants, dangling bindings, symbols absent from equations, unbound
     operations, missing architecture coverage and overlapping applicable principles; add and protect
     tests/unit/contracts/test_principles.py in locks.py; refresh only these four hashes. Code-span checks
-    follow with the Python engine under the same authorization. No limits or constitution changes.'
+    follow with the Python engine under the same authorization. No limits or constitution changes. For
+    the single Python engine, update only scripts/build/http_transport.py so the generated worker loads
+    jsonschema and numpy and routes every operation through execute_json; scripts/check/governance/http.py
+    to require that route, forbid other worker imports and all web fetches, and reject reintroduced C/WASM
+    and JavaScript model-execution files; and tests/unit/contracts/test_http_boundary.py for those rejections.
+    Refresh only these three hashes. No limits, inventory or constitution changes.'
 files:
   AGENTS.md: a1311d34d5b743a4b023f00b59b7f227d94ef1f44d097d5f8634c2eb4b9e5c92
   governance/limits.yaml: 4218f778ada890585c448c4664f4a8275576daef70e5421b29ed1c7ac0862c30
@@ -155,7 +164,7 @@ files:
   tests/integration/test_evaluation_history.py: 8c8c04bc9a6bae1c6ae6aa163ce8658f56d39b4649415aa315c9807b30873b6d
   scripts/build/theme.py: dd2f5e4f1fa43fcf5728c65bc82e3c9fa9dc8534a1946f671d088c101709660e
   tests/unit/test_theme.py: eeedb9d670a09e8945d79ae190075b6ff6f5836356f8788e3ee2eb65ad87f2ac
-  scripts/build/http_transport.py: 21ef4582a3bdce302b3b2c8eb55b221822bbe317c79cfd6f4d87eb2eddfe00ce
-  scripts/check/governance/http.py: 79f9b6117dbf40271b0eeaafaa837b394cd6d9f01978f9029f0b8ddf3b7cfbd7
-  tests/unit/contracts/test_http_boundary.py: 1f9235e8dd5b2c40bd0818b580b6e549bd839a890e68579641356085715c804d
+  scripts/build/http_transport.py: 1f284729036391f1e925d914d1a6856f6bf80d1ca1bbf177475c6709c0754c62
+  scripts/check/governance/http.py: 2085036cbda8376627a54ecda04772841aadfb117d79951f35a4da2b65f2b9e2
+  tests/unit/contracts/test_http_boundary.py: 38c73d5e4e6c6cca324e27980322140c20b6b2d245558697b8a272e5258eca9b
   tests/unit/contracts/test_principles.py: e14c1e521fd6c83f47f48c386fe4d2673dbd5ab84e6628f3790a1f94791f1f28

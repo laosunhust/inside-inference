@@ -1,4 +1,4 @@
-"""Explicit decoder blocks with layer-owned parameters and KV state. Observations capture executed values."""
+"""Inspectable checkpoint identity, validation and KV-state API over the shared NumPy decoder."""
 from inside_inference.declarations_generated import operation_for
 from dataclasses import asdict
 from inside_inference.declarations_generated import ModelArchitecture, InitializationProvenance, TrainingProvenance, KVState
@@ -134,6 +134,25 @@ class Model:
             raise ValueError('KV state shape or finiteness differs')
         return self._forward(ids, state=state, capture=capture, request_id=request_id, run_id=run_id, step=step, work_id=work_id)
 
-    def _forward(self, ids, **options):
-        from inside_inference.runtimes.component import forward
-        return forward(self, ids, **options)
+    def _forward(self, ids, *, state=None, capture=True, request_id='request-0', run_id='standalone', step=0, work_id=None):
+        from inside_inference.runtimes.engine import Decoder, checkpoint_weights, observations
+        if not hasattr(self, '_weights'):
+            self._weights = checkpoint_weights(self.checkpoint)
+        decoder = Decoder(self.checkpoint['config'], self._weights)
+        prefix = list(state.token_ids) if state is not None else []
+        if state is not None:
+            decoder.load_state(prefix, state.keys, state.values)
+        if not isinstance(ids, (list, tuple)) or not ids:
+            raise ValueError('Forward requires 1..context valid token IDs')
+        result = decoder.run(prefix + list(ids), reuse=state is not None, capture=capture)
+        root = (work_id or f'{run_id}/step-{step}') + '/'
+        value = {'logits': result['logits_rows'].tolist(), 'matmul_flops': result['work']['matmul_flops'],
+                 'nodes': observations(result['trace'], prefix + list(ids), result['work'], self.checkpoint['config'],
+                                       root, run_id=run_id, request_id=request_id, step=step)}
+        if state is not None:
+            count = len(prefix) + len(ids)
+            value['state'] = KVState(checkpoint_sha256=self.sha256, tokenizer_sha256=self.checkpoint['manifest_sha256'],
+                token_ids=tuple(prefix) + tuple(ids),
+                keys=tuple(tuple(tuple(row) for row in layer[:count].tolist()) for layer in decoder.keys),
+                values=tuple(tuple(tuple(row) for row in layer[:count].tolist()) for layer in decoder.values))
+        return value

@@ -1,4 +1,13 @@
-import {resolveExecution,changeControl} from '../execution/controls.js';
+/* Applied settings are read here; composition rules are enforced by the execution service. */
+function resolveExecution(execution) {
+  const value=control=>execution.experiments.find(e=>e.control===control)?.value;
+  const resources=Declarations.schemas.ExperimentSpec.properties.control.enum.filter(c=>!['model','kv_reuse'].includes(c)&&execution.experiments.some(e=>e.control===c));
+  return {model_id:value('model'),kv_reuse:value('kv_reuse'),resources:resources.length?Object.fromEntries(resources.map(c=>[c,value(c)])):null};
+}
+function changeControl(spec,control,value) {
+  if(!spec.experiments.some(item=>item.control===control))throw Error(`Undeclared execution control: ${control}`);
+  return {...spec,experiments:spec.experiments.map(item=>item.control===control?{...item,value}:item)};
+}
 /* One request and one inspection cursor; views never own a second token sequence. */
 globalThis.InspectionSession=(()=>{
   const clone=structuredClone;

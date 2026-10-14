@@ -1,0 +1,54 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/13/first-principles/python-engine.yaml
+evaluation_sha256: 6e3c8022ebb1e34fa53bc29d88be7e9fd4d6ab6f1c42bc4e311a517894d32d74
+outcome: passed
+summary: 'One NumPy engine (inside_inference/runtimes/engine.py) now executes the 8K, 0.5M and 4M models,
+  natively and in the browser worker. Architecture fields select LayerNorm or RMSNorm, learned positions
+  or RoPE, and GELU or SiLU gating; artifact formats select only the JSON or llama2.c reader. runtimes/bpe.py
+  ports the pinned llama2.c tokenizer. delivery/models.py implements every declared model operation, and
+  the generated worker routes all operations through Python execute_json. Deleted: engine.c, decoder.h,
+  the Emscripten build and setup step, decoder.js, observations.js, component-engine.js, model-service.js,
+  model-storage.js, controls.js, runtimes/component.py, runtimes/reference.py and the WASM decoder integration
+  check. Governance rejects their reintroduction and any other worker import. TensorObservation no longer
+  carries formula text; Explanation shows the applicable principle equation, currently as unrendered LaTeX.
+
+
+  Oracles, unchanged: all 10 tokenizer cases exact; Llama logits within 2.1e-5 of upstream exports in the
+  browser (tolerance 1e-3 absolute plus relative) with every argmax equal; 8K covered-fixture logits within
+  5.8e-15 natively (tolerance 1e-12) and passing the browser check; every tensor of the recorded two-layer
+  scalar-reference fixture within 3.3e-16 (tolerance 1e-11). The existing 50-digit Decimal specification
+  in test_model.py passes on the new engine. FLOP accounting matches the causal formula for both families.
+  Retained K/V rows are bit-identical across reuse. One recorded difference: batched prefill changes matrix
+  summation order, so a prefix computed alone differs at about 1e-16 from the same prefix inside a longer
+  batch; tests now require exact equality only for equal batch shapes and 1e-12 otherwise. The engine also
+  records the causal mask it actually computes. A missing output-bias lookup was caught by the trained 8K
+  fixture and fixed before acceptance; the zero-bias seeded fixture could not detect it.
+
+
+  Browser costs on this workstation: per-token decode with KV reuse 9.2 ms for 4M (recorded WASM baseline
+  2.9 ms) and 3.7 ms for 0.5M; full-prefix recompute 80 ms for 4M at nine positions. 8K warm median 4.5
+  ms against the 250 ms bound (recorded WASM 17.5 ms). NumPy adds a 3.06 MB wheel; engine.zip is 65.7 KB.
+  Model load 23-91 ms after assets are cached. make test passed 103 tests in 4.51s of 10s; make test-integration
+  passed twice, in 46.15s and 45.18s of 100s (was 42-43s).
+
+
+  An intermittent browser failure ("Failed to fetch" before any request reached the server, about 60
+  percent of fresh-profile loads in a standalone probe) was diagnosed: Chrome installs its default Drive
+  app into every new profile, and that installation disrupts in-flight worker fetches. Unmodified builds
+  failed 15 of 21 fresh-profile loads without a flag; 0 of 18 failed with --disable-extensions and 0 of
+  10 with --disable-default-apps alone, in the same session. Both harness Chrome launchers now pass
+  --disable-default-apps. This plausibly explains the earlier undiagnosed llama.mjs fetch flake but was not
+  verified against the retired build. Real-user browsers with existing profiles are not shown to be affected;
+  failed loads remain explicit, with no retry.
+
+
+  Limits: Llama-family models still capture logits only. Equations are not rendered. tensor_model.py keeps
+  its own preparation-only observation dictionaries. Measurements are one desktop Chromium; no mobile,
+  cross-browser or deployed-origin claims.'
+evidence:
+- inside_inference/runtimes/engine.py
+- inside_inference/runtimes/bpe.py
+- inside_inference/delivery/models.py
+- tests/unit/execution/test_engine.py
+- tests/fixtures/integration/scalar-reference.json
+- scripts/check/browser_check.py

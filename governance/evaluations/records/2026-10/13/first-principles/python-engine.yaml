@@ -1,0 +1,35 @@
+version: 1
+work_item: python-numpy-engine
+question: Can one readable NumPy Python engine replace the C/WASM decoder, JavaScript model service and observation builder, and the scalar Python reference for all three models without changing execution semantics or recorded numerical agreement?
+necessity: Model arithmetic exists in C (engine.c, decoder.h), observation construction and operation formulas in JavaScript (observations.js) and again in Python (reference.py), and tokenization in C for 4096-ID models. Four implementations of one forward pass violate SSOT, require an Emscripten toolchain and make the executed code unreadable to the intended audience. Pure-Python scalar loops measured about 27M multiply-adds per second natively, too slow for interactive 4M generation; NumPy is an owner-approved runtime dependency.
+baseline: Browser generation and KV simulation call the WASM decoder through model-service.js and component-engine.js. reference.py is the native scalar oracle. Integration compares WASM tensors with reference.py within 1e-11, Llama logits with exported upstream logits within 1e-3 absolute plus 1e-3 relative, tokenizer cases exactly, and 8K covered-fixture logits within 1e-12. 8K token latency is asserted under 250 ms. The 0.5M and 4M models capture logits only.
+reuse:
+- source: Pinned llama2.c run.c arithmetic and BPE tokenizer at revision 350e04fe35433e6d2941dce5a1f53308f87058eb
+  decision: Port the arithmetic and tokenizer semantics to NumPy and Python, including byte fallback, score-ordered pair merging, dummy prefix and post-BOS space stripping. Retain MIT attribution. Do not keep the C source.
+- source: Pyodide 0.27.7 NumPy 2.0.2 package
+  decision: Load NumPy from the pinned Pyodide distribution with its locked digest, and pin the same version for native tooling.
+- source: Ontology principles from the first-principles declarations
+  decision: Derive the displayed equation of each observation from its operation owner and architecture; delete handwritten observation formula strings.
+- source: Current reference.py outputs for the two seeded integration checkpoints
+  decision: Record them once as a durable fixture before deleting reference.py, so intermediate tensors keep an independent recorded oracle without a second engine.
+criteria:
+- One Python decoder executes the 8K, 0.5M and 4M models. Architecture variant fields select LayerNorm or RMSNorm, learned positions or RoPE, and GELU or SiLU-gated feed-forward; artifact formats select readers only. Declared precision selects binary64 or binary32 arithmetic.
+- One Python port of the pinned BPE tokenizer serves 4096-ID models; the 384-ID tokenizer is unchanged.
+- Recorded oracles pass unchanged. The ten tokenizer cases match exactly. Llama logits stay within 1e-3 absolute plus 1e-3 relative of exported upstream logits, and token flips occur only within the recorded near-tie margin. 8K covered-fixture logits stay within 1e-12. Every captured tensor of the recorded scalar-reference fixture matches within 1e-11.
+- KV reuse semantics, branch invalidation, processed/reused positions and FLOP accounting per executed linear and causal attention are preserved. Observation identities, inputs, shapes, axes and positions remain those consumed by the UI.
+- Every declared operation executes through the Python delivery service in the browser worker. engine.c, decoder.h, the Emscripten build, decoder.js, observations.js, component-engine.js, model-service.js, runtimes/component.py and runtimes/reference.py are deleted, and setup no longer installs Emscripten. Governance rejects their reintroduction.
+- TensorObservation no longer carries formula text; the UI shows the applicable principle equation for the observation's operation and model architecture.
+- 8K token latency stays under 250 ms. Generation, prefill and first-load costs for all models are measured and reported, including the added NumPy download. Unit and integration harnesses pass within current budgets.
+checks:
+- Native component tests against recorded scalar-reference, covered-fixture, Llama logit and tokenizer oracles
+- Browser integration through the generated worker with no compute API
+- Governance rejection of retired engine files
+- make test
+- make test-integration
+- Desktop and narrow screenshot review of explanation equations
+counterexamples:
+- Matching final logits does not establish matching intermediate tensors; the scalar-reference fixture remains required.
+- A recorded fixture produced by the retired implementation is an oracle for regression, not an independent derivation of correctness; the principle equations and upstream exports supply the independent definitions.
+- Float32 NumPy reductions need not reproduce C summation order; tolerance rather than bit identity applies to binary32 models.
+- Faster native execution is not evidence of browser performance; browser timings must be measured.
+- Llama-family tensor capture, rotated query/key and gate observations, and multi-head attention views are not delivered by this item.

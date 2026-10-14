@@ -10,9 +10,9 @@ var CompiledContracts = (() => {
     }
   };
 
-  // ../../../../../../mnt/cncrover-fast/workspace/observable-GPT/node_modules/fast-deep-equal/index.js
+  // node_modules/fast-deep-equal/index.js
   var require_fast_deep_equal = __commonJS({
-    "../../../../../../mnt/cncrover-fast/workspace/observable-GPT/node_modules/fast-deep-equal/index.js"(exports, module) {
+    "node_modules/fast-deep-equal/index.js"(exports, module) {
       "use strict";
       module.exports = function equal(a, b) {
         if (a === b) return true;
@@ -45,9 +45,9 @@ var CompiledContracts = (() => {
     }
   });
 
-  // ../../../../../../mnt/cncrover-fast/workspace/observable-GPT/node_modules/ajv/dist/runtime/equal.js
+  // node_modules/ajv/dist/runtime/equal.js
   var require_equal = __commonJS({
-    "../../../../../../mnt/cncrover-fast/workspace/observable-GPT/node_modules/ajv/dist/runtime/equal.js"(exports) {
+    "node_modules/ajv/dist/runtime/equal.js"(exports) {
       "use strict";
       Object.defineProperty(exports, "__esModule", { value: true });
       var equal = require_fast_deep_equal();
@@ -5687,7 +5687,7 @@ var CompiledContracts = (() => {
       }
       validate82.evaluated = { "props": true, "dynamicProps": false, "dynamicItems": false };
       exports.TensorObservation = validate83;
-      var schema38 = { "type": "object", "properties": { "axes": { "type": "array", "items": { "type": "string" } }, "dtype": { "type": "string" }, "formula": { "type": "string" }, "id": { "type": "string" }, "inputs": { "type": "array", "items": { "type": "string" } }, "layer": { "type": ["integer", "null"] }, "positions": { "type": "array", "items": { "type": "integer" } }, "request_id": { "type": "string" }, "run_id": { "type": "string" }, "shape": { "type": "array", "items": { "type": "integer" } }, "step": { "type": "integer" }, "values": { "type": "array", "items": { "anyOf": [{ "type": "number" }, { "type": "boolean" }, { "type": "array", "items": { "type": ["number", "boolean"] } }] } }, "operation": { "anyOf": [{ "$ref": "#/$defs/EmbeddingOperation" }, { "$ref": "#/$defs/PositionEncodingOperation" }, { "$ref": "#/$defs/NormalizationOperation" }, { "$ref": "#/$defs/AttentionOperation" }, { "$ref": "#/$defs/ResidualAdditionOperation" }, { "$ref": "#/$defs/FeedForwardOperation" }, { "$ref": "#/$defs/OutputProjectionOperation" }, { "$ref": "#/$defs/TokenizerOperation" }, { "$ref": "#/$defs/KVStateOperation" }] } }, "required": ["axes", "dtype", "formula", "id", "inputs", "layer", "positions", "request_id", "run_id", "shape", "step", "values", "operation"], "additionalProperties": false, "x-owner": "ExperimentObservation" };
+      var schema38 = { "type": "object", "properties": { "axes": { "type": "array", "items": { "type": "string" } }, "dtype": { "type": "string" }, "id": { "type": "string" }, "inputs": { "type": "array", "items": { "type": "string" } }, "layer": { "type": ["integer", "null"] }, "positions": { "type": "array", "items": { "type": "integer" } }, "request_id": { "type": "string" }, "run_id": { "type": "string" }, "shape": { "type": "array", "items": { "type": "integer" } }, "step": { "type": "integer" }, "values": { "type": "array", "items": { "anyOf": [{ "type": "number" }, { "type": "boolean" }, { "type": "array", "items": { "type": ["number", "boolean"] } }] } }, "operation": { "anyOf": [{ "$ref": "#/$defs/EmbeddingOperation" }, { "$ref": "#/$defs/PositionEncodingOperation" }, { "$ref": "#/$defs/NormalizationOperation" }, { "$ref": "#/$defs/AttentionOperation" }, { "$ref": "#/$defs/ResidualAdditionOperation" }, { "$ref": "#/$defs/FeedForwardOperation" }, { "$ref": "#/$defs/OutputProjectionOperation" }, { "$ref": "#/$defs/TokenizerOperation" }, { "$ref": "#/$defs/KVStateOperation" }] } }, "required": ["axes", "dtype", "id", "inputs", "layer", "positions", "request_id", "run_id", "shape", "step", "values", "operation"], "additionalProperties": false, "x-owner": "ExperimentObservation" };
       var schema39 = { "type": "object", "x-owner": "Embedding", "x-operation": true, "additionalProperties": false, "required": ["name"], "properties": { "name": { "type": "string", "enum": ["token_embedding", "embedding"] } } };
       function validate84(data, { instancePath = "", parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
         let vErrors = null;
@@ -6311,8 +6311,8 @@ var CompiledContracts = (() => {
             }
             errors++;
           }
-          if (data.formula === void 0) {
-            const err2 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "formula" }, message: "must have required property 'formula'" };
+          if (data.id === void 0) {
+            const err2 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "id" }, message: "must have required property 'id'" };
             if (vErrors === null) {
               vErrors = [err2];
             } else {
@@ -6320,8 +6320,8 @@ var CompiledContracts = (() => {
             }
             errors++;
           }
-          if (data.id === void 0) {
-            const err3 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "id" }, message: "must have required property 'id'" };
+          if (data.inputs === void 0) {
+            const err3 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "inputs" }, message: "must have required property 'inputs'" };
             if (vErrors === null) {
               vErrors = [err3];
             } else {
@@ -6329,8 +6329,8 @@ var CompiledContracts = (() => {
             }
             errors++;
           }
-          if (data.inputs === void 0) {
-            const err4 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "inputs" }, message: "must have required property 'inputs'" };
+          if (data.layer === void 0) {
+            const err4 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "layer" }, message: "must have required property 'layer'" };
             if (vErrors === null) {
               vErrors = [err4];
             } else {
@@ -6338,8 +6338,8 @@ var CompiledContracts = (() => {
             }
             errors++;
           }
-          if (data.layer === void 0) {
-            const err5 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "layer" }, message: "must have required property 'layer'" };
+          if (data.positions === void 0) {
+            const err5 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "positions" }, message: "must have required property 'positions'" };
             if (vErrors === null) {
               vErrors = [err5];
             } else {
@@ -6347,8 +6347,8 @@ var CompiledContracts = (() => {
             }
             errors++;
           }
-          if (data.positions === void 0) {
-            const err6 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "positions" }, message: "must have required property 'positions'" };
+          if (data.request_id === void 0) {
+            const err6 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "request_id" }, message: "must have required property 'request_id'" };
             if (vErrors === null) {
               vErrors = [err6];
             } else {
@@ -6356,8 +6356,8 @@ var CompiledContracts = (() => {
             }
             errors++;
           }
-          if (data.request_id === void 0) {
-            const err7 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "request_id" }, message: "must have required property 'request_id'" };
+          if (data.run_id === void 0) {
+            const err7 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "run_id" }, message: "must have required property 'run_id'" };
             if (vErrors === null) {
               vErrors = [err7];
             } else {
@@ -6365,8 +6365,8 @@ var CompiledContracts = (() => {
             }
             errors++;
           }
-          if (data.run_id === void 0) {
-            const err8 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "run_id" }, message: "must have required property 'run_id'" };
+          if (data.shape === void 0) {
+            const err8 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "shape" }, message: "must have required property 'shape'" };
             if (vErrors === null) {
               vErrors = [err8];
             } else {
@@ -6374,8 +6374,8 @@ var CompiledContracts = (() => {
             }
             errors++;
           }
-          if (data.shape === void 0) {
-            const err9 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "shape" }, message: "must have required property 'shape'" };
+          if (data.step === void 0) {
+            const err9 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "step" }, message: "must have required property 'step'" };
             if (vErrors === null) {
               vErrors = [err9];
             } else {
@@ -6383,8 +6383,8 @@ var CompiledContracts = (() => {
             }
             errors++;
           }
-          if (data.step === void 0) {
-            const err10 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "step" }, message: "must have required property 'step'" };
+          if (data.values === void 0) {
+            const err10 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "values" }, message: "must have required property 'values'" };
             if (vErrors === null) {
               vErrors = [err10];
             } else {
@@ -6392,8 +6392,8 @@ var CompiledContracts = (() => {
             }
             errors++;
           }
-          if (data.values === void 0) {
-            const err11 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "values" }, message: "must have required property 'values'" };
+          if (data.operation === void 0) {
+            const err11 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "operation" }, message: "must have required property 'operation'" };
             if (vErrors === null) {
               vErrors = [err11];
             } else {
@@ -6401,22 +6401,13 @@ var CompiledContracts = (() => {
             }
             errors++;
           }
-          if (data.operation === void 0) {
-            const err12 = { instancePath, schemaPath: "#/required", keyword: "required", params: { missingProperty: "operation" }, message: "must have required property 'operation'" };
-            if (vErrors === null) {
-              vErrors = [err12];
-            } else {
-              vErrors.push(err12);
-            }
-            errors++;
-          }
           for (const key0 in data) {
             if (!func1.call(schema38.properties, key0)) {
-              const err13 = { instancePath, schemaPath: "#/additionalProperties", keyword: "additionalProperties", params: { additionalProperty: key0 }, message: "must NOT have additional properties" };
+              const err12 = { instancePath, schemaPath: "#/additionalProperties", keyword: "additionalProperties", params: { additionalProperty: key0 }, message: "must NOT have additional properties" };
               if (vErrors === null) {
-                vErrors = [err13];
+                vErrors = [err12];
               } else {
-                vErrors.push(err13);
+                vErrors.push(err12);
               }
               errors++;
             }
@@ -6427,17 +6418,28 @@ var CompiledContracts = (() => {
               const len0 = data0.length;
               for (let i0 = 0; i0 < len0; i0++) {
                 if (typeof data0[i0] !== "string") {
-                  const err14 = { instancePath: instancePath + "/axes/" + i0, schemaPath: "#/properties/axes/items/type", keyword: "type", params: { type: "string" }, message: "must be string" };
+                  const err13 = { instancePath: instancePath + "/axes/" + i0, schemaPath: "#/properties/axes/items/type", keyword: "type", params: { type: "string" }, message: "must be string" };
                   if (vErrors === null) {
-                    vErrors = [err14];
+                    vErrors = [err13];
                   } else {
-                    vErrors.push(err14);
+                    vErrors.push(err13);
                   }
                   errors++;
                 }
               }
             } else {
-              const err15 = { instancePath: instancePath + "/axes", schemaPath: "#/properties/axes/type", keyword: "type", params: { type: "array" }, message: "must be array" };
+              const err14 = { instancePath: instancePath + "/axes", schemaPath: "#/properties/axes/type", keyword: "type", params: { type: "array" }, message: "must be array" };
+              if (vErrors === null) {
+                vErrors = [err14];
+              } else {
+                vErrors.push(err14);
+              }
+              errors++;
+            }
+          }
+          if (data.dtype !== void 0) {
+            if (typeof data.dtype !== "string") {
+              const err15 = { instancePath: instancePath + "/dtype", schemaPath: "#/properties/dtype/type", keyword: "type", params: { type: "string" }, message: "must be string" };
               if (vErrors === null) {
                 vErrors = [err15];
               } else {
@@ -6446,9 +6448,9 @@ var CompiledContracts = (() => {
               errors++;
             }
           }
-          if (data.dtype !== void 0) {
-            if (typeof data.dtype !== "string") {
-              const err16 = { instancePath: instancePath + "/dtype", schemaPath: "#/properties/dtype/type", keyword: "type", params: { type: "string" }, message: "must be string" };
+          if (data.id !== void 0) {
+            if (typeof data.id !== "string") {
+              const err16 = { instancePath: instancePath + "/id", schemaPath: "#/properties/id/type", keyword: "type", params: { type: "string" }, message: "must be string" };
               if (vErrors === null) {
                 vErrors = [err16];
               } else {
@@ -6457,20 +6459,23 @@ var CompiledContracts = (() => {
               errors++;
             }
           }
-          if (data.formula !== void 0) {
-            if (typeof data.formula !== "string") {
-              const err17 = { instancePath: instancePath + "/formula", schemaPath: "#/properties/formula/type", keyword: "type", params: { type: "string" }, message: "must be string" };
-              if (vErrors === null) {
-                vErrors = [err17];
-              } else {
-                vErrors.push(err17);
+          if (data.inputs !== void 0) {
+            let data4 = data.inputs;
+            if (Array.isArray(data4)) {
+              const len1 = data4.length;
+              for (let i1 = 0; i1 < len1; i1++) {
+                if (typeof data4[i1] !== "string") {
+                  const err17 = { instancePath: instancePath + "/inputs/" + i1, schemaPath: "#/properties/inputs/items/type", keyword: "type", params: { type: "string" }, message: "must be string" };
+                  if (vErrors === null) {
+                    vErrors = [err17];
+                  } else {
+                    vErrors.push(err17);
+                  }
+                  errors++;
+                }
               }
-              errors++;
-            }
-          }
-          if (data.id !== void 0) {
-            if (typeof data.id !== "string") {
-              const err18 = { instancePath: instancePath + "/id", schemaPath: "#/properties/id/type", keyword: "type", params: { type: "string" }, message: "must be string" };
+            } else {
+              const err18 = { instancePath: instancePath + "/inputs", schemaPath: "#/properties/inputs/type", keyword: "type", params: { type: "array" }, message: "must be array" };
               if (vErrors === null) {
                 vErrors = [err18];
               } else {
@@ -6479,35 +6484,36 @@ var CompiledContracts = (() => {
               errors++;
             }
           }
-          if (data.inputs !== void 0) {
-            let data5 = data.inputs;
-            if (Array.isArray(data5)) {
-              const len1 = data5.length;
-              for (let i1 = 0; i1 < len1; i1++) {
-                if (typeof data5[i1] !== "string") {
-                  const err19 = { instancePath: instancePath + "/inputs/" + i1, schemaPath: "#/properties/inputs/items/type", keyword: "type", params: { type: "string" }, message: "must be string" };
+          if (data.layer !== void 0) {
+            let data6 = data.layer;
+            if (!(typeof data6 == "number" && (!(data6 % 1) && !isNaN(data6)) && isFinite(data6)) && data6 !== null) {
+              const err19 = { instancePath: instancePath + "/layer", schemaPath: "#/properties/layer/type", keyword: "type", params: { type: schema38.properties.layer.type }, message: "must be integer,null" };
+              if (vErrors === null) {
+                vErrors = [err19];
+              } else {
+                vErrors.push(err19);
+              }
+              errors++;
+            }
+          }
+          if (data.positions !== void 0) {
+            let data7 = data.positions;
+            if (Array.isArray(data7)) {
+              const len2 = data7.length;
+              for (let i2 = 0; i2 < len2; i2++) {
+                let data8 = data7[i2];
+                if (!(typeof data8 == "number" && (!(data8 % 1) && !isNaN(data8)) && isFinite(data8))) {
+                  const err20 = { instancePath: instancePath + "/positions/" + i2, schemaPath: "#/properties/positions/items/type", keyword: "type", params: { type: "integer" }, message: "must be integer" };
                   if (vErrors === null) {
-                    vErrors = [err19];
+                    vErrors = [err20];
                   } else {
-                    vErrors.push(err19);
+                    vErrors.push(err20);
                   }
                   errors++;
                 }
               }
             } else {
-              const err20 = { instancePath: instancePath + "/inputs", schemaPath: "#/properties/inputs/type", keyword: "type", params: { type: "array" }, message: "must be array" };
-              if (vErrors === null) {
-                vErrors = [err20];
-              } else {
-                vErrors.push(err20);
-              }
-              errors++;
-            }
-          }
-          if (data.layer !== void 0) {
-            let data7 = data.layer;
-            if (!(typeof data7 == "number" && (!(data7 % 1) && !isNaN(data7)) && isFinite(data7)) && data7 !== null) {
-              const err21 = { instancePath: instancePath + "/layer", schemaPath: "#/properties/layer/type", keyword: "type", params: { type: schema38.properties.layer.type }, message: "must be integer,null" };
+              const err21 = { instancePath: instancePath + "/positions", schemaPath: "#/properties/positions/type", keyword: "type", params: { type: "array" }, message: "must be array" };
               if (vErrors === null) {
                 vErrors = [err21];
               } else {
@@ -6516,24 +6522,20 @@ var CompiledContracts = (() => {
               errors++;
             }
           }
-          if (data.positions !== void 0) {
-            let data8 = data.positions;
-            if (Array.isArray(data8)) {
-              const len2 = data8.length;
-              for (let i2 = 0; i2 < len2; i2++) {
-                let data9 = data8[i2];
-                if (!(typeof data9 == "number" && (!(data9 % 1) && !isNaN(data9)) && isFinite(data9))) {
-                  const err22 = { instancePath: instancePath + "/positions/" + i2, schemaPath: "#/properties/positions/items/type", keyword: "type", params: { type: "integer" }, message: "must be integer" };
-                  if (vErrors === null) {
-                    vErrors = [err22];
-                  } else {
-                    vErrors.push(err22);
-                  }
-                  errors++;
-                }
+          if (data.request_id !== void 0) {
+            if (typeof data.request_id !== "string") {
+              const err22 = { instancePath: instancePath + "/request_id", schemaPath: "#/properties/request_id/type", keyword: "type", params: { type: "string" }, message: "must be string" };
+              if (vErrors === null) {
+                vErrors = [err22];
+              } else {
+                vErrors.push(err22);
               }
-            } else {
-              const err23 = { instancePath: instancePath + "/positions", schemaPath: "#/properties/positions/type", keyword: "type", params: { type: "array" }, message: "must be array" };
+              errors++;
+            }
+          }
+          if (data.run_id !== void 0) {
+            if (typeof data.run_id !== "string") {
+              const err23 = { instancePath: instancePath + "/run_id", schemaPath: "#/properties/run_id/type", keyword: "type", params: { type: "string" }, message: "must be string" };
               if (vErrors === null) {
                 vErrors = [err23];
               } else {
@@ -6542,20 +6544,24 @@ var CompiledContracts = (() => {
               errors++;
             }
           }
-          if (data.request_id !== void 0) {
-            if (typeof data.request_id !== "string") {
-              const err24 = { instancePath: instancePath + "/request_id", schemaPath: "#/properties/request_id/type", keyword: "type", params: { type: "string" }, message: "must be string" };
-              if (vErrors === null) {
-                vErrors = [err24];
-              } else {
-                vErrors.push(err24);
+          if (data.shape !== void 0) {
+            let data11 = data.shape;
+            if (Array.isArray(data11)) {
+              const len3 = data11.length;
+              for (let i3 = 0; i3 < len3; i3++) {
+                let data12 = data11[i3];
+                if (!(typeof data12 == "number" && (!(data12 % 1) && !isNaN(data12)) && isFinite(data12))) {
+                  const err24 = { instancePath: instancePath + "/shape/" + i3, schemaPath: "#/properties/shape/items/type", keyword: "type", params: { type: "integer" }, message: "must be integer" };
+                  if (vErrors === null) {
+                    vErrors = [err24];
+                  } else {
+                    vErrors.push(err24);
+                  }
+                  errors++;
+                }
               }
-              errors++;
-            }
-          }
-          if (data.run_id !== void 0) {
-            if (typeof data.run_id !== "string") {
-              const err25 = { instancePath: instancePath + "/run_id", schemaPath: "#/properties/run_id/type", keyword: "type", params: { type: "string" }, message: "must be string" };
+            } else {
+              const err25 = { instancePath: instancePath + "/shape", schemaPath: "#/properties/shape/type", keyword: "type", params: { type: "array" }, message: "must be array" };
               if (vErrors === null) {
                 vErrors = [err25];
               } else {
@@ -6564,67 +6570,67 @@ var CompiledContracts = (() => {
               errors++;
             }
           }
-          if (data.shape !== void 0) {
-            let data12 = data.shape;
-            if (Array.isArray(data12)) {
-              const len3 = data12.length;
-              for (let i3 = 0; i3 < len3; i3++) {
-                let data13 = data12[i3];
-                if (!(typeof data13 == "number" && (!(data13 % 1) && !isNaN(data13)) && isFinite(data13))) {
-                  const err26 = { instancePath: instancePath + "/shape/" + i3, schemaPath: "#/properties/shape/items/type", keyword: "type", params: { type: "integer" }, message: "must be integer" };
-                  if (vErrors === null) {
-                    vErrors = [err26];
-                  } else {
-                    vErrors.push(err26);
-                  }
-                  errors++;
-                }
-              }
-            } else {
-              const err27 = { instancePath: instancePath + "/shape", schemaPath: "#/properties/shape/type", keyword: "type", params: { type: "array" }, message: "must be array" };
-              if (vErrors === null) {
-                vErrors = [err27];
-              } else {
-                vErrors.push(err27);
-              }
-              errors++;
-            }
-          }
           if (data.step !== void 0) {
-            let data14 = data.step;
-            if (!(typeof data14 == "number" && (!(data14 % 1) && !isNaN(data14)) && isFinite(data14))) {
-              const err28 = { instancePath: instancePath + "/step", schemaPath: "#/properties/step/type", keyword: "type", params: { type: "integer" }, message: "must be integer" };
+            let data13 = data.step;
+            if (!(typeof data13 == "number" && (!(data13 % 1) && !isNaN(data13)) && isFinite(data13))) {
+              const err26 = { instancePath: instancePath + "/step", schemaPath: "#/properties/step/type", keyword: "type", params: { type: "integer" }, message: "must be integer" };
               if (vErrors === null) {
-                vErrors = [err28];
+                vErrors = [err26];
               } else {
-                vErrors.push(err28);
+                vErrors.push(err26);
               }
               errors++;
             }
           }
           if (data.values !== void 0) {
-            let data15 = data.values;
-            if (Array.isArray(data15)) {
-              const len4 = data15.length;
+            let data14 = data.values;
+            if (Array.isArray(data14)) {
+              const len4 = data14.length;
               for (let i4 = 0; i4 < len4; i4++) {
-                let data16 = data15[i4];
-                const _errs35 = errors;
+                let data15 = data14[i4];
+                const _errs33 = errors;
                 let valid11 = false;
-                const _errs36 = errors;
-                if (!(typeof data16 == "number" && isFinite(data16))) {
-                  const err29 = { instancePath: instancePath + "/values/" + i4, schemaPath: "#/properties/values/items/anyOf/0/type", keyword: "type", params: { type: "number" }, message: "must be number" };
+                const _errs34 = errors;
+                if (!(typeof data15 == "number" && isFinite(data15))) {
+                  const err27 = { instancePath: instancePath + "/values/" + i4, schemaPath: "#/properties/values/items/anyOf/0/type", keyword: "type", params: { type: "number" }, message: "must be number" };
                   if (vErrors === null) {
-                    vErrors = [err29];
+                    vErrors = [err27];
                   } else {
-                    vErrors.push(err29);
+                    vErrors.push(err27);
+                  }
+                  errors++;
+                }
+                var _valid0 = _errs34 === errors;
+                valid11 = valid11 || _valid0;
+                const _errs36 = errors;
+                if (typeof data15 !== "boolean") {
+                  const err28 = { instancePath: instancePath + "/values/" + i4, schemaPath: "#/properties/values/items/anyOf/1/type", keyword: "type", params: { type: "boolean" }, message: "must be boolean" };
+                  if (vErrors === null) {
+                    vErrors = [err28];
+                  } else {
+                    vErrors.push(err28);
                   }
                   errors++;
                 }
                 var _valid0 = _errs36 === errors;
                 valid11 = valid11 || _valid0;
                 const _errs38 = errors;
-                if (typeof data16 !== "boolean") {
-                  const err30 = { instancePath: instancePath + "/values/" + i4, schemaPath: "#/properties/values/items/anyOf/1/type", keyword: "type", params: { type: "boolean" }, message: "must be boolean" };
+                if (Array.isArray(data15)) {
+                  const len5 = data15.length;
+                  for (let i5 = 0; i5 < len5; i5++) {
+                    let data16 = data15[i5];
+                    if (!(typeof data16 == "number" && isFinite(data16)) && typeof data16 !== "boolean") {
+                      const err29 = { instancePath: instancePath + "/values/" + i4 + "/" + i5, schemaPath: "#/properties/values/items/anyOf/2/items/type", keyword: "type", params: { type: schema38.properties.values.items.anyOf[2].items.type }, message: "must be number,boolean" };
+                      if (vErrors === null) {
+                        vErrors = [err29];
+                      } else {
+                        vErrors.push(err29);
+                      }
+                      errors++;
+                    }
+                  }
+                } else {
+                  const err30 = { instancePath: instancePath + "/values/" + i4, schemaPath: "#/properties/values/items/anyOf/2/type", keyword: "type", params: { type: "array" }, message: "must be array" };
                   if (vErrors === null) {
                     vErrors = [err30];
                   } else {
@@ -6634,45 +6640,19 @@ var CompiledContracts = (() => {
                 }
                 var _valid0 = _errs38 === errors;
                 valid11 = valid11 || _valid0;
-                const _errs40 = errors;
-                if (Array.isArray(data16)) {
-                  const len5 = data16.length;
-                  for (let i5 = 0; i5 < len5; i5++) {
-                    let data17 = data16[i5];
-                    if (!(typeof data17 == "number" && isFinite(data17)) && typeof data17 !== "boolean") {
-                      const err31 = { instancePath: instancePath + "/values/" + i4 + "/" + i5, schemaPath: "#/properties/values/items/anyOf/2/items/type", keyword: "type", params: { type: schema38.properties.values.items.anyOf[2].items.type }, message: "must be number,boolean" };
-                      if (vErrors === null) {
-                        vErrors = [err31];
-                      } else {
-                        vErrors.push(err31);
-                      }
-                      errors++;
-                    }
-                  }
-                } else {
-                  const err32 = { instancePath: instancePath + "/values/" + i4, schemaPath: "#/properties/values/items/anyOf/2/type", keyword: "type", params: { type: "array" }, message: "must be array" };
-                  if (vErrors === null) {
-                    vErrors = [err32];
-                  } else {
-                    vErrors.push(err32);
-                  }
-                  errors++;
-                }
-                var _valid0 = _errs40 === errors;
-                valid11 = valid11 || _valid0;
                 if (!valid11) {
-                  const err33 = { instancePath: instancePath + "/values/" + i4, schemaPath: "#/properties/values/items/anyOf", keyword: "anyOf", params: {}, message: "must match a schema in anyOf" };
+                  const err31 = { instancePath: instancePath + "/values/" + i4, schemaPath: "#/properties/values/items/anyOf", keyword: "anyOf", params: {}, message: "must match a schema in anyOf" };
                   if (vErrors === null) {
-                    vErrors = [err33];
+                    vErrors = [err31];
                   } else {
-                    vErrors.push(err33);
+                    vErrors.push(err31);
                   }
                   errors++;
                 } else {
-                  errors = _errs35;
+                  errors = _errs33;
                   if (vErrors !== null) {
-                    if (_errs35) {
-                      vErrors.length = _errs35;
+                    if (_errs33) {
+                      vErrors.length = _errs33;
                     } else {
                       vErrors = null;
                     }
@@ -6680,32 +6660,56 @@ var CompiledContracts = (() => {
                 }
               }
             } else {
-              const err34 = { instancePath: instancePath + "/values", schemaPath: "#/properties/values/type", keyword: "type", params: { type: "array" }, message: "must be array" };
+              const err32 = { instancePath: instancePath + "/values", schemaPath: "#/properties/values/type", keyword: "type", params: { type: "array" }, message: "must be array" };
               if (vErrors === null) {
-                vErrors = [err34];
+                vErrors = [err32];
               } else {
-                vErrors.push(err34);
+                vErrors.push(err32);
               }
               errors++;
             }
           }
           if (data.operation !== void 0) {
-            let data18 = data.operation;
-            const _errs45 = errors;
+            let data17 = data.operation;
+            const _errs43 = errors;
             let valid14 = false;
-            const _errs46 = errors;
-            if (!validate84(data18, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
+            const _errs44 = errors;
+            if (!validate84(data17, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
               vErrors = vErrors === null ? validate84.errors : vErrors.concat(validate84.errors);
+              errors = vErrors.length;
+            }
+            var _valid1 = _errs44 === errors;
+            valid14 = valid14 || _valid1;
+            if (_valid1) {
+              var props0 = true;
+            }
+            const _errs45 = errors;
+            if (!validate86(data17, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate86.errors : vErrors.concat(validate86.errors);
+              errors = vErrors.length;
+            }
+            var _valid1 = _errs45 === errors;
+            valid14 = valid14 || _valid1;
+            if (_valid1) {
+              if (props0 !== true) {
+                props0 = true;
+              }
+            }
+            const _errs46 = errors;
+            if (!validate88(data17, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate88.errors : vErrors.concat(validate88.errors);
               errors = vErrors.length;
             }
             var _valid1 = _errs46 === errors;
             valid14 = valid14 || _valid1;
             if (_valid1) {
-              var props0 = true;
+              if (props0 !== true) {
+                props0 = true;
+              }
             }
             const _errs47 = errors;
-            if (!validate86(data18, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
-              vErrors = vErrors === null ? validate86.errors : vErrors.concat(validate86.errors);
+            if (!validate90(data17, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate90.errors : vErrors.concat(validate90.errors);
               errors = vErrors.length;
             }
             var _valid1 = _errs47 === errors;
@@ -6716,8 +6720,8 @@ var CompiledContracts = (() => {
               }
             }
             const _errs48 = errors;
-            if (!validate88(data18, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
-              vErrors = vErrors === null ? validate88.errors : vErrors.concat(validate88.errors);
+            if (!validate92(data17, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate92.errors : vErrors.concat(validate92.errors);
               errors = vErrors.length;
             }
             var _valid1 = _errs48 === errors;
@@ -6728,8 +6732,8 @@ var CompiledContracts = (() => {
               }
             }
             const _errs49 = errors;
-            if (!validate90(data18, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
-              vErrors = vErrors === null ? validate90.errors : vErrors.concat(validate90.errors);
+            if (!validate94(data17, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate94.errors : vErrors.concat(validate94.errors);
               errors = vErrors.length;
             }
             var _valid1 = _errs49 === errors;
@@ -6740,8 +6744,8 @@ var CompiledContracts = (() => {
               }
             }
             const _errs50 = errors;
-            if (!validate92(data18, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
-              vErrors = vErrors === null ? validate92.errors : vErrors.concat(validate92.errors);
+            if (!validate96(data17, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate96.errors : vErrors.concat(validate96.errors);
               errors = vErrors.length;
             }
             var _valid1 = _errs50 === errors;
@@ -6752,8 +6756,8 @@ var CompiledContracts = (() => {
               }
             }
             const _errs51 = errors;
-            if (!validate94(data18, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
-              vErrors = vErrors === null ? validate94.errors : vErrors.concat(validate94.errors);
+            if (!validate98(data17, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate98.errors : vErrors.concat(validate98.errors);
               errors = vErrors.length;
             }
             var _valid1 = _errs51 === errors;
@@ -6764,8 +6768,8 @@ var CompiledContracts = (() => {
               }
             }
             const _errs52 = errors;
-            if (!validate96(data18, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
-              vErrors = vErrors === null ? validate96.errors : vErrors.concat(validate96.errors);
+            if (!validate100(data17, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
+              vErrors = vErrors === null ? validate100.errors : vErrors.concat(validate100.errors);
               errors = vErrors.length;
             }
             var _valid1 = _errs52 === errors;
@@ -6775,43 +6779,19 @@ var CompiledContracts = (() => {
                 props0 = true;
               }
             }
-            const _errs53 = errors;
-            if (!validate98(data18, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
-              vErrors = vErrors === null ? validate98.errors : vErrors.concat(validate98.errors);
-              errors = vErrors.length;
-            }
-            var _valid1 = _errs53 === errors;
-            valid14 = valid14 || _valid1;
-            if (_valid1) {
-              if (props0 !== true) {
-                props0 = true;
-              }
-            }
-            const _errs54 = errors;
-            if (!validate100(data18, { instancePath: instancePath + "/operation", parentData: data, parentDataProperty: "operation", rootData, dynamicAnchors })) {
-              vErrors = vErrors === null ? validate100.errors : vErrors.concat(validate100.errors);
-              errors = vErrors.length;
-            }
-            var _valid1 = _errs54 === errors;
-            valid14 = valid14 || _valid1;
-            if (_valid1) {
-              if (props0 !== true) {
-                props0 = true;
-              }
-            }
             if (!valid14) {
-              const err35 = { instancePath: instancePath + "/operation", schemaPath: "#/properties/operation/anyOf", keyword: "anyOf", params: {}, message: "must match a schema in anyOf" };
+              const err33 = { instancePath: instancePath + "/operation", schemaPath: "#/properties/operation/anyOf", keyword: "anyOf", params: {}, message: "must match a schema in anyOf" };
               if (vErrors === null) {
-                vErrors = [err35];
+                vErrors = [err33];
               } else {
-                vErrors.push(err35);
+                vErrors.push(err33);
               }
               errors++;
             } else {
-              errors = _errs45;
+              errors = _errs43;
               if (vErrors !== null) {
-                if (_errs45) {
-                  vErrors.length = _errs45;
+                if (_errs43) {
+                  vErrors.length = _errs43;
                 } else {
                   vErrors = null;
                 }
@@ -6819,11 +6799,11 @@ var CompiledContracts = (() => {
             }
           }
         } else {
-          const err36 = { instancePath, schemaPath: "#/type", keyword: "type", params: { type: "object" }, message: "must be object" };
+          const err34 = { instancePath, schemaPath: "#/type", keyword: "type", params: { type: "object" }, message: "must be object" };
           if (vErrors === null) {
-            vErrors = [err36];
+            vErrors = [err34];
           } else {
-            vErrors.push(err36);
+            vErrors.push(err34);
           }
           errors++;
         }

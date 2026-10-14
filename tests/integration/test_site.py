@@ -166,26 +166,17 @@ class AtlasTests(unittest.TestCase):
         build(root, checkpoint=self.shared_checkpoint)
         self.assertEqual(before, snapshot())
 
-    def test_release_decoder_against_independent_scalar_reference(self):
-        import subprocess
+    def test_release_packages_one_python_engine(self):
         import zipfile
-        from inside_inference.model import Model, ModelArchitecture, initialize
-        from inside_inference.tokenizer import Tokenizer
-        from scripts import ROOT
-        cases=[]
-        for layers in (1,2):
-            checkpoint=initialize(ModelArchitecture(width=4,ffn=8,layers=layers,context=8),Tokenizer().manifest_sha256,seed=19)
-            ids=[0,3,42,6]
-            reference=Model(checkpoint).forward(ids)
-            cases.append(dict(checkpoint=checkpoint,ids=ids,logits=reference['logits'],nodes=reference['nodes']))
-        with tempfile.TemporaryDirectory(dir=ROOT/'out') as directory:
-            fixture=Path(directory)/'reference.json';fixture.write_text(json.dumps(cases))
-            result=subprocess.run(['node',str(ROOT/'tests/integration/decoder_reference.mjs'),str(self.site),str(fixture)],capture_output=True,text=True)
-            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
         with zipfile.ZipFile(self.site/'execution/engine.zip') as package:
-            self.assertNotIn('inside_inference/runtimes/reference.py',package.namelist())
-            self.assertNotIn('inside_inference/runtimes/inspectable.py',package.namelist())
-
+            names = set(package.namelist())
+        self.assertTrue({'inside_inference/runtimes/engine.py', 'inside_inference/runtimes/bpe.py',
+                         'inside_inference/delivery/models.py'} <= names)
+        for retired in ('inside_inference/runtimes/reference.py', 'inside_inference/runtimes/engine.c',
+                        'execution/llama/llama.wasm', 'web/execution/decoder.js'):
+            self.assertNotIn(retired, names)
+        self.assertFalse((self.site/'execution/llama').exists())
+        self.assertTrue(any(p.name.startswith('numpy-2.0.2') for p in (self.site/'execution/runtime').iterdir()))
 
 if __name__ == '__main__':
     unittest.main()

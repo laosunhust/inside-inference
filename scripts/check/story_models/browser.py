@@ -19,7 +19,7 @@ def main():
         chrome=shutil.which('google-chrome') or shutil.which('chromium')
         if not chrome:raise RuntimeError('Chrome required')
         with tempfile.TemporaryDirectory(prefix='story-browser-') as profile,(out/'chrome.log').open('w') as log:
-            process=subprocess.Popen([chrome,'--headless','--no-sandbox','--disable-gpu','--remote-debugging-port=0',f'--user-data-dir={profile}','about:blank'],stdout=log,stderr=log)
+            process=subprocess.Popen([chrome,'--headless','--no-sandbox','--disable-gpu','--remote-debugging-port=0',f'--user-data-dir={profile}','--disable-default-apps','about:blank'],stdout=log,stderr=log)
             try:
                 portfile=Path(profile)/'DevToolsActivePort'
                 for _ in range(100):

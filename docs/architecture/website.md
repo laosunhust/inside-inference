@@ -8,12 +8,11 @@ by the [data model](../../data-model/README.md).
 ## Execute in the browser
 
 The public site serves static assets and executes declared model operations in a
-Web Worker. All shipped models use one C decoder compiled to WebAssembly;
-architecture and precision select explicit operators within that engine. The same
-decoder executes the resource simulation. Python through Pyodide remains their orchestration,
-tokenization and evidence tooling, not a second browser transformer implementation.
-The independent scalar reference serves preparation and component tests and is excluded
-from the website package. There is no numerical fallback on a failed browser execution.
+Web Worker. Every operation runs in one Python engine through Pyodide: a NumPy
+decoder for all shipped models, the byte-pair and 384-ID tokenizers, and the
+resource simulation. Architecture and precision select explicit operators within
+that engine; component tests run the same code natively. There is no numerical
+fallback on a failed browser execution.
 The original [feasibility spike](../research/browser/browser-execution-spike.md) remains historical evidence.
 Broader browser/device qualification and larger simulations remain unproven.
 Remote compute is an alternative only if measured limitations or a specific lab

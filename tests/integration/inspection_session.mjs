@@ -53,25 +53,3 @@ Declarations.assertShape('GenerationPrediction',step);
 await assert.rejects(()=>ExecutionClient.create(async()=>{throw Error('transport failed');}).prepareGeneration(input),/transport failed/);
 assert.equal(await client.prepareGeneration(input,{raw:true}),JSON.stringify(prepared));
 console.log('Model-bound request, branch, stale-response and generated client checks passed.');
-
-const {resolveExecution}=await import('../../web/execution/controls.js');
-const duplicate=structuredClone(input.execution);duplicate.experiments[1]=structuredClone(duplicate.experiments[0]);
-assert.throws(()=>resolveExecution(duplicate),/Conflicting/);
-assert.throws(()=>resolveExecution({experiments:[]}),/requires exactly/);
-const {finishSelection}=await import('../../web/execution/decoder.js');
-const model={stop_ids:[1],architecture:{context:4}},base={prefix_ids:[0],output_ids:[],generation:{max_new_tokens:3}};
-assert.equal(finishSelection(base,7,model).stop,null);
-for(const [request,selected,reason] of [[{...base,generation:{max_new_tokens:1}},7,'output_budget'],[{...base,prefix_ids:[0,2,3,4]},7,'context_capacity'],[{...base,output_ids:[7]},1,'end_token']]){
- const result=finishSelection(request,selected,model);assert.equal(result.stop,reason);assert.deepEqual(result.output,[...request.output_ids,selected]);
- assert.deepEqual(result.visible,selected===1?request.output_ids:result.output);
-}
-
-// Every nonterminal ID, including byte/control IDs, continues until the budget.
-for(let id=0;id<384;id++){
- assert.equal(finishSelection(base,id,model).stop,id===1?'end_token':null);
- const atBudget={...base,output_ids:[7,7]};
- assert.equal(finishSelection(atBudget,id,model).stop,id===1?'end_token':'output_budget');
-}
-
-const partial=structuredClone(input.execution);partial.experiments.push({control:'kv_cache',value:{}});
-assert.throws(()=>resolveExecution(partial),/together/);

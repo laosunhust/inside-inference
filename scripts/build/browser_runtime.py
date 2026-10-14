@@ -36,7 +36,7 @@ def package(output, checkpoint=None, *, download=False, model_storage=None):
         seen.add(name);entry=lock['packages'][name]
         for child in entry['depends']:dependency(child)
         asset(entry['file_name'],entry['sha256'])
-    dependency('jsonschema')
+    for name in ('jsonschema','numpy'):dependency(name)
     revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     with zipfile.ZipFile(output/'execution/engine.zip','w',zipfile.ZIP_DEFLATED) as archive:
         def write(name,raw):
@@ -45,10 +45,6 @@ def package(output, checkpoint=None, *, download=False, model_storage=None):
         for path in sorted((ROOT/'inside_inference').rglob('*.py')):
             if path.name in ('reference.py','tensor_model.py'): continue
             write(path.relative_to(ROOT).as_posix(),path.read_bytes())
-        for name in ('inside_inference/runtimes/engine.c','inside_inference/runtimes/decoder.h',
-                     'web/execution/component-engine.js','web/execution/decoder.js','web/execution/observations.js'):
-            write(name,(ROOT/name).read_bytes())
-        write('execution/llama/llama.wasm',(output/'execution/llama/llama.wasm').read_bytes())
         write('data/tokenizer/vocabulary.json',(ROOT/'data/tokenizer/vocabulary.json').read_bytes())
         write('build-revision.txt',(revision+'\n').encode())
 

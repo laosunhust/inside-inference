@@ -23,15 +23,21 @@ class KVCacheTests(unittest.TestCase):
                     for x, y in zip(a, b):
                         self.assertTrue(math.isclose(x, y, abs_tol=1e-10, rel_tol=1e-9))
                 nodes = {(n['layer'],n['operation']['name']): n for n in reference['nodes']}
-                self.assertEqual(result['state'].to_dict()['keys'], [nodes[i,'key']['values'] for i in range(2)])
-                self.assertEqual(result['state'].to_dict()['values'], [nodes[i,'value']['values'] for i in range(2)])
+                for field, source in (('keys', 'key'), ('values', 'value')):
+                    for layer, rows in enumerate(result['state'].to_dict()[field]):
+                        for a, b in zip(rows, nodes[layer, source]['values'], strict=True):
+                            for x, y in zip(a, b): self.assertTrue(math.isclose(x, y, abs_tol=1e-12))
                 cached_nodes = {n['operation']['name']: n for n in result['nodes']}
                 self.assertEqual(cached_nodes['query']['positions'], list(range(end-length, end)))
-                self.assertEqual(cached_nodes['scores']['shape'], [length, end])
+                scores = [n for n in result['nodes'] if n['operation']['name'] == 'scores' and n['layer'] == 0]
+                # Each new query sees exactly its causal prefix, including reused positions.
+                self.assertEqual([(n['positions'], n['shape']) for n in scores],
+                                 [([i], [1, i + 1]) for i in range(end-length, end)])
                 self.assertEqual(cached_nodes['causal_mask']['values'],
                                  [[j <= i for j in range(end)] for i in range(end-length, end)])
                 old = state.to_dict() if state else None
                 state = result['state']
+                # Retained rows are reused, never recomputed.
                 if old: self.assertEqual([layer[:end-length] for layer in state.to_dict()['keys']], old['keys'])
 
     def test_cache_costs_count_executed_layers_and_real_payload(self):
@@ -55,9 +61,11 @@ class KVCacheTests(unittest.TestCase):
                 if name in ('query','key','value','attention_output','ff_up','ff_down','logits'):
                     inputs=nodes[node['inputs'][0]]['shape']
                     flops+=2*inputs[0]*inputs[1]*node['shape'][1]
-                elif name in ('scores','weighted_values'):
-                    left,right=(nodes[i]['shape'] for i in node['inputs'][:2])
-                    flops+=2*left[0]*left[1]*(right[0] if name=='scores' else right[1])
+                elif name=='scores':
+                    # One node per query position: a width-length dot product per visible key.
+                    flops+=2*nodes[node['inputs'][0]]['shape'][1]*node['shape'][1]
+                elif name=='weighted_values':
+                    flops+=sum(2*nodes[i]['shape'][1]*node['shape'][1] for i in node['inputs'][:-1])
             self.assertEqual(flops,work['matmul_flops'])
             before=state_bytes(KVState.from_dict(work['state_before']))
             after=state_bytes(KVState.from_dict(work['state_after']))

@@ -103,8 +103,9 @@ Current working code remains small:
 | `inside_inference/labs/kda.py` | Standalone numerical recurrence, without a trained model. |
 | `scripts/build/intro_page.py` | Build views and links from canonical definitions and catalog metadata. |
 | `inside_inference/model.py` | Checkpoint validation and the lab computation interface. |
-| `inside_inference/runtimes/engine.c` and `decoder.h` | One browser decoder algorithm, with declared architecture and scalar precision. |
-| `web/execution/decoder.js` and `observations.js` | Artifact loading, retained state, and observations of executed C values. |
+| `inside_inference/runtimes/engine.py` | One NumPy decoder for every architecture, retained K/V state, and observations of executed values. |
+| `inside_inference/runtimes/bpe.py` | Byte-pair tokenizer for the 4096-ID models, ported from pinned llama2.c. |
+| `inside_inference/delivery/models.py` | Declared model operations: catalog, verified asset loading, tokenization, generation and KV simulation. |
 | `inside_inference/cache_lab.py` | Cached computation linked to admission, retention, retrieval, and virtual resource service. |
 | `inside_inference/kv_runtime.py` | Shared-engine lab orchestration and logical residency pools. |
 | `inside_inference/tensor_model.py` | Tensor equations used only by optional checkpoint preparation. |
@@ -118,7 +119,7 @@ Current working code remains small:
 | `tests/` | Independent arithmetic checks and generated-site checks. |
 
 The `inside_inference/` package owns tokenizer, corpus, model, and generation responsibilities.
-As additional mechanisms arrive, keep their simulation and trace responsibilities explicit. Keep computation in the shared decoder and update callers together; keep
+As additional mechanisms arrive, keep their simulation and trace responsibilities explicit. Keep computation in the shared engine and update callers together; keep
 `scripts/` for entry points and site generation. Add maintained vocabulary/corpus
 assets and serialized configurations with their first consumers. Do not create
 empty packages, speculative plugin loaders, or a second computation in JavaScript

@@ -8,8 +8,8 @@ request/response declarations. [Website architecture](website.md) owns placement
 ## One browser execution path
 
 The site is static assets. Its generated client validates requests and sends them
-to a worker. All model inference uses the shared WASM decoder; Python orchestrates
-resource simulation and supplies tokenization and evidence tooling. The
+to a worker. One Python engine in that worker executes every declared operation:
+model inference, tokenization, resource simulation and evidence tooling. The
 renderer neither computes model values nor constructs transport messages. Request
 admission uses generated declarations; complete response validation belongs to the harness.
 
@@ -97,5 +97,5 @@ precision still prevent treating their timings as an isolated size comparison.
 
 The optional KV residency experiment runs from the main page using its selected
 8K weights and the same BOS-plus-text encoding and EOS termination. It does not
-load `data/model/checkpoint.bin` into the browser. The native scalar reference and
-its retained fixture remain component/preparation tools, not website execution paths.
+load `data/model/checkpoint.bin` into the browser. Recorded reference fixtures
+remain component-test oracles, not website execution paths.

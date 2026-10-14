@@ -17,7 +17,6 @@ setup: ## Install locked Python and build-tool dependencies locally.
 	@python3 -m venv .venv
 	@.venv/bin/python -m pip install -r requirements.txt
 	@npm ci --ignore-scripts
-	@$(PYTHON) -m scripts.build.model_assets.runtime --setup
 	@$(PYTHON) -m scripts.build.browser_runtime
 
 _intro-page: _governance-check _data-models-check

@@ -79,9 +79,11 @@ def main():
         (output/'cache-references.json').write_text(json.dumps(cache_fixtures,indent=2)+'\n')
         with tempfile.TemporaryDirectory(prefix='inference-browser-') as profile:
             with (output / 'chrome.log').open('w') as log:
+                # Fresh profiles otherwise install Chrome's default Drive app mid-run, which
+                # intermittently fails in-flight worker fetches before they reach the server.
                 process = subprocess.Popen([chrome, '--headless', '--no-sandbox', '--disable-gpu',
                     '--remote-debugging-port=0', f'--user-data-dir={profile}', '--no-first-run',
-                    '--no-default-browser-check', 'about:blank'], stdout=log, stderr=log)
+                    '--no-default-browser-check', '--disable-default-apps', 'about:blank'], stdout=log, stderr=log)
                 try:
                     portfile = Path(profile) / 'DevToolsActivePort'
                     for _ in range(100):

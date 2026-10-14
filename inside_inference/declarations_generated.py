@@ -4,7 +4,7 @@ from typing import Any
 from inside_inference.contract_runtime import Declaration
 
 EXECUTION_OPERATIONS = {'replayCache': {'request': 'ExecutionReplayInput', 'response': 'CacheRun'}, 'modelCatalog': {'request': None, 'response': 'ModelCatalog'}, 'loadModel': {'request': 'ModelSelection', 'response': 'ModelLoadResult'}, 'prepareGeneration': {'request': 'GenerationInput', 'response': 'GenerationPrepared'}, 'generateToken': {'request': 'GenerationStep', 'response': 'GenerationPrediction'}, 'simulateResources': {'request': 'GenerationInput', 'response': 'ResourceExecution'}}
-CONTRACT_SHA256 = '6e77882fa45ebfe66f19731b5314df65bfcfcb5919558392d45b9515766af585'
+CONTRACT_SHA256 = 'f010b7bb52f4092f8442d6995d0774dd0d41c75d5332be79a3d9e45490a8398f'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -560,7 +560,6 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'properties': {'axes': {'type': 'array',
                                                'items': {'type': 'string'}},
                                       'dtype': {'type': 'string'},
-                                      'formula': {'type': 'string'},
                                       'id': {'type': 'string'},
                                       'inputs': {'type': 'array',
                                                  'items': {'type': 'string'}},
@@ -589,7 +588,6 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                               {'$ref': '#/$defs/KVStateOperation'}]}},
                        'required': ['axes',
                                     'dtype',
-                                    'formula',
                                     'id',
                                     'inputs',
                                     'layer',
@@ -3234,7 +3232,6 @@ class TokenizerOperation(Declaration):
 class TensorObservation(Declaration):
     axes: tuple[str, ...]
     dtype: str
-    formula: str
     id: str
     inputs: tuple[str, ...]
     layer: int | None

@@ -9,7 +9,6 @@ from scripts import ROOT
 from scripts.build.structured import read_yaml
 from inside_inference.declarations_generated import ModelCatalog, ModelSources
 from inside_inference.model import Model
-from scripts.build.model_assets.runtime import build as runtime
 
 
 def describe(config, root):
@@ -59,8 +58,5 @@ def package(output, model_storage=None):
     for model in catalog['models']:
         for field in ['weights','tokenizer']:
             name=model[field]['path'];shutil.copyfile(root/name,destination/name)
-    rt=runtime()
-    destination=output/'execution/llama';destination.mkdir(parents=True,exist_ok=True)
-    for name in ['llama.mjs','llama.wasm']:shutil.copyfile(rt/name,destination/name)
-    shutil.copyfile(ROOT/'data/models/LICENSE-llama2c.txt',destination/'LICENSE.txt')
+    shutil.copyfile(ROOT/'data/models/LICENSE-llama2c.txt',destination/'LICENSE-llama2c.txt')
     return catalog

@@ -85,6 +85,19 @@ def reference(checkpoint, ids):
         return all_results
 
 
+def collect(nodes):
+    """Merge per-position attention rows; retained K/V rows are checked separately."""
+    rows = {}
+    for node in nodes:
+        name = node['operation']['name']
+        if name in ('retained_keys', 'retained_values'): continue
+        if name == 'input_ids':
+            rows[node['layer'], name] = node['values']; continue
+        for position, row in zip(node['positions'], node['values']):
+            rows.setdefault((node['layer'], name), []).append(row)
+    return rows
+
+
 class ModelTests(unittest.TestCase):
     def checkpoint(self, width=2, seed=7, layers=1):
         return initialize(ModelArchitecture(width=width, ffn=width*2,layers=layers), Tokenizer().manifest_sha256, seed)
@@ -108,9 +121,18 @@ class ModelTests(unittest.TestCase):
                     if name.endswith('_scale'): group[:] = [0.5 + i / 10 for i in range(len(group))]
             expected = reference(checkpoint, ids)
             actual = Model(checkpoint).forward(ids)
-            self.assertEqual(set(expected), {(n['layer'],n['operation']['name']) for n in actual['nodes']})
+            observed = collect(actual['nodes'])
+            # Each attention row holds visible keys only; the mask records the full key range.
+            self.assertEqual(set(expected), set(observed))
+            for (layer, name), values in observed.items():
+                reference_values = expected[layer, name]
+                if name in ('scores', 'attention'):
+                    reference_values = [row[:i + 1] for i, row in enumerate(reference_values)]
+                self.assert_values(values, reference_values)
             for node in actual['nodes']:
-                self.assert_values(node['values'], expected[node['layer'],node['operation']['name']])
+                if node['operation']['name'] in ('retained_keys', 'retained_values'):
+                    source = 'key' if node['operation']['name'] == 'retained_keys' else 'value'
+                    self.assert_values(node['values'], expected[node['layer'], source])
 
     def test_hand_calculated_uniform_attention_and_residual(self):
         checkpoint = self.checkpoint()
@@ -120,8 +142,8 @@ class ModelTests(unittest.TestCase):
         p['query'][0] = p['key'][0] = [[0., 0.], [0., 0.]]
         p['value'][0] = p['attention_output'][0] = [[1., 0.], [0., 1.]]
         p['ff_down'][0] = [[0., 0.] for _ in p['ff_down'][0]]
-        nodes = {n['operation']['name']: n['values'] for n in Model(checkpoint).forward([32, 33])['nodes']}
-        self.assertEqual(nodes['attention'], [[1., 0.], [.5, .5]])
+        nodes = {name: values for (_, name), values in collect(Model(checkpoint).forward([32, 33])['nodes']).items()}
+        self.assertEqual(nodes['attention'], [[1.], [.5, .5]])
         a = 1 / math.sqrt(1 + 1e-5)
         self.assert_values(nodes['weighted_values'], [[a, -a], [0., 0.]])
         self.assert_values(nodes['ff_residual'], [[1 + a, -1 - a], [-1., 1.]])
@@ -134,8 +156,10 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(model.forward(ids, capture=False)['nodes'], [])
         for position in range(len(ids)):
             changed = ids[:position + 1] + [383] * (len(ids) - position - 1)
+            # Same batch shape: changing later tokens cannot change earlier logits at all.
             self.assertEqual(full['logits'][:position + 1], model.forward(changed)['logits'][:position + 1])
-            self.assertEqual(full['logits'][:position + 1], model.forward(ids[:position + 1])['logits'])
+            # A shorter batch changes matrix-product summation order, not visible information.
+            self.assert_values(model.forward(ids[:position + 1])['logits'], full['logits'][:position + 1])
 
     def test_mutating_a_returned_trace_cannot_change_model_parameters(self):
         model=Model(self.checkpoint())
@@ -154,7 +178,9 @@ class ModelTests(unittest.TestCase):
         result = model.forward([32, 79], request_id='r', run_id='u', step=2)
         seen = set('parameter:' + name for name in model.parameters)
         for node in result['nodes']:
-            self.assertEqual((node['request_id'], node['run_id'], node['step'], node['positions']), ('r', 'u', 2, [0, 1]))
+            self.assertEqual((node['request_id'], node['run_id'], node['step']), ('r', 'u', 2))
+            per_query = node['operation']['name'] in ('scores', 'attention')
+            self.assertTrue(len(node['positions']) == 1 if per_query else node['positions'] == [0, 1], node['id'])
             self.assertTrue(set(node['inputs']) <= seen, node['operation']['name'])
             seen.add(node['id'])
         self.assertEqual(result['nodes'][-1]['values'], result['logits'])

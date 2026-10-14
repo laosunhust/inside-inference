@@ -108,11 +108,12 @@ def build(output, *, checkpoint=None, model_storage=None):
     data = load_catalog()
     output.mkdir(parents=True, exist_ok=True)
     (output / 'labs').mkdir(exist_ok=True)
-    for name in ('app.js', 'contract-runtime.js', 'contract-validators.generated.js', 'declarations.generated.js', 'execution/client.generated.js', 'execution/component-engine.js', 'execution/controls.js', 'execution/decoder.js', 'execution/model-service.js', 'execution/model-storage.js', 'execution/observations.js', 'execution/worker.generated.js', 'inspection/configuration.js', 'inspection/details.js', 'inspection/page.css', 'inspection/page.js', 'inspection/path.js', 'inspection/resources.js', 'inspection/session.js', 'inspection/system-map.js', 'style.css', 'theme.css'):
+    for name in ('app.js', 'contract-runtime.js', 'contract-validators.generated.js', 'declarations.generated.js', 'execution/client.generated.js', 'execution/worker.generated.js', 'inspection/configuration.js', 'inspection/details.js', 'inspection/page.css', 'inspection/page.js', 'inspection/path.js', 'inspection/resources.js', 'inspection/session.js', 'inspection/system-map.js', 'style.css', 'theme.css'):
         (output / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / 'web' / name, output / name)
     # Retired generated pages must not survive an incremental build.
-    for retired in ('inspection/page.html','kv-cache.html','cache.js','cache.css','atlas.html','request-cost.html','journey.js','model-contract.html','model-size.html','models/page.js','models/layout.css','labs/model-size-quality.html','execution/evidence-client.js','configuration-preview.js','inference.js','inspection-session.js','execution-path.js','inference.css'):
+    shutil.rmtree(output/'execution/llama', ignore_errors=True)
+    for retired in ('inspection/page.html','kv-cache.html','cache.js','cache.css','atlas.html','request-cost.html','journey.js','model-contract.html','model-size.html','models/page.js','models/layout.css','labs/model-size-quality.html','execution/evidence-client.js','configuration-preview.js','inference.js','inspection-session.js','execution-path.js','inference.css','execution/component-engine.js','execution/controls.js','execution/decoder.js','execution/model-service.js','execution/model-storage.js','execution/observations.js','execution/llama/llama.mjs','execution/llama/llama.wasm','execution/llama/LICENSE.txt'):
         (output/retired).unlink(missing_ok=True)
     terms = ontology_terms()
     visual_source = (ROOT / 'web/inspection/page.html').read_text()

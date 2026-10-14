@@ -99,8 +99,8 @@ def _validated_manifest(raw):
 
 
 class Tokenizer:
-    def __init__(self, manifest_path=MANIFEST):
-        raw = Path(manifest_path).read_bytes()
+    def __init__(self, manifest_path=MANIFEST, *, raw=None):
+        raw = Path(manifest_path).read_bytes() if raw is None else raw
         name, tokens = _validated_manifest(raw)
         self.tokens = tuple(tokens)
         self.name = name

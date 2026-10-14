@@ -7,6 +7,11 @@ globalThis.InspectionDetails=(()=>{
     headers.forEach(h=>head.append(el('th',h)));t.append(head);
     rows.forEach(row=>{const tr=el('tr');row.forEach(v=>tr.append(el('td',v)));t.append(tr);});wrap.append(t);return wrap;
   }
+  function principle(operation,architecture) {
+    // The owner's principle whose variant matches this model and binds this operation.
+    const owner=Declarations.operationOwners[operation];
+    return (Declarations.meanings[owner].principles||[]).find(p=>Object.entries(p.when).every(([k,v])=>architecture[k]===v)&&p.symbols.some(x=>x.binds.includes('operation:'+operation)))||null;
+  }
   function render(s,inspect) {
     const $=id=>document.getElementById(id),body=$('detail-body'),step=InspectionSession.computation(s),view=s.view;
     const sequence=InspectionSession.sequence(s),work=InspectionSession.work(s),selection=s.resource?step?.selection:step?{raw_logits:step.logits,probabilities:step.probabilities}:null;
@@ -24,7 +29,7 @@ globalThis.InspectionDetails=(()=>{
     $('inspection-context').dataset.observationId=node?.id || '';
     $('inspection-context').dataset.surface=view.surface;
     $('inspection-context').dataset.position=view.position;
-    $('inspection-context').textContent=node?node.formula:'';
+    $('inspection-context').textContent=node?principle(node.operation.name,s.loaded.model.architecture)?.equation||'':'';
     const pieces=s.loaded?.token_pieces || [];
     const piece=id=>(pieces[id] || '').replaceAll(' ','␠');
     const executed=s.resource?step.state_after.token_ids:step?[...step.request.prefix_ids,...step.request.output_ids]:s.prepared?.prompt_ids||[];
@@ -93,5 +98,5 @@ globalThis.InspectionDetails=(()=>{
       body.append(json(s.resource?s.resource.run.outcomes[step.request_id]:{output_ids:step?.output_ids || [],stop_reason:step?.stop_reason || null}));
     } else if(!stage)body.append(el('p',meaning?.meaning || 'No observation yet.'));
   }
-  return {render,table};
+  return {render,table,principle};
 })();

@@ -16,9 +16,8 @@ class ExecutionBoundaryTests(unittest.TestCase):
         for source in ('fetch(url)','new Worker(url)','Declarations.routes.run','ExecutionClient.http("run",{})'):
             self.assertTrue(check_source(Path('web/inference.js'),source))
         self.assertFalse(check_source(Path('web/inference.js'),'Execution.prepareGeneration(input)'))
-        self.assertFalse(check_source(Path('web/execution/model-storage.js'),'fetch(url)'))
-        self.assertTrue(check_source(Path('web/execution/model-service.js'),'fetch(url)'))
-        self.assertTrue(check_source(Path('web/execution/model-storage.js'),'new Worker(url)'))
+        # Asset reads moved into the Python service; no web module may fetch.
+        self.assertTrue(check_source(Path('web/execution/model-storage.js'),'fetch(url)'))
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory)
             generated={name:(ROOT/name).read_text() for name in (RUNTIMES,CLIENT,WORKER)}
@@ -30,12 +29,17 @@ class ExecutionBoundaryTests(unittest.TestCase):
                 (root/name).write_text(generated[name]+'\n// drift\n')
                 self.assertTrue(audit_http(root,[],generated))
                 (root/name).write_text(generated[name])
-            without_engine=dict(generated);without_engine[WORKER]=generated[WORKER].replace('await installComponentEngine();','')
-            (root/WORKER).write_text(without_engine[WORKER])
-            self.assertTrue(any('shared numerical engine' in e for e in audit_http(root,[],without_engine)))
+            bypass=generated[WORKER].replace("import {loadPyodide}","import {executeModelOperation} from './model-service.js';\nimport {loadPyodide}")
+            for worker in (generated[WORKER].replace('await execute_json(operation_name, operation_input)','execute(operation_name)'), bypass):
+                changed=dict(generated);changed[WORKER]=worker
+                (root/WORKER).write_text(worker)
+                self.assertTrue(any('shared Python service' in e for e in audit_http(root,[],changed)))
             (root/WORKER).write_text(generated[WORKER])
-            for name in ('cuda_runtime.py','workload.py','declarations.py','delivery/store.py','delivery/codec.py'):
-                retired=root/'inside_inference'/name;retired.parent.mkdir(parents=True,exist_ok=True)
+            for name in ('inside_inference/cuda_runtime.py','inside_inference/workload.py','inside_inference/declarations.py',
+                         'inside_inference/delivery/store.py','inside_inference/delivery/codec.py',
+                         'inside_inference/runtimes/engine.c','inside_inference/runtimes/reference.py',
+                         'web/execution/decoder.js','web/execution/model-service.js','scripts/build/model_assets/runtime.py'):
+                retired=root/name;retired.parent.mkdir(parents=True,exist_ok=True)
                 retired.write_text('')
                 self.assertTrue(any(str(retired.relative_to(root)) in error for error in audit_http(root,[],generated)))
                 retired.unlink()

@@ -1,10 +1,8 @@
 // Generated; DO NOT EDIT.
-import {installComponentEngine} from './component-engine.js';
-import {executeModelOperation,handlesModelOperation} from './model-service.js';
 import {loadPyodide} from './runtime/pyodide.mjs';
 const ready=(async()=>{
   const py=await loadPyodide({indexURL:new URL('./runtime/',import.meta.url).href});
-  await py.loadPackage('jsonschema');
+  await py.loadPackage(['jsonschema','numpy']);
   const response=await fetch(new URL('./engine.zip',import.meta.url));
   if(!response.ok)throw Error('Engine package unavailable');
   py.unpackArchive(await response.arrayBuffer(),'zip',{extractDir:'/project'});
@@ -19,14 +17,7 @@ onmessage=({data,ports})=>{
       const py=await ready;
       py.globals.set('operation_name',data.operation);
       py.globals.set('operation_input',data.input);
-      let json;
-      if(handlesModelOperation(data.operation)) {
-        await py.runPythonAsync('from inside_inference.delivery.service import validate_operation_input; validate_operation_input(operation_name, operation_input)');
-        json=JSON.stringify(await executeModelOperation(data.operation,JSON.parse(data.input),py));
-      } else {
-        await installComponentEngine();
-        json=await py.runPythonAsync('execute_json(operation_name, operation_input)');
-      }
+      const json=await py.runPythonAsync('await execute_json(operation_name, operation_input)');
       port.postMessage({json});
     } catch(error) {port.postMessage({error:String(error)});}
     finally {port.close();}
