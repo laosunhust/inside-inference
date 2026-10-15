@@ -1,0 +1,17 @@
+[
+  {
+    "context": 8,
+    "elapsed_seconds": 18.753169824,
+    "pairs": 8
+  },
+  {
+    "context": 32,
+    "elapsed_seconds": 50.915821047,
+    "pairs": 8
+  },
+  {
+    "context": 96,
+    "elapsed_seconds": 132.95440545600002,
+    "pairs": 8
+  }
+]

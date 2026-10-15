@@ -1,128 +1,223 @@
 experiments:
 - id: reference-execution
   name: Reference model execution
-  question: What happens to actual intermediate values, and to next-token scores, when one input changes while the vocabulary and parameters stay fixed?
+  question: What happens to actual intermediate values, and to next-token scores, when one input changes while the
+    vocabulary and parameters stay fixed?
   ontology_binding:
     primary: ModelExecution
-    related: [Tokenizer, Embedding, PositionEncoding, Normalization, Attention, ResidualAddition, FeedForward, OutputProjection, Decoding, ModelArchitecture, ModelArtifact]
-  settings:
-  - control: model
-    value: tinyllm-8k
-    ontology_binding: {primary: ModelArtifact, related: []}
-  - control: kv_reuse
-    value: false
-    ontology_binding: {primary: KVCache, related: [ModelExecution]}
+    related:
+    - Tokenizer
+    - Embedding
+    - PositionEncoding
+    - Normalization
+    - Attention
+    - ResidualAddition
+    - FeedForward
+    - OutputProjection
+    - Decoding
+    - ModelArchitecture
+    - ModelArtifact
   missing_controls: []
   contract:
-    target_regime: One decoder-only causal Transformer executed by the shared NumPy engine; the 8K checkpoint exposes every intermediate tensor, the 0.5M and 4M checkpoints expose logits.
-    preserved: Token IDs, embeddings and positions, normalization, causal attention, residuals, feed-forward activation, output projection and unmasked greedy selection over every vocabulary ID, with the declared stop conditions. Every continuation recomputes the prefix when KV reuse is off.
-    omissions: No scheduler, network, cache tiers, accelerator or training process. Host timings are not simulated device latency.
-    evidence_plan: Compare every intermediate tensor with independent 50-digit Decimal equations, upstream exported logits and recorded fixtures; check causal counterfactuals, context boundaries, trace on/off equality and hand recomputation of displayed values.
-    limits: Correct tiny arithmetic supports inspection of this architecture, not learned quality or production performance. Width, scale and inputs change attention patterns, creating false-positive and false-negative risks for judging optimizations.
+    target_regime: One decoder-only causal Transformer executed by the shared NumPy engine; the 8K checkpoint exposes
+      every intermediate tensor, the 0.5M and 4M checkpoints expose logits.
+    preserved: Token IDs, embeddings and positions, normalization, causal attention, residuals, feed-forward activation,
+      output projection and unmasked greedy selection over every vocabulary ID, with the declared stop conditions.
+      Every continuation recomputes the prefix when KV reuse is off.
+    omissions: No scheduler, network, cache tiers, accelerator or training process. Host timings are not simulated
+      device latency.
+    evidence_plan: Compare every intermediate tensor with independent 50-digit Decimal equations, upstream exported
+      logits and recorded fixtures; check causal counterfactuals, context boundaries, trace on/off equality and
+      hand recomputation of displayed values.
+    limits: Correct tiny arithmetic supports inspection of this architecture, not learned quality or production
+      performance. Width, scale and inputs change attention patterns, creating false-positive and false-negative
+      risks for judging optimizations.
   sources: []
   evidence:
   - governance/evaluations/results/2026-10/13/first-principles/python-engine.yaml
   - governance/evaluations/results/2026-10/13/first-principles/panel.yaml
+  variants:
+  - label: Configure reference model
+    input:
+      execution:
+        experiments:
+        - control: model
+          value: tinyllm-8k
+          ontology_binding:
+            primary: ModelArtifact
+            related: []
+        - control: kv_reuse
+          value: false
+          ontology_binding:
+            primary: KVCache
+            related:
+            - ModelExecution
+      workload:
+        kind: fixed-arrivals
+        requests:
+        - request_id: r1
+          arrival_us: 0
+          request:
+            text: the cat was
+            generation:
+              max_new_tokens: 32
+              selection: greedy-lowest-id-tie
+              stopping: model-end-or-budget
 - id: kv-residency
   name: KV reuse, residency and misses
-  question: When an exact reusable prefix is present, absent or retained in another memory tier under bounded capacity, when do lookup and transfer cost exceed the avoided prefill work?
+  question: When an exact reusable prefix is present, absent or retained in another memory tier under bounded capacity,
+    when do lookup and transfer cost exceed the avoided prefill work?
   ontology_binding:
     primary: KVCache
-    related: [KVState, RequestScheduling, StateTransfer, ComputeService]
-  settings:
-  - control: model
-    value: tinyllm-8k
-    ontology_binding: {primary: ModelArtifact, related: []}
-  - control: kv_reuse
-    value: true
-    ontology_binding: {primary: KVCache, related: [ModelExecution]}
-  - control: kv_cache
-    value: {device_kv_bytes: 16384, host_kv_bytes: 32768, retention_policy: whole-prefix-lru}
-    ontology_binding: {primary: KVCache, related: [KVState]}
-  - control: scheduling
-    value: {max_active_requests: 2}
-    ontology_binding: {primary: RequestScheduling, related: []}
-  - control: transfer
-    value: {link_bytes_per_us: 100, link_latency_us: 10}
-    ontology_binding: {primary: StateTransfer, related: [KVState]}
-  - control: compute_service
-    value: {compute_flops_per_us: 1000, memory_bytes_per_us: 1000}
-    ontology_binding: {primary: ComputeService, related: []}
+    related:
+    - KVState
+    - RequestScheduling
+    - StateTransfer
+    - ComputeService
   missing_controls: []
   contract:
-    target_regime: Exact whole-prefix reuse for the 8K checkpoint in two logical memory pools, with FIFO admission of full maximum-sequence reservations and one serialized service resource.
-    preserved: Actual computed K/V, checkpoint and tokenizer identity, causal positions, raw-logit selection and termination. A hit still executes a real forward step; logical hit, local hit, remote hit and miss stay distinct, and active state is never silently evicted.
-    omissions: No partial-prefix paging, batching, compute/transfer overlap, preemption or network fabric. Compute service is max(FLOPs / compute rate, logical bytes / memory rate); transfer is latency plus bytes over link rate. Weights and workspace sit outside the KV budget.
-    evidence_plan: Compare cached and uncached execution; reject identity, mask, position and context mismatches; cover cold, warm, changed-prefix and eviction cases, resource conservation, backpressure, exact logical replay and browser headless/interactive parity.
-    limits: Declared service rates are hypotheses for controlled sensitivity, not a calibrated accelerator model. Browser wall time is not HBM, PCIe or GPU timing, and screening real hardware needs calibration.
+    target_regime: Exact whole-prefix reuse for the 8K checkpoint in two logical memory pools, with FIFO admission
+      of full maximum-sequence reservations and one serialized service resource.
+    preserved: Actual computed K/V, checkpoint and tokenizer identity, causal positions, raw-logit selection and
+      termination. A hit still executes a real forward step; logical hit, local hit, remote hit and miss stay distinct,
+      and active state is never silently evicted.
+    omissions: No partial-prefix paging, batching, compute/transfer overlap, preemption or network fabric. Compute
+      service is max(FLOPs / compute rate, logical bytes / memory rate); transfer is latency plus bytes over link
+      rate. Weights and workspace sit outside the KV budget.
+    evidence_plan: Compare cached and uncached execution; reject identity, mask, position and context mismatches;
+      cover cold, warm, changed-prefix and eviction cases, resource conservation, backpressure, exact logical replay
+      and browser headless/interactive parity.
+    limits: Declared service rates are hypotheses for controlled sensitivity, not a calibrated accelerator model.
+      Browser wall time is not HBM, PCIe or GPU timing, and screening real hardware needs calibration.
   sources: []
   evidence:
   - docs/research/kv-residency-2026-10-09.md
+  variants:
+  - label: Configure residency simulation
+    input:
+      execution:
+        experiments:
+        - control: model
+          value: tinyllm-8k
+          ontology_binding:
+            primary: ModelArtifact
+            related: []
+        - control: kv_reuse
+          value: true
+          ontology_binding:
+            primary: KVCache
+            related:
+            - ModelExecution
+        - control: kv_cache
+          value:
+            device_kv_bytes: 16384
+            host_kv_bytes: 32768
+            retention_policy: whole-prefix-lru
+          ontology_binding:
+            primary: KVCache
+            related:
+            - KVState
+        - control: scheduling
+          value:
+            max_active_requests: 2
+          ontology_binding:
+            primary: RequestScheduling
+            related: []
+        - control: transfer
+          value:
+            link_bytes_per_us: 100
+            link_latency_us: 10
+          ontology_binding:
+            primary: StateTransfer
+            related:
+            - KVState
+        - control: compute_service
+          value:
+            compute_flops_per_us: 1000
+            memory_bytes_per_us: 1000
+          ontology_binding:
+            primary: ComputeService
+            related: []
+      workload:
+        kind: fixed-arrivals
+        requests:
+        - request_id: r1
+          arrival_us: 0
+          request:
+            text: the cat was
+            generation:
+              max_new_tokens: 16
+              selection: greedy-lowest-id-tie
+              stopping: model-end-or-budget
 - id: prefill-decode
   name: Prefill/decode KV handoff
-  question: Does continuation after a lossless KV handoff across a declared logical boundary produce the same logits as uninterrupted execution?
+  question: Does continuation after a lossless KV handoff across a declared logical boundary produce the same logits
+    as uninterrupted execution?
   ontology_binding:
     primary: StateTransfer
-    related: [KVState, ModelExecution]
-  settings:
-  - control: model
-    value: tinyllm-8k
-    ontology_binding: {primary: ModelArtifact, related: []}
-  - control: kv_reuse
-    value: true
-    ontology_binding: {primary: KVCache, related: [ModelExecution]}
-  missing_controls: [execution_placement, state_handoff]
+    related:
+    - KVState
+    - ModelExecution
+  missing_controls:
+  - execution_placement
+  - state_handoff
   contract:
-    target_regime: Two declared execution locations for one model, with exported and imported KV state between prefill and decode.
+    target_regime: Two declared execution locations for one model, with exported and imported KV state between prefill
+      and decode.
     preserved: Exact K/V payload, positions, checkpoint and tokenizer identity, and the continuation's logits.
     omissions: No placement optimizer, real fabric, vendor format conversion or full disaggregated serving.
-    evidence_plan: Compare continuation logits after handoff with uninterrupted execution; reject incompatible identity, precision or positions.
+    evidence_plan: Compare continuation logits after handoff with uninterrupted execution; reject incompatible identity,
+      precision or positions.
     limits: Lossless logical handoff only; movement cost needs the resource model and real measurements.
   sources: []
   evidence: []
+  variants: []
 - id: speculative-decoding
   name: Speculative decoding
-  question: What happens when the first candidate is rejected, every candidate is accepted, or draft overhead exceeds the saved target work?
+  question: What happens when the first candidate is rejected, every candidate is accepted, or draft overhead exceeds
+    the saved target work?
   ontology_binding:
     primary: Decoding
-    related: [ModelExecution, KVState]
-  settings:
-  - control: model
-    value: tinyllm-4m
-    ontology_binding: {primary: ModelArtifact, related: []}
-  - control: kv_reuse
-    value: true
-    ontology_binding: {primary: KVCache, related: [ModelExecution]}
-  missing_controls: [draft_model, speculation]
+    related:
+    - ModelExecution
+    - KVState
+  missing_controls:
+  - draft_model
+  - speculation
   contract:
-    target_regime: A smaller draft proposes tokens that the target verifies under greedy decoding, with fixed target weights, tokenizer, prompt and output policy.
-    preserved: Exact agreement with target-only greedy output; proposals, verification, acceptance and rollback as distinct events; rejected work still counts as operations and bytes.
-    omissions: Distribution-preserving sampling is a separate experiment. No accelerator speedup prediction from browser timings.
-    evidence_plan: Compare with target-only greedy decoding, including a deliberately poor draft, first-token rejection, full acceptance, terminal tokens and budget and context boundaries.
+    target_regime: A smaller draft proposes tokens that the target verifies under greedy decoding, with fixed target
+      weights, tokenizer, prompt and output policy.
+    preserved: Exact agreement with target-only greedy output; proposals, verification, acceptance and rollback
+      as distinct events; rejected work still counts as operations and bytes.
+    omissions: Distribution-preserving sampling is a separate experiment. No accelerator speedup prediction from
+      browser timings.
+    evidence_plan: Compare with target-only greedy decoding, including a deliberately poor draft, first-token rejection,
+      full acceptance, terminal tokens and budget and context boundaries.
     limits: Acceptance rate alone is not a performance result; serial execution can hide efficient parallel verification.
   sources:
   - title: Fast Inference from Transformers via Speculative Decoding, ICML 2023
     url: https://proceedings.mlr.press/v202/leviathan23a.html
   evidence: []
+  variants: []
 - id: positional-encoding
   name: Positional encoding
   question: What happens if the same token appears at a different position, under each declared position mechanism?
   ontology_binding:
     primary: PositionEncoding
-    related: [Embedding, Attention]
-  settings:
-  - control: model
-    value: tinyllm-8k
-    ontology_binding: {primary: ModelArtifact, related: []}
-  - control: kv_reuse
-    value: false
-    ontology_binding: {primary: KVCache, related: [ModelExecution]}
-  missing_controls: [position_encoding]
+    related:
+    - Embedding
+    - Attention
+  missing_controls:
+  - position_encoding
   contract:
-    target_regime: Learned absolute positions (8K) and rotary positions (0.5M and 4M) as executed; alternatives on fixed weights need compatible training.
-    preserved: Where position enters the computation, as stated by the learned-absolute-position and rotary-position principles.
-    omissions: Comparing different checkpoints confounds position with every other trained difference; ALiBi is not implemented.
-    evidence_plan: Matched-training comparisons with position as the only intervention, plus counterfactual token placement.
+    target_regime: Learned absolute positions (8K) and rotary positions (0.5M and 4M) as executed; alternatives
+      on fixed weights need compatible training.
+    preserved: Where position enters the computation, as stated by the learned-absolute-position and rotary-position
+      principles.
+    omissions: Comparing different checkpoints confounds position with every other trained difference; ALiBi is
+      not implemented.
+    evidence_plan: Matched-training comparisons with position as the only intervention, plus counterfactual token
+      placement.
     limits: Not a hot swap or quality comparison until matched checkpoints exist.
   sources:
   - title: Attention Is All You Need
@@ -132,26 +227,113 @@ experiments:
   - title: ALiBi
     url: https://arxiv.org/abs/2108.12409
   evidence: []
+  variants: []
 - id: constrained-fleet
   name: Constrained heterogeneous fleet
-  question: When a model and workload must be served from a fixed mixed fleet that no single homogeneous island can host, what is feasible, what fails first, how does service degrade under failure, and which additions would meet requirements?
+  question: When a model and workload must be served from a fixed mixed fleet that no single homogeneous island
+    can host, what is feasible, what fails first, how does service degrade under failure, and which additions would
+    meet requirements?
   ontology_binding:
     primary: InferenceSystem
-    related: [ResourcePool, StateTransfer, RequestScheduling, KVCache, ComputeService]
-  settings:
-  - control: model
-    value: tinyllm-4m
-    ontology_binding: {primary: ModelArtifact, related: []}
-  - control: kv_reuse
-    value: true
-    ontology_binding: {primary: KVCache, related: [ModelExecution]}
-  missing_controls: [hardware_pool, network_topology, service_requirements, execution_placement, tensor_parallelism, expert_placement]
+    related:
+    - ResourcePool
+    - StateTransfer
+    - RequestScheduling
+    - KVCache
+    - ComputeService
+  missing_controls:
+  - hardware_pool
+  - network_topology
+  - service_requirements
+  - execution_placement
+  - tensor_parallelism
+  - expert_placement
   contract:
-    target_regime: A composite over InferenceSystem combining a declared fleet graph, model structure, workload, requirements and constraints; see docs/labs/constrained-fleet.md.
-    preserved: The closed loop from batch size to expert selection, residency, transfers, step time and queueing; every link is actual computation or a declared assumption.
-    omissions: Real routing distributions come from the real model, not the tiny checkpoints; numbers in the narrative are illustrative arithmetic.
-    evidence_plan: Bounds screening against stated requirements, sensitivity to uncertain inputs, and comparison of shortlisted candidates with real-hardware measurements.
+    target_regime: A composite over InferenceSystem combining a declared fleet graph, model structure, workload,
+      requirements and constraints; see docs/labs/constrained-fleet.md.
+    preserved: The closed loop from batch size to expert selection, residency, transfers, step time and queueing;
+      every link is actual computation or a declared assumption.
+    omissions: Real routing distributions come from the real model, not the tiny checkpoints; numbers in the narrative
+      are illustrative arithmetic.
+    evidence_plan: Bounds screening against stated requirements, sensitivity to uncertain inputs, and comparison
+      of shortlisted candidates with real-hardware measurements.
     limits: A screening result supports a real-hardware trial, not production adoption or procurement.
   sources: []
   evidence:
   - docs/labs/constrained-fleet.md
+  variants: []
+- id: kv-browser-timing
+  name: KV reuse
+  question: How does retaining earlier token positions change the work and latency of generating the next token?
+  ontology_binding:
+    primary: KVCache
+    related:
+    - ModelExecution
+  missing_controls: []
+  contract:
+    target_regime: Single interactive browser runs of the 4M NumPy decoder with identical prompt and token limit.
+      Configure either variant, then use Generate or Next Token in Interaction.
+    preserved: Identical model, input, greedy selection and stop conditions. Both variants start with a cold prompt
+      prefix; incremental reuse becomes observable after the first token.
+    omissions: No GPU, concurrent serving, preloaded prompt cache or automatic paired benchmark.
+    evidence_plan: Inspect actual computed and reused positions per token and separately scoped decoder, service
+      and browser durations. Retained headless pilot evidence uses its own fixed protocol and is not an interactive-panel
+      measurement.
+    limits: Single-run timing is noisy and does not establish a production speedup. Equal output tokens are expected;
+      reduced computed work demonstrates the reuse mechanism.
+  sources: []
+  evidence:
+  - governance/evaluations/results/2026-10/14/performance/kv-timing-pilot.yaml
+  variants:
+  - label: Configure without KV reuse
+    input:
+      execution:
+        experiments:
+        - control: model
+          value: tinyllm-4m
+          ontology_binding:
+            primary: ModelArtifact
+            related: []
+        - control: kv_reuse
+          value: false
+          ontology_binding:
+            primary: KVCache
+            related:
+            - ModelExecution
+      workload:
+        kind: fixed-arrivals
+        requests:
+        - request_id: r1
+          arrival_us: 0
+          request:
+            text: Once upon a time, there was a little dog.
+            generation:
+              max_new_tokens: 32
+              selection: greedy-lowest-id-tie
+              stopping: model-end-or-budget
+  - label: Configure with KV reuse
+    input:
+      execution:
+        experiments:
+        - control: model
+          value: tinyllm-4m
+          ontology_binding:
+            primary: ModelArtifact
+            related: []
+        - control: kv_reuse
+          value: true
+          ontology_binding:
+            primary: KVCache
+            related:
+            - ModelExecution
+      workload:
+        kind: fixed-arrivals
+        requests:
+        - request_id: r1
+          arrival_us: 0
+          request:
+            text: Once upon a time, there was a little dog.
+            generation:
+              max_new_tokens: 32
+              selection: greedy-lowest-id-tie
+              stopping: model-end-or-budget

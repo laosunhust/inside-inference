@@ -1,0 +1,275 @@
+{
+  "status": "completed",
+  "input": {
+    "workload": {
+      "requests": [
+        {
+          "request_id": "r1",
+          "arrival_us": 0,
+          "request": {
+            "text": "Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. ",
+            "generation": {
+              "max_new_tokens": 8,
+              "selection": "greedy-lowest-id-tie",
+              "stopping": "model-end-or-budget"
+            }
+          }
+        }
+      ],
+      "kind": "fixed-arrivals"
+    },
+    "execution": {
+      "experiments": [
+        {
+          "control": "model",
+          "value": "tinyllm-4m",
+          "ontology_binding": {
+            "primary": "ModelArtifact",
+            "related": []
+          }
+        },
+        {
+          "control": "kv_reuse",
+          "value": true,
+          "ontology_binding": {
+            "primary": "KVCache",
+            "related": [
+              "ModelExecution"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "request": {
+    "execution": {
+      "experiments": [
+        {
+          "control": "model",
+          "value": "tinyllm-4m",
+          "ontology_binding": {
+            "primary": "ModelArtifact",
+            "related": []
+          }
+        },
+        {
+          "control": "kv_reuse",
+          "value": true,
+          "ontology_binding": {
+            "primary": "KVCache",
+            "related": [
+              "ModelExecution"
+            ]
+          }
+        }
+      ]
+    },
+    "prefix_ids": [
+      1,
+      432,
+      440,
+      261,
+      404,
+      4045,
+      406,
+      286
+    ],
+    "output_ids": [],
+    "generation": {
+      "max_new_tokens": 8,
+      "selection": "greedy-lowest-id-tie",
+      "stopping": "model-end-or-budget"
+    }
+  },
+  "timing": {
+    "clock": "browser-monotonic-ms",
+    "samples": [
+      {
+        "prediction_id": "7a62497d694dd73c669850e358f585f2156dfdbed0d01cd050e8c4bbb2cb9626",
+        "token_index": 1,
+        "mode": "continuous",
+        "started_ms": 14698.10000000149,
+        "segment": 1,
+        "dispatched_ms": 14698.10000000149,
+        "updated_ms": 14857.10000000149,
+        "publishes_text": true,
+        "context_length": 8,
+        "selected_id": 261,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 68304896,
+          "processed_positions": 8,
+          "reused_positions": 0
+        },
+        "decoder_ms": 143.70000099999913,
+        "service_ms": 145.50000000000017
+      },
+      {
+        "prediction_id": "5bc5183c08427b6e707f8d0ef5155334a457505a7166f350777deb968469d16b",
+        "token_index": 2,
+        "mode": "continuous",
+        "started_ms": 14698.10000000149,
+        "segment": 1,
+        "dispatched_ms": 14857.10000000149,
+        "updated_ms": 14892.5,
+        "publishes_text": true,
+        "context_length": 9,
+        "selected_id": 394,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 8556544,
+          "processed_positions": 1,
+          "reused_positions": 8
+        },
+        "decoder_ms": 19.600000000000506,
+        "service_ms": 21.49999999999963
+      },
+      {
+        "prediction_id": "8d53a5928fb0b00f574b484993f8637718d614a91591494b446e5bb925da3ed8",
+        "token_index": 3,
+        "mode": "continuous",
+        "started_ms": 14698.10000000149,
+        "segment": 1,
+        "dispatched_ms": 14892.5,
+        "updated_ms": 14927.400000002235,
+        "publishes_text": true,
+        "context_length": 10,
+        "selected_id": 477,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 8560640,
+          "processed_positions": 1,
+          "reused_positions": 9
+        },
+        "decoder_ms": 19.899998999999724,
+        "service_ms": 21.69999899999908
+      },
+      {
+        "prediction_id": "3e4f67dadc0cf6c3a82f497cb559631d53e4bdadf0d52c6fa946571c4cfc8e16",
+        "token_index": 4,
+        "mode": "continuous",
+        "started_ms": 14698.10000000149,
+        "segment": 1,
+        "dispatched_ms": 14927.5,
+        "updated_ms": 14962.800000000745,
+        "publishes_text": true,
+        "context_length": 11,
+        "selected_id": 407,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 8564736,
+          "processed_positions": 1,
+          "reused_positions": 10
+        },
+        "decoder_ms": 20.099998999999258,
+        "service_ms": 21.999999999998465
+      },
+      {
+        "prediction_id": "b913f5a65be229ad6db271343ad0cb9038a8da2cb82915130a26212c81779b28",
+        "token_index": 5,
+        "mode": "continuous",
+        "started_ms": 14698.10000000149,
+        "segment": 1,
+        "dispatched_ms": 14962.900000002235,
+        "updated_ms": 14998.70000000298,
+        "publishes_text": true,
+        "context_length": 12,
+        "selected_id": 383,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 8568832,
+          "processed_positions": 1,
+          "reused_positions": 11
+        },
+        "decoder_ms": 19.899998999999724,
+        "service_ms": 21.69999899999908
+      },
+      {
+        "prediction_id": "d51c3a406b2dbb8bba0fdb50aec98844677415517c6ebaba408dbf6c1093f6ab",
+        "token_index": 6,
+        "mode": "continuous",
+        "started_ms": 14698.10000000149,
+        "segment": 1,
+        "dispatched_ms": 14998.800000000745,
+        "updated_ms": 15035.300000000745,
+        "publishes_text": true,
+        "context_length": 13,
+        "selected_id": 4037,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 8572928,
+          "processed_positions": 1,
+          "reused_positions": 12
+        },
+        "decoder_ms": 20.1000010000012,
+        "service_ms": 21.900000000000475
+      },
+      {
+        "prediction_id": "e5c810281bddab344ddf9add4031c3cb4f94c22c285b8df0efb08e08a014dfc9",
+        "token_index": 7,
+        "mode": "continuous",
+        "started_ms": 14698.10000000149,
+        "segment": 1,
+        "dispatched_ms": 15035.400000002235,
+        "updated_ms": 15071.10000000149,
+        "publishes_text": true,
+        "context_length": 14,
+        "selected_id": 341,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 8577024,
+          "processed_positions": 1,
+          "reused_positions": 13
+        },
+        "decoder_ms": 20.20000099999919,
+        "service_ms": 22.00000000000024
+      },
+      {
+        "prediction_id": "e0dc9e01cd5e1a1eaa722648738ccf863b9bd6a44bf321bc23ed2f6546324465",
+        "token_index": 8,
+        "mode": "continuous",
+        "started_ms": 14698.10000000149,
+        "segment": 1,
+        "dispatched_ms": 15071.20000000298,
+        "updated_ms": 15106,
+        "publishes_text": true,
+        "context_length": 15,
+        "selected_id": 507,
+        "stop_reason": "output_budget",
+        "work": {
+          "matmul_flops": 8581120,
+          "processed_positions": 1,
+          "reused_positions": 14
+        },
+        "decoder_ms": 19.600000000000506,
+        "service_ms": 21.399999999999864
+      }
+    ],
+    "observers": []
+  },
+  "visibility": [
+    "visible",
+    "visible",
+    "visible",
+    "visible",
+    "visible",
+    "visible",
+    "visible",
+    "visible"
+  ],
+  "stop_reason": "output_budget",
+  "pair_order": [
+    "off",
+    "on"
+  ],
+  "context": 8,
+  "mode": "on",
+  "warmup": false,
+  "logits": {
+    "file": "on-logits.bin",
+    "dtype": "little-endian-binary32",
+    "rows": 8,
+    "columns": 4096,
+    "sha256": "c28f46977265a9b01b21d319eb7c4c27a309ec1c8a6c18b9183b492a70d900ed"
+  }
+}

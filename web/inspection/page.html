@@ -13,12 +13,14 @@
 <dialog id="client-dialog" aria-labelledby="client-dialog-title"><div class="panel-heading"><h2 id="client-dialog-title">Output · Client</h2><button type="button" class="dialog-close" aria-label="Close client configuration">Done</button></div><div id="configure-client" class="configuration-fields"></div></dialog>
 </section>
 <section id="data-plane" class="pass-panel" aria-label="Interaction">
-<h2>Interaction</h2>
+<h2 id="interaction-title" tabindex="-1">Interaction</h2>
+<p id="interaction-configuration" role="status"></p>
+<details id="interaction-settings"><summary>Input and system settings</summary><div id="interaction-settings-values"></div></details>
 <div class="interaction-layout"><div class="interaction-functional">
 <div id="workload-boundary">
 <div class="request-preview"><small id="source-label">Input</small> <strong id="request-preview"></strong><span class="request-actions"><button id="edit-input" type="button" aria-expanded="false" aria-controls="inference-form">Edit</button></span></div>
 <form id="inference-form" class="source-editor" hidden><div class="configuration-fields"><fieldset><legend>Model</legend><label for="model-choice">Checkpoint</label><select id="model-choice" disabled></select><p id="model-loading" role="status"></p><button id="retry-model" type="button" hidden>Retry loading</button><details><summary>Model details</summary><div id="active-model-details"></div></details></fieldset></div><div id="request-fields"><label for="prompt">Input<textarea id="prompt" rows="2"></textarea></label><label for="output-budget">Maximum new tokens<input id="output-budget" type="number"></label></div>
-<div id="resource-requests" class="configuration-fields" hidden></div><button id="add-request" type="button" hidden>Add request</button><div class="configuration-actions"><button id="execute" class="primary" disabled>Apply</button>
+<div id="resource-requests" class="configuration-fields" hidden></div><button id="add-request" type="button" hidden>Add request</button><div class="configuration-actions"><button id="execute" class="primary" disabled>Prepare input</button>
 </div>
 <p id="run-error" role="alert" hidden></p></form></div>
 <div id="client-boundary" class="request-preview"><small>Output</small><strong id="response-preview"></strong><span class="request-actions"><button id="reset" type="button" disabled>Reset</button><button id="output-details" type="button" data-entity="response" data-term="Response" aria-expanded="false" aria-controls="sequence-details">Details</button></span></div>
@@ -27,11 +29,12 @@
 </div>
 <aside id="interaction-performance" aria-labelledby="performance-title">
 <h3 id="performance-title">Performance</h3>
-<p id="timing-simulation" class="muted" hidden>Simulation uses a virtual clock. See the resource timeline below.</p>
+<p id="timing-simulation" class="muted" hidden></p>
 <div id="timing-measurements">
 <p class="timing-source">Measured in this browser</p>
 <dl class="timing-summary"><div><dt>Time to first token</dt><dd id="timing-ttft">—</dd></div><div><dt>Generated tokens</dt><dd id="timing-count">0</dd></div></dl>
 <p id="timing-step" hidden></p>
+<p id="timing-work" hidden></p>
 <h4>Inter-token latency</h4>
 <svg id="latency-chart" viewBox="0 0 320 164" role="img" aria-label="Chronological inter-token latency" hidden></svg>
 <p id="latency-empty" class="muted">Use Generate to measure token spacing.</p>

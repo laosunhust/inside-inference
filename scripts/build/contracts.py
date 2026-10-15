@@ -70,7 +70,7 @@ CATALOG = 'data/experiments/catalog.yaml'
 
 
 def experiment_catalog(root, ontology, spec, *, catalog=None):
-    """Admit declared experiments; composition of executable settings is tested with the execution rule."""
+    """Admit experiments and their complete configurations through the owning schemas."""
     from jsonschema import Draft202012Validator
     import difflib
     data = read_yaml(root/CATALOG) if catalog is None else catalog
@@ -87,16 +87,14 @@ def experiment_catalog(root, ontology, spec, *, catalog=None):
     if errors:
         error = errors[0]
         raise ValueError(f'{CATALOG}{error.json_path[1:]}: {error.message}')
-    declared = {d['properties']['control']['const'] for d in spec['$defs']['ExperimentSpec']['oneOf']}
+    declared = {d['properties']['control']['const'] for d in spec['$defs']['ExecutionControl']['oneOf']}
     seen = set()
     for experiment in data['experiments']:
         where = f"{CATALOG} experiments[{experiment['id']}]"
         if experiment['id'] in seen: raise ValueError(f'{where}: duplicate experiment id')
         seen.add(experiment['id'])
-        controls = [setting['control'] for setting in experiment['settings']]
-        if len(controls) != len(set(controls)): raise ValueError(f'{where}.settings: each control may be assigned once')
-        overlap = sorted(set(experiment['missing_controls']) & (declared | set(controls)))
-        if overlap: raise ValueError(f'{where}.missing_controls: {overlap} are declared controls; configure them in settings instead')
+        overlap = sorted(set(experiment['missing_controls']) & declared)
+        if overlap: raise ValueError(f'{where}.missing_controls: {overlap} are declared controls; configure them in variants instead')
         for path in experiment['evidence']:
             if not (root/path).is_file(): raise ValueError(f'{where}.evidence: missing file {path}')
     return data['experiments']

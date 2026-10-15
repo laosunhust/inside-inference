@@ -18,7 +18,7 @@ export async function checkCache({send,evaluate,until,click,base,output}) {
  };
  await click('open-system');
  const ownership=await evaluate(`(()=>{
-  const definitions=Declarations.schemas.ExperimentSpec.oneOf;
+  const definitions=Declarations.schemas.ExecutionControl.oneOf;
   return {expected:definitions.map(d=>({control:d.properties.control.const,owner:d.properties.ontology_binding.const.primary})),
    cards:Array.from(document.querySelectorAll('#configure-system .map-node:not(.map-root)'),c=>({owner:c.dataset.owner,disabled:c.querySelector(':scope>button').disabled,branch:!!c.querySelector('.map-children')})),
    editors:Array.from(document.querySelectorAll('#configure-system [data-control]'),e=>({control:e.dataset.control,owner:e.closest('.map-node').dataset.owner})),
@@ -72,7 +72,7 @@ export async function checkCache({send,evaluate,until,click,base,output}) {
  const logical=({measurements,...rest})=>rest;
  let replayChecked=false;
  for(const c of cases){
-  const input=await evaluate(`(()=>{const input=JSON.parse(document.getElementById('inference-data').textContent);input.execution.experiments.find(e=>e.control==='model').value='tinyllm-8k';input.execution.experiments.find(e=>e.control==='kv_reuse').value=true;const system=${JSON.stringify(c.spec.system)};for(const d of Declarations.schemas.ExperimentSpec.oneOf.filter(d=>d.properties.value.$ref)){const control=d.properties.control.const;input.execution.experiments.push({control,value:system[control],ontology_binding:d.properties.ontology_binding.const});}input.workload=${JSON.stringify(c.spec.workload)};return input;})()`);
+  const input=await evaluate(`(()=>{const input=JSON.parse(document.getElementById('inference-data').textContent);input.execution.experiments.find(e=>e.control==='model').value='tinyllm-8k';input.execution.experiments.find(e=>e.control==='kv_reuse').value=true;const system=${JSON.stringify(c.spec.system)};for(const d of Declarations.schemas.ExecutionControl.oneOf.filter(d=>d.properties.value.$ref)){const control=d.properties.control.const;input.execution.experiments.push({control,value:system[control],ontology_binding:d.properties.ontology_binding.const});}input.workload=${JSON.stringify(c.spec.workload)};return input;})()`);
   // Current generation policy, not the retired standalone chat endpoint.
   input.workload.requests.forEach(r=>r.request.generation.stopping='model-end-or-budget');
   const expected=await evaluate(`Execution.simulateResources(${JSON.stringify(input)})`);Declarations.assertShape('ResourceExecution',expected);

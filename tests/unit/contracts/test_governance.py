@@ -24,7 +24,7 @@ class GovernanceTests(unittest.TestCase):
         self.assertEqual(audit_system_map(ontology, spec, {}), [])
         for owner in ('InventedConcept', 'ExperimentSpec'):
             changed = copy.deepcopy(spec)
-            changed['$defs']['ExperimentSpec']['oneOf'][1]['properties']['ontology_binding']['const']['primary'] = owner
+            changed['$defs']['ExecutionControl']['oneOf'][1]['properties']['ontology_binding']['const']['primary'] = owner
             failures = audit_system_map(ontology, changed, {})
             self.assertTrue(any('kv_reuse' in f and 'concept home' in f for f in failures), failures)
         for editor in ('<input type="checkbox">', '<select></select>', '<details></details>'):

@@ -1,0 +1,28 @@
+version: 1
+work_item: kv-timing-pilot
+question: Does the declared browser-worker pilot resolve a KV-reuse timing effect at its fixed contexts, beyond demonstrating reduced executed work?
+necessity: Owner requests starting docs/proposals/kv-timing-pilot.md after committing the completed measurement work.
+baseline: Shared browser NumPy decoder with model-declared capture; full-prefix recomputation versus incremental reuse, with single-run measurement boundaries already qualified.
+reuse:
+- source: data/experiments/kv-timing-pilot/protocol.yaml
+  decision: This protocol owns exact workloads, repetitions, budget and resolution thresholds; freeze it before measurement.
+- source: Sealed release, generated browser worker, createDispatch and createTiming
+  decision: Serve the verified release locally in installed Chrome; use its actual worker and ledger implementation with output-only DOM publication. Do not equate this headless harness with full interactive-panel latency.
+criteria:
+- Verify sealed release bytes, record runtime/model/protocol identity and preserve warm-up and measured observations with no cherry-picking.
+- Clear prefix state through prepareGeneration before every trial; preserve model/runtime warmth. Consume the explicitly constructed prefix IDs and record them.
+- Both modes produce identical selected-token paths and logits within the protocol tolerance, with first-step reuse zero and expected cached/recomputed work. Divergence invalidates the affected paired comparison without replacement trials.
+- Primary resolution requires all six measured pairs, at least two generated tokens per trial, at least five same-sign paired differences, absolute median difference at least the declared absolute and relative thresholds, and greater than three times their median absolute deviation.
+- Use each trial's mean decode duration as one observation, excluding prefill. Analyze off-minus-on paired differences; a resolved negative difference is a slowdown, not failure. Report each context separately without a pooled significance claim.
+- Secondary service and output-publication interval measures use the same descriptive criterion and are labeled separately; no GPU, production capacity or interactive TTFT extrapolation.
+- Stop at the per-context wall cap; retain incomplete/failed trials. No pilot workload or resolution threshold changes after observing outcomes.
+- Retain raw ledgers and exact binary32 logits outside out; publish a traceable summary and close the temporary proposal. No Phase 2 runner or UI follows automatically.
+counterexamples:
+- Reduced FLOPs with unresolved wall time is a valid result.
+- Prefill and decode are different phases; a cold first step must not be counted as a cache speedup.
+- Tokens within one run are not independent repeated trials.
+- Early EOS, numeric divergence or cap exhaustion cannot be hidden by substituting a different prompt.
+checks:
+- Sealed-artifact verification and real headless browser execution
+- Offline recomputation of numerical parity, work expectations and declared resolution rule from retained raw evidence
+- Governance and diff checks; no product runtime or UI changes in this work item

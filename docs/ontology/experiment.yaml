@@ -1,17 +1,16 @@
 terms:
   ExperimentSpec:
-    meaning: One declared intervention on an ontology-owned mechanism or artifact in the inference journey.
+    meaning: One complete selectable experimental configuration, composing workload and execution settings.
     lifetime: Editable before execution; the consumed specification is frozen in the execution record.
     owns:
-    - One mechanism or artifact control and its requested settings.
-    - Primary and related ontology subjects, resolved against admitted concepts and preserved in execution.
+    - A named configuration of Workload and ExecutionSpec, selected without executing it.
+    - The complete input consumed by Interaction; workload and system field meanings remain with their existing owners.
     excludes:
     - Observed outcomes and execution identity
     - Causal events and numerical measurements
     capability_reads: []
     projections: {}
     schemas:
-    - OntologyBinding
     - ExperimentSpec
   ExperimentExecution:
     meaning: One identified execution of the consumed controls against customer input, retaining its events
@@ -98,13 +97,15 @@ terms:
     projections: {}
     schemas:
     - ExecutionSpec
+    - ExecutionControl
+    - OntologyBinding
     - GenerationDefaults
   ExperimentDesign:
-    meaning: A named investigation, or lab, that tests one question with ExecutionSpec settings, states which
+    meaning: A named investigation, or lab, that tests one question with complete ExperimentSpec variants, states which
       controls it still lacks, and carries its abstraction contract.
-    lifetime: Authored with the repository; applying it replaces the editable ExecutionSpec before execution.
+    lifetime: Authored with the repository; selecting a variant replaces the editable workload and execution settings before execution.
     owns:
-    - The question, ontology subjects, settings and missing controls of one experiment.
+    - The question, ontology subjects, variants and missing controls of one experiment.
     - The abstraction contract and evidence references that bound its conclusions.
     excludes:
     - Execution evidence and observed outcomes, owned by ExperimentExecution

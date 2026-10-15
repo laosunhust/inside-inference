@@ -9,7 +9,7 @@ from inside_inference.delivery.models import finish_selection, resolve_execution
 
 class DeliveryTests(unittest.TestCase):
     def test_execution_composition_rejects_conflicts_and_partial_resources(self):
-        assignments = {e['control']: e for e in EXPERIMENTS['kv-residency']['settings']}
+        assignments = {e['control']: e for e in EXPERIMENTS['kv-residency']['variants'][0]['input']['execution']['experiments']}
         cases = json.loads((ROOT/'tests/fixtures/execution-composition.json').read_text())
         for case in cases:
             spec = {'experiments': [copy.deepcopy(assignments[c]) for c in case['controls']]}

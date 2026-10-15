@@ -110,7 +110,7 @@ rejects competing operation names or an observation union that omits an operatio
 The engine rejects unregistered operations. Semantic owners and navigation are
 therefore derived from the same declarations as the execution evidence.
 
-ExperimentSpec owns `OntologyBinding`: exactly one `primary` concept and unique
+ExecutionSpec owns `OntologyBinding`: exactly one `primary` concept and unique
 `related` concepts that exclude the primary. Reference choices are generated
 from admitted ontology; do not maintain an enum elsewhere. Every declared
 experiment in the [experiment catalog](../../data/experiments/catalog.yaml) carries
@@ -120,7 +120,7 @@ reference and uniqueness rules in records and submitted inputs.
 The KV residency execution retains its declared subjects in resolved specifications
 and rejects incompatible bindings. Association identifies what is being studied, not
 proof that an experiment is correct or that every associated concept is changed.
-ExperimentDesign owns experiments: settings, missing controls and an abstraction
+ExperimentDesign owns experiments: complete input variants, missing controls and an abstraction
 contract. Planned experiments name controls that do not exist yet; that is a roadmap
 statement, not an implementation.
 
@@ -133,7 +133,7 @@ boundary declarations; a component is not necessarily a separate process or prod
 Artifacts and numerical mechanisms appear below their containing responsibilities.
 Cross-component relationships are references, not additional containment parents.
 
-Every ExperimentSpec primary and related owner, operation owner and experiment subject
+Every ExecutionControl primary and related owner, operation owner and experiment subject
 must have a home. Every node has an ontology explanation; every configurable control
 also exposes its applied value in Explanation. An unavailable editor means that an
 experiment has not been implemented yet, not that the component is permanently

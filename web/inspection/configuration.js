@@ -9,7 +9,7 @@ globalThis.ExecutionConfiguration=(()=>{
       if(key==='system')dialog.addEventListener('close',()=>{if(!dialog.open)modelHome.append(modelEditor);});dialog.querySelector('.dialog-close').onclick=()=>dialog.close();
       dialog.onclick=e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}};
     }
-    const definitions=Declarations.schemas.ExperimentSpec.oneOf;
+    const definitions=Declarations.schemas.ExecutionControl.oneOf;
     const hierarchy=SystemMap.mount(document.getElementById('configure-system'),null,(node,panel,controls)=>{
       panel.classList.add('configuration-fields');
       for(const definition of controls){

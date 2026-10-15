@@ -194,7 +194,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
     await click('next-token');await ready();const configured=await snapshot();
     assert.equal(configured.request.execution.experiments.find(e=>e.control==='kv_reuse').value,true);
     await evaluate("document.getElementById('kv-reuse').checked=false;document.getElementById('kv-reuse').dispatchEvent(new Event('change'))");await ready();
-    evidence.experiments=await checkExperiments({evaluate,ready,click,snapshot});
+    evidence.experiments=await checkExperiments({evaluate,ready,click,snapshot,send,output,until});
     // Input edits during weight loading keep the newly typed source, but never stale tokens.
     await click('edit-input');
     await evaluate("document.getElementById('model-choice').value='tinyllm-500k';document.getElementById('model-choice').dispatchEvent(new Event('change'));document.getElementById('prompt').value='a dog';document.getElementById('prompt').dispatchEvent(new Event('input'))");await ready();await empty();

@@ -1,0 +1,40 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/14/performance/observable-apply.yaml
+evaluation_sha256: 1e0eee252d4465c2bf7619d30b12b184348d9ed18a73ee52e2948597b370a7b0
+outcome: passed
+summary: 'Replaced generic Apply with declared configuration actions. ExperimentSpec contains a label
+  and complete GenerationInput; ExecutionControl preserves the existing ontology-bound system control
+  shape. Catalog variants require both Workload and ExecutionSpec. Executable catalogs require variants;
+  planned catalogs cannot expose selectable variants. The approved three-file enforcement patch and only
+  its hashes were updated with the owner''s authorization. No generator vocabulary, limits or lock inventory
+  changed. All four selectable configurations were exercised in the browser: reference, residency and
+  KV off/on. Selection exposed prompt, token budget and full system settings, returned focus to Interaction
+  and cleared output/evidence without generating tokens. Explicit execution consumed the configured settings.
+  KV variants were equal except kv_reuse and produced identical selected tokens; the cold first step reused
+  zero positions. The second uncached step computed 13 positions; the cached step computed one and reused
+  12. Counts come from accepted ledger evidence. Simulation exposed virtual duration and work, not browser
+  latency. Desktop and narrow configuration and Interaction screenshots were reviewed without horizontal
+  overflow. Python and browser admission rejected invalid workloads, duplicate controls and invalid planned/executable
+  variant combinations; Python also rejected missing controls and partial resource groups. Initial schema
+  generation exposed an ownership mismatch and strict array-type annotations, corrected before checks
+  passed; initial unit assertions expected obsolete error wording and were corrected without weakening
+  rejection. make test passed 112 tests in 5.47s (10s budget); make test-integration passed 112 unit tests,
+  21 integration tests and browser checks in 48.86s (100s budget). Browser navigation produced a non-failing
+  HTTP connection-reset diagnostic. The original pilot protocol, observations and source snapshot were
+  preserved. This is a single-run inspection workflow, not a statistical comparison runner. No deployment
+  or commit was performed. Six existing folder warnings remain: data-model/domains and docs/ontology need
+  cohesive domain splits before growth; inside_inference needs a package split before growth; historical
+  evaluation directories need a separately authorized relocation preserving provenance. This change adds
+  no files to those warned directories. Durable semantics live in ontology/schema and architecture documentation;
+  the completed proposal was retired. Final result admission rejected disposable screenshot/log paths
+  as maintained evidence; references now point to durable declarations and reproducible checks, with measured
+  outcomes retained in this record.'
+evidence:
+- data-model/domains/experiment.yaml
+- data-model/domains/model-family.yaml
+- data/experiments/catalog.yaml
+- docs/architecture/declarations.md
+- tests/unit/contracts/test_experiments.py
+- scripts/check/story_models/experiments.mjs
+- web/inspection/experiments.js
+- web/inspection/page.js

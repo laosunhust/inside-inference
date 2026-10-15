@@ -195,3 +195,14 @@ _hosting-disable: _governance-check
 	@$(PYTHON) -m scripts.build.hosting.aws disable --environment "$(ENVIRONMENT)"
 
 .PHONY: _release-package _hosting-create _hosting-status _serve-release _release-restore _deploy-dev _verify-hosted deploy-dev _hosting-disable
+
+# Bounded experiment; protocol owns release, workload, resolution and wall-time cap.
+_kv-timing-pilot: _governance-check _data-models-check
+	@$(PYTHON) -m scripts.check.pilots.kv_timing
+	@$(PYTHON) -m scripts.experiments.kv_timing.analyze
+.PHONY: _kv-timing-pilot
+
+# Recompute the retained pilot result without rerunning inference or replacing evidence.
+_kv-timing-analyze:
+	@$(PYTHON) -m scripts.experiments.kv_timing.analyze
+.PHONY: _kv-timing-analyze

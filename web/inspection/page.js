@@ -40,7 +40,7 @@ import {mountTiming} from './performance/panel.js';
     $('token-journey').disabled=(!state.prepared&&!state.resource)||pending||loading;
     $('token-journey').textContent=playback.running()?'Pause Journey':'Token Journey';
     $('token-journey').setAttribute('aria-pressed',String(playback.running()));
-    $('binding-status').textContent=error || (loading?'Loading model…':pending?'Computing…':(!state.prepared&&state.loaded&&!S.controls(state).resources?'Apply input to prepare the request':''));
+    $('binding-status').textContent=error || (loading?'Loading model…':pending?'Computing…':(!state.prepared&&state.loaded&&!S.controls(state).resources?'Prepare input to try the request':''));
     $('binding-status').hidden=!$('binding-status').textContent;
     $('binding-status').dataset.phase=error?'failed':loading?'loading':pending?'running':(state.prepared||S.controls(state).resources)?'ready':'loading';
     $('run-error').hidden=!error;$('run-error').textContent=error;
@@ -86,6 +86,10 @@ import {mountTiming} from './performance/panel.js';
     }));
     $('run-identity').textContent=state.step&&!pending?JSON.stringify(state.step):'';
     $('generation-note').textContent=state.resource?Object.entries(state.resource.decoding_notes).map(([id,note])=>id+': '+note).join(' · '):state.step?.decoding_note || ({end_token:state.step?.text?'End token':'Model ended without text',output_budget:'Token budget reached',context_capacity:'Context full'})[state.step?.stop_reason] || '';
+    const controls=S.controls(state);
+    $('interaction-configuration').textContent=`${selected()?.label||controls.model_id} · KV reuse ${controls.kv_reuse?'ON':'OFF'} · ${controls.resources?'Resource simulation':'Browser execution'} · `+state.input.workload.requests.map(r=>`${r.request.generation.max_new_tokens}-token limit`).join(', ');
+    $('interaction-settings-values').replaceChildren(Experiments.settings(state.input));
+    if(controls.resources){const run=state.resource?.run;$('timing-simulation').textContent=run?`Virtual duration: ${run.events.at(-1).time_us.toFixed(2)} µs · ${run.computations.reduce((n,c)=>n+c.input_ids.length,0)} computed positions. See the resource timeline for individual events.`:'Simulation uses a virtual clock. Generate to execute the configured workload.';}
     renderSetup();renderPath();status();renderPerformance();
     $('numerical-inspector').hidden=(!state.prepared&&!S.controls(state).resources)||pending;
     if((state.prepared||S.controls(state).resources)&&!pending)InspectionDetails.render(state,inspect);else {$('detail-body').replaceChildren();$('concept-body').replaceChildren();$('inspection-context').textContent='';}
@@ -178,16 +182,19 @@ import {mountTiming} from './performance/panel.js';
   configuration=ExecutionConfiguration.mount(()=>state.input.execution,async(control,value)=>{
     stop();state=S.configure(state,control,value);clearPanels();await prepare();
   });
-  async function applyExperiment(experiment) {
-    // An experiment replaces the whole ExecutionSpec; prior evidence is invalidated like any change.
-    stop();const execution={experiments:structuredClone(experiment.settings)};
-    Declarations.assertShape('ExecutionSpec',execution);
-    const model=execution.experiments.find(e=>e.control==='model').value,same=state.loaded?.model.id===model;
-    state=S.reset({...state,input:{...state.input,execution},prepared:null,loaded:same?state.loaded:null});
+  async function configureExperiment(variant) {
+    Declarations.assertShape('ExperimentSpec',variant);
+    stop();const input=structuredClone(variant.input);
+    const model=input.execution.experiments.find(e=>e.control==='model').value,same=state.loaded?.model.id===model;
+    state=S.reset({...state,input,prepared:null,loaded:same?state.loaded:null});
+    $('prompt').value=input.workload.requests[0].request.text;
+    $('output-budget').value=input.workload.requests[0].request.generation.max_new_tokens;
     $('model-choice').value=model;clearPanels();
+    $('inference-form').hidden=true;$('edit-input').setAttribute('aria-expanded','false');
+    $('system-dialog').close();$('interaction-title').focus();$('data-plane').scrollIntoView({block:'start'});
     if(same){render();await prepare();}else await changeModel(model);
   }
-  Experiments.mount($('experiments'),applyExperiment);
+  Experiments.mount($('experiments'),configureExperiment);
   resources=resourceExperiment(()=>state.input,async input=>{
     stop();state=S.reset({...state,input,prepared:null});$('prompt').value=input.workload.requests[0].request.text;$('output-budget').value=input.workload.requests[0].request.generation.max_new_tokens;clearPanels();render();await prepare();
   },view=>inspect(view),configuration);

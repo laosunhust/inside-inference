@@ -1,0 +1,45 @@
+{
+  "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/144.0.0.0 Safari/537.36",
+  "hardware_concurrency": 16,
+  "visibility": "visible",
+  "model": {
+    "architecture": {
+      "activation": "silu-gated",
+      "context": 512,
+      "epsilon": 0.00001,
+      "ffn": 704,
+      "heads": 8,
+      "layers": 4,
+      "normalization": "rmsnorm",
+      "position": "rope",
+      "precision": "binary32",
+      "vocabulary": 4096,
+      "width": 256
+    },
+    "id": "tinyllm-4m",
+    "inspection": "logits",
+    "label": "TinyLLM-4.3M",
+    "normalization": "sentencepiece-identity-collapse-spaces",
+    "parameters": 4262144,
+    "provenance": "Same tokenizer, training exposure and recipe as 0.5M. Lower held-out loss; story consistency remains fragile.",
+    "role": "continuation",
+    "seed": 1337,
+    "stop_ids": [
+      1,
+      2
+    ],
+    "tokenizer": {
+      "bytes": 54143,
+      "path": "tokenizer-4096.bin",
+      "sha256": "e5d2d6026451158d9a2fcc220c0428c4ac49535b355d8b22828bfc65b251f4c6"
+    },
+    "tokenizer_format": "sentencepiece-binary",
+    "weight_format": "llama2c-binary",
+    "weights": {
+      "bytes": 17114140,
+      "path": "tinyllm-4m.bin",
+      "sha256": "028b057f470c8e9ede8e5b495403e6a58b257ca1a42b79895030d714382e887c"
+    }
+  },
+  "contract_sha256": "219df0093966c2478a891e6c43e016e17f3dbe45a35ecbf231fd82401f9082a1"
+}

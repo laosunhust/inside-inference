@@ -55,7 +55,7 @@ assert.equal(await client.prepareGeneration(input,{raw:true}),JSON.stringify(pre
 console.log('Model-bound request, branch, stale-response and generated client checks passed.');
 await import('./timing_observation.mjs');
 
-const assignments=Object.fromEntries(Declarations.experiments['kv-residency'].settings.map(e=>[e.control,e]));
+const assignments=Object.fromEntries(Declarations.experiments['kv-residency'].variants[0].input.execution.experiments.map(e=>[e.control,e]));
 for(const test of JSON.parse(readFileSync('tests/fixtures/execution-composition.json','utf8'))){
   const execution={experiments:test.controls.map(c=>structuredClone(assignments[c]))};
   if(test.change_last)Object.assign(execution.experiments.at(-1),test.change_last);

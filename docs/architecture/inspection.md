@@ -164,7 +164,7 @@ loads immediately, preserves input and generation settings, and clears prior tok
 output, observations, replay and exports. A late load or prediction cannot repopulate
 another model's state. Incompatible input/settings fail visibly without repair.
 
-`ExecutionSpec` composes ontology-bound `ExperimentSpec` controls for model selection and KV reuse. `Workload`
+`ExecutionSpec` composes ontology-bound `ExecutionControl` records for model selection and KV reuse. `Workload`
 owns request input and generation policy. Preparation tokenizes without inference;
 **Next Token** submits a `GenerationStep` and accepts a `GenerationPrediction`.
 **Generate** repeats that same operation until stopping or the user stops it.

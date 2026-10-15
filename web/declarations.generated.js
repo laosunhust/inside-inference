@@ -1289,7 +1289,7 @@ globalThis.Declarations = (() => {
   },
   "OntologyBinding": {
     "type": "object",
-    "x-owner": "ExperimentSpec",
+    "x-owner": "ExecutionSpec",
     "x-ontology-binding": true,
     "additionalProperties": false,
     "required": [
@@ -2326,11 +2326,49 @@ globalThis.Declarations = (() => {
       "name",
       "question",
       "ontology_binding",
-      "settings",
+      "variants",
       "missing_controls",
       "contract",
       "sources",
       "evidence"
+    ],
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "missing_controls": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "variants": {
+              "type": "array",
+              "minItems": 1
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "missing_controls": {
+              "type": "array",
+              "minItems": 1
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "variants": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      }
     ],
     "properties": {
       "id": {
@@ -2348,12 +2386,12 @@ globalThis.Declarations = (() => {
       "ontology_binding": {
         "$ref": "#/$defs/OntologyBinding"
       },
-      "settings": {
+      "variants": {
         "type": "array",
         "items": {
           "$ref": "#/$defs/ExperimentSpec"
         },
-        "description": "Controls applied together. An experiment with no missing controls must form a valid ExecutionSpec."
+        "description": "Complete selectable inputs; selecting a variant configures workload and execution without generating output."
       },
       "missing_controls": {
         "type": "array",
@@ -2595,6 +2633,24 @@ globalThis.Declarations = (() => {
         "type": "number",
         "minimum": 0,
         "description": "Browser performance.now after rendering. Minus started_ms is synchronous update duration; minus token publication is completion lag including scheduling, not total observer overhead."
+      }
+    }
+  },
+  "ExperimentSpec": {
+    "type": "object",
+    "x-owner": "ExperimentSpec",
+    "additionalProperties": false,
+    "required": [
+      "label",
+      "input"
+    ],
+    "properties": {
+      "label": {
+        "type": "string",
+        "pattern": "[\\s\\S]+"
+      },
+      "input": {
+        "$ref": "#/$defs/GenerationInput"
       }
     }
   },
@@ -4531,9 +4587,9 @@ globalThis.Declarations = (() => {
       }
     }
   },
-  "ExperimentSpec": {
+  "ExecutionControl": {
     "type": "object",
-    "x-owner": "ExperimentSpec",
+    "x-owner": "ExecutionSpec",
     "additionalProperties": false,
     "required": [
       "control",
@@ -4684,7 +4740,7 @@ globalThis.Declarations = (() => {
         "minItems": 2,
         "maxItems": 6,
         "items": {
-          "$ref": "#/$defs/ExperimentSpec"
+          "$ref": "#/$defs/ExecutionControl"
         },
         "allOf": [
           {
@@ -6556,11 +6612,11 @@ globalThis.Declarations = (() => {
     ]
   },
   "ExperimentSpec": {
-    "meaning": "One declared intervention on an ontology-owned mechanism or artifact in the inference journey.",
+    "meaning": "One complete selectable experimental configuration, composing workload and execution settings.",
     "lifetime": "Editable before execution; the consumed specification is frozen in the execution record.",
     "owns": [
-      "One mechanism or artifact control and its requested settings.",
-      "Primary and related ontology subjects, resolved against admitted concepts and preserved in execution."
+      "A named configuration of Workload and ExecutionSpec, selected without executing it.",
+      "The complete input consumed by Interaction; workload and system field meanings remain with their existing owners."
     ],
     "excludes": [
       "Observed outcomes and execution identity",
@@ -6569,7 +6625,6 @@ globalThis.Declarations = (() => {
     "capability_reads": [],
     "projections": {},
     "schemas": [
-      "OntologyBinding",
       "ExperimentSpec"
     ]
   },
@@ -6668,14 +6723,16 @@ globalThis.Declarations = (() => {
     "projections": {},
     "schemas": [
       "ExecutionSpec",
+      "ExecutionControl",
+      "OntologyBinding",
       "GenerationDefaults"
     ]
   },
   "ExperimentDesign": {
-    "meaning": "A named investigation, or lab, that tests one question with ExecutionSpec settings, states which controls it still lacks, and carries its abstraction contract.",
-    "lifetime": "Authored with the repository; applying it replaces the editable ExecutionSpec before execution.",
+    "meaning": "A named investigation, or lab, that tests one question with complete ExperimentSpec variants, states which controls it still lacks, and carries its abstraction contract.",
+    "lifetime": "Authored with the repository; selecting a variant replaces the editable workload and execution settings before execution.",
     "owns": [
-      "The question, ontology subjects, settings and missing controls of one experiment.",
+      "The question, ontology subjects, variants and missing controls of one experiment.",
       "The abstraction contract and evidence references that bound its conclusions."
     ],
     "excludes": [
@@ -7782,26 +7839,6 @@ globalThis.Declarations = (() => {
         "ModelArtifact"
       ]
     },
-    "settings": [
-      {
-        "control": "model",
-        "value": "tinyllm-8k",
-        "ontology_binding": {
-          "primary": "ModelArtifact",
-          "related": []
-        }
-      },
-      {
-        "control": "kv_reuse",
-        "value": false,
-        "ontology_binding": {
-          "primary": "KVCache",
-          "related": [
-            "ModelExecution"
-          ]
-        }
-      }
-    ],
     "missing_controls": [],
     "contract": {
       "target_regime": "One decoder-only causal Transformer executed by the shared NumPy engine; the 8K checkpoint exposes every intermediate tensor, the 0.5M and 4M checkpoints expose logits.",
@@ -7814,6 +7851,52 @@ globalThis.Declarations = (() => {
     "evidence": [
       "governance/evaluations/results/2026-10/13/first-principles/python-engine.yaml",
       "governance/evaluations/results/2026-10/13/first-principles/panel.yaml"
+    ],
+    "variants": [
+      {
+        "label": "Configure reference model",
+        "input": {
+          "execution": {
+            "experiments": [
+              {
+                "control": "model",
+                "value": "tinyllm-8k",
+                "ontology_binding": {
+                  "primary": "ModelArtifact",
+                  "related": []
+                }
+              },
+              {
+                "control": "kv_reuse",
+                "value": false,
+                "ontology_binding": {
+                  "primary": "KVCache",
+                  "related": [
+                    "ModelExecution"
+                  ]
+                }
+              }
+            ]
+          },
+          "workload": {
+            "kind": "fixed-arrivals",
+            "requests": [
+              {
+                "request_id": "r1",
+                "arrival_us": 0,
+                "request": {
+                  "text": "the cat was",
+                  "generation": {
+                    "max_new_tokens": 32,
+                    "selection": "greedy-lowest-id-tie",
+                    "stopping": "model-end-or-budget"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
     ]
   },
   "kv-residency": {
@@ -7829,74 +7912,6 @@ globalThis.Declarations = (() => {
         "ComputeService"
       ]
     },
-    "settings": [
-      {
-        "control": "model",
-        "value": "tinyllm-8k",
-        "ontology_binding": {
-          "primary": "ModelArtifact",
-          "related": []
-        }
-      },
-      {
-        "control": "kv_reuse",
-        "value": true,
-        "ontology_binding": {
-          "primary": "KVCache",
-          "related": [
-            "ModelExecution"
-          ]
-        }
-      },
-      {
-        "control": "kv_cache",
-        "value": {
-          "device_kv_bytes": 16384,
-          "host_kv_bytes": 32768,
-          "retention_policy": "whole-prefix-lru"
-        },
-        "ontology_binding": {
-          "primary": "KVCache",
-          "related": [
-            "KVState"
-          ]
-        }
-      },
-      {
-        "control": "scheduling",
-        "value": {
-          "max_active_requests": 2
-        },
-        "ontology_binding": {
-          "primary": "RequestScheduling",
-          "related": []
-        }
-      },
-      {
-        "control": "transfer",
-        "value": {
-          "link_bytes_per_us": 100,
-          "link_latency_us": 10
-        },
-        "ontology_binding": {
-          "primary": "StateTransfer",
-          "related": [
-            "KVState"
-          ]
-        }
-      },
-      {
-        "control": "compute_service",
-        "value": {
-          "compute_flops_per_us": 1000,
-          "memory_bytes_per_us": 1000
-        },
-        "ontology_binding": {
-          "primary": "ComputeService",
-          "related": []
-        }
-      }
-    ],
     "missing_controls": [],
     "contract": {
       "target_regime": "Exact whole-prefix reuse for the 8K checkpoint in two logical memory pools, with FIFO admission of full maximum-sequence reservations and one serialized service resource.",
@@ -7908,6 +7923,100 @@ globalThis.Declarations = (() => {
     "sources": [],
     "evidence": [
       "docs/research/kv-residency-2026-10-09.md"
+    ],
+    "variants": [
+      {
+        "label": "Configure residency simulation",
+        "input": {
+          "execution": {
+            "experiments": [
+              {
+                "control": "model",
+                "value": "tinyllm-8k",
+                "ontology_binding": {
+                  "primary": "ModelArtifact",
+                  "related": []
+                }
+              },
+              {
+                "control": "kv_reuse",
+                "value": true,
+                "ontology_binding": {
+                  "primary": "KVCache",
+                  "related": [
+                    "ModelExecution"
+                  ]
+                }
+              },
+              {
+                "control": "kv_cache",
+                "value": {
+                  "device_kv_bytes": 16384,
+                  "host_kv_bytes": 32768,
+                  "retention_policy": "whole-prefix-lru"
+                },
+                "ontology_binding": {
+                  "primary": "KVCache",
+                  "related": [
+                    "KVState"
+                  ]
+                }
+              },
+              {
+                "control": "scheduling",
+                "value": {
+                  "max_active_requests": 2
+                },
+                "ontology_binding": {
+                  "primary": "RequestScheduling",
+                  "related": []
+                }
+              },
+              {
+                "control": "transfer",
+                "value": {
+                  "link_bytes_per_us": 100,
+                  "link_latency_us": 10
+                },
+                "ontology_binding": {
+                  "primary": "StateTransfer",
+                  "related": [
+                    "KVState"
+                  ]
+                }
+              },
+              {
+                "control": "compute_service",
+                "value": {
+                  "compute_flops_per_us": 1000,
+                  "memory_bytes_per_us": 1000
+                },
+                "ontology_binding": {
+                  "primary": "ComputeService",
+                  "related": []
+                }
+              }
+            ]
+          },
+          "workload": {
+            "kind": "fixed-arrivals",
+            "requests": [
+              {
+                "request_id": "r1",
+                "arrival_us": 0,
+                "request": {
+                  "text": "the cat was",
+                  "generation": {
+                    "max_new_tokens": 16,
+                    "selection": "greedy-lowest-id-tie",
+                    "stopping": "model-end-or-budget"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
     ]
   },
   "prefill-decode": {
@@ -7921,26 +8030,6 @@ globalThis.Declarations = (() => {
         "ModelExecution"
       ]
     },
-    "settings": [
-      {
-        "control": "model",
-        "value": "tinyllm-8k",
-        "ontology_binding": {
-          "primary": "ModelArtifact",
-          "related": []
-        }
-      },
-      {
-        "control": "kv_reuse",
-        "value": true,
-        "ontology_binding": {
-          "primary": "KVCache",
-          "related": [
-            "ModelExecution"
-          ]
-        }
-      }
-    ],
     "missing_controls": [
       "execution_placement",
       "state_handoff"
@@ -7953,7 +8042,8 @@ globalThis.Declarations = (() => {
       "limits": "Lossless logical handoff only; movement cost needs the resource model and real measurements."
     },
     "sources": [],
-    "evidence": []
+    "evidence": [],
+    "variants": []
   },
   "speculative-decoding": {
     "id": "speculative-decoding",
@@ -7966,26 +8056,6 @@ globalThis.Declarations = (() => {
         "KVState"
       ]
     },
-    "settings": [
-      {
-        "control": "model",
-        "value": "tinyllm-4m",
-        "ontology_binding": {
-          "primary": "ModelArtifact",
-          "related": []
-        }
-      },
-      {
-        "control": "kv_reuse",
-        "value": true,
-        "ontology_binding": {
-          "primary": "KVCache",
-          "related": [
-            "ModelExecution"
-          ]
-        }
-      }
-    ],
     "missing_controls": [
       "draft_model",
       "speculation"
@@ -8003,7 +8073,8 @@ globalThis.Declarations = (() => {
         "url": "https://proceedings.mlr.press/v202/leviathan23a.html"
       }
     ],
-    "evidence": []
+    "evidence": [],
+    "variants": []
   },
   "positional-encoding": {
     "id": "positional-encoding",
@@ -8016,26 +8087,6 @@ globalThis.Declarations = (() => {
         "Attention"
       ]
     },
-    "settings": [
-      {
-        "control": "model",
-        "value": "tinyllm-8k",
-        "ontology_binding": {
-          "primary": "ModelArtifact",
-          "related": []
-        }
-      },
-      {
-        "control": "kv_reuse",
-        "value": false,
-        "ontology_binding": {
-          "primary": "KVCache",
-          "related": [
-            "ModelExecution"
-          ]
-        }
-      }
-    ],
     "missing_controls": [
       "position_encoding"
     ],
@@ -8060,7 +8111,8 @@ globalThis.Declarations = (() => {
         "url": "https://arxiv.org/abs/2108.12409"
       }
     ],
-    "evidence": []
+    "evidence": [],
+    "variants": []
   },
   "constrained-fleet": {
     "id": "constrained-fleet",
@@ -8076,26 +8128,6 @@ globalThis.Declarations = (() => {
         "ComputeService"
       ]
     },
-    "settings": [
-      {
-        "control": "model",
-        "value": "tinyllm-4m",
-        "ontology_binding": {
-          "primary": "ModelArtifact",
-          "related": []
-        }
-      },
-      {
-        "control": "kv_reuse",
-        "value": true,
-        "ontology_binding": {
-          "primary": "KVCache",
-          "related": [
-            "ModelExecution"
-          ]
-        }
-      }
-    ],
     "missing_controls": [
       "hardware_pool",
       "network_topology",
@@ -8114,10 +8146,124 @@ globalThis.Declarations = (() => {
     "sources": [],
     "evidence": [
       "docs/labs/constrained-fleet.md"
+    ],
+    "variants": []
+  },
+  "kv-browser-timing": {
+    "id": "kv-browser-timing",
+    "name": "KV reuse",
+    "question": "How does retaining earlier token positions change the work and latency of generating the next token?",
+    "ontology_binding": {
+      "primary": "KVCache",
+      "related": [
+        "ModelExecution"
+      ]
+    },
+    "missing_controls": [],
+    "contract": {
+      "target_regime": "Single interactive browser runs of the 4M NumPy decoder with identical prompt and token limit. Configure either variant, then use Generate or Next Token in Interaction.",
+      "preserved": "Identical model, input, greedy selection and stop conditions. Both variants start with a cold prompt prefix; incremental reuse becomes observable after the first token.",
+      "omissions": "No GPU, concurrent serving, preloaded prompt cache or automatic paired benchmark.",
+      "evidence_plan": "Inspect actual computed and reused positions per token and separately scoped decoder, service and browser durations. Retained headless pilot evidence uses its own fixed protocol and is not an interactive-panel measurement.",
+      "limits": "Single-run timing is noisy and does not establish a production speedup. Equal output tokens are expected; reduced computed work demonstrates the reuse mechanism."
+    },
+    "sources": [],
+    "evidence": [
+      "governance/evaluations/results/2026-10/14/performance/kv-timing-pilot.yaml"
+    ],
+    "variants": [
+      {
+        "label": "Configure without KV reuse",
+        "input": {
+          "execution": {
+            "experiments": [
+              {
+                "control": "model",
+                "value": "tinyllm-4m",
+                "ontology_binding": {
+                  "primary": "ModelArtifact",
+                  "related": []
+                }
+              },
+              {
+                "control": "kv_reuse",
+                "value": false,
+                "ontology_binding": {
+                  "primary": "KVCache",
+                  "related": [
+                    "ModelExecution"
+                  ]
+                }
+              }
+            ]
+          },
+          "workload": {
+            "kind": "fixed-arrivals",
+            "requests": [
+              {
+                "request_id": "r1",
+                "arrival_us": 0,
+                "request": {
+                  "text": "Once upon a time, there was a little dog.",
+                  "generation": {
+                    "max_new_tokens": 32,
+                    "selection": "greedy-lowest-id-tie",
+                    "stopping": "model-end-or-budget"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "label": "Configure with KV reuse",
+        "input": {
+          "execution": {
+            "experiments": [
+              {
+                "control": "model",
+                "value": "tinyllm-4m",
+                "ontology_binding": {
+                  "primary": "ModelArtifact",
+                  "related": []
+                }
+              },
+              {
+                "control": "kv_reuse",
+                "value": true,
+                "ontology_binding": {
+                  "primary": "KVCache",
+                  "related": [
+                    "ModelExecution"
+                  ]
+                }
+              }
+            ]
+          },
+          "workload": {
+            "kind": "fixed-arrivals",
+            "requests": [
+              {
+                "request_id": "r1",
+                "arrival_us": 0,
+                "request": {
+                  "text": "Once upon a time, there was a little dog.",
+                  "generation": {
+                    "max_new_tokens": 32,
+                    "selection": "greedy-lowest-id-tie",
+                    "stopping": "model-end-or-budget"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
     ]
   }
 };
-  const hash = "219df0093966c2478a891e6c43e016e17f3dbe45a35ecbf231fd82401f9082a1";
+  const hash = "af83f248f8fdb2481caf7cb02631cdce2dc7800094c457ad4b9072293d30a251";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

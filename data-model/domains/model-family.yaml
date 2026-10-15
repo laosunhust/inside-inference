@@ -661,9 +661,9 @@ $defs:
           x-ontology-reference: true
       inspection:
         type: string
-  ExperimentSpec:
+  ExecutionControl:
     type: object
-    x-owner: ExperimentSpec
+    x-owner: ExecutionSpec
     additionalProperties: false
     required:
     - control
@@ -759,7 +759,7 @@ $defs:
         minItems: 2
         maxItems: 6
         items:
-          $ref: '#/$defs/ExperimentSpec'
+          $ref: '#/$defs/ExecutionControl'
         allOf:
         - contains:
             type: object

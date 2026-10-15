@@ -1,0 +1,21 @@
+version: 1
+release: 8b501b22c9c03c40f909f3c387700827472cf0d2c59dae9aba4cde3652147817
+model: tinyllm-4m
+contexts: [8, 32, 96]
+source_text: 'Once upon a time, there was a little dog. '
+source_repetitions: 16
+prefix_construction: first-N-token-IDs-including-BOS-from-prepared-source
+max_new_tokens: 8
+warmup_pairs: 2
+measured_pairs: 6
+pair_order: alternating-off-on-and-on-off
+context_wall_seconds: 180
+setup_wall_seconds: 90
+numerical_atol: 0.0001
+numerical_rtol: 0.0001
+minimum_absolute_difference_ms: 0.2
+minimum_relative_difference: 0.10
+minimum_agreeing_pairs: 5
+variability_rule: absolute-median-paired-difference-must-exceed-three-times-MAD-of-paired-differences
+primary_measure: mean-decoder-ms-of-decode-steps-per-trial
+secondary_measures: [mean-service-ms-of-decode-steps-per-trial, mean-browser-publication-interval-ms-per-trial]

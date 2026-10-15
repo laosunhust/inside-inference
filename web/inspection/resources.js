@@ -1,7 +1,7 @@
 /* The residency experiment edits the same ExecutionSpec and Workload as generation. */
 export function resourceExperiment(read,change,inspect,configurationUI) {
   const $=id=>document.getElementById(id),el=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
-  const definitions=Declarations.schemas.ExperimentSpec.oneOf.filter(d=>Object.hasOwn(Declarations.schemas.KVResidencySystemConfig.properties,d.properties.control.const));
+  const definitions=Declarations.schemas.ExecutionControl.oneOf.filter(d=>Object.hasOwn(Declarations.schemas.KVResidencySystemConfig.properties,d.properties.control.const));
   const keys=definitions.map(d=>d.properties.control.const);
   const defaults=s=>s.$ref?defaults(Declarations.schemas[s.$ref.split('/').at(-1)]):s.properties?Object.fromEntries(Object.entries(s.properties).map(([k,v])=>[k,defaults(v)])):s.default??s.const;
   const configuration=()=>{

@@ -4,7 +4,7 @@ from typing import Any
 from inside_inference.contract_runtime import Declaration
 
 EXECUTION_OPERATIONS = {'replayCache': {'request': 'ExecutionReplayInput', 'response': 'CacheRun'}, 'modelCatalog': {'request': None, 'response': 'ModelCatalog'}, 'loadModel': {'request': 'ModelSelection', 'response': 'ModelLoadResult'}, 'prepareGeneration': {'request': 'GenerationInput', 'response': 'GenerationPrepared'}, 'generateToken': {'request': 'GenerationStep', 'response': 'GenerationPrediction'}, 'simulateResources': {'request': 'GenerationInput', 'response': 'ResourceExecution'}}
-CONTRACT_SHA256 = '219df0093966c2478a891e6c43e016e17f3dbe45a35ecbf231fd82401f9082a1'
+CONTRACT_SHA256 = 'af83f248f8fdb2481caf7cb02631cdce2dc7800094c457ad4b9072293d30a251'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -747,7 +747,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                  'workload': {'$ref': '#/$defs/Workload'},
                                  'ontology_binding': {'$ref': '#/$defs/OntologyBinding'}}},
  'OntologyBinding': {'type': 'object',
-                     'x-owner': 'ExperimentSpec',
+                     'x-owner': 'ExecutionSpec',
                      'x-ontology-binding': True,
                      'additionalProperties': False,
                      'required': ['primary', 'related'],
@@ -1009,11 +1009,19 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                    'name',
                                    'question',
                                    'ontology_binding',
-                                   'settings',
+                                   'variants',
                                    'missing_controls',
                                    'contract',
                                    'sources',
                                    'evidence'],
+                      'allOf': [{'if': {'properties': {'missing_controls': {'type': 'array',
+                                                                            'maxItems': 0}}},
+                                 'then': {'properties': {'variants': {'type': 'array',
+                                                                      'minItems': 1}}}},
+                                {'if': {'properties': {'missing_controls': {'type': 'array',
+                                                                            'minItems': 1}}},
+                                 'then': {'properties': {'variants': {'type': 'array',
+                                                                      'maxItems': 0}}}}],
                       'properties': {'id': {'type': 'string',
                                             'pattern': '^[a-z][a-z0-9-]*$'},
                                      'name': {'type': 'string',
@@ -1021,18 +1029,19 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                      'question': {'type': 'string',
                                                   'pattern': '[\\s\\S]+'},
                                      'ontology_binding': {'$ref': '#/$defs/OntologyBinding'},
-                                     'settings': {'type': 'array',
+                                     'variants': {'type': 'array',
                                                   'items': {'$ref': '#/$defs/ExperimentSpec'},
-                                                  'description': 'Controls '
-                                                                 'applied '
-                                                                 'together. An '
-                                                                 'experiment '
-                                                                 'with no '
-                                                                 'missing '
-                                                                 'controls '
-                                                                 'must form a '
-                                                                 'valid '
-                                                                 'ExecutionSpec.'},
+                                                  'description': 'Complete '
+                                                                 'selectable '
+                                                                 'inputs; '
+                                                                 'selecting a '
+                                                                 'variant '
+                                                                 'configures '
+                                                                 'workload and '
+                                                                 'execution '
+                                                                 'without '
+                                                                 'generating '
+                                                                 'output.'},
                                      'missing_controls': {'type': 'array',
                                                           'uniqueItems': True,
                                                           'items': {'type': 'string',
@@ -1339,6 +1348,13 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                         'total '
                                                                         'observer '
                                                                         'overhead.'}}},
+ 'ExperimentSpec': {'type': 'object',
+                    'x-owner': 'ExperimentSpec',
+                    'additionalProperties': False,
+                    'required': ['label', 'input'],
+                    'properties': {'label': {'type': 'string',
+                                             'pattern': '[\\s\\S]+'},
+                                   'input': {'$ref': '#/$defs/GenerationInput'}}},
  'InspectionState': {'type': 'object',
                      'x-owner': 'InspectionState',
                      'additionalProperties': False,
@@ -2503,48 +2519,48 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                      'Tokenizer',
                                                                      'Workload']}},
                                       'inspection': {'type': 'string'}}},
- 'ExperimentSpec': {'type': 'object',
-                    'x-owner': 'ExperimentSpec',
-                    'additionalProperties': False,
-                    'required': ['control', 'value', 'ontology_binding'],
-                    'properties': {'control': {'type': 'string',
-                                               'enum': ['model',
-                                                        'kv_reuse',
-                                                        'kv_cache',
-                                                        'scheduling',
-                                                        'transfer',
-                                                        'compute_service']},
-                                   'value': {'type': ['string',
-                                                      'boolean',
-                                                      'object']},
-                                   'ontology_binding': {'$ref': '#/$defs/OntologyBinding'}},
-                    'oneOf': [{'properties': {'control': {'const': 'model'},
-                                              'value': {'type': 'string',
-                                                        'pattern': '^[a-z0-9-]+$',
-                                                        'title': 'Model'},
-                                              'ontology_binding': {'const': {'primary': 'ModelArtifact',
-                                                                             'related': []}}}},
-                              {'properties': {'control': {'const': 'kv_reuse'},
-                                              'value': {'type': 'boolean',
-                                                        'title': 'KV reuse'},
-                                              'ontology_binding': {'const': {'primary': 'KVCache',
-                                                                             'related': ['ModelExecution']}}}},
-                              {'properties': {'control': {'const': 'kv_cache'},
-                                              'value': {'$ref': '#/$defs/KVCacheConfig'},
-                                              'ontology_binding': {'const': {'primary': 'KVCache',
-                                                                             'related': ['KVState']}}}},
-                              {'properties': {'control': {'const': 'scheduling'},
-                                              'value': {'$ref': '#/$defs/RequestSchedulingConfig'},
-                                              'ontology_binding': {'const': {'primary': 'RequestScheduling',
-                                                                             'related': []}}}},
-                              {'properties': {'control': {'const': 'transfer'},
-                                              'value': {'$ref': '#/$defs/StateTransferConfig'},
-                                              'ontology_binding': {'const': {'primary': 'StateTransfer',
-                                                                             'related': ['KVState']}}}},
-                              {'properties': {'control': {'const': 'compute_service'},
-                                              'value': {'$ref': '#/$defs/ComputeServiceConfig'},
-                                              'ontology_binding': {'const': {'primary': 'ComputeService',
-                                                                             'related': []}}}}]},
+ 'ExecutionControl': {'type': 'object',
+                      'x-owner': 'ExecutionSpec',
+                      'additionalProperties': False,
+                      'required': ['control', 'value', 'ontology_binding'],
+                      'properties': {'control': {'type': 'string',
+                                                 'enum': ['model',
+                                                          'kv_reuse',
+                                                          'kv_cache',
+                                                          'scheduling',
+                                                          'transfer',
+                                                          'compute_service']},
+                                     'value': {'type': ['string',
+                                                        'boolean',
+                                                        'object']},
+                                     'ontology_binding': {'$ref': '#/$defs/OntologyBinding'}},
+                      'oneOf': [{'properties': {'control': {'const': 'model'},
+                                                'value': {'type': 'string',
+                                                          'pattern': '^[a-z0-9-]+$',
+                                                          'title': 'Model'},
+                                                'ontology_binding': {'const': {'primary': 'ModelArtifact',
+                                                                               'related': []}}}},
+                                {'properties': {'control': {'const': 'kv_reuse'},
+                                                'value': {'type': 'boolean',
+                                                          'title': 'KV reuse'},
+                                                'ontology_binding': {'const': {'primary': 'KVCache',
+                                                                               'related': ['ModelExecution']}}}},
+                                {'properties': {'control': {'const': 'kv_cache'},
+                                                'value': {'$ref': '#/$defs/KVCacheConfig'},
+                                                'ontology_binding': {'const': {'primary': 'KVCache',
+                                                                               'related': ['KVState']}}}},
+                                {'properties': {'control': {'const': 'scheduling'},
+                                                'value': {'$ref': '#/$defs/RequestSchedulingConfig'},
+                                                'ontology_binding': {'const': {'primary': 'RequestScheduling',
+                                                                               'related': []}}}},
+                                {'properties': {'control': {'const': 'transfer'},
+                                                'value': {'$ref': '#/$defs/StateTransferConfig'},
+                                                'ontology_binding': {'const': {'primary': 'StateTransfer',
+                                                                               'related': ['KVState']}}}},
+                                {'properties': {'control': {'const': 'compute_service'},
+                                                'value': {'$ref': '#/$defs/ComputeServiceConfig'},
+                                                'ontology_binding': {'const': {'primary': 'ComputeService',
+                                                                               'related': []}}}}]},
  'ExecutionSpec': {'type': 'object',
                    'x-owner': 'ExecutionSpec',
                    'additionalProperties': False,
@@ -2552,7 +2568,7 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                    'properties': {'experiments': {'type': 'array',
                                                   'minItems': 2,
                                                   'maxItems': 6,
-                                                  'items': {'$ref': '#/$defs/ExperimentSpec'},
+                                                  'items': {'$ref': '#/$defs/ExecutionControl'},
                                                   'allOf': [{'contains': {'type': 'object',
                                                                           'properties': {'control': {'const': 'model'}},
                                                                           'required': ['control']},
@@ -3817,10 +3833,27 @@ class ExperimentSource(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
-class ExperimentSpec(Declaration):
+class ExecutionControl(Declaration):
     control: str
     value: str | bool | dict[str, Any]
     ontology_binding: OntologyBinding
+
+
+@dataclass(frozen=True, kw_only=True)
+class ExecutionSpec(Declaration):
+    experiments: tuple[ExecutionControl, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
+class GenerationInput(Declaration):
+    execution: ExecutionSpec
+    workload: Workload
+
+
+@dataclass(frozen=True, kw_only=True)
+class ExperimentSpec(Declaration):
+    label: str
+    input: GenerationInput
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -3829,7 +3862,7 @@ class ExperimentDesign(Declaration):
     name: str
     question: str
     ontology_binding: OntologyBinding
-    settings: tuple[ExperimentSpec, ...]
+    variants: tuple[ExperimentSpec, ...]
     missing_controls: tuple[str, ...]
     contract: AbstractionContract
     sources: tuple[ExperimentSource, ...]
@@ -4053,17 +4086,6 @@ class ModelLoadResult(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
-class ExecutionSpec(Declaration):
-    experiments: tuple[ExperimentSpec, ...]
-
-
-@dataclass(frozen=True, kw_only=True)
-class GenerationInput(Declaration):
-    execution: ExecutionSpec
-    workload: Workload
-
-
-@dataclass(frozen=True, kw_only=True)
 class GenerationPrepared(Declaration):
     prompt_ids: tuple[int, ...]
     pieces: tuple[str, ...]
@@ -4262,7 +4284,7 @@ class InferenceMap(Declaration):
     relationships: tuple[InferenceMapRelationship, ...]
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'RunOutcome': RunOutcome, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'OntologyBinding': OntologyBinding, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'TokenSelection': TokenSelection, 'CacheComputation': CacheComputation, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ExecutionReplayInput': ExecutionReplayInput, 'AbstractionContract': AbstractionContract, 'ExperimentSource': ExperimentSource, 'ExperimentSpec': ExperimentSpec, 'ExperimentDesign': ExperimentDesign, 'ExperimentCatalog': ExperimentCatalog, 'GenerationWork': GenerationWork, 'BrowserTokenTiming': BrowserTokenTiming, 'BrowserObserverBatch': BrowserObserverBatch, 'BrowserGenerationTiming': BrowserGenerationTiming, 'InspectionState': InspectionState, 'ApiError': ApiError, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Token': Token, 'Span': Span, 'Encoding': Encoding, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'ExecutionSpec': ExecutionSpec, 'GenerationInput': GenerationInput, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough, 'ResourceExecution': ResourceExecution, 'CollectiveCommunicationBoundary': CollectiveCommunicationBoundary, 'ComputeKernelBoundary': ComputeKernelBoundary, 'DeviceRuntimeBoundary': DeviceRuntimeBoundary, 'InferenceEngineBoundary': InferenceEngineBoundary, 'RequestEndpointBoundary': RequestEndpointBoundary, 'RequestRouterBoundary': RequestRouterBoundary, 'ResourcePoolBoundary': ResourcePoolBoundary, 'StateManagerBoundary': StateManagerBoundary, 'InferenceMapNode': InferenceMapNode, 'InferenceMapRelationship': InferenceMapRelationship, 'InferenceMap': InferenceMap}
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'RunOutcome': RunOutcome, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'OntologyBinding': OntologyBinding, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'TokenSelection': TokenSelection, 'CacheComputation': CacheComputation, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ExecutionReplayInput': ExecutionReplayInput, 'AbstractionContract': AbstractionContract, 'ExperimentSource': ExperimentSource, 'ExecutionControl': ExecutionControl, 'ExecutionSpec': ExecutionSpec, 'GenerationInput': GenerationInput, 'ExperimentSpec': ExperimentSpec, 'ExperimentDesign': ExperimentDesign, 'ExperimentCatalog': ExperimentCatalog, 'GenerationWork': GenerationWork, 'BrowserTokenTiming': BrowserTokenTiming, 'BrowserObserverBatch': BrowserObserverBatch, 'BrowserGenerationTiming': BrowserGenerationTiming, 'InspectionState': InspectionState, 'ApiError': ApiError, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Token': Token, 'Span': Span, 'Encoding': Encoding, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough, 'ResourceExecution': ResourceExecution, 'CollectiveCommunicationBoundary': CollectiveCommunicationBoundary, 'ComputeKernelBoundary': ComputeKernelBoundary, 'DeviceRuntimeBoundary': DeviceRuntimeBoundary, 'InferenceEngineBoundary': InferenceEngineBoundary, 'RequestEndpointBoundary': RequestEndpointBoundary, 'RequestRouterBoundary': RequestRouterBoundary, 'ResourcePoolBoundary': ResourcePoolBoundary, 'StateManagerBoundary': StateManagerBoundary, 'InferenceMapNode': InferenceMapNode, 'InferenceMapRelationship': InferenceMapRelationship, 'InferenceMap': InferenceMap}
 OPERATION_OWNERS = {'token_embedding': 'Embedding', 'embedding': 'Embedding', 'position_embedding': 'PositionEncoding', 'ln1_mean': 'Normalization', 'ln1_variance': 'Normalization', 'ln1': 'Normalization', 'ln2_mean': 'Normalization', 'ln2_variance': 'Normalization', 'ln2': 'Normalization', 'ln_final_mean': 'Normalization', 'ln_final_variance': 'Normalization', 'ln_final': 'Normalization', 'query': 'Attention', 'key': 'Attention', 'value': 'Attention', 'scores': 'Attention', 'causal_mask': 'Attention', 'attention': 'Attention', 'weighted_values': 'Attention', 'attention_output': 'Attention', 'attention_residual': 'ResidualAddition', 'ff_residual': 'ResidualAddition', 'ff_up': 'FeedForward', 'gelu': 'FeedForward', 'ff_down': 'FeedForward', 'logits': 'OutputProjection', 'input_ids': 'Tokenizer', 'retained_keys': 'KVState', 'retained_values': 'KVState'}
 EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                          'name': 'Reference model execution',
@@ -4282,14 +4304,6 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                                           'Decoding',
                                                           'ModelArchitecture',
                                                           'ModelArtifact']},
-                         'settings': [{'control': 'model',
-                                       'value': 'tinyllm-8k',
-                                       'ontology_binding': {'primary': 'ModelArtifact',
-                                                            'related': []}},
-                                      {'control': 'kv_reuse',
-                                       'value': False,
-                                       'ontology_binding': {'primary': 'KVCache',
-                                                            'related': ['ModelExecution']}}],
                          'missing_controls': [],
                          'contract': {'target_regime': 'One decoder-only '
                                                        'causal Transformer '
@@ -4343,7 +4357,25 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                                 'judging optimizations.'},
                          'sources': [],
                          'evidence': ['governance/evaluations/results/2026-10/13/first-principles/python-engine.yaml',
-                                      'governance/evaluations/results/2026-10/13/first-principles/panel.yaml']},
+                                      'governance/evaluations/results/2026-10/13/first-principles/panel.yaml'],
+                         'variants': [{'label': 'Configure reference model',
+                                       'input': {'execution': {'experiments': [{'control': 'model',
+                                                                                'value': 'tinyllm-8k',
+                                                                                'ontology_binding': {'primary': 'ModelArtifact',
+                                                                                                     'related': []}},
+                                                                               {'control': 'kv_reuse',
+                                                                                'value': False,
+                                                                                'ontology_binding': {'primary': 'KVCache',
+                                                                                                     'related': ['ModelExecution']}}]},
+                                                 'workload': {'kind': 'fixed-arrivals',
+                                                              'requests': [{'request_id': 'r1',
+                                                                            'arrival_us': 0,
+                                                                            'request': {'text': 'the '
+                                                                                                'cat '
+                                                                                                'was',
+                                                                                        'generation': {'max_new_tokens': 32,
+                                                                                                       'selection': 'greedy-lowest-id-tie',
+                                                                                                       'stopping': 'model-end-or-budget'}}}]}}}]},
  'kv-residency': {'id': 'kv-residency',
                   'name': 'KV reuse, residency and misses',
                   'question': 'When an exact reusable prefix is present, '
@@ -4355,34 +4387,6 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                                    'RequestScheduling',
                                                    'StateTransfer',
                                                    'ComputeService']},
-                  'settings': [{'control': 'model',
-                                'value': 'tinyllm-8k',
-                                'ontology_binding': {'primary': 'ModelArtifact',
-                                                     'related': []}},
-                               {'control': 'kv_reuse',
-                                'value': True,
-                                'ontology_binding': {'primary': 'KVCache',
-                                                     'related': ['ModelExecution']}},
-                               {'control': 'kv_cache',
-                                'value': {'device_kv_bytes': 16384,
-                                          'host_kv_bytes': 32768,
-                                          'retention_policy': 'whole-prefix-lru'},
-                                'ontology_binding': {'primary': 'KVCache',
-                                                     'related': ['KVState']}},
-                               {'control': 'scheduling',
-                                'value': {'max_active_requests': 2},
-                                'ontology_binding': {'primary': 'RequestScheduling',
-                                                     'related': []}},
-                               {'control': 'transfer',
-                                'value': {'link_bytes_per_us': 100,
-                                          'link_latency_us': 10},
-                                'ontology_binding': {'primary': 'StateTransfer',
-                                                     'related': ['KVState']}},
-                               {'control': 'compute_service',
-                                'value': {'compute_flops_per_us': 1000,
-                                          'memory_bytes_per_us': 1000},
-                                'ontology_binding': {'primary': 'ComputeService',
-                                                     'related': []}}],
                   'missing_controls': [],
                   'contract': {'target_regime': 'Exact whole-prefix reuse for '
                                                 'the 8K checkpoint in two '
@@ -4426,7 +4430,45 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                          'screening real hardware needs '
                                          'calibration.'},
                   'sources': [],
-                  'evidence': ['docs/research/kv-residency-2026-10-09.md']},
+                  'evidence': ['docs/research/kv-residency-2026-10-09.md'],
+                  'variants': [{'label': 'Configure residency simulation',
+                                'input': {'execution': {'experiments': [{'control': 'model',
+                                                                         'value': 'tinyllm-8k',
+                                                                         'ontology_binding': {'primary': 'ModelArtifact',
+                                                                                              'related': []}},
+                                                                        {'control': 'kv_reuse',
+                                                                         'value': True,
+                                                                         'ontology_binding': {'primary': 'KVCache',
+                                                                                              'related': ['ModelExecution']}},
+                                                                        {'control': 'kv_cache',
+                                                                         'value': {'device_kv_bytes': 16384,
+                                                                                   'host_kv_bytes': 32768,
+                                                                                   'retention_policy': 'whole-prefix-lru'},
+                                                                         'ontology_binding': {'primary': 'KVCache',
+                                                                                              'related': ['KVState']}},
+                                                                        {'control': 'scheduling',
+                                                                         'value': {'max_active_requests': 2},
+                                                                         'ontology_binding': {'primary': 'RequestScheduling',
+                                                                                              'related': []}},
+                                                                        {'control': 'transfer',
+                                                                         'value': {'link_bytes_per_us': 100,
+                                                                                   'link_latency_us': 10},
+                                                                         'ontology_binding': {'primary': 'StateTransfer',
+                                                                                              'related': ['KVState']}},
+                                                                        {'control': 'compute_service',
+                                                                         'value': {'compute_flops_per_us': 1000,
+                                                                                   'memory_bytes_per_us': 1000},
+                                                                         'ontology_binding': {'primary': 'ComputeService',
+                                                                                              'related': []}}]},
+                                          'workload': {'kind': 'fixed-arrivals',
+                                                       'requests': [{'request_id': 'r1',
+                                                                     'arrival_us': 0,
+                                                                     'request': {'text': 'the '
+                                                                                         'cat '
+                                                                                         'was',
+                                                                                 'generation': {'max_new_tokens': 16,
+                                                                                                'selection': 'greedy-lowest-id-tie',
+                                                                                                'stopping': 'model-end-or-budget'}}}]}}}]},
  'prefill-decode': {'id': 'prefill-decode',
                     'name': 'Prefill/decode KV handoff',
                     'question': 'Does continuation after a lossless KV handoff '
@@ -4435,14 +4477,6 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                     'ontology_binding': {'primary': 'StateTransfer',
                                          'related': ['KVState',
                                                      'ModelExecution']},
-                    'settings': [{'control': 'model',
-                                  'value': 'tinyllm-8k',
-                                  'ontology_binding': {'primary': 'ModelArtifact',
-                                                       'related': []}},
-                                 {'control': 'kv_reuse',
-                                  'value': True,
-                                  'ontology_binding': {'primary': 'KVCache',
-                                                       'related': ['ModelExecution']}}],
                     'missing_controls': ['execution_placement',
                                          'state_handoff'],
                     'contract': {'target_regime': 'Two declared execution '
@@ -4468,7 +4502,8 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                            'movement cost needs the resource '
                                            'model and real measurements.'},
                     'sources': [],
-                    'evidence': []},
+                    'evidence': [],
+                    'variants': []},
  'speculative-decoding': {'id': 'speculative-decoding',
                           'name': 'Speculative decoding',
                           'question': 'What happens when the first candidate '
@@ -4478,14 +4513,6 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                           'ontology_binding': {'primary': 'Decoding',
                                                'related': ['ModelExecution',
                                                            'KVState']},
-                          'settings': [{'control': 'model',
-                                        'value': 'tinyllm-4m',
-                                        'ontology_binding': {'primary': 'ModelArtifact',
-                                                             'related': []}},
-                                       {'control': 'kv_reuse',
-                                        'value': True,
-                                        'ontology_binding': {'primary': 'KVCache',
-                                                             'related': ['ModelExecution']}}],
                           'missing_controls': ['draft_model', 'speculation'],
                           'contract': {'target_regime': 'A smaller draft '
                                                         'proposes tokens that '
@@ -4526,7 +4553,8 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                                 'Transformers via Speculative '
                                                 'Decoding, ICML 2023',
                                        'url': 'https://proceedings.mlr.press/v202/leviathan23a.html'}],
-                          'evidence': []},
+                          'evidence': [],
+                          'variants': []},
  'positional-encoding': {'id': 'positional-encoding',
                          'name': 'Positional encoding',
                          'question': 'What happens if the same token appears '
@@ -4535,14 +4563,6 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                          'ontology_binding': {'primary': 'PositionEncoding',
                                               'related': ['Embedding',
                                                           'Attention']},
-                         'settings': [{'control': 'model',
-                                       'value': 'tinyllm-8k',
-                                       'ontology_binding': {'primary': 'ModelArtifact',
-                                                            'related': []}},
-                                      {'control': 'kv_reuse',
-                                       'value': False,
-                                       'ontology_binding': {'primary': 'KVCache',
-                                                            'related': ['ModelExecution']}}],
                          'missing_controls': ['position_encoding'],
                          'contract': {'target_regime': 'Learned absolute '
                                                        'positions (8K) and '
@@ -4577,7 +4597,8 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                       'url': 'https://arxiv.org/abs/2104.09864'},
                                      {'title': 'ALiBi',
                                       'url': 'https://arxiv.org/abs/2108.12409'}],
-                         'evidence': []},
+                         'evidence': [],
+                         'variants': []},
  'constrained-fleet': {'id': 'constrained-fleet',
                        'name': 'Constrained heterogeneous fleet',
                        'question': 'When a model and workload must be served '
@@ -4592,14 +4613,6 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                                         'RequestScheduling',
                                                         'KVCache',
                                                         'ComputeService']},
-                       'settings': [{'control': 'model',
-                                     'value': 'tinyllm-4m',
-                                     'ontology_binding': {'primary': 'ModelArtifact',
-                                                          'related': []}},
-                                    {'control': 'kv_reuse',
-                                     'value': True,
-                                     'ontology_binding': {'primary': 'KVCache',
-                                                          'related': ['ModelExecution']}}],
                        'missing_controls': ['hardware_pool',
                                             'network_topology',
                                             'service_requirements',
@@ -4638,7 +4651,100 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                               'production adoption or '
                                               'procurement.'},
                        'sources': [],
-                       'evidence': ['docs/labs/constrained-fleet.md']}}
+                       'evidence': ['docs/labs/constrained-fleet.md'],
+                       'variants': []},
+ 'kv-browser-timing': {'id': 'kv-browser-timing',
+                       'name': 'KV reuse',
+                       'question': 'How does retaining earlier token positions '
+                                   'change the work and latency of generating '
+                                   'the next token?',
+                       'ontology_binding': {'primary': 'KVCache',
+                                            'related': ['ModelExecution']},
+                       'missing_controls': [],
+                       'contract': {'target_regime': 'Single interactive '
+                                                     'browser runs of the 4M '
+                                                     'NumPy decoder with '
+                                                     'identical prompt and '
+                                                     'token limit. Configure '
+                                                     'either variant, then use '
+                                                     'Generate or Next Token '
+                                                     'in Interaction.',
+                                    'preserved': 'Identical model, input, '
+                                                 'greedy selection and stop '
+                                                 'conditions. Both variants '
+                                                 'start with a cold prompt '
+                                                 'prefix; incremental reuse '
+                                                 'becomes observable after the '
+                                                 'first token.',
+                                    'omissions': 'No GPU, concurrent serving, '
+                                                 'preloaded prompt cache or '
+                                                 'automatic paired benchmark.',
+                                    'evidence_plan': 'Inspect actual computed '
+                                                     'and reused positions per '
+                                                     'token and separately '
+                                                     'scoped decoder, service '
+                                                     'and browser durations. '
+                                                     'Retained headless pilot '
+                                                     'evidence uses its own '
+                                                     'fixed protocol and is '
+                                                     'not an interactive-panel '
+                                                     'measurement.',
+                                    'limits': 'Single-run timing is noisy and '
+                                              'does not establish a production '
+                                              'speedup. Equal output tokens '
+                                              'are expected; reduced computed '
+                                              'work demonstrates the reuse '
+                                              'mechanism.'},
+                       'sources': [],
+                       'evidence': ['governance/evaluations/results/2026-10/14/performance/kv-timing-pilot.yaml'],
+                       'variants': [{'label': 'Configure without KV reuse',
+                                     'input': {'execution': {'experiments': [{'control': 'model',
+                                                                              'value': 'tinyllm-4m',
+                                                                              'ontology_binding': {'primary': 'ModelArtifact',
+                                                                                                   'related': []}},
+                                                                             {'control': 'kv_reuse',
+                                                                              'value': False,
+                                                                              'ontology_binding': {'primary': 'KVCache',
+                                                                                                   'related': ['ModelExecution']}}]},
+                                               'workload': {'kind': 'fixed-arrivals',
+                                                            'requests': [{'request_id': 'r1',
+                                                                          'arrival_us': 0,
+                                                                          'request': {'text': 'Once '
+                                                                                              'upon '
+                                                                                              'a '
+                                                                                              'time, '
+                                                                                              'there '
+                                                                                              'was '
+                                                                                              'a '
+                                                                                              'little '
+                                                                                              'dog.',
+                                                                                      'generation': {'max_new_tokens': 32,
+                                                                                                     'selection': 'greedy-lowest-id-tie',
+                                                                                                     'stopping': 'model-end-or-budget'}}}]}}},
+                                    {'label': 'Configure with KV reuse',
+                                     'input': {'execution': {'experiments': [{'control': 'model',
+                                                                              'value': 'tinyllm-4m',
+                                                                              'ontology_binding': {'primary': 'ModelArtifact',
+                                                                                                   'related': []}},
+                                                                             {'control': 'kv_reuse',
+                                                                              'value': True,
+                                                                              'ontology_binding': {'primary': 'KVCache',
+                                                                                                   'related': ['ModelExecution']}}]},
+                                               'workload': {'kind': 'fixed-arrivals',
+                                                            'requests': [{'request_id': 'r1',
+                                                                          'arrival_us': 0,
+                                                                          'request': {'text': 'Once '
+                                                                                              'upon '
+                                                                                              'a '
+                                                                                              'time, '
+                                                                                              'there '
+                                                                                              'was '
+                                                                                              'a '
+                                                                                              'little '
+                                                                                              'dog.',
+                                                                                      'generation': {'max_new_tokens': 32,
+                                                                                                     'selection': 'greedy-lowest-id-tie',
+                                                                                                     'stopping': 'model-end-or-budget'}}}]}}}]}}
 for model in MODELS.values():
     model._definitions = SCHEMAS
     model._registry = MODELS

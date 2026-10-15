@@ -20,7 +20,7 @@ def audit_frontend_source(path, source, ontology, spec, experiments):
     if path.suffix == '.html':
         dialog = re.search(r'<dialog\b[^>]*id=[\"\']system-dialog[\"\'][^>]*>(.*?)</dialog>', source, re.S)
         if dialog and any(tag in ('input', 'select', 'textarea', 'details') for tag, _ in Elements(dialog.group(1)).elements):
-            fail('handwritten system editor; generate concept homes from ExperimentSpec primary bindings')
+            fail('handwritten system editor; generate concept homes from ExecutionControl primary bindings')
         for _, attrs in Elements(source).elements:
             label = attrs.get('data-term')
             if label is not None and label not in projections:
@@ -85,7 +85,7 @@ def audit_system_map(ontology, spec, experiments):
             fail('numerical diagram must belong to ModelExecution')
     if len([n for n in nodes if n['view'] == 'engine']) != 1:
         fail('require exactly one numerical diagram home')
-    for control in spec['$defs']['ExperimentSpec']['oneOf']:
+    for control in spec['$defs']['ExecutionControl']['oneOf']:
         properties = control['properties']
         name = properties['control']['const']
         binding = properties['ontology_binding']['const']

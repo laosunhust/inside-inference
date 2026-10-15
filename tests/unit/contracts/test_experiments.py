@@ -20,7 +20,7 @@ class ExperimentCatalogTests(unittest.TestCase):
     def test_admitted_catalog_and_derived_status(self):
         experiments = self.admit(self.catalog)
         executable = {e['id'] for e in experiments if not e['missing_controls']}
-        self.assertEqual(executable, {'reference-execution', 'kv-residency'})
+        self.assertEqual(executable, {'reference-execution', 'kv-residency', 'kv-browser-timing'})
         self.assertIn('constrained-fleet', {e['id'] for e in experiments})
 
     def test_executable_settings_form_a_valid_execution(self):
@@ -30,17 +30,33 @@ class ExperimentCatalogTests(unittest.TestCase):
         for experiment in self.admit(self.catalog):
             self.assertEqual(EXPERIMENTS[experiment['id']], experiment, 'generated registry is stale')
             if experiment['missing_controls']: continue
-            spec = {'experiments': experiment['settings']}
-            ExecutionSpec.validate_shape(spec)
-            resolved = resolve_execution(spec)
-            self.assertEqual(bool(resolved['resources']), experiment['id'] == 'kv-residency')
+            for variant in experiment['variants']:
+                spec = variant['input']['execution']
+                ExecutionSpec.validate_shape(spec)
+                resolved = resolve_execution(spec)
+                self.assertEqual(bool(resolved['resources']), experiment['id'] == 'kv-residency')
+
+    def test_kv_variants_change_only_reuse(self):
+        variants=next(e for e in self.catalog['experiments'] if e['id']=='kv-browser-timing')['variants']
+        left,right=[copy.deepcopy(v['input']) for v in variants]
+        control=next(c for c in left['execution']['experiments'] if c['control']=='kv_reuse')
+        self.assertFalse(control['value'])
+        control['value']=True
+        self.assertEqual(left,right)
 
     def test_rejects_invalid_experiments(self):
         def first(c): return c['experiments'][0]
+        def setup(c): return first(c)['variants'][0]['input']
         cases = [
             (lambda c: c['experiments'].append(copy.deepcopy(first(c))), 'duplicate experiment id'),
-            (lambda c: first(c)['settings'].append(copy.deepcopy(first(c)['settings'][0])), 'assigned once'),
-            (lambda c: first(c).update(missing_controls=['kv_reuse']), 'declared controls'),
+            (lambda c: setup(c)['execution']['experiments'].append(copy.deepcopy(setup(c)['execution']['experiments'][0])), 'at most 1'),
+            (lambda c: setup(c)['workload']['requests'][0]['request']['generation'].update(max_new_tokens=0), 'minimum'),
+            (lambda c: setup(c).pop('workload'), 'workload'),
+            (lambda c: setup(c)['execution']['experiments'].pop(), 'too short'),
+            (lambda c: setup(c)['execution']['experiments'].append(copy.deepcopy(c['experiments'][1]['variants'][0]['input']['execution']['experiments'][2])), 'contain'),
+            (lambda c: first(c).update(variants=[]), 'variants'),
+            (lambda c: first(c).update(missing_controls=['future_control']), 'variants'),
+            (lambda c: first(c).update(missing_controls=['kv_reuse'],variants=[]), 'declared controls'),
             (lambda c: first(c).update(evidence=['docs/missing.md']), 'missing file'),
             (lambda c: first(c)['ontology_binding'].update(primary='Invented'), 'ontology_binding'),
             (lambda c: first(c)['contract'].pop('omissions'), 'omissions'),

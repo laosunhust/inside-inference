@@ -7,12 +7,12 @@ ownership is enforced by the [ontology declarations](../ontology/README.md).
 The [experimental method](methodology.md) explains instrument selection, the tiny-model
 boundary, and validation of abstractions.
 
-Pending evaluation: [bounded KV timing pilot](../proposals/kv-timing-pilot.md).
+Completed evidence: [browser KV timing pilot](../../data/experiments/kv-timing-pilot/README.md).
 
 ## Abstraction contract
 
 Every lab is a declared experiment in the [experiment catalog](../../data/experiments/catalog.yaml):
-ExperimentSpec settings, the controls it still lacks, and an `AbstractionContract`.
+complete ExperimentSpec variants, the controls it still lacks, and an `AbstractionContract`.
 Admission requires the contract's target regime, preserved relationships, omissions,
 evidence plan and limits. The table below explains what each item should say; small
 labs can satisfy it concisely. A complete field is not evidence that the abstraction
@@ -119,7 +119,7 @@ For example, a positional-encoding lab primarily studies `PositionEncoding`; its
 related embedding and attention concepts identify the computation sites being
 compared. Planned alternatives remain explicitly planned.
 
-`ExperimentSpec` owns the binding declaration. Executable lab specifications retain
+`ExecutionSpec` owns the binding declaration. Executable lab specifications retain
 it in completed records, and replay must preserve it. Catalog associations generate
 step-level lab navigation; the experiment question and evidence limits remain
 necessary alongside these mechanically validated references.

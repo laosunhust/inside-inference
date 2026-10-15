@@ -328,7 +328,7 @@ $defs:
         $ref: '#/$defs/OntologyBinding'
   OntologyBinding:
     type: object
-    x-owner: ExperimentSpec
+    x-owner: ExecutionSpec
     x-ontology-binding: true
     additionalProperties: false
     required:
@@ -378,11 +378,32 @@ $defs:
     - name
     - question
     - ontology_binding
-    - settings
+    - variants
     - missing_controls
     - contract
     - sources
     - evidence
+    allOf:
+    - if:
+        properties:
+          missing_controls:
+            type: array
+            maxItems: 0
+      then:
+        properties:
+          variants:
+            type: array
+            minItems: 1
+    - if:
+        properties:
+          missing_controls:
+            type: array
+            minItems: 1
+      then:
+        properties:
+          variants:
+            type: array
+            maxItems: 0
     properties:
       id:
         type: string
@@ -395,11 +416,11 @@ $defs:
         pattern: '[\s\S]+'
       ontology_binding:
         $ref: '#/$defs/OntologyBinding'
-      settings:
+      variants:
         type: array
         items:
           $ref: '#/$defs/ExperimentSpec'
-        description: Controls applied together. An experiment with no missing controls must form a valid ExecutionSpec.
+        description: Complete selectable inputs; selecting a variant configures workload and execution without generating output.
       missing_controls:
         type: array
         uniqueItems: true
@@ -582,3 +603,14 @@ $defs:
         type: number
         minimum: 0
         description: Browser performance.now after rendering. Minus started_ms is synchronous update duration; minus token publication is completion lag including scheduling, not total observer overhead.
+  ExperimentSpec:
+    type: object
+    x-owner: ExperimentSpec
+    additionalProperties: false
+    required: [label, input]
+    properties:
+      label:
+        type: string
+        pattern: '[\s\S]+'
+      input:
+        $ref: '#/$defs/GenerationInput'

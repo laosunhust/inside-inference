@@ -1,0 +1,45 @@
+{
+  "protocol_sha256": "a27bceb2f247f6cd465b2063b9ffd1b9ba9dbaa2aa2d947eda8cece501440e6a",
+  "release": "8b501b22c9c03c40f909f3c387700827472cf0d2c59dae9aba4cde3652147817",
+  "chrome": "Google Chrome 144.0.7559.132",
+  "node": "v24.11.0",
+  "git_revision": "e09123e244a237d70bbc7de2733ba87a3f79b59c",
+  "runner_sha256": {
+    "scripts/experiments/kv_timing/run.py": "96061e7aa1c4eb48a88cc68bce45a6b42edd95f6a1eaad6dbda1d91d9f3bc31a",
+    "scripts/experiments/kv_timing/pilot.mjs": "d8dec9708379b62c8c8d66e73904e62f3d7f973199a65f56868b6ff6d9ed5a06"
+  },
+  "protocol": {
+    "version": 1,
+    "release": "8b501b22c9c03c40f909f3c387700827472cf0d2c59dae9aba4cde3652147817",
+    "model": "tinyllm-4m",
+    "contexts": [
+      8,
+      32,
+      96
+    ],
+    "source_text": "Once upon a time, there was a little dog. ",
+    "source_repetitions": 16,
+    "prefix_construction": "first-N-token-IDs-including-BOS-from-prepared-source",
+    "max_new_tokens": 8,
+    "warmup_pairs": 2,
+    "measured_pairs": 6,
+    "pair_order": "alternating-off-on-and-on-off",
+    "context_wall_seconds": 180,
+    "setup_wall_seconds": 90,
+    "numerical_atol": 0.0001,
+    "numerical_rtol": 0.0001,
+    "minimum_absolute_difference_ms": 0.2,
+    "minimum_relative_difference": 0.1,
+    "minimum_agreeing_pairs": 5,
+    "variability_rule": "absolute-median-paired-difference-must-exceed-three-times-MAD-of-paired-differences",
+    "primary_measure": "mean-decoder-ms-of-decode-steps-per-trial",
+    "secondary_measures": [
+      "mean-service-ms-of-decode-steps-per-trial",
+      "mean-browser-publication-interval-ms-per-trial"
+    ]
+  },
+  "status": "completed",
+  "source_snapshots": {
+    "scripts/experiments/kv_timing/run.py": "execution-source/run.py"
+  }
+}

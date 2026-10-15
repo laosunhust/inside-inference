@@ -16,7 +16,8 @@ from it. Generated files are checked in and are never edited by hand. `make _dat
 ## Declared layers
 
 - `ModelArtifactReference`: resolved weights, tokenizer and architecture.
-- `ExperimentSpec`: an ontology-bound intervention; `ExecutionSpec` composes them.
+- `ExecutionControl`: an ontology-bound system control; `ExecutionSpec` composes them.
+- `ExperimentSpec`: a labeled selectable configuration containing a complete `GenerationInput`.
 - `GenerationInput`: execution configuration and a separate `Workload`.
 - `GenerationPrepared`, `GenerationStep`, `GenerationPrediction`: encoded input,
   submitted prefix and observed selected-model computation.
@@ -29,7 +30,7 @@ from it. Generated files are checked in and are never edited by hand. `make _dat
 ## Composed execution
 
 `ExecutionSpec.experiments` is the sole editable execution configuration. Each
-`ExperimentSpec` names a declared control, its value and its ontology binding.
+`ExecutionControl` names a declared control, its value and its ontology binding.
 Conflicting assignments and unsupported controls fail before computation; list
 order does not decide which value wins. The current executable controls select a
 model, enable or disable KV reuse, and optionally configure KV residency. Model architecture remains owned by the
@@ -64,10 +65,10 @@ by independent forward calculations.
 ## Generated presentation
 
 The [experiment catalog](../../data/experiments/catalog.yaml) declares every lab as
-ExperimentSpec settings, missing controls and an abstraction contract; ExperimentDesign
+ExperimentSpec variants, missing controls and an abstraction contract; ExperimentDesign
 owns it and generation publishes it to Python and the browser. An experiment is
 executable exactly when it lacks no controls. The Inference system configuration
-applies executable experiments; there are no standalone lab pages. Browser operation owners
+selects complete configurations without generating output; there are no standalone lab pages. Browser operation owners
 come from generated declarations. Templates select operations by reference, which
 frontend admission checks against the selected ontology projection.
 
@@ -96,3 +97,17 @@ containers remain shared evidence infrastructure. Response publication remains a
 separate boundary and is not a numerical-computation lab subject. See the
 [ontology decomposition](../ontology/README.md#decomposition-under-test) for the
 current limits and counterexamples motivating these responsibilities.
+
+## Configure, inspect, then execute
+
+Each catalog variant contains both Workload and ExecutionSpec through GenerationInput.
+Selecting a variant replaces both, prepares the input and clears previous output and
+measurements. It never generates tokens. Interaction shows the actual selected model,
+KV-reuse state, mode, input and token limit; its settings disclosure exposes all
+request and execution values. Generate and Next Token are the execution actions.
+
+KV-reuse variants share identical input except for kv_reuse. Both start cold; the
+second token exposes the difference in computed and reused positions. Counts derive
+from the accepted timing ledger, not from which button was selected. Single-run
+timing does not establish a statistically resolved speedup. Retained headless pilot
+evidence remains a separate protocol and measurement scope.

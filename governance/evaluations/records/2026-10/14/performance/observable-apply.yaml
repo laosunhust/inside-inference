@@ -1,0 +1,27 @@
+version: 1
+work_item: observable-apply
+question: Does every experiment selection configure a complete workload and system visibly, without executing until Interaction requests it?
+necessity: Owner rejects hidden preset changes and a headless pilot presented as an interactive experiment.
+baseline: Presets replace ExecutionSpec but leave the configuration dialog open; KV reuse and work counts are hidden outside Interaction or inside disclosure.
+reuse:
+- source: GenerationInput, Workload, ExecutionSpec, catalog and existing timing ledger
+  decision: Compose existing input and execution types in ExperimentSpec variants; derive visible settings from the selected input and measured work from its ledger.
+criteria:
+- Replace generic Apply actions with explicitly labeled declared variants configuring both Workload and ExecutionSpec. Configuration prepares input but never generates output.
+- Selecting any variant displays its prompt, token limit, model and execution settings in Interaction and clears obsolete output and measurements.
+- Generate and Next Token consume exactly the selected configuration, verified for every selectable variant in the real browser.
+- KV variants have identical complete inputs except kv_reuse; two-token runs show cold first-step work and reduced second-step computed positions only with reuse enabled, with identical selected tokens.
+- Invalid workloads, duplicate or missing execution controls, partial resource groups, executable designs without variants and planned designs with variants fail admission.
+- The input editor uses Prepare input and does not generate output.
+- Simulation shows virtual duration and executed work in Interaction, distinguished from browser latency.
+- The interactive KV card describes available configuration; preserve the completed headless pilot evidence without presenting its protocol as an interactive action.
+- Review rendered desktop and narrow layouts and run both required harnesses after authorized implementation.
+counterexamples:
+- A changed hidden checkbox or a toast alone is insufficient evidence.
+- Equal output tokens under KV reuse are expected; changed work is observable without promising faster wall time.
+- Applying an already active preset need not change model output or configuration values.
+- A cold first token cannot demonstrate incremental reuse.
+checks:
+- make test
+- make test-integration
+- Rendered desktop and narrow Interaction after applying and executing presets

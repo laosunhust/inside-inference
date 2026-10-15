@@ -1,0 +1,363 @@
+{
+  "status": "completed",
+  "input": {
+    "workload": {
+      "requests": [
+        {
+          "request_id": "r1",
+          "arrival_us": 0,
+          "request": {
+            "text": "Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. Once upon a time, there was a little dog. ",
+            "generation": {
+              "max_new_tokens": 8,
+              "selection": "greedy-lowest-id-tie",
+              "stopping": "model-end-or-budget"
+            }
+          }
+        }
+      ],
+      "kind": "fixed-arrivals"
+    },
+    "execution": {
+      "experiments": [
+        {
+          "control": "model",
+          "value": "tinyllm-4m",
+          "ontology_binding": {
+            "primary": "ModelArtifact",
+            "related": []
+          }
+        },
+        {
+          "control": "kv_reuse",
+          "value": false,
+          "ontology_binding": {
+            "primary": "KVCache",
+            "related": [
+              "ModelExecution"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "request": {
+    "execution": {
+      "experiments": [
+        {
+          "control": "model",
+          "value": "tinyllm-4m",
+          "ontology_binding": {
+            "primary": "ModelArtifact",
+            "related": []
+          }
+        },
+        {
+          "control": "kv_reuse",
+          "value": false,
+          "ontology_binding": {
+            "primary": "KVCache",
+            "related": [
+              "ModelExecution"
+            ]
+          }
+        }
+      ]
+    },
+    "prefix_ids": [
+      1,
+      432,
+      440,
+      261,
+      404,
+      4045,
+      406,
+      286,
+      261,
+      394,
+      466,
+      4037,
+      432,
+      440,
+      261,
+      404,
+      4045,
+      406,
+      286,
+      261,
+      394,
+      466,
+      4037,
+      432,
+      440,
+      261,
+      404,
+      4045,
+      406,
+      286,
+      261,
+      394,
+      466,
+      4037,
+      432,
+      440,
+      261,
+      404,
+      4045,
+      406,
+      286,
+      261,
+      394,
+      466,
+      4037,
+      432,
+      440,
+      261,
+      404,
+      4045,
+      406,
+      286,
+      261,
+      394,
+      466,
+      4037,
+      432,
+      440,
+      261,
+      404,
+      4045,
+      406,
+      286,
+      261,
+      394,
+      466,
+      4037,
+      432,
+      440,
+      261,
+      404,
+      4045,
+      406,
+      286,
+      261,
+      394,
+      466,
+      4037,
+      432,
+      440,
+      261,
+      404,
+      4045,
+      406,
+      286,
+      261,
+      394,
+      466,
+      4037,
+      432,
+      440,
+      261,
+      404,
+      4045,
+      406,
+      286
+    ],
+    "output_ids": [],
+    "generation": {
+      "max_new_tokens": 8,
+      "selection": "greedy-lowest-id-tie",
+      "stopping": "model-end-or-budget"
+    }
+  },
+  "timing": {
+    "clock": "browser-monotonic-ms",
+    "samples": [
+      {
+        "prediction_id": "db66d1791dc60feb831b897a9e81fd5004dd4628590cfbba9c378a879feaa81d",
+        "token_index": 1,
+        "mode": "continuous",
+        "started_ms": 191542.90000000224,
+        "segment": 1,
+        "dispatched_ms": 191543,
+        "updated_ms": 193315.90000000224,
+        "publishes_text": true,
+        "context_length": 96,
+        "selected_id": 261,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 836960256,
+          "processed_positions": 96,
+          "reused_positions": 0
+        },
+        "decoder_ms": 1756.9000000000017,
+        "service_ms": 1758.9000000000112
+      },
+      {
+        "prediction_id": "387ae9ee3e148ab0e9d5689d4ec0126ff3b55746ab223378740412c6b9705930",
+        "token_index": 2,
+        "mode": "continuous",
+        "started_ms": 191542.90000000224,
+        "segment": 1,
+        "dispatched_ms": 193315.90000000224,
+        "updated_ms": 195062.80000000075,
+        "publishes_text": true,
+        "context_length": 97,
+        "selected_id": 350,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 845877248,
+          "processed_positions": 97,
+          "reused_positions": 0
+        },
+        "decoder_ms": 1730.2000009999858,
+        "service_ms": 1732.2000009999954
+      },
+      {
+        "prediction_id": "951b4c90cead29f1d8c88128de5231224b8c82dbbb01247c57a127f31844a87b",
+        "token_index": 3,
+        "mode": "continuous",
+        "started_ms": 191542.90000000224,
+        "segment": 1,
+        "dispatched_ms": 195062.90000000224,
+        "updated_ms": 196840.20000000298,
+        "publishes_text": true,
+        "context_length": 98,
+        "selected_id": 4045,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 854798336,
+          "processed_positions": 98,
+          "reused_positions": 0
+        },
+        "decoder_ms": 1760.7000000000141,
+        "service_ms": 1762.7000000000237
+      },
+      {
+        "prediction_id": "5c71190a725153ac8fc2734ea93ec0d903809aa7ba15649cceaed1273e21004e",
+        "token_index": 4,
+        "mode": "continuous",
+        "started_ms": 191542.90000000224,
+        "segment": 1,
+        "dispatched_ms": 196840.30000000075,
+        "updated_ms": 198621.70000000298,
+        "publishes_text": true,
+        "context_length": 99,
+        "selected_id": 676,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 863723520,
+          "processed_positions": 99,
+          "reused_positions": 0
+        },
+        "decoder_ms": 1764.9999999999864,
+        "service_ms": 1766.7999999999893
+      },
+      {
+        "prediction_id": "64b3f2010dca693cff98ae2e15ca0149b41e937e7051f114822a22143d82c51a",
+        "token_index": 5,
+        "mode": "continuous",
+        "started_ms": 191542.90000000224,
+        "segment": 1,
+        "dispatched_ms": 198621.80000000075,
+        "updated_ms": 200440,
+        "publishes_text": true,
+        "context_length": 100,
+        "selected_id": 476,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 872652800,
+          "processed_positions": 100,
+          "reused_positions": 0
+        },
+        "decoder_ms": 1802.0999999999958,
+        "service_ms": 1804.000000000002
+      },
+      {
+        "prediction_id": "5ad7a93f16d1d864915183e435975092aaba5809bffb5ae3a3958572d6ad2c1d",
+        "token_index": 6,
+        "mode": "continuous",
+        "started_ms": 191542.90000000224,
+        "segment": 1,
+        "dispatched_ms": 200440,
+        "updated_ms": 202258.40000000224,
+        "publishes_text": true,
+        "context_length": 101,
+        "selected_id": 4037,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 881586176,
+          "processed_positions": 101,
+          "reused_positions": 0
+        },
+        "decoder_ms": 1802.099998999978,
+        "service_ms": 1804.000000000002
+      },
+      {
+        "prediction_id": "3efd426334f64023b49a6770cf6535b9bc1e4992684c7612863852251acf88f8",
+        "token_index": 7,
+        "mode": "continuous",
+        "started_ms": 191542.90000000224,
+        "segment": 1,
+        "dispatched_ms": 202258.5,
+        "updated_ms": 204114.1000000015,
+        "publishes_text": true,
+        "context_length": 102,
+        "selected_id": 282,
+        "stop_reason": null,
+        "work": {
+          "matmul_flops": 890523648,
+          "processed_positions": 102,
+          "reused_positions": 0
+        },
+        "decoder_ms": 1839.2000000000053,
+        "service_ms": 1840.9000009999943
+      },
+      {
+        "prediction_id": "62abed32e8cba4e270666e125abc318718c02364cc86d3d39d05186575b97c00",
+        "token_index": 8,
+        "mode": "continuous",
+        "started_ms": 191542.90000000224,
+        "segment": 1,
+        "dispatched_ms": 204114.20000000298,
+        "updated_ms": 205967.90000000224,
+        "publishes_text": true,
+        "context_length": 103,
+        "selected_id": 394,
+        "stop_reason": "output_budget",
+        "work": {
+          "matmul_flops": 899465216,
+          "processed_positions": 103,
+          "reused_positions": 0
+        },
+        "decoder_ms": 1837.2000009999851,
+        "service_ms": 1839.100000000002
+      }
+    ],
+    "observers": []
+  },
+  "visibility": [
+    "visible",
+    "visible",
+    "visible",
+    "visible",
+    "visible",
+    "visible",
+    "visible",
+    "visible"
+  ],
+  "stop_reason": "output_budget",
+  "pair_order": [
+    "on",
+    "off"
+  ],
+  "context": 96,
+  "mode": "off",
+  "warmup": false,
+  "logits": {
+    "file": "off-logits.bin",
+    "dtype": "little-endian-binary32",
+    "rows": 8,
+    "columns": 4096,
+    "sha256": "cf997c6e58f5a49950d67f51dcb17ab99b4ed274fa639761a69997c657e924ab"
+  }
+}

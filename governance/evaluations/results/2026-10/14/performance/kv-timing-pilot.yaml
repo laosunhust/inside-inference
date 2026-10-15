@@ -1,0 +1,42 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/14/performance/kv-timing-pilot.yaml
+evaluation_sha256: 630443c4bbded0c1b226eac69f378ecb065b07029ef9915616f5d5bd837e85f8
+outcome: passed
+summary: The frozen pilot completed 48 trials (12 warm-up and 36 measured) across 8, 32 and 96 initial
+  token positions, eight naturally selected tokens each. All paired selected-token paths and retained
+  binary32 logits matched numerically; maximum absolute logit difference was zero. Work counters matched
+  cold prefill, incremental decode and full-prefix recomputation. All nine context/metric comparisons
+  met the declared resolution rule in favor of reuse, with six of six measured pairs agreeing. Context
+  wall times were 18.75s, 50.92s and 132.95s, each below the 180s cap. No workload, numerical tolerance
+  or resolution criterion changed after measurement. Raw warm-up/measured ledgers and logits are retained
+  outside out. Results concern the sealed Chrome/Pyodide 4M implementation with output-only DOM publication,
+  not the interactive inspector, GPU serving or production. Initial workflow admission required a PHONY
+  declaration; initial catalog binding to ExperimentObservation lacked a map home and was narrowed to
+  the actual intervention subjects KVCache/ModelExecution before execution. No enforcement was relaxed.
+  Further paired benchmarking is not started automatically. Post-run checks found that the launcher imported
+  build/dev adapters from the experiment layer. The browser-serving adapter was moved to scripts/check/pilots,
+  retaining the exact executed launcher source with its manifest hash in execution-source/run.py. No measurement
+  was rerun and no protected enforcement changed. The catalog expected-set regression was updated for
+  the newly admitted experiment. make test passed 111 tests in 5.40s; make test-integration passed 111
+  unit tests, 21 integration tests and browser checks in 50.04s, within 10s/100s budgets. Desktop/narrow
+  catalog screenshots were reviewed. Offline reanalysis reproduced the summary; executed source and protocol
+  hashes were verified. Six preexisting folder warnings remain unchanged; semantic splits should precede
+  growth, while historical evidence relocation needs scoped approval. The completed proposal was deleted
+  and navigation points to the durable report. Pilot changes remain uncommitted; the deployed product
+  release was not changed by this pilot.
+evidence:
+- data/experiments/kv-timing-pilot/protocol.yaml
+- data/experiments/kv-timing-pilot/manifest.json
+- data/experiments/kv-timing-pilot/environment.json
+- data/experiments/kv-timing-pilot/wall-times.json
+- data/experiments/kv-timing-pilot/summary.json
+- data/experiments/kv-timing-pilot/README.md
+- scripts/check/pilots/kv_timing.py
+- data/experiments/kv-timing-pilot/execution-source/run.py
+- scripts/experiments/kv_timing/pilot.mjs
+- scripts/experiments/kv_timing/analyze.py
+- tests/unit/execution/test_pilot_analysis.py
+- Makefile
+- data/experiments/catalog.yaml
+- scripts/check/story_models/experiments.mjs
+- tests/unit/contracts/test_experiments.py

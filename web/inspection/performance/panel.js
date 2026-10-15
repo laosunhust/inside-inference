@@ -27,6 +27,9 @@ export function mountTiming(root) {
   return function render(trace,count,simulated) {
     $('timing-measurements').hidden=simulated;$('timing-simulation').hidden=!simulated;
     if(simulated)return;
+    const last=trace.samples.at(-1);
+    $('timing-work').hidden=!last;
+    $('timing-work').textContent=last?`Token ${last.token_index}: ${last.work.processed_positions} computed · ${last.work.reused_positions} reused positions`:'';
     const metrics=timingMetrics(trace);
     $('timing-ttft').textContent=format(metrics.ttft);$('timing-count').textContent=String(count);
     $('timing-step').hidden=metrics.step===null;$('timing-step').textContent='Last step · '+format(metrics.step);

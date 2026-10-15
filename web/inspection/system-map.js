@@ -2,7 +2,7 @@
 globalThis.SystemMap=(()=>{
   const label=owner=>owner.replace(/([a-z])([A-Z])|([A-Z])([A-Z][a-z])/g,'$1$3 $2$4');
   function mount(root,engine=null,configure=null) {
-    const map=Declarations.schemas.InferenceMap.const,definitions=Declarations.schemas.ExperimentSpec.oneOf;
+    const map=Declarations.schemas.InferenceMap.const,definitions=Declarations.schemas.ExecutionControl.oneOf;
     Declarations.assertShape('InferenceMap',map);
     const regions=new Map(),panels=new Map(),settings=new Map(),prefix=configure?'configure':'map';
     const el=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
