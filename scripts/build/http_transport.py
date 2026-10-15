@@ -18,14 +18,29 @@ CLIENT = """(() => {
   const workerURL=new URL('worker.generated.js',document.currentScript.src);
   function create(transport) {
     return Object.freeze(Object.fromEntries(Object.entries(operations).map(([name,spec]) =>
-      [name,async(input,{raw=false}={})=>{
+      [name,async(input,{raw=false,observe}={})=>{
+        const started=performance.now(),timing={};
         if(spec.request) Declarations.assertShape(spec.request,input);
         else if(input!==undefined) throw new Error(name+': unexpected input');
-        const text=await transport(name,input);
-        const value=JSON.parse(text);
-        return raw ? text : value;
+        const validated=performance.now();
+        const value=await transport(name,input,timing);
+        const returned=performance.now();
+        if(observe) {
+          const observation={...timing,client_validation_ms:validated-started,
+            round_trip_ms:returned-validated};
+          Declarations.assertShape('BrowserExecutionTiming',observation);
+          observe(observation);
+        }
+        return raw ? JSON.stringify(value) : value;
       }]
     )));
+  }
+  function restoreArrays(value) {
+    if(value===undefined)return null; // Pyodide maps Python None to undefined.
+    if(ArrayBuffer.isView(value))return Array.from(value);
+    if(Array.isArray(value))return value.map(restoreArrays);
+    if(value&&typeof value==='object')for(const key of Object.keys(value))value[key]=restoreArrays(value[key]);
+    return value;
   }
   let worker, failure;
   const pending=new Set();
@@ -33,7 +48,7 @@ CLIENT = """(() => {
     failure=error; for(const reject of pending)reject(error);pending.clear();
     if(worker)worker.terminate();
   }
-  function transport(operation,input) {
+  function transport(operation,input,timing) {
     if(failure)return Promise.reject(failure);
     if(!worker) {
       worker=new Worker(workerURL,{type:'module'});
@@ -47,11 +62,15 @@ CLIENT = """(() => {
       pending.add(abort);
       channel.port1.onmessage=({data})=>{
         if(data.error)finish(new Error(data.error));
-        else if(typeof data.json!=='string')finish(new Error('Invalid worker response'));
-        else finish(null,data.json);
+        else if(!data.value || typeof data.value!=='object')finish(new Error('Invalid worker response'));
+        else {
+          Object.assign(timing,{python:data.python,worker_wait_ms:data.worker_wait_ms,
+            python_bridge_ms:data.python_bridge_ms,buffer_conversion_ms:data.buffer_conversion_ms,transferred_bytes:data.transferred_bytes});
+          finish(null,restoreArrays(data.value));
+        }
       };
       channel.port1.onmessageerror=()=>finish(new Error('Unreadable operation response'));
-      worker.postMessage({operation,input:JSON.stringify(input??null)},[channel.port2]);
+      worker.postMessage({operation,input:input??null},[channel.port2]);
     });
   }
   globalThis.ExecutionClient=Object.freeze({create});
@@ -66,19 +85,31 @@ const ready=(async()=>{
   const response=await fetch(new URL('./engine.zip',import.meta.url));
   if(!response.ok)throw Error('Engine package unavailable');
   py.unpackArchive(await response.arrayBuffer(),'zip',{extractDir:'/project'});
-  await py.runPythonAsync("import sys; sys.path.insert(0, '/project'); from inside_inference.delivery.service import execute_json");
-  return py;
+  await py.runPythonAsync("import sys; sys.path.insert(0, '/project'); from inside_inference.delivery.service import execute_browser");
+  return {py,execute:py.globals.get('execute_browser')};
 })();
 let queue=Promise.resolve();
 onmessage=({data,ports})=>{
-  const port=ports[0];
+  const port=ports[0],received=performance.now();
   queue=queue.then(async()=>{
     try {
-      const py=await ready;
-      py.globals.set('operation_name',data.operation);
-      py.globals.set('operation_input',data.input);
-      const json=await py.runPythonAsync('await execute_json(operation_name, operation_input)');
-      port.postMessage({json});
+      const {py,execute}=await ready;
+      const input=py.toPy(data.input),entered=performance.now();
+      let result,call;
+      try {
+        call=execute(data.operation,input);
+        result=await call;
+        const completed=performance.now(),[value,python]=result.toJs({dict_converter:Object.fromEntries});
+        const buffers=new Set();
+        function collect(item) {
+          if(ArrayBuffer.isView(item)){buffers.add(item.buffer);return;}
+          if(item&&typeof item==='object')for(const child of Object.values(item))collect(child);
+        }
+        collect(value);
+        const converted=performance.now(),transferred_bytes=[...buffers].reduce((n,b)=>n+b.byteLength,0);
+        port.postMessage({value,python,worker_wait_ms:entered-received,python_bridge_ms:completed-entered,
+          buffer_conversion_ms:converted-completed,transferred_bytes},[...buffers]);
+      } finally {result?.destroy();call?.destroy();input?.destroy?.();}
     } catch(error) {port.postMessage({error:String(error)});}
     finally {port.close();}
   });

@@ -1,0 +1,10 @@
+{
+  "baseline": "data/experiments/token-overhead/instrumented-interactive.json",
+  "warmup_runs": 1,
+  "measured_runs": 3,
+  "median_residual_target_ms": 0.5,
+  "residual": "current publication minus previous publication minus current decoder duration; exclude first token",
+  "viewport": {"width": 1280, "height": 1000},
+  "workload": "Reuse each baseline model's input and final output; KV reuse on; 32-token budget",
+  "notes": "One visible browser; observers active. Independent-duration aggregate residual, not an isolated overhead stage. Retain all runs and report per-run medians and pooled p90."
+}

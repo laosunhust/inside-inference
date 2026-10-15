@@ -13,7 +13,7 @@ model inference, tokenization, resource simulation and evidence tooling. The
 renderer neither computes model values nor constructs transport messages. Request
 admission uses generated declarations; complete response validation belongs to the harness.
 
-Preparation tokenizes and validates without a forward pass. Execution produces
+Preparation tokenizes, admits configuration and returns a session ID without a forward pass. Token operations reference that session and carry only dynamic token IDs. Execution produces
 real numerical observations. Both use the same operation interface; there is no
 HTTP compute service or native fallback. Headless integration drives those same
 operations in Chromium and compares them with interactive execution.
@@ -24,8 +24,7 @@ The main page exports `GenerationEvidence`: original input/workload, selected
 model descriptor, and its accepted `GenerationPrediction`. The prediction retains
 the consumed raw prefix, model/tokenizer identities, contract identity, output IDs,
 logits and available tensor observations. Timing is an observation, not part of numerical
-replay equality. The worker executes `generateToken` from the recorded request;
-the same release and matching loaded artifacts are required for comparison.
+replay equality. To reproduce evidence, prepare its recorded input to obtain a fresh session, then execute `generateToken` with that session and the recorded prefix/output IDs. The same release and matching loaded artifacts are required for comparison; session IDs are excluded from numerical equality.
 This export does not embed large weights or promise replay across changed runtimes.
 
 The main page retains one accepted prediction in memory. Reset or model/input
@@ -72,9 +71,7 @@ hosted one. Promote the locally tested release bytes. The integration harness
 executes through a second local origin with CORS and also verifies rejection when
 CORS is absent; it does not claim to have tested a live S3 bucket.
 
-Each explicit load admits an identified model and its matching tokenizer. Each
-`GenerationStep` declares its `ExecutionSpec`, raw prefix, prior outputs
-and per-request generation policy. `GenerationInput` binds that execution configuration to a
+Each explicit load admits an identified model and its matching tokenizer. A prepared `GenerationAdvance` carries a session reference, raw prefix and prior outputs. The resulting evidence expands these into a `GenerationStep` with the admitted `ExecutionSpec` and generation policy. `GenerationInput` binds that execution configuration to a
 `Workload`; ordinary generation rejects multiple requests and nonzero arrivals. Resource
 simulation consumes chronological arrivals under its declared scheduling policy.
 Generation returns actual selected IDs, logits and model identities.

@@ -154,12 +154,12 @@ import {mountTiming} from './performance/panel.js';
           timing.begin(all?'continuous':'manual',started,continuation);first=false;
         }
         pending=true;status();
-        const {prediction:result,dispatched_ms}=await dispatch.token(request,()=>ticket===epoch);if(ticket!==epoch)return;
+        const {prediction:result,dispatched_ms,returned_ms,execution}=await dispatch.token(request,()=>ticket===epoch);if(ticket!==epoch)return;
         const before=S.output(state);
         state=S.accept(state,result,request);pending=false;
         $('response-preview').textContent=S.output(state);
         const published=performance.now();
-        timing.record(result,published,S.output(state)!==before&&S.output(state).length>0,dispatched_ms);
+        timing.record(result,published,S.output(state)!==before&&S.output(state).length>0,dispatched_ms,returned_ms,execution);
         scheduleObserver();
       }while(running&&!state.step.stop_reason);
     }catch(e){if(ticket===epoch)setError(e);}

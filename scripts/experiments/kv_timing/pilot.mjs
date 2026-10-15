@@ -57,16 +57,16 @@ try{
             window.pilotPartial={status:'preparing',input,timing:{samples:[]},logits:[]};
             const prepared=await pilot.dispatch.invoke('prepareGeneration',input);
             if(prepared.prompt_ids.length<options.context)throw Error('Declared source has too few token IDs');
-            const request={execution:input.execution,prefix_ids:prepared.prompt_ids.slice(0,options.context),output_ids:[],generation:input.workload.requests[0].request.generation};
+            const request={session_id:prepared.session_id,prefix_ids:prepared.prompt_ids.slice(0,options.context),output_ids:[]};
             const output=document.getElementById('response-preview');output.textContent='';
             const timing=pilot.createTiming();timing.begin('continuous',performance.now(),false);
             const trial=window.pilotPartial={status:'running',input,request:structuredClone(request),timing:timing.evidence(),logits:[],visibility:[],stop_reason:null};
             let previous='';
             try{
               for(let step=0;step<options.budget;step++){
-                const {prediction,dispatched_ms}=await pilot.dispatch.token(request,()=>true);
+                const {prediction,dispatched_ms,returned_ms,execution}=await pilot.dispatch.token(request,()=>true);
                 output.textContent=prediction.text;const published=performance.now();
-                timing.record(prediction,published,prediction.text!==previous&&prediction.text.length>0,dispatched_ms);
+                timing.record(prediction,published,prediction.text!==previous&&prediction.text.length>0,dispatched_ms,returned_ms,execution);
                 trial.timing=timing.evidence();trial.logits.push(prediction.logits);
                 trial.visibility.push(document.visibilityState);trial.stop_reason=prediction.stop_reason;
                 request.output_ids=prediction.output_ids;previous=prediction.text;

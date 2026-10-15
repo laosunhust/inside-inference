@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {checkPresentation,checkEmptyTiming,checkManualTiming,checkTimingExport} from './presentation.mjs';
-import {checkExecution} from './execution.mjs';
+import {checkExecution,requestFor,comparablePrediction as comparable} from './execution.mjs';
 import {checkMap,checkJourney} from './system-map.mjs';
 import {checkRecomputation} from './recompute.mjs';
 import {checkExperiments} from './experiments.mjs';
@@ -19,11 +19,10 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
   async function navigate(){await send('Page.navigate',{url:base+'/'});await ready();}
   async function choose(id){if(await evaluate("document.getElementById('inference-form').hidden"))await click('edit-input');await evaluate(`document.getElementById('model-choice').value=${JSON.stringify(id)};document.getElementById('model-choice').dispatchEvent(new Event('change'))`);await ready();}
   async function apply(text,budget=8){if(await evaluate("document.getElementById('inference-form').hidden"))await click('edit-input');await evaluate(`document.getElementById('prompt').value=${JSON.stringify(text)};document.getElementById('prompt').dispatchEvent(new Event('input'));document.getElementById('output-budget').value=${budget};document.getElementById('output-budget').dispatchEvent(new Event('change'));document.getElementById('inference-form').requestSubmit()`);await ready();assert.equal(await evaluate("document.getElementById('inference-form').hidden"),true);}
-  const snapshot=()=>evaluate("JSON.parse(document.getElementById('run-identity').textContent)");
+  const snapshot=()=>evaluate("new Promise(r=>requestAnimationFrame(()=>r(JSON.parse(document.getElementById('run-identity').textContent))))");
   async function empty(){await checkEmptyTiming(evaluate);assert.equal(await evaluate("document.getElementById('response-preview').textContent"),'');assert.equal(await evaluate("document.getElementById('run-identity').textContent"),'');assert.equal(await evaluate("document.querySelectorAll('#computation-path [data-observations]').length"),0);assert.equal(await evaluate("document.getElementById('download-run').disabled"),true);}
   async function rejection(expression,pattern){const message=await evaluate(`(async()=>{try{await (${expression});return null;}catch(e){return String(e);}})()`);assert.match(message||'',pattern);return message;}
   await send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:output});
-  const comparable=result=>{const value=structuredClone(result);delete value.decoder_ms;delete value.service_ms;return value;};
   try {
     await navigate();evidence.ready_ms=performance.now()-started;await empty();await checkMap({evaluate,send},true);
     const initial=await evaluate("JSON.parse(document.getElementById('inference-data').textContent)");
@@ -36,7 +35,6 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
     const catalog=await evaluate('Execution.modelCatalog()');
     assert.equal(catalog.models.length,3);
     const inputFor=(id,text)=>{const value=structuredClone(initial);value.execution.experiments.find(x=>x.control==='model').value=id;value.workload.requests[0].request.text=text;value.workload.requests[0].request.generation.max_new_tokens=8;return value;};
-    const requestFor=(input,ids)=>({execution:input.execution,prefix_ids:ids,output_ids:[],generation:input.workload.requests[0].request.generation});
     for(const model of catalog.models) {
       const m=JSON.stringify(model.id);
       const loaded=await evaluate(`Execution.loadModel({model_id:${m}})`);Declarations.assertShape('ModelLoadResult',loaded);
@@ -44,7 +42,8 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         const fixture=JSON.parse(await readFile(new URL('../../../tests/fixtures/integration/tiny-covered.json',import.meta.url),'utf8'));
         assert.equal(model.weights.sha256,fixture.weights_sha256);
         const input=inputFor(model.id,fixture.prompt);input.workload.requests[0].request.generation.max_new_tokens=32;
-        const request=requestFor(input,fixture.prefix);request.output_ids=fixture.output.slice(0,23);
+        const fixturePrepared=await evaluate(`Execution.prepareGeneration(${JSON.stringify(input)})`);
+        const request=requestFor(fixturePrepared,fixture.prefix);request.output_ids=fixture.output.slice(0,23);
         const timings=[];let prediction;
         for(let repeat=0;repeat<3;repeat++){
           const sample=await evaluate(`(async()=>{const start=performance.now();const result=await Execution.generateToken(${JSON.stringify(request)});return {result,ms:performance.now()-start};})()`);
@@ -57,7 +56,9 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
         assert.ok(prediction.nodes.some(n=>n.operation.name==='attention'&&n.positions.at(-1)===request.prefix_ids.length+22),'Capture the final query attention without inventing masked cells');
         // A reader can reproduce displayed values from their displayed inputs and the stated equations.
         evidence.recomputation=checkRecomputation(prediction.nodes,loaded.parameters,model.architecture);
-        const terminal=structuredClone(request);terminal.generation.max_new_tokens=24;
+        const terminalInput=structuredClone(input);terminalInput.workload.requests[0].request.generation.max_new_tokens=24;
+        const terminalPrepared=await evaluate(`Execution.prepareGeneration(${JSON.stringify(terminalInput)})`);
+        const terminal={...request,session_id:terminalPrepared.session_id};
         const stopped=await evaluate(`Execution.generateToken(${JSON.stringify(terminal)})`);assert.equal(stopped.decoding_note,null);assert.equal(stopped.stop_reason,'output_budget');
         evidence.streaming={timings,selected_id:prediction.selected_id,nodes:prediction.nodes.length};
         // A complete sentence can select EOS immediately: empty output is finished, not stuck.
@@ -93,7 +94,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
           const input=inputFor(model.id,test.prompt);
           const prepared=await evaluate(`Execution.prepareGeneration(${JSON.stringify(input)})`);
           assert.deepEqual(prepared.prompt_ids,test.ids);
-          const result=await evaluate(`Execution.generateToken(${JSON.stringify(requestFor(input,test.ids))})`);
+          const result=await evaluate(`Execution.generateToken(${JSON.stringify(requestFor(prepared,test.ids))})`);
           let maxError=0,expectedChoice=0;
           const expected=expectedLogits.slice(test.logit_offset,test.logit_offset+test.logit_count);
           result.logits.forEach((v,i)=>{const error=Math.abs(v-expected[i]);maxError=Math.max(maxError,error);assert.ok(error<=.001+.001*Math.abs(expected[i]),`Logit ${i}: ${error}`);if(expected[i]>expected[expectedChoice])expectedChoice=i;});
@@ -108,7 +109,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
       const budget=model.id==='tinyllm-8k'?32:8;input.workload.requests[0].request.generation.max_new_tokens=budget;
       const prepared=await evaluate(`Execution.prepareGeneration(${JSON.stringify(input)})`);
       Declarations.assertShape('GenerationPrepared',prepared);
-      const request=requestFor(input,prepared.prompt_ids);
+      const request=requestFor(prepared,prepared.prompt_ids);
       let result;const times=[];
       for(let i=0;i<budget;i++){result=await evaluate(`Execution.generateToken(${JSON.stringify(request)})`);Declarations.assertShape('GenerationPrediction',result);request.output_ids=result.output_ids;times.push(result.service_ms);if(result.stop_reason)break;}
       const warm=times.slice(1).sort((a,b)=>a-b),median=warm[Math.floor(warm.length/2)];assert.ok(median<500);
@@ -171,7 +172,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
       await evaluate("document.querySelectorAll('#sequence-strip button')[2].click()");
       await click('next-token');await ready();await checkManualTiming(evaluate);const branch=await snapshot();
       assert.deepEqual(branch.request.prefix_ids,result.sequence_ids.slice(0,3));assert.deepEqual(branch.request.output_ids,[]);
-      const repeated=await evaluate(`Execution.generateToken(${JSON.stringify(branch.request)})`);assert.deepEqual(comparable(branch),comparable(repeated));
+      const repeated=await evaluate(`Execution.generateToken(${JSON.stringify({session_id:branch.session_id,prefix_ids:branch.request.prefix_ids,output_ids:branch.request.output_ids})})`);assert.deepEqual(comparable(branch),comparable(repeated));
       await click('reset');await empty();
       await evaluate("document.getElementById('continue-tokens').click();document.getElementById('stop-tokens').click()");await ready();assert.equal((await snapshot()).output_ids.length,1);
       // A late result after model selection must never become the new model's output.

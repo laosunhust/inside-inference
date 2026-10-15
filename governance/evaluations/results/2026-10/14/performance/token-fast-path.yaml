@@ -1,0 +1,52 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/14/performance/token-fast-path.yaml
+evaluation_sha256: 46c013c83663bb6e3e910509848efc6761df6a0eb94b68446e6544cdfacf6472
+outcome: failed
+summary: "Functional changes and correctness checks pass, but the predeclared median residual below 0.5\
+  \ ms is not achieved: pooled medians are 1.7 ms for 0.5M and 1.6 ms for 4M, with pooled p90 6.4/8.8\
+  \ ms. Do not interpret this as an optimization acceptance pass for that criterion. All one-warm-up plus\
+  \ three-measured runs are retained, with exact 32-token output parity and one processed position after\
+  \ prefill. Median intervals were 3.7\u20134.2 ms for 0.5M and 9.3\u20139.8 ms for 4M, versus earlier\
+  \ descriptive single-run 19.1/24.3 ms baselines. Preparation now binds copied configuration and policy\
+  \ to a session; GenerationAdvance carries only session/prefix/output IDs. Model loading and replacement\
+  \ preparation invalidate old sessions. Compact schema admission and runtime bounds/stopping checks remain;\
+  \ immutable control resolution is absent from the token path. The shared worker calls a retained Python\
+  \ callable, converts numeric arrays to independent typed buffers and transfers them with structured\
+  \ metadata. Normal operation JSON encoding/parsing and repeated Python code evaluation are deleted.\
+  \ Client records remain ordinary arrays for inspectability; explicit raw/export JSON remains supported.\
+  \ Shared NumPy greedy selection removes Python vocabulary loops without changing selected tokens, while\
+  \ probability rounding remains within existing tolerances. Metadata now reports operation admission,\
+  \ inclusive Python work, wait/bridge, buffer conversion and actual transferred numeric bytes rather\
+  \ than obsolete JSON metrics. Per-token exports and UI use the same ledger. Authorized protected edits\
+  \ are limited to the fast-path transport generator, its boundary check/test and their hashes; no limits\
+  \ or lock scope changed. Initial failures exposed Python None-to-JavaScript undefined conversion, stale\
+  \ semantic-owner fixtures, remaining old request shapes in cache/hosting checks, and a browser test\
+  \ reading deferred inspector output before its animation frame; these were corrected without weakening\
+  \ parity or rejection requirements. Shared execution comparison helpers were moved into the existing\
+  \ execution test module when the main browser checker reached its file-size limit. Final make test passes\
+  \ 124 tests in 5.89 s; make test-integration passes 124 unit and 21 integration tests plus browsers\
+  \ in 52.50 s, under unchanged 10/100 s budgets. The performance workflow reuses the same builder, server\
+  \ and browser setup. Desktop/narrow layouts reviewed. Existing six folder warnings are unchanged; no\
+  \ file growth occurred in those warned folders. Cohesive model/ontology/core-package splits are needed\
+  \ before future growth, and historical evaluation relocation needs scoped governance authorization.\
+  \ Remaining measured costs include about 0.4 ms compact admission, about 0.1 ms conversion and additional\
+  \ worker/call/client scheduling; observer updates contribute tail interference. Hidden observer rebuilding\
+  \ and compact admission are follow-up candidates, not silently excluded from this evaluation. New work\
+  \ remains uncommitted and undeployed."
+evidence:
+- data/experiments/token-fast-path/README.md
+- data/experiments/token-fast-path/protocol.json
+- data/experiments/token-fast-path/summary.json
+- data/experiments/token-fast-path/qualification.json
+- tests/unit/execution/test_prepared_generation.py
+- tests/unit/execution/test_delivery_timing.py
+- scripts/experiments/token_delivery/profile.mjs
+- docs/architecture/inspection.md
+- data/experiments/token-fast-path/observations/tinyllm-4m-trial-0.json
+- data/experiments/token-fast-path/observations/tinyllm-4m-trial-1.json
+- data/experiments/token-fast-path/observations/tinyllm-4m-trial-2.json
+- data/experiments/token-fast-path/observations/tinyllm-4m-warmup.json
+- data/experiments/token-fast-path/observations/tinyllm-500k-trial-0.json
+- data/experiments/token-fast-path/observations/tinyllm-500k-trial-1.json
+- data/experiments/token-fast-path/observations/tinyllm-500k-trial-2.json
+- data/experiments/token-fast-path/observations/tinyllm-500k-warmup.json

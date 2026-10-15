@@ -81,7 +81,7 @@ export async function checkCache({send,evaluate,until,click,base,output}) {
    const prepared=await evaluate(`Execution.prepareGeneration(${JSON.stringify(ordinary)})`);
    const first=expected.run.computations.find(c=>c.selection);
    assert.deepEqual(prepared.prompt_ids,first.state_after.token_ids,'Resource execution cannot invent framing');
-   const prediction=await evaluate(`Execution.generateToken(${JSON.stringify({execution:ordinary.execution,prefix_ids:prepared.prompt_ids,output_ids:[],generation:ordinary.workload.requests[0].request.generation})})`);
+   const prediction=await evaluate(`Execution.generateToken(${JSON.stringify({session_id:prepared.session_id,prefix_ids:prepared.prompt_ids,output_ids:[]})})`);
    assert.equal(prediction.selected_id,first.selection.selected_id);
    prediction.logits.forEach((v,i)=>assert.ok(Math.abs(v-first.selection.raw_logits[i])<=1e-10,'Resource/ordinary numerical parity'));
    const incompatible=structuredClone(input);incompatible.execution.experiments.find(e=>e.control==='kv_reuse').value=false;

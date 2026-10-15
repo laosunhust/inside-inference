@@ -30,7 +30,7 @@ class ExecutionBoundaryTests(unittest.TestCase):
                 self.assertTrue(audit_http(root,[],generated))
                 (root/name).write_text(generated[name])
             bypass=generated[WORKER].replace("import {loadPyodide}","import {executeModelOperation} from './model-service.js';\nimport {loadPyodide}")
-            for worker in (generated[WORKER].replace('await execute_json(operation_name, operation_input)','execute(operation_name)'), bypass):
+            for worker in (generated[WORKER].replace('call=execute(data.operation,input)','call=executeModelOperation(data.operation,input)'), bypass):
                 changed=dict(generated);changed[WORKER]=worker
                 (root/WORKER).write_text(worker)
                 self.assertTrue(any('shared Python service' in e for e in audit_http(root,[],changed)))

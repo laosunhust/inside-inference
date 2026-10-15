@@ -1,0 +1,45 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/14/performance/token-overhead.yaml
+evaluation_sha256: 3f68ddfc79abe0f2e8c29e5f12708a2f83ad4cfb614fa04b398c92a99cdaab7b
+outcome: passed
+summary: 'Committed the preceding decoding experiment work as 6b8e1da before investigation. Retained temporary
+  browser-worker and interactive baseline profiles for both models, with the same 32-token workload and
+  verified incremental reuse. A first interactive run used default recomputation; its counters exposed
+  the mismatch and it is preserved separately, excluded from the cached comparison. Debugger attachment
+  attempts produced no samples and were replaced by probes in a disposable build. The measured major costs
+  outside the old service timer were operation admission, repeated control validation/projection and canonical
+  JSON serialization of approximately 172 KB per response. Added schema-owned PythonExecutionTiming and
+  BrowserExecutionTiming alongside BrowserTokenTiming.returned_ms and execution. Python emits the original
+  canonical response text plus small timing metadata; the generated worker releases the result proxy and
+  carries separately scoped wait/bridge durations; the client records validation, round trip and parsing.
+  Dispatch requires a timing observation; page and headless pilot record identical ledger fields. Interaction
+  exposes Delivery breakdown, derived solely from the exported ledger. No cross-domain absolute timestamps
+  are subtracted, and descriptions identify nested scopes and observer overlap. Approved scope was the
+  reviewed http_transport.py instrumentation and its recorded lock hash; no lock scope, limits or other
+  protected code changed. Production-instrumented interactive runs reproduced the same 32-token outputs
+  for both models. Median cached decoder/admission/serialization/interval were approximately 2.2/6.7/5.6/19.1
+  ms for 0.5M and 7.7/6.3/5.5/24.3 ms for 4M. This is one descriptive local workload, not the owner''s
+  device or a performance improvement claim. Browser parsing and publication were small; deferred observer
+  work overlaps execution and is not simply additive. No admission or numerical evidence was removed and
+  no execution optimization was applied. Unit coverage checks timing metadata, UTF-8 response bytes, unchanged
+  canonical payload and admission rejection; integration checks monotonic scopes, missing observations,
+  export parity and real browser execution. Initial new table headings wrapped excessively; reviewed desktop/narrow
+  screenshots after sharing the existing scrollable evidence layout are readable. A governance false positive
+  on capitalized Worker text was avoided with the clearer Runtime wait label without changing enforcement.
+  Oversized exploratory exports were narrowed to the input, identity, full token ledger, final output
+  and timing profiles relevant to this question, omitting unused final vocabulary arrays and preserving
+  all diagnostic trials. Final make test passed 122 tests in 6.13 s; make test-integration passed 122
+  unit and 21 integration tests plus browser checks in 56.94 s, within unchanged 10/100 s budgets. Existing
+  six folder warnings remain unchanged: no growth in warned folders; model/ontology domains and the core
+  package need cohesive splits before further file growth, and historical evaluation relocation requires
+  scoped governance authorization. New instrumentation remains uncommitted and undeployed.'
+evidence:
+- data/experiments/token-overhead/README.md
+- data/experiments/token-overhead/baseline-operations.json
+- data/experiments/token-overhead/baseline-interactive.json
+- data/experiments/token-overhead/recomputation-diagnostic.json
+- data/experiments/token-overhead/instrumented-interactive.json
+- docs/architecture/inspection.md
+- tests/unit/execution/test_delivery_timing.py
+- tests/integration/timing_observation.mjs
+- scripts/check/story_models/presentation.mjs

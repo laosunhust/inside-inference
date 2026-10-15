@@ -1,0 +1,25 @@
+version: 1
+work_item: token-fast-path
+question: Can prepared execution and structured buffer delivery reduce observed non-decoder token overhead below 0.5 ms without losing evidence or admission guarantees?
+necessity: Owner requests removal of repeated configuration validation and JSON serialization, with a proposed 0.5 ms per-token overhead target.
+baseline: Retained token-overhead instrumented interactive samples show approximately 6.7/6.3 ms Python admission and 5.6/5.5 ms JSON encoding per cached 0.5M/4M token. Full configuration accompanies each token; response vocabulary arrays pass through JSON.
+reuse:
+- source: Existing prepareGeneration operation, Pyodide conversion and transferable ArrayBuffers
+  decision: Bind admitted configuration to a prepared session; transfer numeric buffers and small structured metadata through the existing single worker, retaining the same decoder and evidence.
+criteria:
+- Admit complete execution/workload settings during preparation; reject stale session IDs, malformed dynamic inputs, token bounds and completed requests without revalidating immutable configuration per token.
+- Remove JSON encoding/parsing from normal operation transport; JSON remains an explicit export representation. Preserve all logits, probabilities, work counters, speculative evidence and invalid-input rejection.
+- Keep observability truthful for structured conversion and transfer; no old serialization labels may silently describe different work.
+- Preserve target outputs, cached/recomputed numerical parity and speculative behavior, including branching, reset and model/configuration changes.
+- Measure both 0.5M and 4M using the retained prompt, KV reuse enabled and 32-token budget, three interactive runs per model after one warm-up run. Exclude prefill only. Retain failures and raw ledgers.
+- Target median publication-interval minus current-token decoder duration below 0.5 ms for each model. This is an empirical aggregate residual, not a separately timed stage or a bound on every token. Report per-run medians and pooled p90; missing the target remains a failed performance criterion even if correctness and overhead reduction pass.
+- Run make test and make test-integration within unchanged budgets and inspect desktop/narrow UI after any presentation changes.
+counterexamples:
+- Local worker scheduling and Python-JavaScript conversion can exceed 0.5 ms even after avoidable work is removed.
+- Structured clone is not zero-copy for metadata; transferring a WASM heap buffer would corrupt the runtime and is forbidden.
+- Detached buffers or shallow session aliases must not mutate previous evidence or silently admit changed configuration.
+- Changed softmax summation order may alter probability rounding but must not change greedy selection or exceed existing numerical tolerances.
+checks:
+- Session lifetime, malformed input, stale configuration and buffer ownership tests
+- Full browser/headless experiment parity and evidence export
+- Retained same-workload latency evaluation against the predeclared 0.5 ms target

@@ -3,8 +3,8 @@ from dataclasses import dataclass, field
 from typing import Any
 from inside_inference.contract_runtime import Declaration
 
-EXECUTION_OPERATIONS = {'replayCache': {'request': 'ExecutionReplayInput', 'response': 'CacheRun'}, 'modelCatalog': {'request': None, 'response': 'ModelCatalog'}, 'loadModel': {'request': 'ModelSelection', 'response': 'ModelLoadResult'}, 'prepareGeneration': {'request': 'GenerationInput', 'response': 'GenerationPrepared'}, 'generateToken': {'request': 'GenerationStep', 'response': 'GenerationPrediction'}, 'simulateResources': {'request': 'GenerationInput', 'response': 'ResourceExecution'}}
-CONTRACT_SHA256 = '6bc8728b7d8609b16bc86575a01b5cbeee6017e8b53b4746a4c4ba1d4f3396ca'
+EXECUTION_OPERATIONS = {'replayCache': {'request': 'ExecutionReplayInput', 'response': 'CacheRun'}, 'modelCatalog': {'request': None, 'response': 'ModelCatalog'}, 'loadModel': {'request': 'ModelSelection', 'response': 'ModelLoadResult'}, 'prepareGeneration': {'request': 'GenerationInput', 'response': 'GenerationPrepared'}, 'generateToken': {'request': 'GenerationAdvance', 'response': 'GenerationPrediction'}, 'simulateResources': {'request': 'GenerationInput', 'response': 'ResourceExecution'}}
+CONTRACT_SHA256 = '46d40b38d078411b72ae6f215ef3a41c9066da1d54aba1c09fc7ab829141cea9'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -1108,6 +1108,192 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                'pattern': '[\\s\\S]+'},
                                      'url': {'type': 'string',
                                              'pattern': '^https://'}}},
+ 'PythonExecutionTiming': {'type': 'object',
+                           'x-owner': 'ExperimentObservation',
+                           'additionalProperties': False,
+                           'required': ['operation_validation_ms',
+                                        'operation_ms'],
+                           'properties': {'operation_validation_ms': {'type': 'number',
+                                                                      'minimum': 0,
+                                                                      'description': 'Operation '
+                                                                                     'input '
+                                                                                     'admission. '
+                                                                                     'Token '
+                                                                                     'steps '
+                                                                                     'validate '
+                                                                                     'only '
+                                                                                     'session '
+                                                                                     'reference '
+                                                                                     'and '
+                                                                                     'dynamic '
+                                                                                     'token '
+                                                                                     'IDs, '
+                                                                                     'never '
+                                                                                     'immutable '
+                                                                                     'execution '
+                                                                                     'settings. '
+                                                                                     'Nested '
+                                                                                     'within '
+                                                                                     'operation_ms.'},
+                                          'operation_ms': {'type': 'number',
+                                                           'minimum': 0,
+                                                           'description': 'Entire '
+                                                                          'Python '
+                                                                          'operation '
+                                                                          'including '
+                                                                          'admission '
+                                                                          'and '
+                                                                          'service '
+                                                                          'work. '
+                                                                          'Do '
+                                                                          'not '
+                                                                          'add '
+                                                                          'nested '
+                                                                          'durations '
+                                                                          'to '
+                                                                          'it. '
+                                                                          'Response '
+                                                                          'remains '
+                                                                          'structured; '
+                                                                          'no '
+                                                                          'JSON '
+                                                                          'encoding '
+                                                                          'occurs.'}}},
+ 'BrowserExecutionTiming': {'type': 'object',
+                            'x-owner': 'ExperimentObservation',
+                            'additionalProperties': False,
+                            'required': ['python',
+                                         'worker_wait_ms',
+                                         'python_bridge_ms',
+                                         'buffer_conversion_ms',
+                                         'transferred_bytes',
+                                         'client_validation_ms',
+                                         'round_trip_ms'],
+                            'properties': {'python': {'$ref': '#/$defs/PythonExecutionTiming'},
+                                           'worker_wait_ms': {'type': 'number',
+                                                              'minimum': 0,
+                                                              'description': 'Worker '
+                                                                             'receipt '
+                                                                             'to '
+                                                                             'Python '
+                                                                             'invocation, '
+                                                                             'including '
+                                                                             'queue, '
+                                                                             'runtime '
+                                                                             'readiness '
+                                                                             'and '
+                                                                             'structured '
+                                                                             'input '
+                                                                             'conversion; '
+                                                                             'worker '
+                                                                             'performance.now '
+                                                                             'duration.'},
+                                           'python_bridge_ms': {'type': 'number',
+                                                                'minimum': 0,
+                                                                'description': 'Worker '
+                                                                               'duration '
+                                                                               'awaiting '
+                                                                               'the '
+                                                                               'retained '
+                                                                               'Python '
+                                                                               'callable, '
+                                                                               'including '
+                                                                               'operation '
+                                                                               'admission '
+                                                                               'and '
+                                                                               'execution. '
+                                                                               'Excludes '
+                                                                               'response '
+                                                                               'buffer '
+                                                                               'conversion '
+                                                                               'and '
+                                                                               'messaging.'},
+                                           'buffer_conversion_ms': {'type': 'number',
+                                                                    'minimum': 0,
+                                                                    'description': 'Worker '
+                                                                                   'duration '
+                                                                                   'converting '
+                                                                                   'the '
+                                                                                   'Python '
+                                                                                   'result '
+                                                                                   'into '
+                                                                                   'structured '
+                                                                                   'JavaScript '
+                                                                                   'values '
+                                                                                   'and '
+                                                                                   'copied '
+                                                                                   'typed '
+                                                                                   'arrays, '
+                                                                                   'and '
+                                                                                   'collecting '
+                                                                                   'transfer '
+                                                                                   'buffers. '
+                                                                                   'The '
+                                                                                   'WASM '
+                                                                                   'heap '
+                                                                                   'itself '
+                                                                                   'is '
+                                                                                   'never '
+                                                                                   'transferred.'},
+                                           'transferred_bytes': {'type': 'integer',
+                                                                 'minimum': 0,
+                                                                 'description': 'Numeric '
+                                                                                'ArrayBuffer '
+                                                                                'bytes '
+                                                                                'transferred '
+                                                                                'with '
+                                                                                'this '
+                                                                                'response. '
+                                                                                'Excludes '
+                                                                                'structured '
+                                                                                'metadata; '
+                                                                                'not '
+                                                                                'a '
+                                                                                'JSON '
+                                                                                'response-size '
+                                                                                'estimate.'},
+                                           'client_validation_ms': {'type': 'number',
+                                                                    'minimum': 0,
+                                                                    'description': 'Browser '
+                                                                                   'duration '
+                                                                                   'validating '
+                                                                                   'the '
+                                                                                   'declared '
+                                                                                   'operation '
+                                                                                   'input '
+                                                                                   'before '
+                                                                                   'transport.'},
+                                           'round_trip_ms': {'type': 'number',
+                                                             'minimum': 0,
+                                                             'description': 'Browser '
+                                                                            'transport '
+                                                                            'invocation '
+                                                                            'to '
+                                                                            'resolved '
+                                                                            'structured '
+                                                                            'response, '
+                                                                            'including '
+                                                                            'worker '
+                                                                            'work, '
+                                                                            'delivery/scheduling '
+                                                                            'and '
+                                                                            'array '
+                                                                            'materialization '
+                                                                            'for '
+                                                                            'inspection. '
+                                                                            'Worker '
+                                                                            'and '
+                                                                            'Python '
+                                                                            'scopes '
+                                                                            'are '
+                                                                            'nested, '
+                                                                            'not '
+                                                                            'additive. '
+                                                                            'Cross-domain '
+                                                                            'timestamp '
+                                                                            'arithmetic '
+                                                                            'is '
+                                                                            'undefined.'}}},
  'BrowserTokenTiming': {'type': 'object',
                         'x-owner': 'ExperimentObservation',
                         'additionalProperties': False,
@@ -1117,6 +1303,8 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                      'mode',
                                      'started_ms',
                                      'dispatched_ms',
+                                     'returned_ms',
+                                     'execution',
                                      'updated_ms',
                                      'publishes_text',
                                      'context_length',
@@ -1191,6 +1379,28 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                         'worker '
                                                                         'queue '
                                                                         'time.'},
+                                       'returned_ms': {'type': 'number',
+                                                       'minimum': 0,
+                                                       'description': 'Browser '
+                                                                      'performance.now '
+                                                                      'after '
+                                                                      'the '
+                                                                      'execution '
+                                                                      'client '
+                                                                      'returns '
+                                                                      'a '
+                                                                      'parsed '
+                                                                      'response '
+                                                                      'and '
+                                                                      'timing '
+                                                                      'observation, '
+                                                                      'before '
+                                                                      'state '
+                                                                      'acceptance '
+                                                                      'and '
+                                                                      'output '
+                                                                      'publication.'},
+                                       'execution': {'$ref': '#/$defs/BrowserExecutionTiming'},
                                        'updated_ms': {'type': 'number',
                                                       'minimum': 0,
                                                       'description': 'performance.now '
@@ -1258,8 +1468,9 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                      'decoder; '
                                                                      'excludes '
                                                                      'admission '
-                                                                     'and JSON '
-                                                                     'serialization. '
+                                                                     'and '
+                                                                     'buffer '
+                                                                     'conversion. '
                                                                      'Cross-domain '
                                                                      'timestamp '
                                                                      'arithmetic '
@@ -1943,6 +2154,38 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                     'items': {'oneOf': [{'$ref': '#/$defs/CustomerSubmission'},
                                                                         {'$ref': '#/$defs/CustomerConsumption'},
                                                                         {'$ref': '#/$defs/CustomerCancellation'}]}}}},
+ 'GenerationAdvance': {'type': 'object',
+                       'x-owner': 'InferenceRequest',
+                       'additionalProperties': False,
+                       'required': ['session_id', 'prefix_ids', 'output_ids'],
+                       'properties': {'session_id': {'type': 'string',
+                                                     'pattern': '^[a-f0-9]{32}$',
+                                                     'description': 'Session '
+                                                                    'returned '
+                                                                    'by '
+                                                                    'prepareGeneration; '
+                                                                    'immutable '
+                                                                    'execution '
+                                                                    'and '
+                                                                    'generation '
+                                                                    'policy '
+                                                                    'are '
+                                                                    'retained '
+                                                                    'by the '
+                                                                    'worker, '
+                                                                    'never '
+                                                                    'supplied '
+                                                                    'again per '
+                                                                    'token.'},
+                                      'prefix_ids': {'type': 'array',
+                                                     'minItems': 1,
+                                                     'maxItems': 512,
+                                                     'items': {'type': 'integer',
+                                                               'minimum': 0}},
+                                      'output_ids': {'type': 'array',
+                                                     'maxItems': 128,
+                                                     'items': {'type': 'integer',
+                                                               'minimum': 0}}}},
  'ModelAsset': {'type': 'object',
                 'x-owner': 'ModelArtifact',
                 'additionalProperties': False,
@@ -2088,11 +2331,29 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
  'GenerationPrepared': {'type': 'object',
                         'x-owner': 'InferenceRequest',
                         'additionalProperties': False,
-                        'required': ['prompt_ids',
+                        'required': ['session_id',
+                                     'prompt_ids',
                                      'pieces',
                                      'input',
                                      'encoding'],
-                        'properties': {'prompt_ids': {'type': 'array',
+                        'properties': {'session_id': {'type': 'string',
+                                                      'pattern': '^[a-f0-9]{32}$',
+                                                      'description': 'Opaque '
+                                                                     'worker '
+                                                                     'session '
+                                                                     'bound to '
+                                                                     'admitted '
+                                                                     'input '
+                                                                     'and '
+                                                                     'controls; '
+                                                                     'replaced '
+                                                                     'by '
+                                                                     'preparation '
+                                                                     'and '
+                                                                     'invalidated '
+                                                                     'by model '
+                                                                     'loading.'},
+                                       'prompt_ids': {'type': 'array',
                                                       'items': {'type': 'integer',
                                                                 'minimum': 0},
                                                       'minItems': 1,
@@ -2125,7 +2386,8 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
  'GenerationPrediction': {'type': 'object',
                           'x-owner': 'ExperimentObservation',
                           'additionalProperties': False,
-                          'required': ['model_id',
+                          'required': ['session_id',
+                                       'model_id',
                                        'weights_sha256',
                                        'tokenizer_sha256',
                                        'sequence_ids',
@@ -2145,7 +2407,9 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                        'probabilities',
                                        'work',
                                        'speculation'],
-                          'properties': {'model_id': {'type': 'string'},
+                          'properties': {'session_id': {'type': 'string',
+                                                        'pattern': '^[a-f0-9]{32}$'},
+                                         'model_id': {'type': 'string'},
                                          'weights_sha256': {'type': 'string',
                                                             'pattern': '^[0-9a-f]{64}$'},
                                          'tokenizer_sha256': {'type': 'string',
@@ -2217,8 +2481,9 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                        'input '
                                                                        'admission '
                                                                        'and '
-                                                                       'JSON '
-                                                                       'serialization. '
+                                                                       'structured '
+                                                                       'buffer '
+                                                                       'conversion. '
                                                                        'Speculative '
                                                                        'first '
                                                                        'deliveries '
@@ -3999,6 +4264,23 @@ class ExperimentCatalog(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class PythonExecutionTiming(Declaration):
+    operation_validation_ms: float
+    operation_ms: float
+
+
+@dataclass(frozen=True, kw_only=True)
+class BrowserExecutionTiming(Declaration):
+    python: PythonExecutionTiming
+    worker_wait_ms: float
+    python_bridge_ms: float
+    buffer_conversion_ms: float
+    transferred_bytes: int
+    client_validation_ms: float
+    round_trip_ms: float
+
+
+@dataclass(frozen=True, kw_only=True)
 class GenerationWork(Declaration):
     processed_positions: int
     reused_positions: int
@@ -4038,6 +4320,8 @@ class BrowserTokenTiming(Declaration):
     mode: str
     started_ms: float
     dispatched_ms: float
+    returned_ms: float
+    execution: BrowserExecutionTiming
     updated_ms: float
     publishes_text: bool
     context_length: int
@@ -4172,6 +4456,13 @@ class CustomerInteraction(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class GenerationAdvance(Declaration):
+    session_id: str
+    prefix_ids: tuple[int, ...]
+    output_ids: tuple[int, ...]
+
+
+@dataclass(frozen=True, kw_only=True)
 class ModelAsset(Declaration):
     path: str
     sha256: str
@@ -4237,6 +4528,7 @@ class ModelLoadResult(Declaration):
 
 @dataclass(frozen=True, kw_only=True)
 class GenerationPrepared(Declaration):
+    session_id: str
     prompt_ids: tuple[int, ...]
     pieces: tuple[str, ...]
     input: GenerationInput
@@ -4253,6 +4545,7 @@ class GenerationStep(Declaration):
 
 @dataclass(frozen=True, kw_only=True)
 class GenerationPrediction(Declaration):
+    session_id: str
     model_id: str
     weights_sha256: str
     tokenizer_sha256: str
@@ -4435,7 +4728,7 @@ class InferenceMap(Declaration):
     relationships: tuple[InferenceMapRelationship, ...]
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'RunOutcome': RunOutcome, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'OntologyBinding': OntologyBinding, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'TokenSelection': TokenSelection, 'CacheComputation': CacheComputation, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ExecutionReplayInput': ExecutionReplayInput, 'AbstractionContract': AbstractionContract, 'ExperimentSource': ExperimentSource, 'SpeculationConfig': SpeculationConfig, 'ExecutionControl': ExecutionControl, 'ExecutionSpec': ExecutionSpec, 'GenerationInput': GenerationInput, 'ExperimentSpec': ExperimentSpec, 'ExperimentDesign': ExperimentDesign, 'ExperimentCatalog': ExperimentCatalog, 'GenerationWork': GenerationWork, 'SpeculationRound': SpeculationRound, 'SpeculativeDelivery': SpeculativeDelivery, 'BrowserTokenTiming': BrowserTokenTiming, 'BrowserObserverBatch': BrowserObserverBatch, 'BrowserGenerationTiming': BrowserGenerationTiming, 'InspectionState': InspectionState, 'ApiError': ApiError, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Token': Token, 'Span': Span, 'Encoding': Encoding, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough, 'ResourceExecution': ResourceExecution, 'CollectiveCommunicationBoundary': CollectiveCommunicationBoundary, 'ComputeKernelBoundary': ComputeKernelBoundary, 'DeviceRuntimeBoundary': DeviceRuntimeBoundary, 'InferenceEngineBoundary': InferenceEngineBoundary, 'RequestEndpointBoundary': RequestEndpointBoundary, 'RequestRouterBoundary': RequestRouterBoundary, 'ResourcePoolBoundary': ResourcePoolBoundary, 'StateManagerBoundary': StateManagerBoundary, 'InferenceMapNode': InferenceMapNode, 'InferenceMapRelationship': InferenceMapRelationship, 'InferenceMap': InferenceMap}
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'RunOutcome': RunOutcome, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'OntologyBinding': OntologyBinding, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'TokenSelection': TokenSelection, 'CacheComputation': CacheComputation, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ExecutionReplayInput': ExecutionReplayInput, 'AbstractionContract': AbstractionContract, 'ExperimentSource': ExperimentSource, 'SpeculationConfig': SpeculationConfig, 'ExecutionControl': ExecutionControl, 'ExecutionSpec': ExecutionSpec, 'GenerationInput': GenerationInput, 'ExperimentSpec': ExperimentSpec, 'ExperimentDesign': ExperimentDesign, 'ExperimentCatalog': ExperimentCatalog, 'PythonExecutionTiming': PythonExecutionTiming, 'BrowserExecutionTiming': BrowserExecutionTiming, 'GenerationWork': GenerationWork, 'SpeculationRound': SpeculationRound, 'SpeculativeDelivery': SpeculativeDelivery, 'BrowserTokenTiming': BrowserTokenTiming, 'BrowserObserverBatch': BrowserObserverBatch, 'BrowserGenerationTiming': BrowserGenerationTiming, 'InspectionState': InspectionState, 'ApiError': ApiError, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Token': Token, 'Span': Span, 'Encoding': Encoding, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'GenerationAdvance': GenerationAdvance, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough, 'ResourceExecution': ResourceExecution, 'CollectiveCommunicationBoundary': CollectiveCommunicationBoundary, 'ComputeKernelBoundary': ComputeKernelBoundary, 'DeviceRuntimeBoundary': DeviceRuntimeBoundary, 'InferenceEngineBoundary': InferenceEngineBoundary, 'RequestEndpointBoundary': RequestEndpointBoundary, 'RequestRouterBoundary': RequestRouterBoundary, 'ResourcePoolBoundary': ResourcePoolBoundary, 'StateManagerBoundary': StateManagerBoundary, 'InferenceMapNode': InferenceMapNode, 'InferenceMapRelationship': InferenceMapRelationship, 'InferenceMap': InferenceMap}
 OPERATION_OWNERS = {'token_embedding': 'Embedding', 'embedding': 'Embedding', 'position_embedding': 'PositionEncoding', 'ln1_mean': 'Normalization', 'ln1_variance': 'Normalization', 'ln1': 'Normalization', 'ln2_mean': 'Normalization', 'ln2_variance': 'Normalization', 'ln2': 'Normalization', 'ln_final_mean': 'Normalization', 'ln_final_variance': 'Normalization', 'ln_final': 'Normalization', 'query': 'Attention', 'key': 'Attention', 'value': 'Attention', 'scores': 'Attention', 'causal_mask': 'Attention', 'attention': 'Attention', 'weighted_values': 'Attention', 'attention_output': 'Attention', 'attention_residual': 'ResidualAddition', 'ff_residual': 'ResidualAddition', 'ff_up': 'FeedForward', 'gelu': 'FeedForward', 'ff_down': 'FeedForward', 'logits': 'OutputProjection', 'input_ids': 'Tokenizer', 'retained_keys': 'KVState', 'retained_values': 'KVState'}
 EXPERIMENTS = {'kv-residency': {'id': 'kv-residency',
                   'name': 'KV cache residency',

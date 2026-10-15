@@ -34,6 +34,7 @@ def observe_requests(server, records):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--integration-tests', action='store_true')
+    parser.add_argument('--token-overhead', action='store_true', help='Run the declared interactive token-overhead evaluation using the same browser setup')
     parser.add_argument('--checkpoint', type=Path)
     parser.add_argument('--output', type=Path, default=ROOT/'out/experiments/integration')
     args = parser.parse_args()
@@ -94,7 +95,8 @@ def main():
                         time.sleep(.1)
                     else: raise RuntimeError('Chrome debugging did not start')
                     port = int(portfile.read_text().splitlines()[0])
-                    subprocess.run([node, str(ROOT / 'scripts/check/browser_check.mjs'), str(port),
+                    runner = 'scripts/experiments/token_delivery/profile.mjs' if args.token_overhead else 'scripts/check/browser_check.mjs'
+                    subprocess.run([node, str(ROOT / runner), str(port),
                         f'http://127.0.0.1:{server.server_port}', asset_root(site).as_uri(), str(output),f'http://127.0.0.1:{assets.server_port}/'], check=True, timeout=120)
                     (output/'static-requests.json').write_text(json.dumps(requests,indent=2))
                     if not requests or any(r['method'] != 'GET' or urlsplit(r['path']).path.startswith('/api/') for r in requests):

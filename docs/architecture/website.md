@@ -220,7 +220,7 @@ Resource simulation retains its separate virtual clock and does not populate mea
 The owned measurement scopes live in `GenerationPrediction`, `BrowserTokenTiming` and
 `BrowserObserverBatch` in the data model. Decoder duration includes the model-declared
 capture behavior. Service duration additionally encloses selection and response construction,
-excluding admission and JSON serialization. Both are worker durations; browser timestamps
+excluding input admission and structured buffer conversion. Both are worker durations; browser timestamps
 have a separate clock domain and cannot be subtracted from worker timestamps.
 
 The shared measured-dispatch controller waits for earlier operations and rechecks request

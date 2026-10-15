@@ -50,6 +50,14 @@ export function mountTiming(root) {
     const rows=$('timing-samples');rows.replaceChildren();
     for(const sample of trace.samples){const row=document.createElement('tr');for(const text of [sample.token_index,sample.context_length,sample.work.processed_positions,sample.work.reused_positions,format(sample.decoder_ms),format(sample.service_ms),format(metrics.intervals.find(point=>point.token===sample.token_index)?.ms??null)]){const cell=document.createElement('td');cell.textContent=text;row.append(cell);}rows.append(row);}
     $('timing-values').hidden=!trace.samples.length;
+    $('delivery-values').hidden=!last;
+    $('delivery-latest').textContent=last?`Latest token: ${format(last.execution.python.operation_validation_ms)} Python admission · ${format(last.execution.buffer_conversion_ms)} buffer conversion · ${last.execution.transferred_bytes.toLocaleString('en-US')} numeric buffer bytes.`:'';
+    const deliveryRows=$('delivery-samples');deliveryRows.replaceChildren();
+    for(const sample of trace.samples){
+      const t=sample.execution,p=t.python,row=document.createElement('tr');
+      const values=[sample.token_index,format(p.operation_validation_ms),format(t.buffer_conversion_ms),t.transferred_bytes.toLocaleString('en-US'),format(t.worker_wait_ms),format(t.python_bridge_ms),format(t.client_validation_ms),format(t.round_trip_ms),format(sample.updated_ms-sample.returned_ms)];
+      for(const value of values){const cell=document.createElement('td');cell.textContent=value;row.append(cell);}deliveryRows.append(row);
+    }
     const first=trace.samples[0],observer=trace.observers.at(-1);
     const publication=observer?trace.samples.find(s=>s.token_index===observer.last_token):null;
     $('timing-boundaries').textContent=(first?`Before first dispatch: ${format(first.dispatched_ms-first.started_ms)} (included in first-token latency). `:'')+(observer?`Last inspection/chart update: ${format(observer.finished_ms-observer.started_ms)}; completion lag from its last token: ${format(observer.finished_ms-publication.updated_ms)}. This excludes deferred layout and paint.`:'No completed inspection/chart update recorded yet.');

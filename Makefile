@@ -206,3 +206,9 @@ _kv-timing-pilot: _governance-check _data-models-check
 _kv-timing-analyze:
 	@$(PYTHON) -m scripts.experiments.kv_timing.analyze
 .PHONY: _kv-timing-analyze
+
+# Interactive same-workload delivery evaluation; no alternative execution path.
+_token-overhead: _check
+	@$(PYTHON) -m scripts.check.browser_check --token-overhead --output out/experiments/token-overhead
+
+.PHONY: _token-overhead

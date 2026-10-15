@@ -79,6 +79,8 @@ terms:
     - TensorObservation
     - CacheMeasurement
     - GenerationPrediction
+    - PythonExecutionTiming
+    - BrowserExecutionTiming
     - BrowserTokenTiming
     - BrowserGenerationTiming
     - BrowserObserverBatch

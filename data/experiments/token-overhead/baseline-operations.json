@@ -1,0 +1,975 @@
+{
+  "environment": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/144.0.0.0 Safari/537.36",
+  "models": [
+    {
+      "model": "tinyllm-500k",
+      "rows": [
+        {
+          "token": 1,
+          "wall_ms": 39,
+          "decoder_ms": 14.29999999999998,
+          "service_ms": 17.099999000000032,
+          "selected": 282,
+          "profile": {
+            "decode_json_ms": 0.10000099999984968,
+            "validate_operation_input_ms": 3.799998999999943,
+            "resolve_execution_ms": 3.3000009999999413,
+            "canonical_ms": 8.49999999999973,
+            "execute_json_ms": 33.100000999999764,
+            "response_bytes": 171924
+          }
+        },
+        {
+          "token": 2,
+          "wall_ms": 20.899999998509884,
+          "decoder_ms": 2.3999999999997357,
+          "service_ms": 4.700000999999787,
+          "selected": 466,
+          "profile": {
+            "decode_json_ms": 0.09999999999976694,
+            "validate_operation_input_ms": 3.9000000000002366,
+            "resolve_execution_ms": 3.399998999999987,
+            "canonical_ms": 5.900000000000016,
+            "execute_json_ms": 18.199999999999772,
+            "response_bytes": 171339
+          }
+        },
+        {
+          "token": 3,
+          "wall_ms": 20.399999998509884,
+          "decoder_ms": 2.299998999999886,
+          "service_ms": 4.5999999999999375,
+          "selected": 286,
+          "profile": {
+            "decode_json_ms": 0.10000099999984968,
+            "validate_operation_input_ms": 3.6999999999998145,
+            "resolve_execution_ms": 3.4000000000000696,
+            "canonical_ms": 6.000000000000227,
+            "execute_json_ms": 17.999999999999794,
+            "response_bytes": 172049
+          }
+        },
+        {
+          "token": 4,
+          "wall_ms": 21,
+          "decoder_ms": 2.199998999999675,
+          "service_ms": 4.299998999999666,
+          "selected": 381,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 4.100000999999853,
+            "resolve_execution_ms": 3.1000000000003247,
+            "canonical_ms": 5.700000000000038,
+            "execute_json_ms": 17.700000999999688,
+            "response_bytes": 170890
+          }
+        },
+        {
+          "token": 5,
+          "wall_ms": 19.5,
+          "decoder_ms": 2.2999999999999687,
+          "service_ms": 4.2999999999997485,
+          "selected": 1304,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.6000010000001303,
+            "resolve_execution_ms": 3.2000000000000917,
+            "canonical_ms": 5.899999000000378,
+            "execute_json_ms": 17.200000999999965,
+            "response_bytes": 171570
+          }
+        },
+        {
+          "token": 6,
+          "wall_ms": 19.5,
+          "decoder_ms": 2.2000009999998404,
+          "service_ms": 4.0999999999997705,
+          "selected": 4037,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.8000010000001083,
+            "resolve_execution_ms": 3.199999000000009,
+            "canonical_ms": 5.800001000000332,
+            "execute_json_ms": 16.999999999999904,
+            "response_bytes": 171305
+          }
+        },
+        {
+          "token": 7,
+          "wall_ms": 20,
+          "decoder_ms": 3.3000000000003027,
+          "service_ms": 5.199999000000233,
+          "selected": 316,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.7000009999998973,
+            "resolve_execution_ms": 3.0999999999998806,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 17.90000100000011,
+            "response_bytes": 171726
+          }
+        },
+        {
+          "token": 8,
+          "wall_ms": 19.700000002980232,
+          "decoder_ms": 2.0999999999999908,
+          "service_ms": 4.0000000000000036,
+          "selected": 412,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.8999999999997925,
+            "resolve_execution_ms": 3.3000010000003854,
+            "canonical_ms": 5.699998999999956,
+            "execute_json_ms": 17.100000000000115,
+            "response_bytes": 171950
+          }
+        },
+        {
+          "token": 9,
+          "wall_ms": 18.799999997019768,
+          "decoder_ms": 2.0999999999999908,
+          "service_ms": 3.899999000000154,
+          "selected": 268,
+          "profile": {
+            "decode_json_ms": 0.09999999999976694,
+            "validate_operation_input_ms": 3.699999000000176,
+            "resolve_execution_ms": 3.2000009999997303,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 16.499999999999737,
+            "response_bytes": 171632
+          }
+        },
+        {
+          "token": 10,
+          "wall_ms": 18.80000000447035,
+          "decoder_ms": 2.199999000000119,
+          "service_ms": 3.8999999999997925,
+          "selected": 710,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.6000000000000476,
+            "resolve_execution_ms": 3.2000010000001744,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 16.400001000000053,
+            "response_bytes": 171859
+          }
+        },
+        {
+          "token": 11,
+          "wall_ms": 18.299999997019768,
+          "decoder_ms": 2.199998999999675,
+          "service_ms": 4.0000000000000036,
+          "selected": 603,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.6000000000000476,
+            "resolve_execution_ms": 3.0000000000001137,
+            "canonical_ms": 5.399999999999849,
+            "execute_json_ms": 16.09999999999978,
+            "response_bytes": 171795
+          }
+        },
+        {
+          "token": 12,
+          "wall_ms": 18.600000001490116,
+          "decoder_ms": 2.099998999999908,
+          "service_ms": 3.8000000000000256,
+          "selected": 798,
+          "profile": {
+            "decode_json_ms": 0.10000099999984968,
+            "validate_operation_input_ms": 3.6000000000000476,
+            "resolve_execution_ms": 3.1000000000003247,
+            "canonical_ms": 5.599999999999827,
+            "execute_json_ms": 16.300001000000286,
+            "response_bytes": 171647
+          }
+        },
+        {
+          "token": 13,
+          "wall_ms": 18.600000001490116,
+          "decoder_ms": 2.0999999999999908,
+          "service_ms": 4.0000000000000036,
+          "selected": 4037,
+          "profile": {
+            "decode_json_ms": 0.10000100000029377,
+            "validate_operation_input_ms": 3.6999999999998145,
+            "resolve_execution_ms": 3.099998999999798,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 16.50000000000018,
+            "response_bytes": 171542
+          }
+        },
+        {
+          "token": 14,
+          "wall_ms": 19,
+          "decoder_ms": 2.1000010000000735,
+          "service_ms": 4.0000000000000036,
+          "selected": 316,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.799998999999943,
+            "resolve_execution_ms": 3.0000000000001137,
+            "canonical_ms": 5.60000099999991,
+            "execute_json_ms": 16.50000000000018,
+            "response_bytes": 171825
+          }
+        },
+        {
+          "token": 15,
+          "wall_ms": 18.100000001490116,
+          "decoder_ms": 2.000000000000224,
+          "service_ms": 3.799999000000387,
+          "selected": 386,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.4000000000000696,
+            "resolve_execution_ms": 2.9999999999996696,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 16.000000000000014,
+            "response_bytes": 171309
+          }
+        },
+        {
+          "token": 16,
+          "wall_ms": 18.399999998509884,
+          "decoder_ms": 2.000000000000224,
+          "service_ms": 3.8000000000000256,
+          "selected": 261,
+          "profile": {
+            "decode_json_ms": 0.19999900000033932,
+            "validate_operation_input_ms": 3.4000009999997083,
+            "resolve_execution_ms": 3.0000000000001137,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 16.199999000000354,
+            "response_bytes": 171273
+          }
+        },
+        {
+          "token": 17,
+          "wall_ms": 18.100000001490116,
+          "decoder_ms": 2.000000000000224,
+          "service_ms": 3.8000000000000256,
+          "selected": 350,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.6000000000000476,
+            "resolve_execution_ms": 3.0000000000001137,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 16.000000000000014,
+            "response_bytes": 171691
+          }
+        },
+        {
+          "token": 18,
+          "wall_ms": 18.899999998509884,
+          "decoder_ms": 1.9999999999997797,
+          "service_ms": 3.8000010000001083,
+          "selected": 500,
+          "profile": {
+            "decode_json_ms": 0.09999900000012829,
+            "validate_operation_input_ms": 3.5000000000002807,
+            "resolve_execution_ms": 3.0999999999998806,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 16.300000000000203,
+            "response_bytes": 171727
+          }
+        },
+        {
+          "token": 19,
+          "wall_ms": 19.19999999552965,
+          "decoder_ms": 2.3000009999996074,
+          "service_ms": 4.20000099999962,
+          "selected": 332,
+          "profile": {
+            "decode_json_ms": 0.09999999999976694,
+            "validate_operation_input_ms": 3.699999000000176,
+            "resolve_execution_ms": 3.0000000000001137,
+            "canonical_ms": 5.699998999999956,
+            "execute_json_ms": 16.799998999999843,
+            "response_bytes": 171762
+          }
+        },
+        {
+          "token": 20,
+          "wall_ms": 20.400000005960464,
+          "decoder_ms": 2.099998999999908,
+          "service_ms": 4.099999000000132,
+          "selected": 261,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.5999999999996035,
+            "resolve_execution_ms": 2.9000009999999854,
+            "canonical_ms": 5.599999999999827,
+            "execute_json_ms": 16.70000000000016,
+            "response_bytes": 172039
+          }
+        },
+        {
+          "token": 21,
+          "wall_ms": 19.799999997019768,
+          "decoder_ms": 2.29999900000033,
+          "service_ms": 4.100000000000215,
+          "selected": 648,
+          "profile": {
+            "decode_json_ms": 0.2000010000000607,
+            "validate_operation_input_ms": 4.100000000000215,
+            "resolve_execution_ms": 2.9999999999996696,
+            "canonical_ms": 5.599998999999745,
+            "execute_json_ms": 17.200000999999965,
+            "response_bytes": 172273
+          }
+        },
+        {
+          "token": 22,
+          "wall_ms": 19.899999998509884,
+          "decoder_ms": 2.599999000000075,
+          "service_ms": 4.5000000000001705,
+          "selected": 375,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.9000000000002366,
+            "resolve_execution_ms": 3.0999999999998806,
+            "canonical_ms": 5.599998999999745,
+            "execute_json_ms": 17.300000000000093,
+            "response_bytes": 172586
+          }
+        },
+        {
+          "token": 23,
+          "wall_ms": 18.399999998509884,
+          "decoder_ms": 2.000000000000224,
+          "service_ms": 3.799999000000387,
+          "selected": 798,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.7000010000003414,
+            "resolve_execution_ms": 2.9999999999996696,
+            "canonical_ms": 5.599999999999827,
+            "execute_json_ms": 16.300001000000286,
+            "response_bytes": 172464
+          }
+        },
+        {
+          "token": 24,
+          "wall_ms": 18.700000002980232,
+          "decoder_ms": 2.000000000000224,
+          "service_ms": 3.9000000000002366,
+          "selected": 4037,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.8999999999997925,
+            "resolve_execution_ms": 3.0000000000001137,
+            "canonical_ms": 5.499999999999616,
+            "execute_json_ms": 16.39999999999997,
+            "response_bytes": 172277
+          }
+        },
+        {
+          "token": 25,
+          "wall_ms": 18.100000001490116,
+          "decoder_ms": 1.89999899999993,
+          "service_ms": 3.799998999999943,
+          "selected": 282,
+          "profile": {
+            "decode_json_ms": 0.09999999999976694,
+            "validate_operation_input_ms": 3.4000000000000696,
+            "resolve_execution_ms": 3.0000000000001137,
+            "canonical_ms": 5.599999999999827,
+            "execute_json_ms": 15.99999999999957,
+            "response_bytes": 171940
+          }
+        },
+        {
+          "token": 26,
+          "wall_ms": 18,
+          "decoder_ms": 1.89999899999993,
+          "service_ms": 3.799998999999943,
+          "selected": 466,
+          "profile": {
+            "decode_json_ms": 0.09999999999976694,
+            "validate_operation_input_ms": 3.4000000000000696,
+            "resolve_execution_ms": 2.8999999999999027,
+            "canonical_ms": 5.400000999999932,
+            "execute_json_ms": 15.899999000000165,
+            "response_bytes": 171510
+          }
+        },
+        {
+          "token": 27,
+          "wall_ms": 18,
+          "decoder_ms": 1.89999899999993,
+          "service_ms": 3.6999999999998145,
+          "selected": 412,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.4000000000000696,
+            "resolve_execution_ms": 3.0000000000001137,
+            "canonical_ms": 5.399999999999849,
+            "execute_json_ms": 15.899999000000165,
+            "response_bytes": 172071
+          }
+        },
+        {
+          "token": 28,
+          "wall_ms": 18,
+          "decoder_ms": 1.799998999999719,
+          "service_ms": 3.5999999999996035,
+          "selected": 268,
+          "profile": {
+            "decode_json_ms": 0.09999999999976694,
+            "validate_operation_input_ms": 3.5000000000002807,
+            "resolve_execution_ms": 3.0000000000001137,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 15.899999000000165,
+            "response_bytes": 171706
+          }
+        },
+        {
+          "token": 29,
+          "wall_ms": 18.5,
+          "decoder_ms": 1.89999899999993,
+          "service_ms": 3.799998999999943,
+          "selected": 710,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.799998999999943,
+            "resolve_execution_ms": 3.1000009999999634,
+            "canonical_ms": 5.400000999999932,
+            "execute_json_ms": 16.29999900000012,
+            "response_bytes": 171803
+          }
+        },
+        {
+          "token": 30,
+          "wall_ms": 18.399999998509884,
+          "decoder_ms": 2.1999999999997577,
+          "service_ms": 4.0000000000000036,
+          "selected": 264,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.7000000000002586,
+            "resolve_execution_ms": 2.8000000000001357,
+            "canonical_ms": 5.499999999999616,
+            "execute_json_ms": 16.100000000000225,
+            "response_bytes": 172109
+          }
+        },
+        {
+          "token": 31,
+          "wall_ms": 18.5,
+          "decoder_ms": 1.9999999999997797,
+          "service_ms": 3.8000000000000256,
+          "selected": 798,
+          "profile": {
+            "decode_json_ms": 0.10000100000029377,
+            "validate_operation_input_ms": 3.5999999999996035,
+            "resolve_execution_ms": 3.1000000000003247,
+            "canonical_ms": 5.599999999999827,
+            "execute_json_ms": 16.39999999999997,
+            "response_bytes": 172249
+          }
+        },
+        {
+          "token": 32,
+          "wall_ms": 18.5,
+          "decoder_ms": 2.0999999999999908,
+          "service_ms": 3.9000000000002366,
+          "selected": 4037,
+          "profile": {
+            "decode_json_ms": 0.10000100000029377,
+            "validate_operation_input_ms": 3.6000000000000476,
+            "resolve_execution_ms": 2.9999999999996696,
+            "canonical_ms": 5.700000000000038,
+            "execute_json_ms": 16.39999999999997,
+            "response_bytes": 171807
+          }
+        }
+      ]
+    },
+    {
+      "model": "tinyllm-4m",
+      "rows": [
+        {
+          "token": 1,
+          "wall_ms": 79,
+          "decoder_ms": 63.09999999999994,
+          "service_ms": 64.99999999999994,
+          "selected": 282,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 2.9999999999996696,
+            "resolve_execution_ms": 2.8000000000001357,
+            "canonical_ms": 5.600000000000271,
+            "execute_json_ms": 76.6,
+            "response_bytes": 172970
+          }
+        },
+        {
+          "token": 2,
+          "wall_ms": 23.799999997019768,
+          "decoder_ms": 7.300001000000389,
+          "service_ms": 9.200001000000402,
+          "selected": 466,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.3000009999999413,
+            "resolve_execution_ms": 2.699998999999842,
+            "canonical_ms": 5.599999999999827,
+            "execute_json_ms": 20.999999999999908,
+            "response_bytes": 171223
+          }
+        },
+        {
+          "token": 3,
+          "wall_ms": 24.100000001490116,
+          "decoder_ms": 7.600001000000134,
+          "service_ms": 9.399999999999853,
+          "selected": 286,
+          "profile": {
+            "decode_json_ms": 0.09999999999976694,
+            "validate_operation_input_ms": 3.0999999999998806,
+            "resolve_execution_ms": 2.799999000000053,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 21.20000099999997,
+            "response_bytes": 171748
+          }
+        },
+        {
+          "token": 4,
+          "wall_ms": 25.899999998509884,
+          "decoder_ms": 7.600001000000134,
+          "service_ms": 9.300001000000169,
+          "selected": 381,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.4000000000000696,
+            "resolve_execution_ms": 2.799998999999609,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 21.299999000000014,
+            "response_bytes": 171482
+          }
+        },
+        {
+          "token": 5,
+          "wall_ms": 23.299999997019768,
+          "decoder_ms": 7.399999999999629,
+          "service_ms": 9.299999000000003,
+          "selected": 3057,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.1999999999996476,
+            "resolve_execution_ms": 2.9000000000003467,
+            "canonical_ms": 5.399999999999849,
+            "execute_json_ms": 20.899998999999614,
+            "response_bytes": 172170
+          }
+        },
+        {
+          "token": 6,
+          "wall_ms": 23.600000001490116,
+          "decoder_ms": 7.400000000000073,
+          "service_ms": 9.099999000000025,
+          "selected": 4037,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.3999999999996255,
+            "resolve_execution_ms": 2.9000009999999854,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 21.20000099999997,
+            "response_bytes": 171267
+          }
+        },
+        {
+          "token": 7,
+          "wall_ms": 23.600000001490116,
+          "decoder_ms": 7.49999999999984,
+          "service_ms": 9.199998999999792,
+          "selected": 316,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.4000000000000696,
+            "resolve_execution_ms": 2.9000009999999854,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 21.20000099999997,
+            "response_bytes": 172892
+          }
+        },
+        {
+          "token": 8,
+          "wall_ms": 23.399999998509884,
+          "decoder_ms": 7.300000999999945,
+          "service_ms": 9.100000000000108,
+          "selected": 698,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.29999900000022,
+            "resolve_execution_ms": 2.8999999999999027,
+            "canonical_ms": 5.499999999999616,
+            "execute_json_ms": 21.099999999999675,
+            "response_bytes": 172829
+          }
+        },
+        {
+          "token": 9,
+          "wall_ms": 24.100000001490116,
+          "decoder_ms": 7.49999999999984,
+          "service_ms": 9.299999000000003,
+          "selected": 452,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.6000009999996863,
+            "resolve_execution_ms": 3.0000000000001137,
+            "canonical_ms": 5.599999999999827,
+            "execute_json_ms": 21.70000099999969,
+            "response_bytes": 172950
+          }
+        },
+        {
+          "token": 10,
+          "wall_ms": 23.700000002980232,
+          "decoder_ms": 7.49999999999984,
+          "service_ms": 9.300000999999725,
+          "selected": 584,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.5000000000002807,
+            "resolve_execution_ms": 2.799999000000053,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 21.199999000000247,
+            "response_bytes": 172197
+          }
+        },
+        {
+          "token": 11,
+          "wall_ms": 23.19999999552965,
+          "decoder_ms": 7.299999999999862,
+          "service_ms": 9.099999000000025,
+          "selected": 345,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.199999000000009,
+            "resolve_execution_ms": 2.6999999999999247,
+            "canonical_ms": 5.4000000000002935,
+            "execute_json_ms": 20.79999999999993,
+            "response_bytes": 172104
+          }
+        },
+        {
+          "token": 12,
+          "wall_ms": 23,
+          "decoder_ms": 7.200000000000095,
+          "service_ms": 8.999999999999897,
+          "selected": 1831,
+          "profile": {
+            "decode_json_ms": 0.10000099999984968,
+            "validate_operation_input_ms": 3.29999900000022,
+            "resolve_execution_ms": 2.7000010000000074,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 20.800001000000012,
+            "response_bytes": 172529
+          }
+        },
+        {
+          "token": 13,
+          "wall_ms": 23.30000000447035,
+          "decoder_ms": 7.1999990000000125,
+          "service_ms": 9.100000000000108,
+          "selected": 4045,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.2000009999997303,
+            "resolve_execution_ms": 3.0000000000001137,
+            "canonical_ms": 5.300000000000082,
+            "execute_json_ms": 20.900001000000223,
+            "response_bytes": 171642
+          }
+        },
+        {
+          "token": 14,
+          "wall_ms": 24.299999997019768,
+          "decoder_ms": 7.600000000000051,
+          "service_ms": 9.39999899999977,
+          "selected": 330,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.8000010000001083,
+            "resolve_execution_ms": 2.8000000000001357,
+            "canonical_ms": 5.60000099999991,
+            "execute_json_ms": 21.800000999999902,
+            "response_bytes": 172350
+          }
+        },
+        {
+          "token": 15,
+          "wall_ms": 23.299999997019768,
+          "decoder_ms": 7.300000999999945,
+          "service_ms": 9.10000100000019,
+          "selected": 4045,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.199999000000009,
+            "resolve_execution_ms": 2.9999999999996696,
+            "canonical_ms": 5.399998999999767,
+            "execute_json_ms": 21.10000000000012,
+            "response_bytes": 171304
+          }
+        },
+        {
+          "token": 16,
+          "wall_ms": 23.5,
+          "decoder_ms": 7.400000000000073,
+          "service_ms": 9.199999000000236,
+          "selected": 736,
+          "profile": {
+            "decode_json_ms": 0.09999900000012829,
+            "validate_operation_input_ms": 3.4999999999998366,
+            "resolve_execution_ms": 2.9000009999999854,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 21.300000000000097,
+            "response_bytes": 172741
+          }
+        },
+        {
+          "token": 17,
+          "wall_ms": 23.30000000447035,
+          "decoder_ms": 7.199999999999651,
+          "service_ms": 8.999999999999897,
+          "selected": 478,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.3000009999999413,
+            "resolve_execution_ms": 2.9000000000003467,
+            "canonical_ms": 5.599999999999827,
+            "execute_json_ms": 20.900001000000223,
+            "response_bytes": 171303
+          }
+        },
+        {
+          "token": 18,
+          "wall_ms": 23.5,
+          "decoder_ms": 7.1999990000000125,
+          "service_ms": 8.999999999999897,
+          "selected": 268,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.4000000000000696,
+            "resolve_execution_ms": 3.0999999999998806,
+            "canonical_ms": 5.300001000000165,
+            "execute_json_ms": 21.199999000000247,
+            "response_bytes": 171299
+          }
+        },
+        {
+          "token": 19,
+          "wall_ms": 23.299999997019768,
+          "decoder_ms": 7.300000999999945,
+          "service_ms": 9.10000100000019,
+          "selected": 379,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.4000000000000696,
+            "resolve_execution_ms": 2.89999899999982,
+            "canonical_ms": 5.399998999999767,
+            "execute_json_ms": 21.10000000000012,
+            "response_bytes": 171828
+          }
+        },
+        {
+          "token": 20,
+          "wall_ms": 23.30000000447035,
+          "decoder_ms": 7.400000999999712,
+          "service_ms": 9.100000000000108,
+          "selected": 4037,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.7000009999998973,
+            "resolve_execution_ms": 2.699999000000286,
+            "canonical_ms": 5.399999999999849,
+            "execute_json_ms": 21.20000099999997,
+            "response_bytes": 171398
+          }
+        },
+        {
+          "token": 21,
+          "wall_ms": 23.19999999552965,
+          "decoder_ms": 7.200001000000178,
+          "service_ms": 9.000000000000341,
+          "selected": 330,
+          "profile": {
+            "decode_json_ms": 0.09999999999976694,
+            "validate_operation_input_ms": 3.3000000000003027,
+            "resolve_execution_ms": 2.799998999999609,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 20.899999999999697,
+            "response_bytes": 173221
+          }
+        },
+        {
+          "token": 22,
+          "wall_ms": 23.30000000447035,
+          "decoder_ms": 7.400000000000073,
+          "service_ms": 9.199999000000236,
+          "selected": 507,
+          "profile": {
+            "decode_json_ms": 0.2000010000000607,
+            "validate_operation_input_ms": 3.399998999999987,
+            "resolve_execution_ms": 2.8000009999997744,
+            "canonical_ms": 5.399999999999849,
+            "execute_json_ms": 21.099999999999675,
+            "response_bytes": 171958
+          }
+        },
+        {
+          "token": 23,
+          "wall_ms": 23.299999997019768,
+          "decoder_ms": 7.200001000000178,
+          "service_ms": 9.100000000000108,
+          "selected": 268,
+          "profile": {
+            "decode_json_ms": 0.09999999999976694,
+            "validate_operation_input_ms": 3.199999000000009,
+            "resolve_execution_ms": 2.8999999999999027,
+            "canonical_ms": 5.299999,
+            "execute_json_ms": 20.899999999999697,
+            "response_bytes": 172472
+          }
+        },
+        {
+          "token": 24,
+          "wall_ms": 23.100000001490116,
+          "decoder_ms": 7.299999999999862,
+          "service_ms": 8.999999999999897,
+          "selected": 325,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.4000000000000696,
+            "resolve_execution_ms": 2.6999999999999247,
+            "canonical_ms": 5.400000999999932,
+            "execute_json_ms": 20.799998999999847,
+            "response_bytes": 171973
+          }
+        },
+        {
+          "token": 25,
+          "wall_ms": 23.100000001490116,
+          "decoder_ms": 7.099999999999884,
+          "service_ms": 8.999999999999897,
+          "selected": 332,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.299998999999776,
+            "resolve_execution_ms": 2.8000010000002185,
+            "canonical_ms": 5.300000999999721,
+            "execute_json_ms": 20.69999900000008,
+            "response_bytes": 171793
+          }
+        },
+        {
+          "token": 26,
+          "wall_ms": 23.399999998509884,
+          "decoder_ms": 7.3999989999999904,
+          "service_ms": 9.199999999999875,
+          "selected": 345,
+          "profile": {
+            "decode_json_ms": 0.19999999999997797,
+            "validate_operation_input_ms": 3.2999999999998586,
+            "resolve_execution_ms": 2.899999000000264,
+            "canonical_ms": 5.4000000000002935,
+            "execute_json_ms": 21.299999000000014,
+            "response_bytes": 171837
+          }
+        },
+        {
+          "token": 27,
+          "wall_ms": 23.5,
+          "decoder_ms": 7.1999990000000125,
+          "service_ms": 8.999999999999897,
+          "selected": 476,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.5000000000002807,
+            "resolve_execution_ms": 2.8999999999999027,
+            "canonical_ms": 5.4000000000002935,
+            "execute_json_ms": 20.90000000000014,
+            "response_bytes": 172239
+          }
+        },
+        {
+          "token": 28,
+          "wall_ms": 23.399999998509884,
+          "decoder_ms": 7.2999990000002235,
+          "service_ms": 8.999999999999897,
+          "selected": 4037,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.6000000000000476,
+            "resolve_execution_ms": 2.8999999999999027,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 21.10000000000012,
+            "response_bytes": 171836
+          }
+        },
+        {
+          "token": 29,
+          "wall_ms": 23.299999997019768,
+          "decoder_ms": 7.300000000000306,
+          "service_ms": 9.099999000000025,
+          "selected": 13,
+          "profile": {
+            "decode_json_ms": 0,
+            "validate_operation_input_ms": 3.3999999999996255,
+            "resolve_execution_ms": 2.9000009999999854,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 20.999999999999908,
+            "response_bytes": 173594
+          }
+        },
+        {
+          "token": 30,
+          "wall_ms": 23.700000002980232,
+          "decoder_ms": 7.1999990000000125,
+          "service_ms": 9.099999000000025,
+          "selected": 4053,
+          "profile": {
+            "decode_json_ms": 0.10000000000021103,
+            "validate_operation_input_ms": 3.4999999999998366,
+            "resolve_execution_ms": 2.8000010000002185,
+            "canonical_ms": 5.599999999999827,
+            "execute_json_ms": 21.30000100000018,
+            "response_bytes": 173317
+          }
+        },
+        {
+          "token": 31,
+          "wall_ms": 23.200000002980232,
+          "decoder_ms": 7.299998999999779,
+          "service_ms": 8.999999999999897,
+          "selected": 3767,
+          "profile": {
+            "decode_json_ms": 0.2000010000000607,
+            "validate_operation_input_ms": 3.29999900000022,
+            "resolve_execution_ms": 2.7000010000000074,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 20.90000000000014,
+            "response_bytes": 173402
+          }
+        },
+        {
+          "token": 32,
+          "wall_ms": 23,
+          "decoder_ms": 7.300000999999945,
+          "service_ms": 9.099999999999664,
+          "selected": 331,
+          "profile": {
+            "decode_json_ms": 0.09999900000012829,
+            "validate_operation_input_ms": 3.3000009999999413,
+            "resolve_execution_ms": 2.699999000000286,
+            "canonical_ms": 5.50000000000006,
+            "execute_json_ms": 20.800000000000374,
+            "response_bytes": 172405
+          }
+        }
+      ]
+    }
+  ]
+}

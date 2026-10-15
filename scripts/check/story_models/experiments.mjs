@@ -60,7 +60,7 @@ export async function checkExperiments({evaluate,ready,click,snapshot,send,outpu
           const headless=await evaluate(`(async()=>{
             const input=${JSON.stringify(input)},prepared=await Execution.prepareGeneration(input);let output=[],rounds=[];
             for(let i=0;i<input.workload.requests[0].request.generation.max_new_tokens;i++){
-              const prediction=await Execution.generateToken({execution:input.execution,prefix_ids:prepared.prompt_ids,output_ids:output,generation:input.workload.requests[0].request.generation});
+              const prediction=await Execution.generateToken({session_id:prepared.session_id,prefix_ids:prepared.prompt_ids,output_ids:output});
               Declarations.assertShape('GenerationPrediction',prediction);output=prediction.output_ids;
               if(prediction.speculation?.round)rounds.push(prediction.speculation.round);
               if(prediction.stop_reason)break;

@@ -1,0 +1,23 @@
+version: 1
+work_item: token-overhead
+question: Which measured stages explain the large gap between decoder duration and interactive token publication intervals?
+necessity: Owner reports 3.2 ms decoder and 7.9 ms service inside a 44.9 ms interval for 0.5M; 12.3 ms decoder and 17 ms service inside 56.4 ms for 4M, and requests investigation and missing observability.
+baseline: Service timing excludes input admission and response serialization; browser ledger retains dispatch and publication but not response arrival. The residual is not a measured stage.
+reuse:
+- source: Existing browser worker, GenerationPrediction, BrowserTokenTiming and observer batches
+  decision: Profile the shipped execution path and extend existing evidence only where boundaries are missing. Keep independent clock domains explicit.
+criteria:
+- Retain per-token browser-worker profiles for both models with identical prompt, KV reuse enabled and 32-token budget, including environment and measurement limitations.
+- Attribute costs only to measured scopes; do not label interval-minus-service as serialization, queue wait or rendering.
+- Add inspectable measurements for material gaps without changing token selection or weakening input validation.
+- Any optimization must preserve selected outputs, cache counters and rejection of invalid configurations; timing comparisons remain descriptive for the measured environment.
+- Run contract and integration checks for production instrumentation and review desktop and narrow presentation if changed.
+counterexamples:
+- Profiling instrumentation adds overhead and headless operation calls omit interactive rendering.
+- Worker and browser timestamps cannot be subtracted across independent clock domains.
+- Nested timers overlap; summing them double-counts work.
+- Deferring observer rendering can still delay the next publication.
+checks:
+- Browser worker stage profiling and retained raw samples
+- Schema and invalid-input regression checks
+- Unit and integration harness when implementation changes

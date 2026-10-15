@@ -226,11 +226,16 @@ $defs:
     x-owner: InferenceRequest
     additionalProperties: false
     required:
+    - session_id
     - prompt_ids
     - pieces
     - input
     - encoding
     properties:
+      session_id:
+        type: string
+        pattern: ^[a-f0-9]{32}$
+        description: Opaque worker session bound to admitted input and controls; replaced by preparation and invalidated by model loading.
       prompt_ids:
         type: array
         items:
@@ -282,6 +287,7 @@ $defs:
     x-owner: ExperimentObservation
     additionalProperties: false
     required:
+    - session_id
     - model_id
     - weights_sha256
     - tokenizer_sha256
@@ -303,6 +309,9 @@ $defs:
     - work
     - speculation
     properties:
+      session_id:
+        type: string
+        pattern: ^[a-f0-9]{32}$
       model_id:
         type: string
       weights_sha256:
@@ -360,7 +369,7 @@ $defs:
         type: number
         minimum: 0
         description: Worker duration from generation service computation through response construction, excluding
-          input admission and JSON serialization. Speculative first deliveries include the whole round; buffered
+          input admission and structured buffer conversion. Speculative first deliveries include the whole round; buffered
           deliveries include response construction only.
       nodes:
         type: array

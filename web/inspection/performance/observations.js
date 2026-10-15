@@ -19,15 +19,15 @@ export function createTiming() {
     if(!continuation)clear();
     gesture={mode,started_ms:started,segment:++segment};
   }
-  function record(prediction,updated,publishes,dispatched) {
+  function record(prediction,updated,publishes,dispatched,returned,execution) {
     if(!gesture)throw Error('Timing has no generation gesture');
     const sample={prediction_id:prediction.id,token_index:prediction.output_ids.length,
-      ...gesture,dispatched_ms:dispatched,updated_ms:updated,publishes_text:publishes,
+      ...gesture,dispatched_ms:dispatched,returned_ms:returned,execution:structuredClone(execution),updated_ms:updated,publishes_text:publishes,
       context_length:prediction.request.prefix_ids.length+prediction.request.output_ids.length,
       selected_id:prediction.selected_id,stop_reason:prediction.stop_reason,speculation:structuredClone(prediction.speculation),
       work:structuredClone(prediction.work),decoder_ms:prediction.decoder_ms,service_ms:prediction.service_ms};
     Declarations.assertShape('BrowserTokenTiming',sample);
-    if(dispatched<sample.started_ms || updated<dispatched || (samples.length && (updated<samples.at(-1).updated_ms || sample.token_index!==samples.at(-1).token_index+1)))
+    if(dispatched<sample.started_ms || returned<dispatched || updated<returned || (samples.length && (updated<samples.at(-1).updated_ms || sample.token_index!==samples.at(-1).token_index+1)))
       throw Error('Timing must follow accepted tokens on a monotonic clock');
     samples.push(sample);
   }

@@ -32,14 +32,16 @@ try{
     await evaluate("document.getElementById('next-token').click()");await ready();
     const actual=await evaluate("JSON.parse(document.getElementById('run-identity').textContent)");
     assert.equal(actual.model_id,'tinyllm-4m');assert.equal(actual.output_ids.length,1);
-    const repeated=await evaluate(`Execution.generateToken(${JSON.stringify(actual.request)})`);
+    const repeated=await evaluate(`Execution.generateToken(${JSON.stringify({session_id:actual.session_id,prefix_ids:actual.request.prefix_ids,output_ids:actual.request.output_ids})})`);
     assert.deepEqual(comparable(actual),comparable(repeated));
   }
   const fixture=JSON.parse(await readFile(new URL('../../../tests/fixtures/integration/tiny-covered.json',import.meta.url),'utf8'));
   await evaluate("document.getElementById('edit-input').click();document.getElementById('model-choice').value='tinyllm-8k';document.getElementById('model-choice').dispatchEvent(new Event('change'))");await ready();
   const input=await evaluate("JSON.parse(document.getElementById('inference-data').textContent)");
   input.execution.experiments.find(x=>x.control==='model').value='tinyllm-8k';
-  const request={execution:input.execution,prefix_ids:fixture.prefix,output_ids:fixture.output.slice(0,23),generation:{...input.workload.requests[0].request.generation,max_new_tokens:32}};
+  input.workload.requests[0].request.generation.max_new_tokens=32;
+  const prepared=await evaluate(`Execution.prepareGeneration(${JSON.stringify(input)})`);
+  const request={session_id:prepared.session_id,prefix_ids:fixture.prefix,output_ids:fixture.output.slice(0,23)};
   const prediction=await evaluate(`Execution.generateToken(${JSON.stringify(request)})`);
   assert.equal(prediction.selected_id,fixture.output[23]);
   prediction.logits.forEach((v,i)=>assert.ok(Math.abs(v-fixture.logits_at_selection_24[i])<1e-12));

@@ -44,16 +44,18 @@ globalThis.InspectionSession=(()=>{
     const root=s.step?.request.prefix_ids || s.prepared.prompt_ids;
     const prefix_ids=position<root.length ? ids.slice(0,position+1) : [...root];
     const output_ids=position<root.length ? [] : ids.slice(root.length,position+1);
-    const request={execution:clone(s.input.execution),prefix_ids,output_ids,generation:clone(s.input.workload.requests[0].request.generation)};
-    Declarations.assertShape('GenerationStep',request);
+    const request={session_id:s.prepared.session_id,prefix_ids,output_ids};
+    const generation=s.input.workload.requests[0].request.generation;
+    Declarations.assertShape('GenerationAdvance',request);
     if(output_ids.some(i=>s.loaded.model.stop_ids.includes(i)))throw Error('End token selected; reset or select an earlier prefix');
-    if(output_ids.length>=request.generation.max_new_tokens)throw Error('Token budget reached; reset or select an earlier prefix');
+    if(output_ids.length>=generation.max_new_tokens)throw Error('Token budget reached; reset or select an earlier prefix');
     if(prefix_ids.length+output_ids.length>s.loaded.model.architecture.context)throw Error('Context full; reset or select an earlier prefix');
     return request;
   }
   function accept(s,result,request) {
     const model=s.loaded?.model;
-    if(result.contract_sha256!==Declarations.hash || !model || !equal(request,nextRequest(s)) || !equal(result.request,request) || result.model_id!==model.id || result.weights_sha256!==model.weights.sha256 || result.tokenizer_sha256!==model.tokenizer.sha256)throw Error('Prediction differs from current request/model');
+    const expanded={execution:s.input.execution,generation:s.input.workload.requests[0].request.generation,prefix_ids:request.prefix_ids,output_ids:request.output_ids};
+    if(result.session_id!==request.session_id || result.contract_sha256!==Declarations.hash || !model || !equal(request,nextRequest(s)) || !equal(result.request,expanded) || result.model_id!==model.id || result.weights_sha256!==model.weights.sha256 || result.tokenizer_sha256!==model.tokenizer.sha256)throw Error('Prediction differs from current request/model');
     const output_ids=[...request.output_ids,result.selected_id];
     const ids=[...request.prefix_ids,...output_ids];
     if(!equal(ids,result.sequence_ids) || !equal(output_ids,result.output_ids))throw Error('Prediction differs from submitted prefix');

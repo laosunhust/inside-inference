@@ -17,10 +17,13 @@ export async function checkPresentation({send,evaluate,output,model,result}) {
     if(model.id==='tinyllm-8k'){
       await evaluate("document.getElementById('data-plane').scrollIntoView({block:'start'})");
       await writeFile(output+'/interaction-'+label+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
-      await evaluate("document.getElementById('timing-values').open=true;document.querySelector('.timing-method').open=true;document.getElementById('interaction-performance').scrollIntoView({block:'start'})");
+      await evaluate("document.getElementById('timing-values').open=true;document.querySelector('.timing-method').open=true;document.getElementById('delivery-values').open=true;document.getElementById('interaction-performance').scrollIntoView({block:'start'})");
       assert.ok(await evaluate('document.documentElement.scrollWidth<=window.innerWidth'),'Expanded evidence must not overflow the page');
       await writeFile(output+'/interaction-evidence-'+label+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
-      await evaluate("document.getElementById('timing-values').open=false;document.querySelector('.timing-method').open=false");
+      await evaluate("document.getElementById('delivery-values').scrollIntoView({block:'start'})");
+      assert.equal(await evaluate("getComputedStyle(document.querySelector('#delivery-samples td')).whiteSpace"),'nowrap');
+      await writeFile(output+'/delivery-evidence-'+label+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+      await evaluate("document.getElementById('timing-values').open=false;document.querySelector('.timing-method').open=false;document.getElementById('delivery-values').open=false");
     }
   }
 }
@@ -40,8 +43,13 @@ export function checkTimingExport(evidence){
   assert.equal(last.decoder_ms,evidence.prediction.decoder_ms);
   assert.equal(last.service_ms,evidence.prediction.service_ms);
   for(const sample of samples){
-    assert.ok(sample.started_ms<=sample.dispatched_ms&&sample.dispatched_ms<=sample.updated_ms);
+    assert.ok(sample.started_ms<=sample.dispatched_ms&&sample.dispatched_ms<=sample.returned_ms&&sample.returned_ms<=sample.updated_ms);
     assert.ok(sample.service_ms>=sample.decoder_ms);
+    const t=sample.execution,p=t.python;
+    assert.ok(t.transferred_bytes>0);assert.ok(p.operation_ms>=sample.service_ms);
+    assert.ok(p.operation_ms>=p.operation_validation_ms);
+    assert.ok(t.round_trip_ms>=0&&t.buffer_conversion_ms>=0);
+    assert.ok(t.python_bridge_ms+1>=p.operation_ms,'Bridge includes Python scopes, allowing 1ms independent-clock rounding');
     assert.equal(sample.work.processed_positions+sample.work.reused_positions,sample.context_length);
   }
   for(const batch of evidence.timing.observers){

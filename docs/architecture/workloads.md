@@ -10,8 +10,8 @@ requests with text, arrival times and per-request generation settings.
 Configuration does not imply that an execution supports every possible workload.
 
 Ordinary token generation admits one request arriving at zero. Preparation
-encodes its input without a forward pass. A `GenerationStep` carries the selected
-prefix, prior output IDs and configuration; `GenerationPrediction` records the
+encodes its input without a forward pass. A `GenerationAdvance` carries the selected
+prefix, prior output IDs and prepared-session reference; `GenerationPrediction` records the
 actual computation, selected ID and output. A terminal ID is selected but not
 rendered as customer text. Byte decoding diagnostics remain explicit; there is no
 output repair. [Delivery](delivery.md) owns artifact loading and export.

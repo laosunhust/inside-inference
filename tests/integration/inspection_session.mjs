@@ -7,7 +7,7 @@ const {input,loaded}=JSON.parse(readFileSync(process.argv[2],'utf8')),S=Inspecti
 let state=S.create(input);
 assert.equal(S.output(state),'');assert.throws(()=>S.nextRequest(state));
 state=S.admitModel(state,loaded);
-const prepared={input,prompt_ids:[0,24,42],pieces:['<BOS>','.','x'],encoding:null};
+const prepared={session_id:'a'.repeat(32),input,prompt_ids:[0,24,42],pieces:['<BOS>','.','x'],encoding:null};
 state=S.prepare(state,prepared);
 const stages=S.architecture(state);
 assert.ok(stages.length>0);
@@ -20,7 +20,7 @@ state=S.inspect(state,{surface:'request',observation_id:null});assert.equal(stat
 Declarations.assertShape('ArchitectureWalkthrough',Declarations.schemas.ArchitectureWalkthrough.const);
 const badStage={...Declarations.schemas.ArchitectureWalkthrough.const.stages[0],owner:'Invented'};assert.throws(()=>Declarations.assertShape('ArchitectureStage',badStage));
 const request=S.nextRequest(state),logits=Array(384).fill(0);logits[42]=2;
-const step={contract_sha256:Declarations.hash,id:'1'.repeat(64),request,model_id:loaded.model.id,weights_sha256:loaded.model.weights.sha256,tokenizer_sha256:loaded.model.tokenizer.sha256,sequence_ids:[0,24,42,42],output_ids:[42],text:'x',pieces:['<BOS>','.','x','x'],logits,probabilities:logits.map(x=>Math.exp(x)/(383+Math.exp(2))),selected_id:42,stop_reason:null,speculation:null,decoder_ms:0,service_ms:0,work:{processed_positions:3,reused_positions:0,matmul_flops:0},nodes:[],decoding_note:null};
+const step={contract_sha256:Declarations.hash,id:'1'.repeat(64),session_id:prepared.session_id,request:{execution:input.execution,generation:input.workload.requests[0].request.generation,prefix_ids:request.prefix_ids,output_ids:request.output_ids},model_id:loaded.model.id,weights_sha256:loaded.model.weights.sha256,tokenizer_sha256:loaded.model.tokenizer.sha256,sequence_ids:[0,24,42,42],output_ids:[42],text:'x',pieces:['<BOS>','.','x','x'],logits,probabilities:logits.map(x=>Math.exp(x)/(383+Math.exp(2))),selected_id:42,stop_reason:null,speculation:null,decoder_ms:0,service_ms:0,work:{processed_positions:3,reused_positions:0,matmul_flops:0},nodes:[],decoding_note:null};
 state=S.accept(state,step,request);assert.equal(S.output(state),'x');
 const wrong=structuredClone(step);wrong.selected_id=0;assert.throws(()=>S.accept(S.prepare(S.admitModel(S.create(input),loaded),prepared),wrong,request));
 assert.throws(()=>S.inspect(state,{surface:'model',observation_id:'foreign'}));
@@ -37,17 +37,17 @@ const reverse=v=>Array.isArray(v)?v.map(reverse):v&&typeof v==='object'?Object.f
 assert.deepEqual(S.prepare(S.admitModel(S.create(input),loaded),reverse(prepared)).prepared,prepared);
 globalThis.document={currentScript:{src:'https://example.test/execution/client.generated.js'}};
 vm.runInThisContext(readFileSync('web/execution/client.generated.js','utf8'));
-const calls=[];const client=ExecutionClient.create(async(name,input)=>{calls.push({name,input});return JSON.stringify(prepared);});
+const calls=[];const client=ExecutionClient.create(async(name,input)=>{calls.push({name,input});return prepared;});
 assert.deepEqual(await client.prepareGeneration(input),prepared);assert.equal(calls[0].name,'prepareGeneration');
 await assert.rejects(()=>client.prepareGeneration({}));assert.equal(calls.length,1);
 assert.equal(client.capabilities,undefined);assert.equal(client.invented,undefined);
 // Responses are validated by the harness, not by the production transport.
-assert.deepEqual(await ExecutionClient.create(async()=>JSON.stringify({})).prepareGeneration(input),{});
+assert.deepEqual(await ExecutionClient.create(async()=>({})).prepareGeneration(input),{});
 assert.throws(()=>Declarations.assertShape('GenerationPrepared',{}));
 const originalShape=Declarations.assertShape;
 Declarations.assertShape=(name,value)=>{assert.notEqual(name,'GenerationPrediction','No response-schema traversal in the token path');return originalShape(name,value);};
 S.accept(S.prepare(S.admitModel(S.create(input),loaded),prepared),step,request);
-await ExecutionClient.create(async()=>JSON.stringify(step)).generateToken(request);
+await ExecutionClient.create(async()=>step).generateToken(request);
 Declarations.assertShape=originalShape;
 Declarations.assertShape('GenerationPrediction',step);
 await assert.rejects(()=>ExecutionClient.create(async()=>{throw Error('transport failed');}).prepareGeneration(input),/transport failed/);

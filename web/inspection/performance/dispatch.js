@@ -11,7 +11,10 @@ export function createDispatch(execution,now=()=>performance.now()) {
     token:(request,current)=>enqueue(async()=>{
       if(!current())throw Error('Generation canceled before dispatch');
       const dispatched_ms=now();
-      return {prediction:await execution.generateToken(request),dispatched_ms};
+      let observation;
+      const prediction=await execution.generateToken(request,{observe:value=>{observation=value;}});
+      if(!observation)throw Error('Execution timing observation missing');
+      return {prediction,dispatched_ms,returned_ms:now(),execution:observation};
     })
   };
 }

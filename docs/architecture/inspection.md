@@ -166,7 +166,7 @@ another model's state. Incompatible input/settings fail visibly without repair.
 
 `ExecutionSpec` composes ontology-bound `ExecutionControl` records for model selection and KV reuse. `Workload`
 owns request input and generation policy. Preparation tokenizes without inference;
-**Next Token** submits a `GenerationStep` and accepts a `GenerationPrediction`.
+**Next Token** submits a `GenerationAdvance` referencing the prepared session and accepts a `GenerationPrediction`.
 **Generate** repeats that same operation until stopping or the user stops it.
 Reset clears the continuation while retaining input/settings. The Output Details
 panel exposes the single combined token sequence.
@@ -258,3 +258,13 @@ first/later rejection, complete acceptance, EOS, rollback and capacity counterex
 Different matrix shapes can change floating-point rounding near tied logits; observed
 sequence divergence is a failed parity result, not something to hide. Acceptance
 rate and fewer target calls do not independently establish a speedup.
+
+### Prepared token delivery and timing
+
+`prepareGeneration` admits the full workload and execution settings, resolves controls and returns an opaque session ID. `GenerationAdvance` carries that ID plus prefix/output token IDs for ordinary continuation or branching. The worker retains a private copy of the admitted configuration. Successful preparation replaces the session, and model loading invalidates it. Token steps reject stale IDs, malformed dynamic input, vocabulary/context overflow and completed requests. They never resubmit or revalidate the immutable execution settings. Predictions retain the expanded `GenerationStep` as evidence and echo the session ID; the browser checks it before accepting a result.
+
+The generated worker invokes one retained Python callable. NumPy vocabulary arrays are copied out of WASM into typed buffers and transferred with structured metadata. The WASM heap itself is never transferred. The client materializes ordinary arrays for the declared inspection/export records and maps Python None to JSON null. There is no JSON stringification/parsing in normal operation delivery; raw JSON is an explicit export option. Greedy selection and probabilities share the NumPy implementation, preserving finite-logit checks and smallest-ID tie breaking.
+
+`PythonExecutionTiming` measures compact operation admission and inclusive operation duration. `BrowserExecutionTiming` measures worker wait, Python bridge, result/buffer conversion, transferred numeric bytes, client admission and round trip. Buffer bytes exclude metadata and are not a JSON response-size estimate. The round trip includes delivery, scheduling and array materialization. `returned_ms` records completion of the client and its timing callback; publication follows state acceptance and the output DOM update. Python and worker durations use independent clocks. Nested durations are not additive, and no absolute timestamps are subtracted across domains.
+
+Interaction's Delivery breakdown and exports derive from the same ledger. Deferred inspection/chart updates remain observed separately and may overlap the worker or delay publication. These are application measurements, not isolated kernel timings. The [overhead investigation](../../data/experiments/token-overhead/README.md) retains the previous JSON-path diagnosis; the [fast-path protocol](../../data/experiments/token-fast-path/protocol.json) owns the 0.5 ms residual target and repeated workload. [`make _token-overhead`](../../Makefile) runs it through the same built site and browser setup as integration.

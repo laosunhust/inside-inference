@@ -2480,6 +2480,76 @@ globalThis.Declarations = (() => {
       }
     }
   },
+  "PythonExecutionTiming": {
+    "type": "object",
+    "x-owner": "ExperimentObservation",
+    "additionalProperties": false,
+    "required": [
+      "operation_validation_ms",
+      "operation_ms"
+    ],
+    "properties": {
+      "operation_validation_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Operation input admission. Token steps validate only session reference and dynamic token IDs, never immutable execution settings. Nested within operation_ms."
+      },
+      "operation_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Entire Python operation including admission and service work. Do not add nested durations to it. Response remains structured; no JSON encoding occurs."
+      }
+    }
+  },
+  "BrowserExecutionTiming": {
+    "type": "object",
+    "x-owner": "ExperimentObservation",
+    "additionalProperties": false,
+    "required": [
+      "python",
+      "worker_wait_ms",
+      "python_bridge_ms",
+      "buffer_conversion_ms",
+      "transferred_bytes",
+      "client_validation_ms",
+      "round_trip_ms"
+    ],
+    "properties": {
+      "python": {
+        "$ref": "#/$defs/PythonExecutionTiming"
+      },
+      "worker_wait_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Worker receipt to Python invocation, including queue, runtime readiness and structured input conversion; worker performance.now duration."
+      },
+      "python_bridge_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Worker duration awaiting the retained Python callable, including operation admission and execution. Excludes response buffer conversion and messaging."
+      },
+      "buffer_conversion_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Worker duration converting the Python result into structured JavaScript values and copied typed arrays, and collecting transfer buffers. The WASM heap itself is never transferred."
+      },
+      "transferred_bytes": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Numeric ArrayBuffer bytes transferred with this response. Excludes structured metadata; not a JSON response-size estimate."
+      },
+      "client_validation_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Browser duration validating the declared operation input before transport."
+      },
+      "round_trip_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Browser transport invocation to resolved structured response, including worker work, delivery/scheduling and array materialization for inspection. Worker and Python scopes are nested, not additive. Cross-domain timestamp arithmetic is undefined."
+      }
+    }
+  },
   "BrowserTokenTiming": {
     "type": "object",
     "x-owner": "ExperimentObservation",
@@ -2491,6 +2561,8 @@ globalThis.Declarations = (() => {
       "mode",
       "started_ms",
       "dispatched_ms",
+      "returned_ms",
+      "execution",
       "updated_ms",
       "publishes_text",
       "context_length",
@@ -2533,6 +2605,14 @@ globalThis.Declarations = (() => {
         "minimum": 0,
         "description": "Browser performance.now immediately before dispatch after earlier operations settle; dispatch minus gesture start includes pre-dispatch work, not exclusively worker queue time."
       },
+      "returned_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Browser performance.now after the execution client returns a parsed response and timing observation, before state acceptance and output publication."
+      },
+      "execution": {
+        "$ref": "#/$defs/BrowserExecutionTiming"
+      },
       "updated_ms": {
         "type": "number",
         "minimum": 0,
@@ -2573,7 +2653,7 @@ globalThis.Declarations = (() => {
       "service_ms": {
         "type": "number",
         "minimum": 0,
-        "description": "Copied worker response-construction duration including decoder; excludes admission and JSON serialization. Cross-domain timestamp arithmetic is undefined."
+        "description": "Copied worker response-construction duration including decoder; excludes admission and buffer conversion. Cross-domain timestamp arithmetic is undefined."
       },
       "speculation": {
         "oneOf": [
@@ -3733,6 +3813,40 @@ globalThis.Declarations = (() => {
       }
     }
   },
+  "GenerationAdvance": {
+    "type": "object",
+    "x-owner": "InferenceRequest",
+    "additionalProperties": false,
+    "required": [
+      "session_id",
+      "prefix_ids",
+      "output_ids"
+    ],
+    "properties": {
+      "session_id": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{32}$",
+        "description": "Session returned by prepareGeneration; immutable execution and generation policy are retained by the worker, never supplied again per token."
+      },
+      "prefix_ids": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 512,
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "output_ids": {
+        "type": "array",
+        "maxItems": 128,
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
   "ModelAsset": {
     "type": "object",
     "x-owner": "ModelArtifact",
@@ -4043,12 +4157,18 @@ globalThis.Declarations = (() => {
     "x-owner": "InferenceRequest",
     "additionalProperties": false,
     "required": [
+      "session_id",
       "prompt_ids",
       "pieces",
       "input",
       "encoding"
     ],
     "properties": {
+      "session_id": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{32}$",
+        "description": "Opaque worker session bound to admitted input and controls; replaced by preparation and invalidated by model loading."
+      },
       "prompt_ids": {
         "type": "array",
         "items": {
@@ -4122,6 +4242,7 @@ globalThis.Declarations = (() => {
     "x-owner": "ExperimentObservation",
     "additionalProperties": false,
     "required": [
+      "session_id",
       "model_id",
       "weights_sha256",
       "tokenizer_sha256",
@@ -4144,6 +4265,10 @@ globalThis.Declarations = (() => {
       "speculation"
     ],
     "properties": {
+      "session_id": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{32}$"
+      },
       "model_id": {
         "type": "string"
       },
@@ -4216,7 +4341,7 @@ globalThis.Declarations = (() => {
       "service_ms": {
         "type": "number",
         "minimum": 0,
-        "description": "Worker duration from generation service computation through response construction, excluding input admission and JSON serialization. Speculative first deliveries include the whole round; buffered deliveries include response construction only."
+        "description": "Worker duration from generation service computation through response construction, excluding input admission and structured buffer conversion. Speculative first deliveries include the whole round; buffered deliveries include response construction only."
       },
       "nodes": {
         "type": "array",
@@ -6714,6 +6839,7 @@ globalThis.Declarations = (() => {
       "InferenceRequest",
       "RequestArrival",
       "GenerationInput",
+      "GenerationAdvance",
       "GenerationPrepared",
       "GenerationStep",
       "KVExperimentInput"
@@ -7000,6 +7126,8 @@ globalThis.Declarations = (() => {
       "TensorObservation",
       "CacheMeasurement",
       "GenerationPrediction",
+      "PythonExecutionTiming",
+      "BrowserExecutionTiming",
       "BrowserTokenTiming",
       "BrowserGenerationTiming",
       "BrowserObserverBatch"
@@ -8724,7 +8852,7 @@ globalThis.Declarations = (() => {
     ]
   }
 };
-  const hash = "6bc8728b7d8609b16bc86575a01b5cbeee6017e8b53b4746a4c4ba1d4f3396ca";
+  const hash = "46d40b38d078411b72ae6f215ef3a41c9066da1d54aba1c09fc7ab829141cea9";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

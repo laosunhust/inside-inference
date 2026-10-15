@@ -213,7 +213,7 @@ class DeclarationTests(unittest.TestCase):
         owners = ontology['terms']
         spec = read(ROOT/'data-model/inference.schema.json')
         expected = {
-            'InferenceRequest': ['InferenceRequest', 'RequestArrival', 'GenerationInput', 'GenerationPrepared', 'GenerationStep', 'KVExperimentInput'],
+            'InferenceRequest': ['InferenceRequest', 'RequestArrival', 'GenerationInput', 'GenerationAdvance', 'GenerationPrepared', 'GenerationStep', 'KVExperimentInput'],
             'InferenceSystem': ['InferenceMap', 'InferenceMapNode', 'InferenceMapRelationship', 'KVResidencySystemConfig'],
             'InferenceResponse': ['RunOutcome'],
             'Tokenizer': ['Token', 'Turn', 'Span', 'Encoding', 'TokenizerOperation'],

@@ -487,6 +487,52 @@ $defs:
       url:
         type: string
         pattern: ^https://
+  PythonExecutionTiming:
+    type: object
+    x-owner: ExperimentObservation
+    additionalProperties: false
+    required: [operation_validation_ms, operation_ms]
+    properties:
+      operation_validation_ms:
+        type: number
+        minimum: 0
+        description: Operation input admission. Token steps validate only session reference and dynamic token IDs, never immutable execution settings. Nested within operation_ms.
+      operation_ms:
+        type: number
+        minimum: 0
+        description: Entire Python operation including admission and service work. Do not add nested durations to it. Response remains structured; no JSON encoding occurs.
+  BrowserExecutionTiming:
+    type: object
+    x-owner: ExperimentObservation
+    additionalProperties: false
+    required: [python, worker_wait_ms, python_bridge_ms, buffer_conversion_ms, transferred_bytes, client_validation_ms, round_trip_ms]
+    properties:
+      python:
+        $ref: '#/$defs/PythonExecutionTiming'
+      worker_wait_ms:
+        type: number
+        minimum: 0
+        description: Worker receipt to Python invocation, including queue, runtime readiness and structured input conversion; worker performance.now duration.
+      python_bridge_ms:
+        type: number
+        minimum: 0
+        description: Worker duration awaiting the retained Python callable, including operation admission and execution. Excludes response buffer conversion and messaging.
+      buffer_conversion_ms:
+        type: number
+        minimum: 0
+        description: Worker duration converting the Python result into structured JavaScript values and copied typed arrays, and collecting transfer buffers. The WASM heap itself is never transferred.
+      transferred_bytes:
+        type: integer
+        minimum: 0
+        description: Numeric ArrayBuffer bytes transferred with this response. Excludes structured metadata; not a JSON response-size estimate.
+      client_validation_ms:
+        type: number
+        minimum: 0
+        description: Browser duration validating the declared operation input before transport.
+      round_trip_ms:
+        type: number
+        minimum: 0
+        description: Browser transport invocation to resolved structured response, including worker work, delivery/scheduling and array materialization for inspection. Worker and Python scopes are nested, not additive. Cross-domain timestamp arithmetic is undefined.
   BrowserTokenTiming:
     type: object
     x-owner: ExperimentObservation
@@ -498,6 +544,8 @@ $defs:
     - mode
     - started_ms
     - dispatched_ms
+    - returned_ms
+    - execution
     - updated_ms
     - publishes_text
     - context_length
@@ -534,6 +582,12 @@ $defs:
         minimum: 0
         description: Browser performance.now immediately before dispatch after earlier operations settle; dispatch
           minus gesture start includes pre-dispatch work, not exclusively worker queue time.
+      returned_ms:
+        type: number
+        minimum: 0
+        description: Browser performance.now after the execution client returns a parsed response and timing observation, before state acceptance and output publication.
+      execution:
+        $ref: '#/$defs/BrowserExecutionTiming'
       updated_ms:
         type: number
         minimum: 0
@@ -565,8 +619,8 @@ $defs:
       service_ms:
         type: number
         minimum: 0
-        description: Copied worker response-construction duration including decoder; excludes admission and JSON
-          serialization. Cross-domain timestamp arithmetic is undefined.
+        description: Copied worker response-construction duration including decoder; excludes admission and
+          buffer conversion. Cross-domain timestamp arithmetic is undefined.
       speculation:
         oneOf:
         - $ref: '#/$defs/SpeculativeDelivery'

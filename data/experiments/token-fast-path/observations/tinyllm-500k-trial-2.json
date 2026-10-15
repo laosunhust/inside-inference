@@ -1,0 +1,1278 @@
+{
+  "warmup": false,
+  "evidence": {
+    "input": {
+      "workload": {
+        "requests": [
+          {
+            "request_id": "r1",
+            "arrival_us": 0,
+            "request": {
+              "text": "Once upon a time, there was a little dog.",
+              "generation": {
+                "max_new_tokens": 32,
+                "selection": "greedy-lowest-id-tie",
+                "stopping": "model-end-or-budget"
+              }
+            }
+          }
+        ],
+        "kind": "fixed-arrivals"
+      },
+      "execution": {
+        "experiments": [
+          {
+            "control": "model",
+            "value": "tinyllm-500k",
+            "ontology_binding": {
+              "primary": "ModelArtifact",
+              "related": []
+            }
+          },
+          {
+            "control": "kv_reuse",
+            "value": true,
+            "ontology_binding": {
+              "primary": "KVCache",
+              "related": [
+                "ModelExecution"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "model": {
+      "id": "tinyllm-500k",
+      "role": "comparison",
+      "weights": {
+        "path": "tinyllm-0.5m.bin",
+        "bytes": 1968412,
+        "sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa"
+      },
+      "tokenizer": {
+        "path": "tokenizer-4096.bin",
+        "bytes": 54143,
+        "sha256": "e5d2d6026451158d9a2fcc220c0428c4ac49535b355d8b22828bfc65b251f4c6"
+      },
+      "seed": 1337,
+      "provenance": "TinyStories size study; 65536 updates; 1.074B training tokens; seed chosen before quality evaluation.",
+      "weight_format": "llama2c-binary",
+      "tokenizer_format": "sentencepiece-binary",
+      "architecture": {
+        "vocabulary": 4096,
+        "width": 64,
+        "ffn": 192,
+        "context": 512,
+        "layers": 4,
+        "heads": 2,
+        "position": "rope",
+        "normalization": "rmsnorm",
+        "activation": "silu-gated",
+        "precision": "binary32",
+        "epsilon": 0.00001
+      },
+      "parameters": 475712,
+      "inspection": "logits",
+      "stop_ids": [
+        1,
+        2
+      ],
+      "normalization": "sentencepiece-identity-collapse-spaces",
+      "label": "TinyLLM-0.5M"
+    },
+    "timing": {
+      "clock": "browser-monotonic-ms",
+      "samples": [
+        {
+          "prediction_id": "8082b6e5a1f489ebf0fa6c75c44c1703a64fc6e927b5f8a56135daa14c2df7b9",
+          "token_index": 1,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4646.20000000298,
+          "returned_ms": 4659.10000000149,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.2999999999997449,
+              "operation_ms": 11.800000000000033
+            },
+            "worker_wait_ms": 0.09999999403953552,
+            "python_bridge_ms": 12.200000002980232,
+            "buffer_conversion_ms": 0.20000000298023224,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 12.899999998509884
+          },
+          "updated_ms": 4659.20000000298,
+          "publishes_text": true,
+          "context_length": 12,
+          "selected_id": 282,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 11483136,
+            "processed_positions": 12,
+            "reused_positions": 0
+          },
+          "decoder_ms": 11.200000000000099,
+          "service_ms": 11.400000000000077
+        },
+        {
+          "prediction_id": "a68b48956fe3ff16a00ae51f38988bfb36d598e2970a9559fee48a3d59523ad4",
+          "token_index": 2,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4659.5,
+          "returned_ms": 4662.30000000447,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.300000000000189,
+              "operation_ms": 2.300000000000413
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.5,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 2.8000000044703484
+          },
+          "updated_ms": 4662.30000000447,
+          "publishes_text": true,
+          "context_length": 13,
+          "selected_id": 466,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 963584,
+            "processed_positions": 1,
+            "reused_positions": 12
+          },
+          "decoder_ms": 1.7999999999998018,
+          "service_ms": 1.9000000000000128
+        },
+        {
+          "prediction_id": "673a2e3e7985c40e101482d2894a4c156e2e1eb0e71dcc259cf07a53bcb92719",
+          "token_index": 3,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4662.5,
+          "returned_ms": 4668.60000000149,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.300000000000189,
+              "operation_ms": 2.6000000000001577
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.7000000029802322,
+            "buffer_conversion_ms": 0.19999999552965164,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 6.100000001490116
+          },
+          "updated_ms": 4668.60000000149,
+          "publishes_text": true,
+          "context_length": 14,
+          "selected_id": 286,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 964608,
+            "processed_positions": 1,
+            "reused_positions": 13
+          },
+          "decoder_ms": 2.0999999999999908,
+          "service_ms": 2.2999999999999687
+        },
+        {
+          "prediction_id": "d4a2bbe2787bc99dfb58d34b198747329675d45646a2b5e336ba27e991ba966e",
+          "token_index": 4,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4669,
+          "returned_ms": 4672.70000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.2999999999997449,
+              "operation_ms": 3.2000000000000917
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 3.4000000059604645,
+            "buffer_conversion_ms": 0.09999999403953552,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 3.7000000029802322
+          },
+          "updated_ms": 4672.70000000298,
+          "publishes_text": true,
+          "context_length": 15,
+          "selected_id": 381,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 965632,
+            "processed_positions": 1,
+            "reused_positions": 14
+          },
+          "decoder_ms": 2.4999999999999467,
+          "service_ms": 2.6999999999999247
+        },
+        {
+          "prediction_id": "68f974d5061e8fe86dcf388cc03e4446d66229ca2459699df5c1b3ca8b724576",
+          "token_index": 5,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4673,
+          "returned_ms": 4676.20000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.300000000000189,
+              "operation_ms": 2.6999999999999247
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.9000000059604645,
+            "buffer_conversion_ms": 0.09999999403953552,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 3.2000000029802322
+          },
+          "updated_ms": 4676.20000000298,
+          "publishes_text": true,
+          "context_length": 16,
+          "selected_id": 1304,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 966656,
+            "processed_positions": 1,
+            "reused_positions": 15
+          },
+          "decoder_ms": 2.200000000000202,
+          "service_ms": 2.2999999999999687
+        },
+        {
+          "prediction_id": "7ca4d3d09bb77fbbfeebcda025d49f154561862376994edc5594e0668bc34ad6",
+          "token_index": 6,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4676.4000000059605,
+          "returned_ms": 4679.20000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.300000000000189,
+              "operation_ms": 2.2999999999999687
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.3000000044703484,
+            "buffer_conversion_ms": 0.19999999552965164,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 2.7999999970197678
+          },
+          "updated_ms": 4679.20000000298,
+          "publishes_text": true,
+          "context_length": 17,
+          "selected_id": 4037,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 967680,
+            "processed_positions": 1,
+            "reused_positions": 16
+          },
+          "decoder_ms": 1.9000000000000128,
+          "service_ms": 1.9999999999997797
+        },
+        {
+          "prediction_id": "93d852b83d7ece288f879e9007b53dca0bd5db8265d693b0af00df356ac657cf",
+          "token_index": 7,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4679.4000000059605,
+          "returned_ms": 4688.60000000149,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.300000000000189,
+              "operation_ms": 3.5000000000002807
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 4.5,
+            "buffer_conversion_ms": 0.19999999552965164,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 9.099999994039536
+          },
+          "updated_ms": 4688.60000000149,
+          "publishes_text": true,
+          "context_length": 18,
+          "selected_id": 316,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 968704,
+            "processed_positions": 1,
+            "reused_positions": 17
+          },
+          "decoder_ms": 2.9999999999996696,
+          "service_ms": 3.0999999999998806
+        },
+        {
+          "prediction_id": "a2caba7fd30790007279a20ff498dc9112407d58abb27a153138e948099e7ee0",
+          "token_index": 8,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4688.70000000298,
+          "returned_ms": 4692.60000000149,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.39999999999995595,
+              "operation_ms": 3.0999999999998806
+            },
+            "worker_wait_ms": 0.10000000149011612,
+            "python_bridge_ms": 3.399999998509884,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 3.899999998509884
+          },
+          "updated_ms": 4692.60000000149,
+          "publishes_text": true,
+          "context_length": 19,
+          "selected_id": 412,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 969728,
+            "processed_positions": 1,
+            "reused_positions": 18
+          },
+          "decoder_ms": 2.4000000000001798,
+          "service_ms": 2.6000000000001577
+        },
+        {
+          "prediction_id": "15fa97e00942f73be571dc0f3945a25ddbc9d7a626116e610fd02fe38d0300e5",
+          "token_index": 9,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4692.80000000447,
+          "returned_ms": 4696.30000000447,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.39999999999995595,
+              "operation_ms": 3.0000000000001137
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 3,
+            "buffer_conversion_ms": 0.09999999403953552,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 3.5
+          },
+          "updated_ms": 4696.30000000447,
+          "publishes_text": true,
+          "context_length": 20,
+          "selected_id": 268,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 970752,
+            "processed_positions": 1,
+            "reused_positions": 19
+          },
+          "decoder_ms": 2.2999999999999687,
+          "service_ms": 2.3999999999997357
+        },
+        {
+          "prediction_id": "e8e2b1cfc3eb69cf71a9fdfc6192beef349a5c0001f8aff0b53ee794164fd493",
+          "token_index": 10,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4696.5,
+          "returned_ms": 4702.9000000059605,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.2999999999997449,
+              "operation_ms": 3.1999999999996476
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 3.5,
+            "buffer_conversion_ms": 0,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 6.4000000059604645
+          },
+          "updated_ms": 4702.9000000059605,
+          "publishes_text": true,
+          "context_length": 21,
+          "selected_id": 710,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 971776,
+            "processed_positions": 1,
+            "reused_positions": 20
+          },
+          "decoder_ms": 2.6999999999999247,
+          "service_ms": 2.8999999999999027
+        },
+        {
+          "prediction_id": "298e93b4469043987ea1a687c4d8c9709ebc8edb7cfd1a2cc4cf7ed5dfb67ced",
+          "token_index": 11,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4703.20000000298,
+          "returned_ms": 4707.10000000149,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.39999999999995595,
+              "operation_ms": 3.1000000000003247
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 3.5,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 3.899999998509884
+          },
+          "updated_ms": 4707.10000000149,
+          "publishes_text": true,
+          "context_length": 22,
+          "selected_id": 603,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 972800,
+            "processed_positions": 1,
+            "reused_positions": 21
+          },
+          "decoder_ms": 2.6000000000001577,
+          "service_ms": 2.7000000000003688
+        },
+        {
+          "prediction_id": "16d4b633b0d2906bc537aafcaa7317fafc5ecb3b73ac0a91b1abf214bc285d9e",
+          "token_index": 12,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4707.20000000298,
+          "returned_ms": 4710.10000000149,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.300000000000189,
+              "operation_ms": 2.2999999999999687
+            },
+            "worker_wait_ms": 0.10000000149011612,
+            "python_bridge_ms": 2.600000001490116,
+            "buffer_conversion_ms": 0,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 2.899999998509884
+          },
+          "updated_ms": 4710.10000000149,
+          "publishes_text": true,
+          "context_length": 23,
+          "selected_id": 798,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 973824,
+            "processed_positions": 1,
+            "reused_positions": 22
+          },
+          "decoder_ms": 1.8000000000002458,
+          "service_ms": 1.9000000000000128
+        },
+        {
+          "prediction_id": "1666e0c5dce7c22be41a8e863ce8ae74f581c2b24680112bed6ba8489e1ab445",
+          "token_index": 13,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4710.30000000447,
+          "returned_ms": 4713.10000000149,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.300000000000189,
+              "operation_ms": 2.2999999999999687
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.5,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 2.7999999970197678
+          },
+          "updated_ms": 4713.10000000149,
+          "publishes_text": true,
+          "context_length": 24,
+          "selected_id": 4037,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 974848,
+            "processed_positions": 1,
+            "reused_positions": 23
+          },
+          "decoder_ms": 1.7999999999998018,
+          "service_ms": 1.9999999999997797
+        },
+        {
+          "prediction_id": "6598eafebdecc696da26f2419a08ba38dea7cf54f234b76ccd9d7f10e8b52d42",
+          "token_index": 14,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4713.20000000298,
+          "returned_ms": 4719.70000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.39999999999995595,
+              "operation_ms": 3.1000000000003247
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 3.2999999970197678,
+            "buffer_conversion_ms": 0,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 6.5
+          },
+          "updated_ms": 4719.70000000298,
+          "publishes_text": true,
+          "context_length": 25,
+          "selected_id": 316,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 975872,
+            "processed_positions": 1,
+            "reused_positions": 24
+          },
+          "decoder_ms": 2.4999999999999467,
+          "service_ms": 2.6000000000001577
+        },
+        {
+          "prediction_id": "6892c89a1c66c3e0dbe848e0d1a9486f0490abf893efa55d50e5ca7645a682a0",
+          "token_index": 15,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4719.80000000447,
+          "returned_ms": 4723.20000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.39999999999995595,
+              "operation_ms": 2.6999999999999247
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 3,
+            "buffer_conversion_ms": 0.09999999403953552,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 3.399999998509884
+          },
+          "updated_ms": 4723.20000000298,
+          "publishes_text": true,
+          "context_length": 26,
+          "selected_id": 386,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 976896,
+            "processed_positions": 1,
+            "reused_positions": 25
+          },
+          "decoder_ms": 2.0999999999999908,
+          "service_ms": 2.1999999999997577
+        },
+        {
+          "prediction_id": "5623f944e0a1fdea35edb9a5e02af9d62045101fe83e5dca6f90c4b180ead6df",
+          "token_index": 16,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4723.4000000059605,
+          "returned_ms": 4726.20000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.39999999999995595,
+              "operation_ms": 2.2999999999999687
+            },
+            "worker_wait_ms": 0.09999999403953552,
+            "python_bridge_ms": 2.4000000059604645,
+            "buffer_conversion_ms": 0.09999999403953552,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 2.7999999970197678
+          },
+          "updated_ms": 4726.20000000298,
+          "publishes_text": true,
+          "context_length": 27,
+          "selected_id": 261,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 977920,
+            "processed_positions": 1,
+            "reused_positions": 26
+          },
+          "decoder_ms": 1.9000000000000128,
+          "service_ms": 1.9000000000000128
+        },
+        {
+          "prediction_id": "a5c57c90263ba2ce5e3d5ebf1404bce48bc74952073cb2bde1012586c740d8e2",
+          "token_index": 17,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4726.30000000447,
+          "returned_ms": 4729.20000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.39999999999995595,
+              "operation_ms": 2.2999999999999687
+            },
+            "worker_wait_ms": 0.09999999403953552,
+            "python_bridge_ms": 2.5,
+            "buffer_conversion_ms": 0,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 2.899999998509884
+          },
+          "updated_ms": 4729.30000000447,
+          "publishes_text": true,
+          "context_length": 28,
+          "selected_id": 350,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 978944,
+            "processed_positions": 1,
+            "reused_positions": 27
+          },
+          "decoder_ms": 1.7999999999998018,
+          "service_ms": 1.9000000000000128
+        },
+        {
+          "prediction_id": "a8aca22aeb1a7dbfed9bee7385bf3cb73824b93d54d7951012fb60582831e73f",
+          "token_index": 18,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4729.4000000059605,
+          "returned_ms": 4736.70000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.2999999999997449,
+              "operation_ms": 2.8000000000001357
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 3.100000001490116,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 7.299999997019768
+          },
+          "updated_ms": 4736.70000000298,
+          "publishes_text": true,
+          "context_length": 29,
+          "selected_id": 500,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 979968,
+            "processed_positions": 1,
+            "reused_positions": 28
+          },
+          "decoder_ms": 2.2999999999999687,
+          "service_ms": 2.4000000000001798
+        },
+        {
+          "prediction_id": "2d6e224cd89f85928e5984f45065421c2c0ef689cfc891c43311d2c7e7ef7def",
+          "token_index": 19,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4736.9000000059605,
+          "returned_ms": 4740.4000000059605,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.39999999999995595,
+              "operation_ms": 2.8999999999999027
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 3.1999999955296516,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 3.5
+          },
+          "updated_ms": 4740.5,
+          "publishes_text": true,
+          "context_length": 30,
+          "selected_id": 332,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 980992,
+            "processed_positions": 1,
+            "reused_positions": 29
+          },
+          "decoder_ms": 2.1999999999997577,
+          "service_ms": 2.3999999999997357
+        },
+        {
+          "prediction_id": "56025019ae96c60fd867c99ce530e3f372054de3e86bfc50b4bbb129f76e858b",
+          "token_index": 20,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4740.5,
+          "returned_ms": 4743.70000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.500000000000167,
+              "operation_ms": 2.6000000000001577
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.8000000044703484,
+            "buffer_conversion_ms": 0.09999999403953552,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 3.2000000029802322
+          },
+          "updated_ms": 4743.70000000298,
+          "publishes_text": true,
+          "context_length": 31,
+          "selected_id": 261,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 982016,
+            "processed_positions": 1,
+            "reused_positions": 30
+          },
+          "decoder_ms": 1.9000000000000128,
+          "service_ms": 2.0999999999999908
+        },
+        {
+          "prediction_id": "f23ea0277652629041c8c582d5e6d97916d642f67bf45ad7e24d6d2a1273ac7a",
+          "token_index": 21,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4743.9000000059605,
+          "returned_ms": 4746.80000000447,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.300000000000189,
+              "operation_ms": 2.2999999999999687
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.5999999940395355,
+            "buffer_conversion_ms": 0.20000000298023224,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 2.899999998509884
+          },
+          "updated_ms": 4746.9000000059605,
+          "publishes_text": true,
+          "context_length": 32,
+          "selected_id": 648,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 983040,
+            "processed_positions": 1,
+            "reused_positions": 31
+          },
+          "decoder_ms": 1.7000000000000348,
+          "service_ms": 1.9000000000000128
+        },
+        {
+          "prediction_id": "21f0dbf06f42bb0389f49986b46735f111d4152b05e7949b2d804b38e9256273",
+          "token_index": 22,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4747,
+          "returned_ms": 4754.4000000059605,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.39999999999995595,
+              "operation_ms": 2.3999999999997357
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.7000000029802322,
+            "buffer_conversion_ms": 0,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 7.4000000059604645
+          },
+          "updated_ms": 4754.4000000059605,
+          "publishes_text": true,
+          "context_length": 33,
+          "selected_id": 375,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 984064,
+            "processed_positions": 1,
+            "reused_positions": 32
+          },
+          "decoder_ms": 1.9000000000000128,
+          "service_ms": 1.9999999999997797
+        },
+        {
+          "prediction_id": "673b4a7b06c7f2c4d7da1470408b268620b5be59e35a4e7be81b0fd46455d7a5",
+          "token_index": 23,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4754.60000000149,
+          "returned_ms": 4758.60000000149,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.5999999999999339,
+              "operation_ms": 3.0000000000001137
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 3.2999999970197678,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 4
+          },
+          "updated_ms": 4758.60000000149,
+          "publishes_text": true,
+          "context_length": 34,
+          "selected_id": 798,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 985088,
+            "processed_positions": 1,
+            "reused_positions": 33
+          },
+          "decoder_ms": 2.1999999999997577,
+          "service_ms": 2.2999999999999687
+        },
+        {
+          "prediction_id": "40eefc31ba07d34302f1a3aa9112be4476f1cf4ec0e737806f165cb475c7fbc1",
+          "token_index": 24,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4758.80000000447,
+          "returned_ms": 4762.10000000149,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.39999999999995595,
+              "operation_ms": 2.4999999999999467
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.6999999955296516,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 3.2999999970197678
+          },
+          "updated_ms": 4762.10000000149,
+          "publishes_text": true,
+          "context_length": 35,
+          "selected_id": 4037,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 986112,
+            "processed_positions": 1,
+            "reused_positions": 34
+          },
+          "decoder_ms": 1.9000000000000128,
+          "service_ms": 2.000000000000224
+        },
+        {
+          "prediction_id": "9b30175ed15d7c1f5b05b29b0e8285d33d5f98ad9766deeeaba43b29e7f87dfe",
+          "token_index": 25,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4762.30000000447,
+          "returned_ms": 4771.70000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.500000000000167,
+              "operation_ms": 2.4999999999999467
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.5,
+            "buffer_conversion_ms": 0.19999999552965164,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 9.399999998509884
+          },
+          "updated_ms": 4771.70000000298,
+          "publishes_text": true,
+          "context_length": 36,
+          "selected_id": 282,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 987136,
+            "processed_positions": 1,
+            "reused_positions": 35
+          },
+          "decoder_ms": 1.7999999999998018,
+          "service_ms": 1.9999999999997797
+        },
+        {
+          "prediction_id": "72cfb66e1c09a340118abcd9d265d779e3416ee8ec93a3e5ceb4a194cb82294d",
+          "token_index": 26,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4771.9000000059605,
+          "returned_ms": 4775.9000000059605,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.5999999999999339,
+              "operation_ms": 2.8999999999999027
+            },
+            "worker_wait_ms": 0.09999999403953552,
+            "python_bridge_ms": 3.2000000029802322,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 4
+          },
+          "updated_ms": 4775.9000000059605,
+          "publishes_text": true,
+          "context_length": 37,
+          "selected_id": 466,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 988160,
+            "processed_positions": 1,
+            "reused_positions": 36
+          },
+          "decoder_ms": 2.200000000000202,
+          "service_ms": 2.2999999999999687
+        },
+        {
+          "prediction_id": "69bff3292e50d3d939eb7afb4496e91cde41926e248f60bc2a24c14b6ef6a7d2",
+          "token_index": 27,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4776.10000000149,
+          "returned_ms": 4779.70000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.500000000000167,
+              "operation_ms": 2.8000000000001357
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 3,
+            "buffer_conversion_ms": 0.20000000298023224,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 3.600000001490116
+          },
+          "updated_ms": 4779.70000000298,
+          "publishes_text": true,
+          "context_length": 38,
+          "selected_id": 412,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 989184,
+            "processed_positions": 1,
+            "reused_positions": 37
+          },
+          "decoder_ms": 2.000000000000224,
+          "service_ms": 2.200000000000202
+        },
+        {
+          "prediction_id": "44cc3658ba87c5fd32ac65308ce6c0498ad64c88e933811ab7422667ed33a38f",
+          "token_index": 28,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4779.9000000059605,
+          "returned_ms": 4789,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.4999999999997229,
+              "operation_ms": 2.3999999999997357
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.7000000029802322,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 9.099999994039536
+          },
+          "updated_ms": 4789,
+          "publishes_text": true,
+          "context_length": 39,
+          "selected_id": 268,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 990208,
+            "processed_positions": 1,
+            "reused_positions": 38
+          },
+          "decoder_ms": 1.8000000000002458,
+          "service_ms": 1.9000000000000128
+        },
+        {
+          "prediction_id": "6398911f54a782860c2c780d09e60157b2512a1f1a15ac9c048508e5e6fdc924",
+          "token_index": 29,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4789.20000000298,
+          "returned_ms": 4793.10000000149,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.5999999999999339,
+              "operation_ms": 3.0000000000001137
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 3.2999999970197678,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 3.899999998509884
+          },
+          "updated_ms": 4793.20000000298,
+          "publishes_text": true,
+          "context_length": 40,
+          "selected_id": 710,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 991232,
+            "processed_positions": 1,
+            "reused_positions": 39
+          },
+          "decoder_ms": 2.0999999999999908,
+          "service_ms": 2.2999999999999687
+        },
+        {
+          "prediction_id": "720f054c44de180ec8d8e0e5ddbc0554a968ae5786bd6078441132f6b3bda341",
+          "token_index": 30,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4793.4000000059605,
+          "returned_ms": 4796.70000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.39999999999995595,
+              "operation_ms": 2.3999999999997357
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.6999999955296516,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 3.2999999970197678
+          },
+          "updated_ms": 4796.80000000447,
+          "publishes_text": true,
+          "context_length": 41,
+          "selected_id": 264,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 992256,
+            "processed_positions": 1,
+            "reused_positions": 40
+          },
+          "decoder_ms": 1.9000000000000128,
+          "service_ms": 1.9999999999997797
+        },
+        {
+          "prediction_id": "782c2302901a36705da0637c0baafee8096aa0b7c5845f96fe0e9ee38f61f163",
+          "token_index": 31,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4796.9000000059605,
+          "returned_ms": 4806.5,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.4999999999997229,
+              "operation_ms": 2.5999999999997137
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 2.7000000029802322,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 9.599999994039536
+          },
+          "updated_ms": 4806.5,
+          "publishes_text": true,
+          "context_length": 42,
+          "selected_id": 798,
+          "stop_reason": null,
+          "speculation": null,
+          "work": {
+            "matmul_flops": 993280,
+            "processed_positions": 1,
+            "reused_positions": 41
+          },
+          "decoder_ms": 1.7999999999998018,
+          "service_ms": 1.9999999999997797
+        },
+        {
+          "prediction_id": "bacd18ddbe4c87347b652e2a9b8be4452cca99fbae593c7a1960d98b9e3cb032",
+          "token_index": 32,
+          "mode": "continuous",
+          "started_ms": 4645.80000000447,
+          "segment": 1,
+          "dispatched_ms": 4806.70000000298,
+          "returned_ms": 4810.70000000298,
+          "execution": {
+            "python": {
+              "operation_validation_ms": 0.6999999999997009,
+              "operation_ms": 3.2999999999998586
+            },
+            "worker_wait_ms": 0,
+            "python_bridge_ms": 3.600000001490116,
+            "buffer_conversion_ms": 0.10000000149011612,
+            "transferred_bytes": 65536,
+            "client_validation_ms": 0,
+            "round_trip_ms": 4
+          },
+          "updated_ms": 4810.80000000447,
+          "publishes_text": true,
+          "context_length": 43,
+          "selected_id": 4037,
+          "stop_reason": "output_budget",
+          "speculation": null,
+          "work": {
+            "matmul_flops": 994304,
+            "processed_positions": 1,
+            "reused_positions": 42
+          },
+          "decoder_ms": 2.2999999999999687,
+          "service_ms": 2.4999999999999467
+        }
+      ],
+      "observers": [
+        {
+          "first_token": 1,
+          "last_token": 2,
+          "started_ms": 4664.5,
+          "finished_ms": 4666.70000000298
+        },
+        {
+          "first_token": 3,
+          "last_token": 6,
+          "started_ms": 4681.70000000298,
+          "finished_ms": 4687.20000000298
+        },
+        {
+          "first_token": 7,
+          "last_token": 9,
+          "started_ms": 4697.70000000298,
+          "finished_ms": 4701.60000000149
+        },
+        {
+          "first_token": 10,
+          "last_token": 13,
+          "started_ms": 4714.4000000059605,
+          "finished_ms": 4718.5
+        },
+        {
+          "first_token": 14,
+          "last_token": 17,
+          "started_ms": 4731,
+          "finished_ms": 4735.60000000149
+        },
+        {
+          "first_token": 18,
+          "last_token": 21,
+          "started_ms": 4747.5,
+          "finished_ms": 4753
+        },
+        {
+          "first_token": 22,
+          "last_token": 24,
+          "started_ms": 4764.30000000447,
+          "finished_ms": 4770.30000000447
+        },
+        {
+          "first_token": 25,
+          "last_token": 27,
+          "started_ms": 4780.9000000059605,
+          "finished_ms": 4787.5
+        },
+        {
+          "first_token": 28,
+          "last_token": 30,
+          "started_ms": 4798.4000000059605,
+          "finished_ms": 4804.9000000059605
+        },
+        {
+          "first_token": 31,
+          "last_token": 32,
+          "started_ms": 4814.20000000298,
+          "finished_ms": 4822.4000000059605
+        }
+      ]
+    }
+  },
+  "final_output": {
+    "output_ids": [
+      282,
+      466,
+      286,
+      381,
+      1304,
+      4037,
+      316,
+      412,
+      268,
+      710,
+      603,
+      798,
+      4037,
+      316,
+      386,
+      261,
+      350,
+      500,
+      332,
+      261,
+      648,
+      375,
+      798,
+      4037,
+      282,
+      466,
+      412,
+      268,
+      710,
+      264,
+      798,
+      4037
+    ],
+    "text": " The dog was very hungry. He wanted to eat some food. He saw a big tree with a lot of food. The dog wanted to eat the food.",
+    "stop_reason": "output_budget"
+  }
+}

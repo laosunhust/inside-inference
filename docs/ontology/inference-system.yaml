@@ -74,6 +74,7 @@ terms:
     - InferenceRequest
     - RequestArrival
     - GenerationInput
+    - GenerationAdvance
     - GenerationPrepared
     - GenerationStep
     - KVExperimentInput

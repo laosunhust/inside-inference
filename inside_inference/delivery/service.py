@@ -1,6 +1,7 @@
 """Declared execution operations shared by the browser worker and component tooling."""
 from inside_inference.declarations_generated import EXECUTION_OPERATIONS, MODELS
 from inside_inference.cache_lab import replay_cache
+import time
 from inside_inference.model import canonical
 from inside_inference.contract_runtime import decode_json
 
@@ -12,14 +13,11 @@ def validate_operation_input(name, payload):
     operation = EXECUTION_OPERATIONS[name]
     if operation['request']: MODELS[operation['request']].validate_shape(payload)
     elif payload is not None: raise ValueError('Unexpected operation input')
-    if name in ('prepareGeneration', 'generateToken'):
-        if name == 'prepareGeneration':
-            requests = payload['workload']['requests']
-            if len(requests) != 1 or requests[0]['arrival_us'] != 0:
-                raise ValueError('Only one request arriving at zero is supported; no scheduler is simulated')
-            policy = requests[0]['request']['generation']
-        else:
-            policy = payload['generation']
+    if name == 'prepareGeneration':
+        requests = payload['workload']['requests']
+        if len(requests) != 1 or requests[0]['arrival_us'] != 0:
+            raise ValueError('Only one request arriving at zero is supported; no scheduler is simulated')
+        policy = requests[0]['request']['generation']
         if policy['stopping'] != 'model-end-or-budget':
             raise ValueError('Generation requires model-end-or-budget')
 
@@ -31,13 +29,17 @@ def execute(name, payload, *, checkpoint=None):
     return canonical(value).decode()
 
 
-async def execute_model(service, name, payload):
+async def execute_model(service, name, payload, *, timing=None):
+    started = time.perf_counter()
     validate_operation_input(name, payload)
+    if timing is not None:
+        timing['operation_validation_ms'] = (time.perf_counter() - started) * 1000
     if name == 'replayCache': return replay_cache(decode_json(payload['record_json']))
     if name == 'modelCatalog': return await service.load_catalog()
     await service.load_catalog()
     if name == 'loadModel': return await service.load(payload['model_id'])
     if name == 'prepareGeneration':
+        service.prepared = None
         await service.configure_draft(payload)
         return service.prepare(payload)
     if name == 'generateToken': return service.generate(payload)
@@ -57,7 +59,7 @@ async def _fetch(url):
         raise ValueError(f'Model asset unavailable: {url} ({error})') from None
 
 
-async def execute_json(name, raw):
+async def execute_browser(name, payload):
     """Browser worker entry: the site root is the parent of the worker's execution/ folder."""
     global _service
     if _service is None:
@@ -65,4 +67,8 @@ async def execute_json(name, raw):
         from urllib.parse import urljoin
         from inside_inference.delivery.models import ModelService
         _service = ModelService(urljoin(str(location.href), '../'), _fetch)
-    return canonical(await execute_model(_service, name, decode_json(raw))).decode()
+    started = time.perf_counter()
+    timing = {}
+    value = await execute_model(_service, name, payload, timing=timing)
+    timing['operation_ms'] = (time.perf_counter() - started) * 1000
+    return value, timing

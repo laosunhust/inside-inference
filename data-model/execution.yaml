@@ -13,7 +13,7 @@ operations:
     request: GenerationInput
     response: GenerationPrepared
   generateToken:
-    request: GenerationStep
+    request: GenerationAdvance
     response: GenerationPrediction
   simulateResources:
     request: GenerationInput

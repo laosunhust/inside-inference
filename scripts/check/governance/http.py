@@ -30,7 +30,7 @@ def audit_http(root, paths, generated):
     failures=[]
     worker=generated.get(WORKER,'')
     imports = re.findall(r'^\s*import\b.*$|\bimport\s*\(', worker, re.M)
-    if "await execute_json(operation_name, operation_input)" not in worker or imports != ["import {loadPyodide} from './runtime/pyodide.mjs';"]:
+    if ("py.globals.get('execute_browser')" not in worker or "call=execute(data.operation,input)" not in worker or "result=await call" not in worker) or imports != ["import {loadPyodide} from './runtime/pyodide.mjs';"]:
         failures.append(WORKER+': every browser operation must execute through the shared Python service')
     for name in (RUNTIMES,CLIENT,WORKER):
         if name not in generated or not (root/name).is_file() or (root/name).read_text()!=generated[name]:

@@ -60,7 +60,7 @@ approval:
     \ dev, and I don't want this requirement on release id.\" Owner reply in this conversation: \"sure.\
     \ confirm. let's go ahead\" approves the reviewed execution-admission.patch and corresponding approval-lock\
     \ record/hash update. Owner reply: \"yes. please go ahead\" approves out/review/experiment-configuration-enforcement.patch\
-    \ and corresponding lock hashes for complete configurable, inspectable experiment variants."
+    \ and corresponding lock hashes for complete configurable, inspectable experiment variants. Owner reply on 2026-10-14: \"Approve the scoped instrumentation and hash update\" authorizes out/review/token-overhead-transport.patch in scripts/build/http_transport.py and its recorded hash, without lock-scope or limit changes. Owner reply on 2026-10-14: \"Approve the fast-path boundary patch and hashes\" authorizes out/review/token-fast-path-boundary.patch in http_transport.py, governance/http.py and test_http_boundary.py, and corresponding hashes; no lock scope or limits change."
   scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile
     and ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content
     remains unlocked. Retain approved folder and file-size limits. This approval does not authorize future
@@ -189,8 +189,8 @@ files:
   tests/integration/test_evaluation_history.py: 8c8c04bc9a6bae1c6ae6aa163ce8658f56d39b4649415aa315c9807b30873b6d
   scripts/build/theme.py: dd2f5e4f1fa43fcf5728c65bc82e3c9fa9dc8534a1946f671d088c101709660e
   tests/unit/test_theme.py: eeedb9d670a09e8945d79ae190075b6ff6f5836356f8788e3ee2eb65ad87f2ac
-  scripts/build/http_transport.py: 1f284729036391f1e925d914d1a6856f6bf80d1ca1bbf177475c6709c0754c62
-  scripts/check/governance/http.py: 2085036cbda8376627a54ecda04772841aadfb117d79951f35a4da2b65f2b9e2
-  tests/unit/contracts/test_http_boundary.py: 38c73d5e4e6c6cca324e27980322140c20b6b2d245558697b8a272e5258eca9b
+  scripts/build/http_transport.py: 01e9b7234db24c07600c88cab422c3c7d0eb14a4d4ba01f8faf9f09f7f5c0afa
+  scripts/check/governance/http.py: d7d977ef3dc61d0dd496d80c5a2482393a1041808986c2e623085089b51e3ef6
+  tests/unit/contracts/test_http_boundary.py: 3141568cdf84420f10c08e2457afd562e9ce654180e9c128ceee2097fc879e18
   tests/unit/contracts/test_principles.py: 907817e52d01e5022a3d151185f8c9f590d1df673b01a37d0e164239a74b988f
   scripts/check/governance/principles.py: 723fd9751d0c8265063911fca9bbe63e40ab7e8d4e771aa2fbfa14d22761db6c

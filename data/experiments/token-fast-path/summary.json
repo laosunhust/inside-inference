@@ -1,0 +1,80 @@
+{
+  "protocol": {
+    "baseline": "data/experiments/token-overhead/instrumented-interactive.json",
+    "warmup_runs": 1,
+    "measured_runs": 3,
+    "median_residual_target_ms": 0.5,
+    "residual": "current publication minus previous publication minus current decoder duration; exclude first token",
+    "viewport": {
+      "width": 1280,
+      "height": 1000
+    },
+    "workload": "Reuse each baseline model's input and final output; KV reuse on; 32-token budget",
+    "notes": "One visible browser; observers active. Independent-duration aggregate residual, not an isolated overhead stage. Retain all runs and report per-run medians and pooled p90."
+  },
+  "criterion_ms": 0.5,
+  "models": [
+    {
+      "model": "tinyllm-500k",
+      "trials": [
+        {
+          "file": "observations/tinyllm-500k-trial-0.json",
+          "median_overhead_ms": 1.999999997019799,
+          "median_interval_ms": 4.200000002980232,
+          "median_decoder_ms": 2.0999999999999908
+        },
+        {
+          "file": "observations/tinyllm-500k-trial-1.json",
+          "median_overhead_ms": 1.5999999940395888,
+          "median_interval_ms": 3.6999999955296516,
+          "median_decoder_ms": 1.9000000000000128
+        },
+        {
+          "file": "observations/tinyllm-500k-trial-2.json",
+          "median_overhead_ms": 1.6000000014901694,
+          "median_interval_ms": 4,
+          "median_decoder_ms": 2.0999999999999908
+        }
+      ],
+      "median_overhead_ms": 1.7000000014901033,
+      "p90_overhead_ms": 6.399999998510214,
+      "target_met": false
+    },
+    {
+      "model": "tinyllm-4m",
+      "trials": [
+        {
+          "file": "observations/tinyllm-4m-trial-0.json",
+          "median_overhead_ms": 1.5999999985094107,
+          "median_interval_ms": 9.399999998509884,
+          "median_decoder_ms": 7.299999999999862
+        },
+        {
+          "file": "observations/tinyllm-4m-trial-1.json",
+          "median_overhead_ms": 1.700000001489876,
+          "median_interval_ms": 9.799999997019768,
+          "median_decoder_ms": 7.699999999999818
+        },
+        {
+          "file": "observations/tinyllm-4m-trial-2.json",
+          "median_overhead_ms": 1.6000000044702531,
+          "median_interval_ms": 9.300000004470348,
+          "median_decoder_ms": 7.200000000000095
+        }
+      ],
+      "median_overhead_ms": 1.6000000044702531,
+      "p90_overhead_ms": 8.7999999955303,
+      "target_met": false
+    }
+  ],
+  "status": "completed",
+  "environment": {
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/144.0.0.0 Safari/537.36",
+    "hardware_concurrency": 16,
+    "visibility": "visible",
+    "width": 1280,
+    "height": 1000,
+    "contract": "46d40b38d078411b72ae6f215ef3a41c9066da1d54aba1c09fc7ab829141cea9"
+  },
+  "target_met": false
+}

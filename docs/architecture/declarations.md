@@ -19,7 +19,7 @@ from it. Generated files are checked in and are never edited by hand. `make _dat
 - `ExecutionControl`: an ontology-bound system control; `ExecutionSpec` composes them.
 - `ExperimentSpec`: a labeled selectable configuration containing a complete `GenerationInput`.
 - `GenerationInput`: execution configuration and a separate `Workload`.
-- `GenerationPrepared`, `GenerationStep`, `GenerationPrediction`: encoded input,
+- `GenerationPrepared`, `GenerationAdvance`, `GenerationStep`, `GenerationPrediction`: encoded input,
   submitted prefix and observed selected-model computation.
 - `ResourceExecution`: the same submitted configuration/workload, cache simulation
   evidence and decoded output.

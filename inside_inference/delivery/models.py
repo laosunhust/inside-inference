@@ -3,6 +3,8 @@
 One implementation runs in the browser worker and in component tooling; only the
 asset reader differs (HTTP fetch versus files).
 """
+import copy
+import uuid
 import gzip
 import hashlib
 import json
@@ -40,6 +42,7 @@ class ModelService:
         self.root, self.read = root, read
         self.catalog = self.model = self.decoder = self.tokenizer = self.checkpoint = None
         self.draft = self.speculator = None
+        self.prepared = None
 
     async def load_catalog(self):
         if self.catalog is None:
@@ -71,6 +74,7 @@ class ModelService:
         model = self.descriptor(model_id)
         self.model = self.decoder = None
         self.draft = self.speculator = None
+        self.prepared = None
         start = time.perf_counter()
         weights, manifest = [await self.asset(model[k]) for k in ('weights', 'tokenizer')]
         a = model['architecture']
@@ -141,10 +145,16 @@ class ModelService:
         if self.speculator is not None:
             self.speculator.pending = []
             self.draft.decoder.prefix = []
-        return {'input': payload, 'prompt_ids': ids, 'pieces': self.pieces(ids), 'encoding': encoding}
+        self.prepared = {'session_id': uuid.uuid4().hex, 'input': copy.deepcopy(payload), 'controls': copy.deepcopy(controls)}
+        return {'session_id': self.prepared['session_id'], 'input': payload, 'prompt_ids': ids, 'pieces': self.pieces(ids), 'encoding': encoding}
 
-    def generate(self, step):
-        controls = resolve_execution(step['execution'])
+    def generate(self, advance):
+        if self.prepared is None or advance['session_id'] != self.prepared['session_id']:
+            raise ValueError('Stale or missing prepared generation session')
+        controls = self.prepared['controls']
+        source = self.prepared['input']
+        step = {'execution': copy.deepcopy(source['execution']), 'generation': copy.deepcopy(source['workload']['requests'][0]['request']['generation']),
+                'prefix_ids': list(advance['prefix_ids']), 'output_ids': list(advance['output_ids'])}
         model = self.loaded(controls['model_id'])
         if controls['resources']:
             raise ValueError('Resource experiments execute through simulateResources')
@@ -163,14 +173,14 @@ class ModelService:
         else:
             run = self.decoder.run(ids, controls['kv_reuse'], capture=model['inspection'] == 'tensors')
             decoder_ms = (time.perf_counter() - start) * 1000
-        logits = run['logits'].astype(float).tolist()
-        selection = select_greedy(logits)
+        logits = run['logits'].astype(float)
+        selection = select_greedy(logits, arrays=True)
         selected = selection['selected_id']
         output, sequence, stop, visible = finish_selection(step, selected, model)
         text, note = self.decode(visible if self.checkpoint is not None else output, step['prefix_ids'][-1], stop is not None)
         identity = hashlib.sha256(canonical([CONTRACT_SHA256, model['weights']['sha256'], model['tokenizer']['sha256'], step])).hexdigest()
         nodes = [] if speculation else observations(run['trace'], ids, run['work'], a, identity + '/', run_id=identity, step=len(output) - 1)
-        result = {'model_id': model['id'], 'weights_sha256': model['weights']['sha256'], 'tokenizer_sha256': model['tokenizer']['sha256'],
+        result = {'session_id': advance['session_id'], 'model_id': model['id'], 'weights_sha256': model['weights']['sha256'], 'tokenizer_sha256': model['tokenizer']['sha256'],
                 'sequence_ids': sequence, 'output_ids': output, 'text': text, 'pieces': self.pieces(sequence),
                 'logits': logits, 'probabilities': selection['probabilities'], 'selected_id': selected, 'stop_reason': stop,
                 'decoder_ms': decoder_ms, 'speculation': speculation, 'nodes': nodes, 'decoding_note': note, 'work': run['work'],
