@@ -1,0 +1,28 @@
+version: 1
+work_item: measurement-boundaries
+question: Can single-run browser timing expose publication, dispatch and observer boundaries with complete per-step work evidence, without implying isolated decoder speedups?
+necessity: Owner authorizes composition then timing Phase 1 following reviewed narrowing of the performance proposal.
+baseline: Interaction timestamps follow full rendering; compute_ms mixes decoder and service work; only the final prediction is exported; stale work can delay new dispatch invisibly.
+reuse:
+- source: Existing ExperimentObservation, GenerationEvidence, shared worker and generated validators
+  decision: Extend owned observations and replace the ambiguous compute_ms field; preserve model capture capability and numerical implementation.
+- source: Existing browser timing controller and integration harness
+  decision: Retain per-step ledger, serialize measured dispatch after prior operations, and defer inspection/chart updates with explicit observer records.
+criteria:
+- Publication is timestamped immediately after output DOM mutation, before full inspection or performance rendering.
+- Decoder and service durations declare separate scopes using worker monotonic durations; cross-domain timestamp arithmetic is undefined.
+- Every accepted step retains context length, work counters, selected/terminal state, dispatch and publication observations in exported evidence.
+- Gesture timing includes stale-work wait; dispatch waits for earlier operations and rejects canceled or changed requests before dispatch.
+- Observer start/end is distinguished from publication-to-completion lag; deferred or canceled updates remain pending or skipped rather than fabricated zero work.
+- Displayed metrics derive from retained observations; manual pauses and separate gestures never become inter-token intervals.
+- Existing numerical comparisons remain intact; full harness and desktop/narrow visual checks pass within budgets.
+counterexamples:
+- Publication-to-chart completion includes scheduling delay and is not observer CPU cost.
+- Worker perf_counter and browser performance.now timestamps cannot be subtracted across domains.
+- A stale response discarded by the UI still consumed worker time.
+- Real work reductions need not produce resolvable browser timing improvements.
+checks:
+- Deterministic ledger, dispatch cancellation and observer-boundary tests
+- Schema admission and exported evidence validation
+- make test and make test-integration
+- Desktop and narrow browser screenshots

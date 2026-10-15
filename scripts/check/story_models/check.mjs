@@ -23,7 +23,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
   async function empty(){await checkEmptyTiming(evaluate);assert.equal(await evaluate("document.getElementById('response-preview').textContent"),'');assert.equal(await evaluate("document.getElementById('run-identity').textContent"),'');assert.equal(await evaluate("document.querySelectorAll('#computation-path [data-observations]').length"),0);assert.equal(await evaluate("document.getElementById('download-run').disabled"),true);}
   async function rejection(expression,pattern){const message=await evaluate(`(async()=>{try{await (${expression});return null;}catch(e){return String(e);}})()`);assert.match(message||'',pattern);return message;}
   await send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:output});
-  const comparable=result=>{const value=structuredClone(result);delete value.compute_ms;return value;};
+  const comparable=result=>{const value=structuredClone(result);delete value.decoder_ms;delete value.service_ms;return value;};
   try {
     await navigate();evidence.ready_ms=performance.now()-started;await empty();await checkMap({evaluate,send},true);
     const initial=await evaluate("JSON.parse(document.getElementById('inference-data').textContent)");
@@ -110,7 +110,7 @@ export async function checkModels({send,evaluate,until,base,output,site,assetBas
       Declarations.assertShape('GenerationPrepared',prepared);
       const request=requestFor(input,prepared.prompt_ids);
       let result;const times=[];
-      for(let i=0;i<budget;i++){result=await evaluate(`Execution.generateToken(${JSON.stringify(request)})`);Declarations.assertShape('GenerationPrediction',result);request.output_ids=result.output_ids;times.push(result.compute_ms);if(result.stop_reason)break;}
+      for(let i=0;i<budget;i++){result=await evaluate(`Execution.generateToken(${JSON.stringify(request)})`);Declarations.assertShape('GenerationPrediction',result);request.output_ids=result.output_ids;times.push(result.service_ms);if(result.stop_reason)break;}
       const warm=times.slice(1).sort((a,b)=>a-b),median=warm[Math.floor(warm.length/2)];assert.ok(median<500);
       await choose(model.id);await empty();await apply(prompt,budget);
       await checkJourney({evaluate},prepared.prompt_ids);

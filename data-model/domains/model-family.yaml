@@ -293,7 +293,8 @@ $defs:
     - logits
     - selected_id
     - stop_reason
-    - compute_ms
+    - decoder_ms
+    - service_ms
     - nodes
     - decoding_note
     - request
@@ -350,9 +351,14 @@ $defs:
         - end_token
         - output_budget
         - context_capacity
-      compute_ms:
+      decoder_ms:
         type: number
         minimum: 0
+        description: Worker perf_counter duration around Decoder.run, including the model capability's tensor capture. Excludes selection, decoding and serialization.
+      service_ms:
+        type: number
+        minimum: 0
+        description: Worker perf_counter duration from immediately before Decoder.run through response construction, including selection, decoding, pieces and observation construction. Excludes input admission and JSON serialization. Nested decoder duration is included; no cross-domain timestamp arithmetic.
       nodes:
         type: array
         items:
@@ -754,6 +760,87 @@ $defs:
         maxItems: 6
         items:
           $ref: '#/$defs/ExperimentSpec'
+        allOf:
+        - contains:
+            type: object
+            properties:
+              control:
+                const: model
+            required:
+            - control
+          maxContains: 1
+        - contains:
+            type: object
+            properties:
+              control:
+                const: kv_reuse
+            required:
+            - control
+          maxContains: 1
+        - if:
+            anyOf:
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: scheduling
+                required:
+                - control
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: kv_cache
+                required:
+                - control
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: transfer
+                required:
+                - control
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: compute_service
+                required:
+                - control
+          then:
+            allOf:
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: scheduling
+                required:
+                - control
+              maxContains: 1
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: kv_cache
+                required:
+                - control
+              maxContains: 1
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: transfer
+                required:
+                - control
+              maxContains: 1
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: compute_service
+                required:
+                - control
+              maxContains: 1
     description: Exactly one model and one KV reuse assignment. The implemented resource simulation additionally
       requires cache, scheduling, transfer and compute-service controls together; partial and duplicate
       assignments fail before execution.

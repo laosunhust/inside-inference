@@ -1,8 +1,9 @@
-/* Applied settings are read here; composition rules are enforced by the execution service. */
+/* Applied settings are read here; composition rules are enforced by generated validators. */
 function resolveExecution(execution) {
-  const value=control=>execution.experiments.find(e=>e.control===control)?.value;
-  const resources=Declarations.schemas.ExperimentSpec.properties.control.enum.filter(c=>!['model','kv_reuse'].includes(c)&&execution.experiments.some(e=>e.control===c));
-  return {model_id:value('model'),kv_reuse:value('kv_reuse'),resources:resources.length?Object.fromEntries(resources.map(c=>[c,value(c)])):null};
+  Declarations.assertShape('ExecutionSpec',execution);
+  const values=Object.fromEntries(execution.experiments.map(e=>[e.control,e.value]));
+  const resources=Object.fromEntries(Object.keys(Declarations.schemas.KVResidencySystemConfig.properties).filter(key=>Object.hasOwn(values,key)).map(key=>[key,values[key]]));
+  return {model_id:values.model,kv_reuse:values.kv_reuse,resources:Object.keys(resources).length?resources:null};
 }
 function changeControl(spec,control,value) {
   if(!spec.experiments.some(item=>item.control===control))throw Error(`Undeclared execution control: ${control}`);

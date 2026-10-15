@@ -17,6 +17,10 @@ export async function checkPresentation({send,evaluate,output,model,result}) {
     if(model.id==='tinyllm-8k'){
       await evaluate("document.getElementById('data-plane').scrollIntoView({block:'start'})");
       await writeFile(output+'/interaction-'+label+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+      await evaluate("document.getElementById('timing-values').open=true;document.querySelector('.timing-method').open=true;document.getElementById('interaction-performance').scrollIntoView({block:'start'})");
+      assert.ok(await evaluate('document.documentElement.scrollWidth<=window.innerWidth'),'Expanded evidence must not overflow the page');
+      await writeFile(output+'/interaction-evidence-'+label+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+      await evaluate("document.getElementById('timing-values').open=false;document.querySelector('.timing-method').open=false");
     }
   }
 }
@@ -30,5 +34,18 @@ export async function checkManualTiming(evaluate){
 export function checkTimingExport(evidence){
   Declarations.assertShape('GenerationEvidence',evidence);
   assert.equal(evidence.timing.samples.length,evidence.prediction.output_ids.length);
-  assert.equal(evidence.timing.samples.at(-1).prediction_id,evidence.prediction.id);
+  const samples=evidence.timing.samples,last=samples.at(-1);
+  assert.equal(last.prediction_id,evidence.prediction.id);
+  assert.deepEqual(last.work,evidence.prediction.work);
+  assert.equal(last.decoder_ms,evidence.prediction.decoder_ms);
+  assert.equal(last.service_ms,evidence.prediction.service_ms);
+  for(const sample of samples){
+    assert.ok(sample.started_ms<=sample.dispatched_ms&&sample.dispatched_ms<=sample.updated_ms);
+    assert.ok(sample.service_ms>=sample.decoder_ms);
+    assert.equal(sample.work.processed_positions+sample.work.reused_positions,sample.context_length);
+  }
+  for(const batch of evidence.timing.observers){
+    assert.ok(batch.started_ms>=samples.find(s=>s.token_index===batch.last_token).updated_ms);
+    assert.ok(batch.finished_ms>=batch.started_ms);
+  }
 }

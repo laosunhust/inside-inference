@@ -59,7 +59,7 @@ def build(output, *, checkpoint=None, model_storage=None):
     from scripts.build.browser_runtime import package
     package(output,checkpoint,model_storage=model_storage)
     output.mkdir(parents=True, exist_ok=True)
-    for name in ('contract-runtime.js', 'contract-validators.generated.js', 'declarations.generated.js', 'execution/client.generated.js', 'execution/worker.generated.js', 'inspection/configuration.js', 'inspection/details.js', 'inspection/experiments.js', 'inspection/page.css', 'inspection/page.js', 'inspection/path.js', 'inspection/principles.js', 'inspection/resources.js', 'inspection/session.js', 'inspection/performance/observations.js', 'inspection/performance/panel.js', 'inspection/system-map.js', 'style.css', 'theme.css'):
+    for name in ('contract-runtime.js', 'contract-validators.generated.js', 'declarations.generated.js', 'execution/client.generated.js', 'execution/worker.generated.js', 'inspection/configuration.js', 'inspection/details.js', 'inspection/experiments.js', 'inspection/page.css', 'inspection/page.js', 'inspection/path.js', 'inspection/principles.js', 'inspection/resources.js', 'inspection/session.js', 'inspection/performance/dispatch.js', 'inspection/performance/observations.js', 'inspection/performance/panel.js', 'inspection/system-map.js', 'style.css', 'theme.css'):
         (output / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / 'web' / name, output / name)
     # Executed code spans come from the same sources packaged in engine.zip.

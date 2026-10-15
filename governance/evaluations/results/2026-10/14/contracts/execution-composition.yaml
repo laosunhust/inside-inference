@@ -1,0 +1,25 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/14/contracts/execution-composition.yaml
+evaluation_sha256: 562e12b3d494b22118331ff8789eef3af63f05f12d83029999f5014023a7bfac
+outcome: passed
+summary: Owner approved the scoped generator admission patch and lock update. ExecutionSpec now enforces
+  required controls, conditional complete resource groups and per-control uniqueness through generated
+  Python/Ajv schema validation. Runtime projections derive resource membership from KVResidencySystemConfig;
+  handwritten tuple, browser exclusion grouping and default repair are removed. Initialization defaults
+  remain. Shared fixtures cover every subset, reversed order, duplicates with equal/different values and
+  invalid values/bindings. The generator regression accepts bounded predicates and rejects anonymous/new-field
+  schemas. No compiler, limits or constitution changed. make test passed 110 tests in 5.39s; make test-integration
+  passed 110 unit tests, 21 integration tests and browser checks in 49.10s, within 10s/100s budgets. Existing
+  six folder warnings remain unchanged. Browser checks are Chrome-only. Numerical coverage is preserved.
+  No deployment or commit performed for this work item.
+evidence:
+- data-model/domains/model-family.yaml
+- data-model/domains/inference-system.yaml
+- inside_inference/delivery/models.py
+- web/inspection/session.js
+- web/inspection/resources.js
+- tests/fixtures/execution-composition.json
+- tests/unit/execution/test_delivery.py
+- tests/unit/contracts/test_declarations.py
+- tests/integration/inspection_session.mjs
+- governance/approval-lock.yaml

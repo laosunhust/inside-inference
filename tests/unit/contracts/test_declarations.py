@@ -18,6 +18,28 @@ def read(path):
 
 
 class DeclarationTests(unittest.TestCase):
+    def test_contains_refines_owned_records_without_defining_anonymous_records(self):
+        ontology = load_declarations()
+        spec = read_json(ROOT/'data-model/inference.schema.json')
+        array = spec['$defs']['ExecutionSpec']['properties']['experiments']
+        predicate = {'type': 'object', 'properties': {'control': {'const': 'model'}}, 'required': ['control']}
+        array['allOf'] = [{'contains': predicate, 'maxContains': 1}]
+        admit(ontology, spec)
+        invalid = [
+            {'type': 'object', 'properties': {'invented': {'const': 'model'}}},
+            {'type': 'object', 'properties': {'control': {'type': 'string'}}},
+            {'type': 'object', 'properties': {'control': {'const': 'invented'}}},
+            {**predicate, 'required': ['value']},
+        ]
+        for value in invalid:
+            with self.subTest(predicate=value):
+                changed = copy.deepcopy(spec)
+                changed['$defs']['ExecutionSpec']['properties']['experiments']['allOf'][0]['contains'] = value
+                with self.assertRaises(ValueError): admit(ontology, changed)
+        changed = copy.deepcopy(spec)
+        changed['$defs']['ExecutionSpec']['properties']['experiments']['items'] = predicate
+        with self.assertRaises(ValueError): admit(ontology, changed)
+
     def test_ontology_directory_bans_prose_and_json_disguised_as_ontology(self):
         for relative in ('notes.md', 'notes.txt', 'notes.rst', 'notes.html', 'nested/README.md'):
             with self.subTest(relative=relative), tempfile.TemporaryDirectory() as directory:

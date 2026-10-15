@@ -9,30 +9,19 @@ import json
 import time
 from urllib.parse import urljoin, urlparse
 
-from inside_inference.declarations_generated import CONTRACT_SHA256, EXPERIMENTS, KVResidencySystemConfig, ModelCatalog
+from inside_inference.declarations_generated import CONTRACT_SHA256, EXPERIMENTS, KVResidencySystemConfig, ModelCatalog, ExecutionSpec, SCHEMAS
 from inside_inference.generation import select_greedy
 from inside_inference.model import canonical
 from inside_inference.runtimes import bpe, tokenization
 from inside_inference.runtimes.engine import Decoder, checkpoint_weights, llama2c_weights, observations
 
-RESOURCES = ('kv_cache', 'scheduling', 'transfer', 'compute_service')
-
-
 def resolve_execution(spec):
-    """One composition; list order never overrides another assignment."""
-    values = {}
-    for experiment in spec['experiments']:
-        if experiment['control'] in values:
-            raise ValueError(f"Conflicting execution control: {experiment['control']}")
-        values[experiment['control']] = experiment['value']
-    if (not isinstance(values.get('model'), str) or not isinstance(values.get('kv_reuse'), bool)
-            or set(values) - {'model', 'kv_reuse', *RESOURCES}):
-        raise ValueError('Execution requires exactly one model and KV reuse control')
-    present = [k for k in RESOURCES if k in values]
-    if present and len(present) != len(RESOURCES):
-        raise ValueError('Resource simulation requires cache, scheduling, transfer and compute-service controls together')
+    """Validate declared composition, then project the admitted assignments."""
+    ExecutionSpec.validate_shape(spec)
+    values = {item['control']: item['value'] for item in spec['experiments']}
+    resources = {key: values[key] for key in SCHEMAS['KVResidencySystemConfig']['properties'] if key in values}
     return {'model_id': values['model'], 'kv_reuse': values['kv_reuse'],
-            'resources': {k: values[k] for k in RESOURCES} if present else None}
+            'resources': resources or None}
 
 
 def finish_selection(step, selected, model):
@@ -141,6 +130,7 @@ class ModelService:
             raise ValueError('Request has already finished')
         start = time.perf_counter()
         run = self.decoder.run(ids, controls['kv_reuse'], capture=model['inspection'] == 'tensors')
+        decoder_ms = (time.perf_counter() - start) * 1000
         logits = run['logits'].astype(float).tolist()
         selection = select_greedy(logits)
         selected = selection['selected_id']
@@ -148,11 +138,13 @@ class ModelService:
         text, note = self.decode(visible if self.checkpoint is not None else output, step['prefix_ids'][-1], stop is not None)
         identity = hashlib.sha256(canonical([CONTRACT_SHA256, model['weights']['sha256'], model['tokenizer']['sha256'], step])).hexdigest()
         nodes = observations(run['trace'], ids, run['work'], a, identity + '/', run_id=identity, step=len(output) - 1)
-        return {'model_id': model['id'], 'weights_sha256': model['weights']['sha256'], 'tokenizer_sha256': model['tokenizer']['sha256'],
+        result = {'model_id': model['id'], 'weights_sha256': model['weights']['sha256'], 'tokenizer_sha256': model['tokenizer']['sha256'],
                 'sequence_ids': sequence, 'output_ids': output, 'text': text, 'pieces': self.pieces(sequence),
                 'logits': logits, 'probabilities': selection['probabilities'], 'selected_id': selected, 'stop_reason': stop,
-                'compute_ms': (time.perf_counter() - start) * 1000, 'nodes': nodes, 'decoding_note': note, 'work': run['work'],
+                'decoder_ms': decoder_ms, 'nodes': nodes, 'decoding_note': note, 'work': run['work'],
                 'request': step, 'id': identity, 'contract_sha256': CONTRACT_SHA256}
+        result['service_ms'] = (time.perf_counter() - start) * 1000
+        return result
 
     def simulate(self, payload):
         from inside_inference.cache_lab import run_cache_experiment

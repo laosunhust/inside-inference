@@ -1,13 +1,15 @@
 import {resourceExperiment} from './resources.js';
 import './session.js';
 import {createTiming} from './performance/observations.js';
+import {createDispatch} from './performance/dispatch.js';
 import {mountTiming} from './performance/panel.js';
 /* The selected experiment and its accepted request own every projection on this page. */
 (async()=>{
   const $=id=>document.getElementById(id), S=InspectionSession;
-  let resources;
+  let resources,observerFrame=null;
+  const dispatch=createDispatch(Execution);
   const timing=createTiming(),performancePanel=mountTiming($('interaction-performance'));
-  const renderPerformance=()=>performancePanel(timing.evidence(),state.step?.output_ids.length||0,!!S.controls(state).resources);
+  const renderPerformance=()=>{const trace=timing.evidence();performancePanel(trace,trace.samples.at(-1)?.token_index||0,!!S.controls(state).resources);};
   let state=S.create(JSON.parse($('inference-data').textContent)),catalog=null;
   let epoch=0,loadEpoch=0,loading=false,pending=false,running=false,error='',configuration;
   const playback=ExecutionPath.playback(()=>status());
@@ -16,7 +18,7 @@ import {mountTiming} from './performance/panel.js';
   const compact=n=>n.toLocaleString('en-US',{notation:'compact',maximumFractionDigits:0});
   const label=id=>(state.loaded?.token_pieces[id] || '').replaceAll(' ','␠');
   const setError=e=>{error=e.message.trim().split('\n').at(-1);console.error(e);};
-  const stop=()=>{timing.clear();epoch++;pending=false;running=false;playback.stop();error='';};
+  const stop=()=>{if(observerFrame!==null){cancelAnimationFrame(observerFrame);observerFrame=null;}timing.clear();epoch++;pending=false;running=false;playback.stop();error='';};
   function inspect(view,automatic=false) {
     if(!automatic)playback.stop();
     state=S.inspect(state,view);
@@ -96,7 +98,7 @@ import {mountTiming} from './performance/panel.js';
     if(!state.loaded||S.controls(state).resources)return;
     const ticket=epoch,input=structuredClone(state.input);timing.clear();pending=true;render();
     try {
-      const prepared=await Execution.prepareGeneration(input);if(ticket!==epoch)return;
+      const prepared=await dispatch.invoke('prepareGeneration',input);if(ticket!==epoch)return;
       state=S.prepare(state,prepared);
     }catch(e){if(ticket===epoch)setError(e);}
     finally{if(ticket===epoch){pending=false;render();}}
@@ -104,17 +106,25 @@ import {mountTiming} from './performance/panel.js';
   async function changeModel(id) {
     stop();const ticket=++loadEpoch;state=S.select(state,id);loading=true;clearPanels();render();
     try {
-      const loaded=await Execution.loadModel({model_id:id});if(ticket!==loadEpoch)return;
+      const loaded=await dispatch.invoke('loadModel',{model_id:id});if(ticket!==loadEpoch)return;
       if(JSON.stringify(loaded.model)!==JSON.stringify(selected()))throw Error('Loaded model differs from catalog');
       state=S.admitModel(state,loaded);loading=false;await prepare();
     }catch(e){if(ticket===loadEpoch){loading=false;setError(e);render();}}
+  }
+  function scheduleObserver() {
+    if(observerFrame!==null)return;
+    const ticket=epoch;
+    observerFrame=requestAnimationFrame(()=>{
+      observerFrame=null;if(ticket!==epoch)return;
+      const started=performance.now();render();timing.observe(started,performance.now());
+    });
   }
   async function generate(all=false) {
     const started=performance.now();
     if(pending||loading)return;
     if(S.controls(state).resources){
       stop();const ticket=epoch;pending=true;state=S.reset(state);render();
-      try{const resource=await Execution.simulateResources(state.input);if(ticket===epoch){state={...state,resource,view:{...state.view,run_id:resource.run.id,computation_index:0,position:0,surface:'system',observation_id:null}};}}
+      try{const resource=await dispatch.invoke('simulateResources',state.input);if(ticket===epoch){state={...state,resource,view:{...state.view,run_id:resource.run.id,computation_index:0,position:0,surface:'system',observation_id:null}};}}
       catch(e){if(ticket===epoch)setError(e);}
       finally{if(ticket===epoch){pending=false;render();}}return;
     }
@@ -127,14 +137,17 @@ import {mountTiming} from './performance/panel.js';
           const previous=state.step,continuation=!!previous&&JSON.stringify(request.prefix_ids)===JSON.stringify(previous.request.prefix_ids)&&JSON.stringify(request.output_ids)===JSON.stringify(previous.output_ids);
           timing.begin(all?'continuous':'manual',started,continuation);first=false;
         }
-        pending=true;render();
-        const result=await Execution.generateToken(request);if(ticket!==epoch)return;
+        pending=true;status();
+        const {prediction:result,dispatched_ms}=await dispatch.token(request,()=>ticket===epoch);if(ticket!==epoch)return;
         const before=S.output(state);
-        state=S.accept(state,result,request);pending=false;render();
-        timing.record(result,performance.now(),S.output(state)!==before&&S.output(state).length>0);renderPerformance();
+        state=S.accept(state,result,request);pending=false;
+        $('response-preview').textContent=S.output(state);
+        const published=performance.now();
+        timing.record(result,published,S.output(state)!==before&&S.output(state).length>0,dispatched_ms);
+        scheduleObserver();
       }while(running&&!state.step.stop_reason);
     }catch(e){if(ticket===epoch)setError(e);}
-    finally{if(ticket===epoch){pending=false;running=false;render();}}
+    finally{if(ticket===epoch){pending=false;running=false;status();scheduleObserver();}}
   }
   const policy=Declarations.schemas.GenerationPolicy.properties.max_new_tokens;
   Object.assign($('output-budget'),{min:policy.minimum,max:policy.maximum,value:state.input.workload.requests[0].request.generation.max_new_tokens});

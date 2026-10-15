@@ -1,12 +1,14 @@
 /* The residency experiment edits the same ExecutionSpec and Workload as generation. */
 export function resourceExperiment(read,change,inspect,configurationUI) {
   const $=id=>document.getElementById(id),el=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
-  const definitions=Declarations.schemas.ExperimentSpec.oneOf.filter(d=>d.properties.value.$ref);
+  const definitions=Declarations.schemas.ExperimentSpec.oneOf.filter(d=>Object.hasOwn(Declarations.schemas.KVResidencySystemConfig.properties,d.properties.control.const));
   const keys=definitions.map(d=>d.properties.control.const);
   const defaults=s=>s.$ref?defaults(Declarations.schemas[s.$ref.split('/').at(-1)]):s.properties?Object.fromEntries(Object.entries(s.properties).map(([k,v])=>[k,defaults(v)])):s.default??s.const;
   const configuration=()=>{
-    const controls=read().execution.experiments.filter(e=>keys.includes(e.control));
-    return controls.length?{...defaults(Declarations.schemas.KVResidencySystemConfig),...Object.fromEntries(controls.map(e=>[e.control,e.value]))}:null;
+    const execution=read().execution;Declarations.assertShape('ExecutionSpec',execution);
+    const values=Object.fromEntries(execution.experiments.map(e=>[e.control,e.value]));
+    if(!keys.some(key=>Object.hasOwn(values,key)))return null;
+    return Object.fromEntries(Object.entries(Declarations.schemas.KVResidencySystemConfig.properties).map(([key,field])=>[key,keys.includes(key)?values[key]:field.const]));
   };
   function configure(value) {
     const input=structuredClone(read());input.execution.experiments=input.execution.experiments.filter(e=>!keys.includes(e.control));

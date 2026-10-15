@@ -48,15 +48,18 @@ approval:
     \ deletion enforcement changes\". Owner response: \"Approve the scoped capability-reference fix\"\
     . Owner response: \"Approve the endpoint-independent fixture fix\". Owner response on 2026-10-13:\
     \ \"Approve the scoped concept-control enforcement changes\". Owner response on 2026-10-13: \"Approve\
-    \ the scoped tiered-map enforcement changes\". Owner reply on 2026-10-13: \"I approve, and let's\
-    \ get started.\" authorizing first-principles equation coverage and code-span checks in governance\
-    \ with associated lock hash updates; confirmed by \"allow the action. let's apply.\" Owner instruction\
+    \ the scoped tiered-map enforcement changes\". Owner reply on 2026-10-13: \"I approve, and let's get\
+    \ started.\" authorizing first-principles equation coverage and code-span checks in governance with\
+    \ associated lock hash updates; confirmed by \"allow the action. let's apply.\" Owner instruction\
     \ on 2026-10-13: \"deletion/consolidation that do not break the purpose is almost always welcome.\
     \ this is especially true for SSOT cleanups. Examples include what we just did: converting multiple\
-    \ languages into one language. let's continue\", following the agreed plan to replace C/WASM and\
-    \ JavaScript model execution with one NumPy Python engine and delete the C code. Owner reply on\
-    \ 2026-10-13: \"yes. approve. let's finish this\", approving the scoped experiment-catalog governance\
-    \ changes. Owner instruction on 2026-10-14: \"we need a new public makefile target. I sometimes need to depoloy to dev, and I don't want this requirement on release id.\""
+    \ languages into one language. let's continue\", following the agreed plan to replace C/WASM and JavaScript\
+    \ model execution with one NumPy Python engine and delete the C code. Owner reply on 2026-10-13: \"\
+    yes. approve. let's finish this\", approving the scoped experiment-catalog governance changes. Owner\
+    \ instruction on 2026-10-14: \"we need a new public makefile target. I sometimes need to depoloy to\
+    \ dev, and I don't want this requirement on release id.\" Owner reply in this conversation: \"sure.\
+    \ confirm. let's go ahead\" approves the reviewed execution-admission.patch and corresponding approval-lock\
+    \ record/hash update."
   scope: 'Narrow locks to AGENTS.md, governance limits, enforcement and its regression tests. Remove Makefile
     and ontology/data-model manifest locks; enforce workflow dependencies structurally. Ontology content
     remains unlocked. Retain approved folder and file-size limits. This approval does not authorize future
@@ -129,36 +132,41 @@ approval:
     Extend frontend.py and test_governance.py to reject experiment controls without concept homes and
     handwritten system editors; update only their approval hashes. Limits and inventory unchanged. Replace
     frontend.py flat-map enforcement and its test_governance.py fixtures with tiered-map ownership, parent/root/cycle
-    and explanation-coverage checks; update only their hashes. Limits and inventory unchanged. Admit
-    optional ontology principles in generate_data_models.py and contracts.py, rejecting malformed principles,
-    unknown variant conditions, dead variants, dangling bindings, symbols absent from equations, unbound
-    operations, missing architecture coverage and overlapping applicable principles; add and protect
-    tests/unit/contracts/test_principles.py in locks.py; refresh only these four hashes. Code-span checks
-    follow with the Python engine under the same authorization. No limits or constitution changes. For
-    the single Python engine, update only scripts/build/http_transport.py so the generated worker loads
-    jsonschema and numpy and routes every operation through execute_json; scripts/check/governance/http.py
-    to require that route, forbid other worker imports and all web fetches, and reject reintroduced C/WASM
-    and JavaScript model-execution files; and tests/unit/contracts/test_http_boundary.py for those rejections.
-    Refresh only these three hashes. No limits, inventory or constitution changes. Under the recorded
-    code-span authorization, add scripts/check/governance/principles.py to admit exactly one balanced
-    principle code span per declared principle in inside_inference sources, wire it into governance/__main__.py,
-    and extend tests/unit/contracts/test_principles.py with its rejection fixtures. The marker parser lives
-    in scripts/build/contracts.py so the build can publish spans without importing governance. Record the
-    new module hash and refresh only __main__.py, contracts.py and test_principles.py. No limits, constitution
-    or other inventory changes. For experiments as declarations, replace lab_bindings in scripts/build/contracts.py
-    with experiment_catalog admission of data/experiments/catalog.yaml, including unknown-concept suggestions;
-    publish EXPERIMENTS and Declarations.experiments instead of LAB_BINDINGS and Declarations.labs in
-    generate_data_models.py; make scripts/check/governance/frontend.py reject standalone lab page links
-    and handwritten experiment registries and require homes for experiment subjects; and retarget the
-    existing lab cases in tests/unit/contracts/test_governance.py without removing coverage. Refresh only
-    these four hashes. No limits, constitution or inventory changes. This instruction authorizes public deploy-dev using the existing qualified publication workflow, updating scripts/check/make_interface.py and its recorded hash plus the existing help inventory test. No other public names, protected files, limits or lock inventory changes.'
+    and explanation-coverage checks; update only their hashes. Limits and inventory unchanged. Admit optional
+    ontology principles in generate_data_models.py and contracts.py, rejecting malformed principles, unknown
+    variant conditions, dead variants, dangling bindings, symbols absent from equations, unbound operations,
+    missing architecture coverage and overlapping applicable principles; add and protect tests/unit/contracts/test_principles.py
+    in locks.py; refresh only these four hashes. Code-span checks follow with the Python engine under
+    the same authorization. No limits or constitution changes. For the single Python engine, update only
+    scripts/build/http_transport.py so the generated worker loads jsonschema and numpy and routes every
+    operation through execute_json; scripts/check/governance/http.py to require that route, forbid other
+    worker imports and all web fetches, and reject reintroduced C/WASM and JavaScript model-execution
+    files; and tests/unit/contracts/test_http_boundary.py for those rejections. Refresh only these three
+    hashes. No limits, inventory or constitution changes. Under the recorded code-span authorization,
+    add scripts/check/governance/principles.py to admit exactly one balanced principle code span per declared
+    principle in inside_inference sources, wire it into governance/__main__.py, and extend tests/unit/contracts/test_principles.py
+    with its rejection fixtures. The marker parser lives in scripts/build/contracts.py so the build can
+    publish spans without importing governance. Record the new module hash and refresh only __main__.py,
+    contracts.py and test_principles.py. No limits, constitution or other inventory changes. For experiments
+    as declarations, replace lab_bindings in scripts/build/contracts.py with experiment_catalog admission
+    of data/experiments/catalog.yaml, including unknown-concept suggestions; publish EXPERIMENTS and Declarations.experiments
+    instead of LAB_BINDINGS and Declarations.labs in generate_data_models.py; make scripts/check/governance/frontend.py
+    reject standalone lab page links and handwritten experiment registries and require homes for experiment
+    subjects; and retarget the existing lab cases in tests/unit/contracts/test_governance.py without removing
+    coverage. Refresh only these four hashes. No limits, constitution or inventory changes. This instruction
+    authorizes public deploy-dev using the existing qualified publication workflow, updating scripts/check/make_interface.py
+    and its recorded hash plus the existing help inventory test. No other public names, protected files,
+    limits or lock inventory changes. Add maxContains vocabulary and narrowly bounded contains predicates
+    over referenced owned record fields in scripts/build/generate_data_models.py. Refresh only that protected
+    file hash; compiler, limits, constitution and lock inventory remain unchanged. Focused regression
+    is in the unprotected declaration test module.'
 files:
   AGENTS.md: a1311d34d5b743a4b023f00b59b7f227d94ef1f44d097d5f8634c2eb4b9e5c92
   governance/limits.yaml: 4218f778ada890585c448c4664f4a8275576daef70e5421b29ed1c7ac0862c30
   scripts/__init__.py: 07cf2de9025005ac8dbafe1162d8cd39cf4f99dab454bd0388b597a5585db2ea
   scripts/build/compile_validators.mjs: 8d226d90bad36a219aa69af05a511b665f2b7149b6ba50557b778e51c6a52795
   scripts/build/contracts.py: 7834df0f09d28520c7d12754f5d34dfd4e75bda51b432456e6a751a04de85a1a
-  scripts/build/generate_data_models.py: 9dc56a4e4335731c4f9ecc1693c7ca922270495d7e2ed16b5c772008939e2248
+  scripts/build/generate_data_models.py: e2f2018ffbdd8e67220365a34d5a399d9820fdda0ed708058632fa817452d1d8
   scripts/build/ontology.py: 9f5271f975a3c877906abad76fba1eb58496bf4399691e77c3bfa4bba7e35454
   scripts/build/structured.py: f548e8e5f85e47297091182e45702fbfe5d1196463727dd387b91beedd138b06
   scripts/check/governance/__init__.py: f90f2f4c5a46fe4fa0deb54d71f7a463cc6368400b54fee101c89aab7e6aba50

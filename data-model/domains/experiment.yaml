@@ -469,7 +469,21 @@ $defs:
     type: object
     x-owner: ExperimentObservation
     additionalProperties: false
-    required: [prediction_id, token_index, segment, mode, started_ms, updated_ms, publishes_text]
+    required:
+    - prediction_id
+    - token_index
+    - segment
+    - mode
+    - started_ms
+    - dispatched_ms
+    - updated_ms
+    - publishes_text
+    - context_length
+    - selected_id
+    - stop_reason
+    - work
+    - decoder_ms
+    - service_ms
     properties:
       prediction_id:
         type: string
@@ -484,11 +498,18 @@ $defs:
         description: One Generate or Next Token gesture; intervals never cross this boundary.
       mode:
         type: string
-        enum: [continuous, manual]
+        enum:
+        - continuous
+        - manual
       started_ms:
         type: number
         minimum: 0
         description: performance.now at the start of the generation gesture, after prior model loading and input preparation.
+      dispatched_ms:
+        type: number
+        minimum: 0
+        description: Browser performance.now immediately before dispatch after earlier operations settle; dispatch
+          minus gesture start includes pre-dispatch work, not exclusively worker queue time.
       updated_ms:
         type: number
         minimum: 0
@@ -496,11 +517,38 @@ $defs:
       publishes_text:
         type: boolean
         description: This token changed visible decoded output; an end-token-only response does not establish TTFT.
+      context_length:
+        type: integer
+        minimum: 1
+      selected_id:
+        type: integer
+        minimum: 0
+      stop_reason:
+        type:
+        - string
+        - 'null'
+        enum:
+        - null
+        - end_token
+        - output_budget
+        - context_capacity
+      work:
+        $ref: '#/$defs/GenerationWork'
+      decoder_ms:
+        type: number
+        minimum: 0
+        description: Copied worker Decoder.run duration; includes model-declared capture. Independent clock domain
+          from browser timestamps.
+      service_ms:
+        type: number
+        minimum: 0
+        description: Copied worker response-construction duration including decoder; excludes admission and JSON serialization.
+          Cross-domain timestamp arithmetic is undefined.
   BrowserGenerationTiming:
     type: object
     x-owner: ExperimentObservation
     additionalProperties: false
-    required: [clock, samples]
+    required: [clock, samples, observers]
     properties:
       clock:
         type: string
@@ -509,3 +557,28 @@ $defs:
         type: array
         items:
           $ref: '#/$defs/BrowserTokenTiming'
+      observers:
+        type: array
+        description: Completed synchronous inspection/chart update batches. An uncovered sample has no observer measurement yet or its update was skipped; absence never means zero cost. Browser clock only.
+        items:
+          $ref: '#/$defs/BrowserObserverBatch'
+  BrowserObserverBatch:
+    type: object
+    x-owner: ExperimentObservation
+    additionalProperties: false
+    required: [first_token, last_token, started_ms, finished_ms]
+    properties:
+      first_token:
+        type: integer
+        minimum: 1
+      last_token:
+        type: integer
+        minimum: 1
+      started_ms:
+        type: number
+        minimum: 0
+        description: Browser performance.now before synchronous inspection and performance rendering; excludes deferred layout and paint.
+      finished_ms:
+        type: number
+        minimum: 0
+        description: Browser performance.now after rendering. Minus started_ms is synchronous update duration; minus token publication is completion lag including scheduling, not total observer overhead.

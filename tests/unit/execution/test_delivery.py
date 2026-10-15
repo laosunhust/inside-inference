@@ -1,17 +1,28 @@
 """Model-service composition and stopping rules, independent of browser transport."""
 import unittest
+import copy
+import json
+from scripts import ROOT
+from inside_inference.declarations_generated import EXPERIMENTS
 from inside_inference.delivery.models import finish_selection, resolve_execution
 
 
 class DeliveryTests(unittest.TestCase):
     def test_execution_composition_rejects_conflicts_and_partial_resources(self):
-        base = {'experiments': [{'control': 'model', 'value': 'tinyllm-8k'}, {'control': 'kv_reuse', 'value': True}]}
-        self.assertEqual(resolve_execution(base), {'model_id': 'tinyllm-8k', 'kv_reuse': True, 'resources': None})
-        duplicate = {'experiments': base['experiments'] + [base['experiments'][0]]}
-        with self.assertRaisesRegex(ValueError, 'Conflicting'): resolve_execution(duplicate)
-        with self.assertRaisesRegex(ValueError, 'requires exactly'): resolve_execution({'experiments': []})
-        partial = {'experiments': base['experiments'] + [{'control': 'kv_cache', 'value': {}}]}
-        with self.assertRaisesRegex(ValueError, 'together'): resolve_execution(partial)
+        assignments = {e['control']: e for e in EXPERIMENTS['kv-residency']['settings']}
+        cases = json.loads((ROOT/'tests/fixtures/execution-composition.json').read_text())
+        for case in cases:
+            spec = {'experiments': [copy.deepcopy(assignments[c]) for c in case['controls']]}
+            if 'change_last' in case: spec['experiments'][-1].update(case['change_last'])
+            with self.subTest(case=case):
+                if not case['valid']:
+                    with self.assertRaises(ValueError): resolve_execution(spec)
+                else:
+                    result = resolve_execution(spec)
+                    self.assertEqual(result['model_id'], assignments['model']['value'])
+                    self.assertEqual(result['kv_reuse'], assignments['kv_reuse']['value'])
+                    expected = {c: assignments[c]['value'] for c in case['controls'] if c not in ('model', 'kv_reuse')}
+                    self.assertEqual(result['resources'], expected or None)
 
     def test_stopping_reasons_and_visible_output(self):
         model = {'stop_ids': [1], 'architecture': {'context': 4}}

@@ -21,7 +21,7 @@ async function ready(){
   }
   throw Error('Hosted worker startup timed out');
 }
-const comparable=result=>{const value=structuredClone(result);delete value.compute_ms;return value;};
+const comparable=result=>{const value=structuredClone(result);delete value.decoder_ms;delete value.service_ms;return value;};
 const report={loads:[],models:[]};
 try{
   await send('Page.enable');await send('Runtime.enable');

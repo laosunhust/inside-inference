@@ -1,0 +1,57 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/14/ux/measurement-boundaries.yaml
+evaluation_sha256: a9757bc536b76aae8e79d82e470fdbb18868c223a8cb934e171548b1affd8885
+outcome: passed
+summary: 'Completed timing Phase 1 after the separately evaluated composition repair. Replaced compute_ms
+  with declared decoder_ms and service_ms. Decoder timing brackets Decoder.run including existing model
+  capture. Service timing includes response construction but excludes input admission and JSON serialization.
+  Browser publication is sampled immediately after output DOM mutation, before deferred inspection/chart
+  rendering. The shared dispatch controller serializes operations, rechecks cancellation after waiting,
+  and records dispatch without removing the wait from gesture-to-output timing.
+
+
+  Every accepted token retains context length, selected/terminal state, computed/reused positions, matrix-multiplication
+  FLOPs, worker durations and browser observations. The performance table and timing metrics derive from
+  this ledger. Observer batches record synchronous update start/end separately from completion lag; missing
+  batches do not imply zero work. Clock domains remain separate. No capture toggle, numerical kernel change,
+  comparison runner or speedup claim was added.
+
+
+  make test passed 110 tests in 5.28s against the 10s budget. Final make test-integration passed 110 unit
+  tests, 21 integration tests and browser checks in 46.16s against the 100s budget. Earlier timing integration
+  runs passed in 47.96s and 46.47s. Additional export invariants and deferred-cancellation coverage were
+  added before the final run. The initial source gate rejected the capitalized word Worker in explanatory
+  HTML; the wording was corrected without changing enforcement. Visual review found wrapped evidence headers;
+  a horizontal table scroll fixed readability. An unnecessary word-break rule was rejected by the appearance/layout
+  gate and removed. Desktop/narrow collapsed and expanded evidence views were reviewed after the fix.
+  No criterion or gate was weakened.
+
+
+  Release 8b501b22c9c03c40f909f3c387700827472cf0d2c59dae9aba4cde3652147817 was packaged from the qualified
+  artifact and deployed to https://dev.insideinference.dev. Hosted verification passed all 66 files, fresh/warm
+  browser execution, numerical parity and eight generated tokens with seven visible intervals. Root returns
+  200 without redirect; S3 remains private. Durable qualification reports are retained at s3://inside-inference-dev-assets-oq91bcj6mrut/qualifications/8b501b22c9c03c40f909f3c387700827472cf0d2c59dae9aba4cde3652147817/hosted.json
+  and local.json with release bytes retained. Production distribution E20WLQK5FYH5UZ remains disabled.
+
+
+  Only the separately approved generator hash changed in the approval lock; inventory, compiler, limits
+  and constitution are unchanged. Six preexisting folder warnings remain in data-model/domains, docs/ontology,
+  inside_inference and historical evaluation directories; no files were added to those warned folders.
+  Plan cohesive semantic splits before growth; historical path migration requires scoped approval. Completed
+  proposal material was retired; a bounded pilot remains proposed and must have workloads, resolution
+  criteria and budget recorded before execution. Browser verification is Chrome-only. These measurements
+  describe the browser application and its shared decoder, not production accelerator performance. Changes
+  remain uncommitted.'
+evidence:
+- data-model/domains/experiment.yaml
+- data-model/domains/model-family.yaml
+- docs/ontology/experiment.yaml
+- inside_inference/delivery/models.py
+- web/inspection/page.js
+- web/inspection/performance/dispatch.js
+- web/inspection/performance/observations.js
+- web/inspection/performance/panel.js
+- tests/integration/timing_observation.mjs
+- scripts/check/story_models/presentation.mjs
+- scripts/check/hosting/smoke.mjs
+- docs/architecture/website.md

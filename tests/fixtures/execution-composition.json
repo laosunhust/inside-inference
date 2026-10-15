@@ -1,0 +1,634 @@
+[
+  {
+    "controls": [],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "scheduling"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_cache"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse"
+    ],
+    "valid": true
+  },
+  {
+    "controls": [
+      "model",
+      "scheduling"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_cache"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "scheduling"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "kv_cache"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "scheduling",
+      "kv_cache"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "scheduling",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "scheduling",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_cache",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_cache",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "kv_cache"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "scheduling",
+      "kv_cache"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "scheduling",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "scheduling",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_cache",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_cache",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "scheduling",
+      "kv_cache"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "scheduling",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "scheduling",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "kv_cache",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "kv_cache",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "scheduling",
+      "kv_cache",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "scheduling",
+      "kv_cache",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "scheduling",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_cache",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "kv_cache"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "kv_cache",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "kv_cache",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "scheduling",
+      "kv_cache",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "scheduling",
+      "kv_cache",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "scheduling",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_cache",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "scheduling",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "kv_cache",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "scheduling",
+      "kv_cache",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "kv_cache",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "scheduling",
+      "kv_cache",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "transfer",
+      "compute_service"
+    ],
+    "valid": true
+  },
+  {
+    "controls": [
+      "compute_service",
+      "transfer",
+      "kv_cache",
+      "scheduling",
+      "kv_reuse",
+      "model"
+    ],
+    "valid": true
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "transfer",
+      "compute_service",
+      "model"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "transfer",
+      "compute_service",
+      "kv_reuse"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "transfer",
+      "compute_service",
+      "scheduling"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "transfer",
+      "compute_service",
+      "kv_cache"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "transfer",
+      "compute_service",
+      "transfer"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "transfer",
+      "compute_service",
+      "compute_service"
+    ],
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "kv_reuse"
+    ],
+    "change_last": {
+      "value": false
+    },
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse",
+      "scheduling",
+      "kv_cache",
+      "transfer",
+      "compute_service"
+    ],
+    "change_last": {
+      "ontology_binding": {
+        "primary": "Invented",
+        "related": []
+      }
+    },
+    "valid": false
+  },
+  {
+    "controls": [
+      "model",
+      "kv_reuse"
+    ],
+    "change_last": {
+      "value": "true"
+    },
+    "valid": false
+  }
+]

@@ -82,6 +82,7 @@ terms:
     - GenerationPrediction
     - BrowserTokenTiming
     - BrowserGenerationTiming
+    - BrowserObserverBatch
   ExecutionSpec:
     meaning: A composition of experiment controls used together to execute customer input. The list specifies
       one setup, not a sweep.

@@ -127,3 +127,5 @@ body:has(#control-plane) .landing-links{display:inline}
 #timing-step{margin:8px 0}
 #timing-values .table-scroll{max-height:180px;margin:6px 0}
 @media(max-width:800px){.interaction-layout{grid-template-columns:1fr;gap:18px}#interaction-performance{padding:16px 0 0}#latency-chart{max-width:480px}}
+#timing-values table{width:max-content;min-width:100%}
+#timing-values th,#timing-values td{white-space:nowrap;overflow-wrap:normal}

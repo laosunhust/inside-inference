@@ -1,0 +1,24 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/14/contracts/execution-composition.yaml
+evaluation_sha256: 562e12b3d494b22118331ff8789eef3af63f05f12d83029999f5014023a7bfac
+outcome: incomplete
+summary: 'Schema spike completed without protected-file changes. Untyped contains predicates pass generator
+  admission but fail strict Ajv compilation; typed predicates compile but fail the generator anonymous-record
+  rule. maxContains is supported by the existing compiler but absent from admitted vocabulary. A candidate
+  using typed predicates, if/then/allOf and conditional maxContains passed 799 identical Python and compiled-browser-validator
+  cases, including all subsets and 720 full-group permutations. Initial cross-realm JavaScript fixture
+  execution produced false constant mismatches; parsing in the validator realm corrected the harness.
+  No schema acceptance criterion changed.
+
+
+  A draft generator patch admits maxContains and bounded contains predicates over existing referenced
+  record fields. A temporary copy accepted the candidate and rejected new fields, arbitrary field schemas,
+  invalid discriminator values and unrelated required fields. Actual generator, lock and compiler are
+  unchanged. Proposal records the scoped approval requirement and uses existing KVResidencySystemConfig
+  membership. Composition implementation, permanent regression coverage and full integration remain pending
+  approval. Timing work has not started. No speedup or runtime benchmark claim is made.'
+evidence:
+- scripts/build/generate_data_models.py
+- scripts/build/compile_validators.mjs
+- data-model/domains/model-family.yaml
+- data-model/domains/inference-system.yaml

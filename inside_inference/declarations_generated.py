@@ -4,7 +4,7 @@ from typing import Any
 from inside_inference.contract_runtime import Declaration
 
 EXECUTION_OPERATIONS = {'replayCache': {'request': 'ExecutionReplayInput', 'response': 'CacheRun'}, 'modelCatalog': {'request': None, 'response': 'ModelCatalog'}, 'loadModel': {'request': 'ModelSelection', 'response': 'ModelLoadResult'}, 'prepareGeneration': {'request': 'GenerationInput', 'response': 'GenerationPrepared'}, 'generateToken': {'request': 'GenerationStep', 'response': 'GenerationPrediction'}, 'simulateResources': {'request': 'GenerationInput', 'response': 'ResourceExecution'}}
-CONTRACT_SHA256 = 'afe2cd81ae3d524fb34c18e21569b801b5b9dbe9613093114931c39826354d08'
+CONTRACT_SHA256 = '219df0093966c2478a891e6c43e016e17f3dbe45a35ecbf231fd82401f9082a1'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -1107,8 +1107,15 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                      'segment',
                                      'mode',
                                      'started_ms',
+                                     'dispatched_ms',
                                      'updated_ms',
-                                     'publishes_text'],
+                                     'publishes_text',
+                                     'context_length',
+                                     'selected_id',
+                                     'stop_reason',
+                                     'work',
+                                     'decoder_ms',
+                                     'service_ms'],
                         'properties': {'prediction_id': {'type': 'string',
                                                          'pattern': '^[0-9a-f]{64}$'},
                                        'token_index': {'type': 'integer',
@@ -1151,6 +1158,29 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                      'and '
                                                                      'input '
                                                                      'preparation.'},
+                                       'dispatched_ms': {'type': 'number',
+                                                         'minimum': 0,
+                                                         'description': 'Browser '
+                                                                        'performance.now '
+                                                                        'immediately '
+                                                                        'before '
+                                                                        'dispatch '
+                                                                        'after '
+                                                                        'earlier '
+                                                                        'operations '
+                                                                        'settle; '
+                                                                        'dispatch '
+                                                                        'minus '
+                                                                        'gesture '
+                                                                        'start '
+                                                                        'includes '
+                                                                        'pre-dispatch '
+                                                                        'work, '
+                                                                        'not '
+                                                                        'exclusively '
+                                                                        'worker '
+                                                                        'queue '
+                                                                        'time.'},
                                        'updated_ms': {'type': 'number',
                                                       'minimum': 0,
                                                       'description': 'performance.now '
@@ -1179,15 +1209,136 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                          'does '
                                                                          'not '
                                                                          'establish '
-                                                                         'TTFT.'}}},
+                                                                         'TTFT.'},
+                                       'context_length': {'type': 'integer',
+                                                          'minimum': 1},
+                                       'selected_id': {'type': 'integer',
+                                                       'minimum': 0},
+                                       'stop_reason': {'type': ['string',
+                                                                'null'],
+                                                       'enum': [None,
+                                                                'end_token',
+                                                                'output_budget',
+                                                                'context_capacity']},
+                                       'work': {'$ref': '#/$defs/GenerationWork'},
+                                       'decoder_ms': {'type': 'number',
+                                                      'minimum': 0,
+                                                      'description': 'Copied '
+                                                                     'worker '
+                                                                     'Decoder.run '
+                                                                     'duration; '
+                                                                     'includes '
+                                                                     'model-declared '
+                                                                     'capture. '
+                                                                     'Independent '
+                                                                     'clock '
+                                                                     'domain '
+                                                                     'from '
+                                                                     'browser '
+                                                                     'timestamps.'},
+                                       'service_ms': {'type': 'number',
+                                                      'minimum': 0,
+                                                      'description': 'Copied '
+                                                                     'worker '
+                                                                     'response-construction '
+                                                                     'duration '
+                                                                     'including '
+                                                                     'decoder; '
+                                                                     'excludes '
+                                                                     'admission '
+                                                                     'and JSON '
+                                                                     'serialization. '
+                                                                     'Cross-domain '
+                                                                     'timestamp '
+                                                                     'arithmetic '
+                                                                     'is '
+                                                                     'undefined.'}}},
  'BrowserGenerationTiming': {'type': 'object',
                              'x-owner': 'ExperimentObservation',
                              'additionalProperties': False,
-                             'required': ['clock', 'samples'],
+                             'required': ['clock', 'samples', 'observers'],
                              'properties': {'clock': {'type': 'string',
                                                       'const': 'browser-monotonic-ms'},
                                             'samples': {'type': 'array',
-                                                        'items': {'$ref': '#/$defs/BrowserTokenTiming'}}}},
+                                                        'items': {'$ref': '#/$defs/BrowserTokenTiming'}},
+                                            'observers': {'type': 'array',
+                                                          'description': 'Completed '
+                                                                         'synchronous '
+                                                                         'inspection/chart '
+                                                                         'update '
+                                                                         'batches. '
+                                                                         'An '
+                                                                         'uncovered '
+                                                                         'sample '
+                                                                         'has '
+                                                                         'no '
+                                                                         'observer '
+                                                                         'measurement '
+                                                                         'yet '
+                                                                         'or '
+                                                                         'its '
+                                                                         'update '
+                                                                         'was '
+                                                                         'skipped; '
+                                                                         'absence '
+                                                                         'never '
+                                                                         'means '
+                                                                         'zero '
+                                                                         'cost. '
+                                                                         'Browser '
+                                                                         'clock '
+                                                                         'only.',
+                                                          'items': {'$ref': '#/$defs/BrowserObserverBatch'}}}},
+ 'BrowserObserverBatch': {'type': 'object',
+                          'x-owner': 'ExperimentObservation',
+                          'additionalProperties': False,
+                          'required': ['first_token',
+                                       'last_token',
+                                       'started_ms',
+                                       'finished_ms'],
+                          'properties': {'first_token': {'type': 'integer',
+                                                         'minimum': 1},
+                                         'last_token': {'type': 'integer',
+                                                        'minimum': 1},
+                                         'started_ms': {'type': 'number',
+                                                        'minimum': 0,
+                                                        'description': 'Browser '
+                                                                       'performance.now '
+                                                                       'before '
+                                                                       'synchronous '
+                                                                       'inspection '
+                                                                       'and '
+                                                                       'performance '
+                                                                       'rendering; '
+                                                                       'excludes '
+                                                                       'deferred '
+                                                                       'layout '
+                                                                       'and '
+                                                                       'paint.'},
+                                         'finished_ms': {'type': 'number',
+                                                         'minimum': 0,
+                                                         'description': 'Browser '
+                                                                        'performance.now '
+                                                                        'after '
+                                                                        'rendering. '
+                                                                        'Minus '
+                                                                        'started_ms '
+                                                                        'is '
+                                                                        'synchronous '
+                                                                        'update '
+                                                                        'duration; '
+                                                                        'minus '
+                                                                        'token '
+                                                                        'publication '
+                                                                        'is '
+                                                                        'completion '
+                                                                        'lag '
+                                                                        'including '
+                                                                        'scheduling, '
+                                                                        'not '
+                                                                        'total '
+                                                                        'observer '
+                                                                        'overhead.'}}},
  'InspectionState': {'type': 'object',
                      'x-owner': 'InspectionState',
                      'additionalProperties': False,
@@ -1907,7 +2058,8 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                        'logits',
                                        'selected_id',
                                        'stop_reason',
-                                       'compute_ms',
+                                       'decoder_ms',
+                                       'service_ms',
                                        'nodes',
                                        'decoding_note',
                                        'request',
@@ -1947,8 +2099,58 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                   'end_token',
                                                                   'output_budget',
                                                                   'context_capacity']},
-                                         'compute_ms': {'type': 'number',
-                                                        'minimum': 0},
+                                         'decoder_ms': {'type': 'number',
+                                                        'minimum': 0,
+                                                        'description': 'Worker '
+                                                                       'perf_counter '
+                                                                       'duration '
+                                                                       'around '
+                                                                       'Decoder.run, '
+                                                                       'including '
+                                                                       'the '
+                                                                       'model '
+                                                                       "capability's "
+                                                                       'tensor '
+                                                                       'capture. '
+                                                                       'Excludes '
+                                                                       'selection, '
+                                                                       'decoding '
+                                                                       'and '
+                                                                       'serialization.'},
+                                         'service_ms': {'type': 'number',
+                                                        'minimum': 0,
+                                                        'description': 'Worker '
+                                                                       'perf_counter '
+                                                                       'duration '
+                                                                       'from '
+                                                                       'immediately '
+                                                                       'before '
+                                                                       'Decoder.run '
+                                                                       'through '
+                                                                       'response '
+                                                                       'construction, '
+                                                                       'including '
+                                                                       'selection, '
+                                                                       'decoding, '
+                                                                       'pieces '
+                                                                       'and '
+                                                                       'observation '
+                                                                       'construction. '
+                                                                       'Excludes '
+                                                                       'input '
+                                                                       'admission '
+                                                                       'and '
+                                                                       'JSON '
+                                                                       'serialization. '
+                                                                       'Nested '
+                                                                       'decoder '
+                                                                       'duration '
+                                                                       'is '
+                                                                       'included; '
+                                                                       'no '
+                                                                       'cross-domain '
+                                                                       'timestamp '
+                                                                       'arithmetic.'},
                                          'nodes': {'type': 'array',
                                                    'items': {'$ref': '#/$defs/TensorObservation'}},
                                          'decoding_note': {'type': ['string',
@@ -2350,7 +2552,43 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                    'properties': {'experiments': {'type': 'array',
                                                   'minItems': 2,
                                                   'maxItems': 6,
-                                                  'items': {'$ref': '#/$defs/ExperimentSpec'}}},
+                                                  'items': {'$ref': '#/$defs/ExperimentSpec'},
+                                                  'allOf': [{'contains': {'type': 'object',
+                                                                          'properties': {'control': {'const': 'model'}},
+                                                                          'required': ['control']},
+                                                             'maxContains': 1},
+                                                            {'contains': {'type': 'object',
+                                                                          'properties': {'control': {'const': 'kv_reuse'}},
+                                                                          'required': ['control']},
+                                                             'maxContains': 1},
+                                                            {'if': {'anyOf': [{'contains': {'type': 'object',
+                                                                                            'properties': {'control': {'const': 'scheduling'}},
+                                                                                            'required': ['control']}},
+                                                                              {'contains': {'type': 'object',
+                                                                                            'properties': {'control': {'const': 'kv_cache'}},
+                                                                                            'required': ['control']}},
+                                                                              {'contains': {'type': 'object',
+                                                                                            'properties': {'control': {'const': 'transfer'}},
+                                                                                            'required': ['control']}},
+                                                                              {'contains': {'type': 'object',
+                                                                                            'properties': {'control': {'const': 'compute_service'}},
+                                                                                            'required': ['control']}}]},
+                                                             'then': {'allOf': [{'contains': {'type': 'object',
+                                                                                              'properties': {'control': {'const': 'scheduling'}},
+                                                                                              'required': ['control']},
+                                                                                 'maxContains': 1},
+                                                                                {'contains': {'type': 'object',
+                                                                                              'properties': {'control': {'const': 'kv_cache'}},
+                                                                                              'required': ['control']},
+                                                                                 'maxContains': 1},
+                                                                                {'contains': {'type': 'object',
+                                                                                              'properties': {'control': {'const': 'transfer'}},
+                                                                                              'required': ['control']},
+                                                                                 'maxContains': 1},
+                                                                                {'contains': {'type': 'object',
+                                                                                              'properties': {'control': {'const': 'compute_service'}},
+                                                                                              'required': ['control']},
+                                                                                 'maxContains': 1}]}}]}},
                    'description': 'Exactly one model and one KV reuse '
                                   'assignment. The implemented resource '
                                   'simulation additionally requires cache, '
@@ -3604,20 +3842,43 @@ class ExperimentCatalog(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class GenerationWork(Declaration):
+    processed_positions: int
+    reused_positions: int
+    matmul_flops: int
+
+
+@dataclass(frozen=True, kw_only=True)
 class BrowserTokenTiming(Declaration):
     prediction_id: str
     token_index: int
     segment: int
     mode: str
     started_ms: float
+    dispatched_ms: float
     updated_ms: float
     publishes_text: bool
+    context_length: int
+    selected_id: int
+    stop_reason: str | None
+    work: GenerationWork
+    decoder_ms: float
+    service_ms: float
+
+
+@dataclass(frozen=True, kw_only=True)
+class BrowserObserverBatch(Declaration):
+    first_token: int
+    last_token: int
+    started_ms: float
+    finished_ms: float
 
 
 @dataclass(frozen=True, kw_only=True)
 class BrowserGenerationTiming(Declaration):
     clock: str
     samples: tuple[BrowserTokenTiming, ...]
+    observers: tuple[BrowserObserverBatch, ...]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -3819,13 +4080,6 @@ class GenerationStep(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
-class GenerationWork(Declaration):
-    processed_positions: int
-    reused_positions: int
-    matmul_flops: int
-
-
-@dataclass(frozen=True, kw_only=True)
 class GenerationPrediction(Declaration):
     model_id: str
     weights_sha256: str
@@ -3837,7 +4091,8 @@ class GenerationPrediction(Declaration):
     logits: tuple[float, ...]
     selected_id: int
     stop_reason: str | None
-    compute_ms: float
+    decoder_ms: float
+    service_ms: float
     nodes: tuple[TensorObservation, ...]
     decoding_note: str | None
     request: GenerationStep
@@ -4007,7 +4262,7 @@ class InferenceMap(Declaration):
     relationships: tuple[InferenceMapRelationship, ...]
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'RunOutcome': RunOutcome, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'OntologyBinding': OntologyBinding, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'TokenSelection': TokenSelection, 'CacheComputation': CacheComputation, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ExecutionReplayInput': ExecutionReplayInput, 'AbstractionContract': AbstractionContract, 'ExperimentSource': ExperimentSource, 'ExperimentSpec': ExperimentSpec, 'ExperimentDesign': ExperimentDesign, 'ExperimentCatalog': ExperimentCatalog, 'BrowserTokenTiming': BrowserTokenTiming, 'BrowserGenerationTiming': BrowserGenerationTiming, 'InspectionState': InspectionState, 'ApiError': ApiError, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Token': Token, 'Span': Span, 'Encoding': Encoding, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'ExecutionSpec': ExecutionSpec, 'GenerationInput': GenerationInput, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationWork': GenerationWork, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough, 'ResourceExecution': ResourceExecution, 'CollectiveCommunicationBoundary': CollectiveCommunicationBoundary, 'ComputeKernelBoundary': ComputeKernelBoundary, 'DeviceRuntimeBoundary': DeviceRuntimeBoundary, 'InferenceEngineBoundary': InferenceEngineBoundary, 'RequestEndpointBoundary': RequestEndpointBoundary, 'RequestRouterBoundary': RequestRouterBoundary, 'ResourcePoolBoundary': ResourcePoolBoundary, 'StateManagerBoundary': StateManagerBoundary, 'InferenceMapNode': InferenceMapNode, 'InferenceMapRelationship': InferenceMapRelationship, 'InferenceMap': InferenceMap}
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'RunOutcome': RunOutcome, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'OntologyBinding': OntologyBinding, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'TokenSelection': TokenSelection, 'CacheComputation': CacheComputation, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ExecutionReplayInput': ExecutionReplayInput, 'AbstractionContract': AbstractionContract, 'ExperimentSource': ExperimentSource, 'ExperimentSpec': ExperimentSpec, 'ExperimentDesign': ExperimentDesign, 'ExperimentCatalog': ExperimentCatalog, 'GenerationWork': GenerationWork, 'BrowserTokenTiming': BrowserTokenTiming, 'BrowserObserverBatch': BrowserObserverBatch, 'BrowserGenerationTiming': BrowserGenerationTiming, 'InspectionState': InspectionState, 'ApiError': ApiError, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Token': Token, 'Span': Span, 'Encoding': Encoding, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'ExecutionSpec': ExecutionSpec, 'GenerationInput': GenerationInput, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough, 'ResourceExecution': ResourceExecution, 'CollectiveCommunicationBoundary': CollectiveCommunicationBoundary, 'ComputeKernelBoundary': ComputeKernelBoundary, 'DeviceRuntimeBoundary': DeviceRuntimeBoundary, 'InferenceEngineBoundary': InferenceEngineBoundary, 'RequestEndpointBoundary': RequestEndpointBoundary, 'RequestRouterBoundary': RequestRouterBoundary, 'ResourcePoolBoundary': ResourcePoolBoundary, 'StateManagerBoundary': StateManagerBoundary, 'InferenceMapNode': InferenceMapNode, 'InferenceMapRelationship': InferenceMapRelationship, 'InferenceMap': InferenceMap}
 OPERATION_OWNERS = {'token_embedding': 'Embedding', 'embedding': 'Embedding', 'position_embedding': 'PositionEncoding', 'ln1_mean': 'Normalization', 'ln1_variance': 'Normalization', 'ln1': 'Normalization', 'ln2_mean': 'Normalization', 'ln2_variance': 'Normalization', 'ln2': 'Normalization', 'ln_final_mean': 'Normalization', 'ln_final_variance': 'Normalization', 'ln_final': 'Normalization', 'query': 'Attention', 'key': 'Attention', 'value': 'Attention', 'scores': 'Attention', 'causal_mask': 'Attention', 'attention': 'Attention', 'weighted_values': 'Attention', 'attention_output': 'Attention', 'attention_residual': 'ResidualAddition', 'ff_residual': 'ResidualAddition', 'ff_up': 'FeedForward', 'gelu': 'FeedForward', 'ff_down': 'FeedForward', 'logits': 'OutputProjection', 'input_ids': 'Tokenizer', 'retained_keys': 'KVState', 'retained_values': 'KVState'}
 EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                          'name': 'Reference model execution',

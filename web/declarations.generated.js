@@ -2452,8 +2452,15 @@ globalThis.Declarations = (() => {
       "segment",
       "mode",
       "started_ms",
+      "dispatched_ms",
       "updated_ms",
-      "publishes_text"
+      "publishes_text",
+      "context_length",
+      "selected_id",
+      "stop_reason",
+      "work",
+      "decoder_ms",
+      "service_ms"
     ],
     "properties": {
       "prediction_id": {
@@ -2482,6 +2489,11 @@ globalThis.Declarations = (() => {
         "minimum": 0,
         "description": "performance.now at the start of the generation gesture, after prior model loading and input preparation."
       },
+      "dispatched_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Browser performance.now immediately before dispatch after earlier operations settle; dispatch minus gesture start includes pre-dispatch work, not exclusively worker queue time."
+      },
       "updated_ms": {
         "type": "number",
         "minimum": 0,
@@ -2490,6 +2502,39 @@ globalThis.Declarations = (() => {
       "publishes_text": {
         "type": "boolean",
         "description": "This token changed visible decoded output; an end-token-only response does not establish TTFT."
+      },
+      "context_length": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "selected_id": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "stop_reason": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          null,
+          "end_token",
+          "output_budget",
+          "context_capacity"
+        ]
+      },
+      "work": {
+        "$ref": "#/$defs/GenerationWork"
+      },
+      "decoder_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Copied worker Decoder.run duration; includes model-declared capture. Independent clock domain from browser timestamps."
+      },
+      "service_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Copied worker response-construction duration including decoder; excludes admission and JSON serialization. Cross-domain timestamp arithmetic is undefined."
       }
     }
   },
@@ -2499,7 +2544,8 @@ globalThis.Declarations = (() => {
     "additionalProperties": false,
     "required": [
       "clock",
-      "samples"
+      "samples",
+      "observers"
     ],
     "properties": {
       "clock": {
@@ -2511,6 +2557,44 @@ globalThis.Declarations = (() => {
         "items": {
           "$ref": "#/$defs/BrowserTokenTiming"
         }
+      },
+      "observers": {
+        "type": "array",
+        "description": "Completed synchronous inspection/chart update batches. An uncovered sample has no observer measurement yet or its update was skipped; absence never means zero cost. Browser clock only.",
+        "items": {
+          "$ref": "#/$defs/BrowserObserverBatch"
+        }
+      }
+    }
+  },
+  "BrowserObserverBatch": {
+    "type": "object",
+    "x-owner": "ExperimentObservation",
+    "additionalProperties": false,
+    "required": [
+      "first_token",
+      "last_token",
+      "started_ms",
+      "finished_ms"
+    ],
+    "properties": {
+      "first_token": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "last_token": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "started_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Browser performance.now before synchronous inspection and performance rendering; excludes deferred layout and paint."
+      },
+      "finished_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Browser performance.now after rendering. Minus started_ms is synchronous update duration; minus token publication is completion lag including scheduling, not total observer overhead."
       }
     }
   },
@@ -3867,7 +3951,8 @@ globalThis.Declarations = (() => {
       "logits",
       "selected_id",
       "stop_reason",
-      "compute_ms",
+      "decoder_ms",
+      "service_ms",
       "nodes",
       "decoding_note",
       "request",
@@ -3941,9 +4026,15 @@ globalThis.Declarations = (() => {
           "context_capacity"
         ]
       },
-      "compute_ms": {
+      "decoder_ms": {
         "type": "number",
-        "minimum": 0
+        "minimum": 0,
+        "description": "Worker perf_counter duration around Decoder.run, including the model capability's tensor capture. Excludes selection, decoding and serialization."
+      },
+      "service_ms": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Worker perf_counter duration from immediately before Decoder.run through response construction, including selection, decoding, pieces and observation construction. Excludes input admission and JSON serialization. Nested decoder duration is included; no cross-domain timestamp arithmetic."
       },
       "nodes": {
         "type": "array",
@@ -4594,7 +4685,155 @@ globalThis.Declarations = (() => {
         "maxItems": 6,
         "items": {
           "$ref": "#/$defs/ExperimentSpec"
-        }
+        },
+        "allOf": [
+          {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "control": {
+                  "const": "model"
+                }
+              },
+              "required": [
+                "control"
+              ]
+            },
+            "maxContains": 1
+          },
+          {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "control": {
+                  "const": "kv_reuse"
+                }
+              },
+              "required": [
+                "control"
+              ]
+            },
+            "maxContains": 1
+          },
+          {
+            "if": {
+              "anyOf": [
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "scheduling"
+                      }
+                    },
+                    "required": [
+                      "control"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "kv_cache"
+                      }
+                    },
+                    "required": [
+                      "control"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "transfer"
+                      }
+                    },
+                    "required": [
+                      "control"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "compute_service"
+                      }
+                    },
+                    "required": [
+                      "control"
+                    ]
+                  }
+                }
+              ]
+            },
+            "then": {
+              "allOf": [
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "scheduling"
+                      }
+                    },
+                    "required": [
+                      "control"
+                    ]
+                  },
+                  "maxContains": 1
+                },
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "kv_cache"
+                      }
+                    },
+                    "required": [
+                      "control"
+                    ]
+                  },
+                  "maxContains": 1
+                },
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "transfer"
+                      }
+                    },
+                    "required": [
+                      "control"
+                    ]
+                  },
+                  "maxContains": 1
+                },
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "compute_service"
+                      }
+                    },
+                    "required": [
+                      "control"
+                    ]
+                  },
+                  "maxContains": 1
+                }
+              ]
+            }
+          }
+        ]
       }
     },
     "description": "Exactly one model and one KV reuse assignment. The implemented resource simulation additionally requires cache, scheduling, transfer and compute-service controls together; partial and duplicate assignments fail before execution."
@@ -6409,7 +6648,8 @@ globalThis.Declarations = (() => {
       "CacheMeasurement",
       "GenerationPrediction",
       "BrowserTokenTiming",
-      "BrowserGenerationTiming"
+      "BrowserGenerationTiming",
+      "BrowserObserverBatch"
     ]
   },
   "ExecutionSpec": {
@@ -7877,7 +8117,7 @@ globalThis.Declarations = (() => {
     ]
   }
 };
-  const hash = "afe2cd81ae3d524fb34c18e21569b801b5b9dbe9613093114931c39826354d08";
+  const hash = "219df0093966c2478a891e6c43e016e17f3dbe45a35ecbf231fd82401f9082a1";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

@@ -7,6 +7,8 @@ ownership is enforced by the [ontology declarations](../ontology/README.md).
 The [experimental method](methodology.md) explains instrument selection, the tiny-model
 boundary, and validation of abstractions.
 
+Pending evaluation: [bounded KV timing pilot](../proposals/kv-timing-pilot.md).
+
 ## Abstraction contract
 
 Every lab is a declared experiment in the [experiment catalog](../../data/experiments/catalog.yaml):

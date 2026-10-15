@@ -13,21 +13,31 @@ export function timingMetrics(trace) {
 }
 
 export function createTiming() {
-  let samples=[],segment=0,gesture=null;
-  const clear=()=>{samples=[];segment=0;gesture=null;};
+  let samples=[],observers=[],segment=0,gesture=null;
+  const clear=()=>{samples=[];observers=[];segment=0;gesture=null;};
   function begin(mode,started,continuation) {
     if(!continuation)clear();
     gesture={mode,started_ms:started,segment:++segment};
   }
-  function record(prediction,updated,publishes) {
+  function record(prediction,updated,publishes,dispatched) {
     if(!gesture)throw Error('Timing has no generation gesture');
     const sample={prediction_id:prediction.id,token_index:prediction.output_ids.length,
-      ...gesture,updated_ms:updated,publishes_text:publishes};
+      ...gesture,dispatched_ms:dispatched,updated_ms:updated,publishes_text:publishes,
+      context_length:prediction.request.prefix_ids.length+prediction.request.output_ids.length,
+      selected_id:prediction.selected_id,stop_reason:prediction.stop_reason,
+      work:structuredClone(prediction.work),decoder_ms:prediction.decoder_ms,service_ms:prediction.service_ms};
     Declarations.assertShape('BrowserTokenTiming',sample);
-    if(updated<sample.started_ms || (samples.length && (updated<samples.at(-1).updated_ms || sample.token_index!==samples.at(-1).token_index+1)))
+    if(dispatched<sample.started_ms || updated<dispatched || (samples.length && (updated<samples.at(-1).updated_ms || sample.token_index!==samples.at(-1).token_index+1)))
       throw Error('Timing must follow accepted tokens on a monotonic clock');
     samples.push(sample);
   }
-  return {clear,begin,record,evidence:()=>({clock:'browser-monotonic-ms',samples:structuredClone(samples)})};
+  function observe(started,finished) {
+    const last=observers.at(-1)?.last_token??0,pending=samples.filter(s=>s.token_index>last);
+    if(!pending.length)return;
+    if(started<pending.at(-1).updated_ms || finished<started)throw Error('Observer timing must follow publication');
+    const observation={first_token:pending[0].token_index,last_token:pending.at(-1).token_index,started_ms:started,finished_ms:finished};
+    Declarations.assertShape('BrowserObserverBatch',observation);observers.push(observation);
+  }
+  return {clear,begin,record,observe,evidence:()=>({clock:'browser-monotonic-ms',samples:structuredClone(samples),observers:structuredClone(observers)})};
 }
 

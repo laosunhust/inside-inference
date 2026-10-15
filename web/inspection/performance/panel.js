@@ -34,7 +34,10 @@ export function mountTiming(root) {
     $('latency-empty').textContent=trace.samples.some(s=>s.mode==='continuous')?'No inter-token interval yet.':'Use Generate to measure token spacing.';
     plot(metrics.intervals);
     const rows=$('timing-samples');rows.replaceChildren();
-    for(const point of metrics.intervals){const row=document.createElement('tr');for(const text of [point.token,format(point.ms)]){const cell=document.createElement('td');cell.textContent=text;row.append(cell);}rows.append(row);}
-    $('timing-values').hidden=!metrics.intervals.length;
+    for(const sample of trace.samples){const row=document.createElement('tr');for(const text of [sample.token_index,sample.context_length,sample.work.processed_positions,sample.work.reused_positions,format(sample.decoder_ms),format(sample.service_ms),format(metrics.intervals.find(point=>point.token===sample.token_index)?.ms??null)]){const cell=document.createElement('td');cell.textContent=text;row.append(cell);}rows.append(row);}
+    $('timing-values').hidden=!trace.samples.length;
+    const first=trace.samples[0],observer=trace.observers.at(-1);
+    const publication=observer?trace.samples.find(s=>s.token_index===observer.last_token):null;
+    $('timing-boundaries').textContent=(first?`Before first dispatch: ${format(first.dispatched_ms-first.started_ms)} (included in first-token latency). `:'')+(observer?`Last inspection/chart update: ${format(observer.finished_ms-observer.started_ms)}; completion lag from its last token: ${format(observer.finished_ms-publication.updated_ms)}. This excludes deferred layout and paint.`:'No completed inspection/chart update recorded yet.');
   };
 }

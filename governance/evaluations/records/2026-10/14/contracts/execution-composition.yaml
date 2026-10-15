@@ -1,0 +1,24 @@
+version: 1
+work_item: execution-composition
+question: Can the existing declaration pipeline enforce identical execution composition in Python and the browser without handwritten group authorities or repair defaults?
+necessity: Owner authorizes the schema spike and composition repair before timing work following reviewer feedback.
+baseline: ExecutionSpec describes required and grouped controls in prose; Python checks composition manually while browser projections accept duplicates and repair partial groups.
+reuse:
+- source: Existing JSON Schema admission, Python Draft202012Validator and generated Ajv validators
+  decision: Test supported keywords before changing protected tooling; prefer standard constraints over a new resolver generator.
+- source: KVResidencySystemConfig and ExperimentSpec
+  decision: Derive resource membership from existing declared configuration properties and control names; do not add a separate group registry.
+criteria:
+- A bounded spike records generator admission and Python/browser acceptance for valid base/full configurations and malformed duplicates, omissions and partial groups.
+- Valid permutations have identical projections; invalid values and ontology bindings fail before projection without default repair.
+- Authored executable constraints own composition; runtime projections derive resource membership from existing declarations.
+- No protected file or recorded hash changes without scoped owner authorization; any blocked vocabulary or compiler behavior is reported with a concrete minimal change.
+- Existing numerical and browser workflows pass within their declared budgets after implementation.
+counterexamples:
+- uniqueItems alone does not reject the same control with different values.
+- An unknown schema keyword silently ignored by one validator is not enforcement.
+- Defaults initializing a new complete group do not authorize repairing a supplied partial group.
+checks:
+- Generator admission and compiled-validator spike with shared inputs
+- Component admission and projection regression tests
+- make test and make test-integration after implementation

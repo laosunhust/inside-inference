@@ -207,7 +207,7 @@ runs on-device. DNS and annual registration are separate costs.
 The Interaction panel separates functional input/output from measured browser responsiveness.
 `ExperimentObservation` owns browser token timings in the generated contracts. Each sample binds
 an accepted prediction to a monotonic gesture-start and output-DOM-update timestamp. Downloaded
-generation evidence retains the samples; the display derives its metrics from them.
+generation evidence retains a compact per-token ledger and observer batches; the display derives its metrics from them.
 
 TTFT is available for a fresh continuous generation that produces decoded text. It excludes prior
 model loading/input preparation and does not claim physical screen-paint timing. Inter-token
@@ -216,3 +216,18 @@ Manual stepping shows its own gesture-to-update latency. Reset and configuration
 the trace; branching starts a new trace. Token count comes from accepted output IDs, including
 terminal tokens. Browser/UI overhead is included, so these are not isolated model benchmarks.
 Resource simulation retains its separate virtual clock and does not populate measured timings.
+
+The owned measurement scopes live in `GenerationPrediction`, `BrowserTokenTiming` and
+`BrowserObserverBatch` in the data model. Decoder duration includes the model-declared
+capture behavior. Service duration additionally encloses selection and response construction,
+excluding admission and JSON serialization. Both are worker durations; browser timestamps
+have a separate clock domain and cannot be subtracted from worker timestamps.
+
+The shared measured-dispatch controller waits for earlier operations and rechecks request
+identity before dispatch. The Generate gesture clock starts before that wait; TTFT therefore
+includes it. Dispatch minus gesture start is pre-dispatch delay, not pure queue time.
+Output publication is timestamped immediately after the DOM mutation. Inspection and chart
+rendering are scheduled separately, with synchronous start/end observations grouped by
+covered token ordinals. Completion lag also includes scheduling; neither quantity measures
+physical paint or total counterfactual observer overhead. Missing observer batches mean
+unmeasured/pending/skipped work, never zero cost. Export does not force a render.

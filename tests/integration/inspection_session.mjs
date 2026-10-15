@@ -20,7 +20,7 @@ state=S.inspect(state,{surface:'request',observation_id:null});assert.equal(stat
 Declarations.assertShape('ArchitectureWalkthrough',Declarations.schemas.ArchitectureWalkthrough.const);
 const badStage={...Declarations.schemas.ArchitectureWalkthrough.const.stages[0],owner:'Invented'};assert.throws(()=>Declarations.assertShape('ArchitectureStage',badStage));
 const request=S.nextRequest(state),logits=Array(384).fill(0);logits[42]=2;
-const step={contract_sha256:Declarations.hash,id:'1'.repeat(64),request,model_id:loaded.model.id,weights_sha256:loaded.model.weights.sha256,tokenizer_sha256:loaded.model.tokenizer.sha256,sequence_ids:[0,24,42,42],output_ids:[42],text:'x',pieces:['<BOS>','.','x','x'],logits,probabilities:logits.map(x=>Math.exp(x)/(383+Math.exp(2))),selected_id:42,stop_reason:null,compute_ms:0,work:{processed_positions:3,reused_positions:0,matmul_flops:0},nodes:[],decoding_note:null};
+const step={contract_sha256:Declarations.hash,id:'1'.repeat(64),request,model_id:loaded.model.id,weights_sha256:loaded.model.weights.sha256,tokenizer_sha256:loaded.model.tokenizer.sha256,sequence_ids:[0,24,42,42],output_ids:[42],text:'x',pieces:['<BOS>','.','x','x'],logits,probabilities:logits.map(x=>Math.exp(x)/(383+Math.exp(2))),selected_id:42,stop_reason:null,decoder_ms:0,service_ms:0,work:{processed_positions:3,reused_positions:0,matmul_flops:0},nodes:[],decoding_note:null};
 state=S.accept(state,step,request);assert.equal(S.output(state),'x');
 const wrong=structuredClone(step);wrong.selected_id=0;assert.throws(()=>S.accept(S.prepare(S.admitModel(S.create(input),loaded),prepared),wrong,request));
 assert.throws(()=>S.inspect(state,{surface:'model',observation_id:'foreign'}));
@@ -54,3 +54,12 @@ await assert.rejects(()=>ExecutionClient.create(async()=>{throw Error('transport
 assert.equal(await client.prepareGeneration(input,{raw:true}),JSON.stringify(prepared));
 console.log('Model-bound request, branch, stale-response and generated client checks passed.');
 await import('./timing_observation.mjs');
+
+const assignments=Object.fromEntries(Declarations.experiments['kv-residency'].settings.map(e=>[e.control,e]));
+for(const test of JSON.parse(readFileSync('tests/fixtures/execution-composition.json','utf8'))){
+  const execution={experiments:test.controls.map(c=>structuredClone(assignments[c]))};
+  if(test.change_last)Object.assign(execution.experiments.at(-1),test.change_last);
+  if(!test.valid)assert.throws(()=>S.controls({input:{execution}}));
+  else {const controls=S.controls({input:{execution}});assert.equal(controls.model_id,assignments.model.value);assert.equal(controls.kv_reuse,assignments.kv_reuse.value);}
+}
+console.log('Shared composition admission fixtures passed in browser projection.');

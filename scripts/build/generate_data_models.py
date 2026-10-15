@@ -98,14 +98,33 @@ def admit(ontology, spec):
         _check_schema_content(json.dumps(definition, sort_keys=True, allow_nan=False))
     keywords = {'type','title','description','const','default','minimum','maximum','enum','pattern',
                 'x-maximum-from','x-owner','properties','required','additionalProperties',
-                '$ref','items','minItems','maxItems','uniqueItems','oneOf','anyOf','allOf','if','then','not','contains','x-ontology-reference','x-ontology-binding','x-operation'}
-    def walk(name, child):
+                '$ref','items','minItems','maxItems','uniqueItems','oneOf','anyOf','allOf','if','then','not','contains','maxContains','x-ontology-reference','x-ontology-binding','x-operation'}
+    def contains_predicate(child, item):
+        # A contains predicate refines an already owned item record; it does not
+        # declare a new anonymous record or introduce fields.
+        target = definitions.get((item or {}).get('$ref', '').removeprefix('#/$defs/'))
+        if not target or set(child) - {'type', 'properties', 'required'}:
+            return False
+        properties = child.get('properties', {})
+        if not properties or not set(properties) <= set(target.get('properties', {})):
+            return False
+        if not set(child.get('required', [])) <= set(properties):
+            return False
+        for key, restriction in properties.items():
+            if set(restriction) not in ({'const'}, {'enum'}):
+                return False
+            values = [restriction['const']] if 'const' in restriction else restriction['enum']
+            for value in values:
+                validate(target['properties'][key], value, definitions)
+        return True
+
+    def walk(name, child, array_item=None, predicate=False):
         if child.get('x-ontology-reference') and child.get('enum') != sorted(terms):
             raise ValueError(f'{name}: ontology reference choices differ from admitted concepts; regenerate from docs/ontology')
         if set(child) - keywords:
             raise ValueError(f'{name}: unsupported schema vocabulary')
         if child.get('type') == 'object' and child is not definitions[name]:
-            if 'properties' in child or not isinstance(child.get('additionalProperties'),dict):
+            if not (predicate and contains_predicate(child, array_item)) and ('properties' in child or not isinstance(child.get('additionalProperties'),dict)):
                 raise ValueError(f'{name}: nested records require a named ontology-owned declaration')
         if '$ref' in child:
             if set(child) != {'$ref'} or not child['$ref'].startswith('#/$defs/'):
@@ -131,10 +150,11 @@ def admit(ontology, spec):
         for value in child.get('properties',{}).values(): walk(name,value)
         for key in ('items','additionalProperties'):
             if isinstance(child.get(key),dict): walk(name,child[key])
+        item = child.get('items', array_item)
         for key in ('oneOf','anyOf','allOf'):
-            for value in child.get(key,[]): walk(name,value)
+            for value in child.get(key,[]): walk(name,value,item)
         for key in ('if','then','not','contains'):
-            if key in child: walk(name,child[key])
+            if key in child: walk(name,child[key],item,predicate=key == 'contains')
     for name, schema in definitions.items():
         if not re.fullmatch('[A-Z][A-Za-z0-9]*', name): raise ValueError('Invalid schema name')
         if schema['type'] != 'object' or schema['additionalProperties'] is not False:
