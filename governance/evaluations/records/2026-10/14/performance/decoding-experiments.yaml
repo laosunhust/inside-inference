@@ -1,0 +1,31 @@
+version: 1
+work_item: decoding-experiments
+question: Can users configure, execute and inspect distinct incremental caching, cache-residency and greedy speculative-decoding experiments through the same product?
+necessity: Owner agrees to distinguish caching mechanisms, remove the reference execution catalog card, and introduce 0.5M draft / 4M target speculative decoding.
+baseline: Reference execution is a preset without an intervention; incremental caching and residency have confusing names; speculative decoding is planned and the service retains one loaded model.
+reuse:
+- source: ExperimentSpec, GenerationInput, ExecutionSpec, Workload and the shared browser/Python decoder
+  decision: Keep configuration separate from execution; use existing per-position logits to verify draft blocks and existing model artifacts with their shared tokenizer.
+- source: Existing cache simulation and resource execution evidence
+  decision: Create contrasting residency configurations using repeated inputs and inspect actual hit/miss/transfer events rather than inventing another simulation.
+criteria:
+- Remove reference execution from the experiment catalog, retaining default execution and numerical inspection with durable documentation of limits and existing evidence.
+- Name incremental caching and cross-request residency distinctly; residency variants use equal workloads and differ only in the declared cache intervention, producing observable event/work differences.
+- Declare draft model and proposal length; reject unsupported model/tokenizer, capacity or execution combinations before generation. Both models remain loaded with independent KV state.
+- Greedy speculative decoding returns exactly the target-only selected token sequence, including first rejection, all acceptance, later rejection, EOS, budget and context boundaries. Cache rollback cannot reuse rejected positions.
+- Target verification computes multiple candidate positions in one forward call; do not implement serial target verification masquerading as speculative decoding.
+- Preserve every draft proposal and its accepted/rejected status, target correction or bonus, actual draft/target work, durations and call counts. Rejected and abandoned work cannot disappear or be counted repeatedly.
+- Buffered verified tokens are explicitly distinguished from fresh computation. Browser publication intervals remain user-observed intervals; neither buffering nor block verification may be misrepresented as per-token decoder timing.
+- Configuration buttons install complete matching workloads and system settings without generating output; Interaction shows selected settings and round evidence, and exports the same evidence shown.
+- Reproduce the supported experiment headlessly through the same declared operations and in the browser. Compare target-only and speculative output and verify reset, edits and stale responses cannot leak proposals into another request.
+- Review desktop and narrow layouts; make test and make test-integration must remain within existing budgets. No speedup claim follows from acceptance rate alone.
+counterexamples:
+- A small draft can be slower overall even when its proposals are accepted.
+- A draft EOS rejected by the target does not terminate generation.
+- Identical logits are not required across different matrix shapes, but changed greedy selection invalidates exact agreement for that workload.
+- One forward can verify several tokens, but committing speculative tokens before verification is invalid.
+- A label change without observable configuration and execution is insufficient.
+checks:
+- In-process deterministic draft/verification counterexamples and real-model parity
+- Shared browser operation execution, UI controls, ledger/export and rendered-layout checks
+- Full unit and integration workflows, generated-consumer and governance checks

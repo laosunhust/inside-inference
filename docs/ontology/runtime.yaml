@@ -32,16 +32,15 @@ terms:
     owns:
     - Prediction-step evidence and the selected token; the implemented algorithm is autoregressive greedy
       selection.
-    - The algorithmic boundary for future draft proposal, target verification, acceptance and rollback.
+    - Greedy draft proposal, block target verification, acceptance, correction, rollback and buffered verified delivery.
     excludes:
     - Requested generation policy, owned by GenerationPolicy.
     - Forward tensor equations, response transport and inter-request scheduling.
-    - Declaring this boundary does not implement speculative decoding or distribution-preserving sampling.
+    - Distribution-preserving stochastic sampling is not implemented.
     capability_reads: []
     projections:
       Token selection:
-        meaning: Inspect the executed choice from target logits. The current algorithm is greedy; draft
-          verification is not implemented.
+        meaning: Inspect the executed choice from target logits. Both target-only and draft verification use greedy selection.
         fields:
           TokenSelection:
           - raw_logits
@@ -49,3 +48,6 @@ terms:
           - probabilities
     schemas:
     - TokenSelection
+    - SpeculationConfig
+    - SpeculationRound
+    - SpeculativeDelivery

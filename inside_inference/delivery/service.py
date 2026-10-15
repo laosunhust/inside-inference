@@ -37,7 +37,9 @@ async def execute_model(service, name, payload):
     if name == 'modelCatalog': return await service.load_catalog()
     await service.load_catalog()
     if name == 'loadModel': return await service.load(payload['model_id'])
-    if name == 'prepareGeneration': return service.prepare(payload)
+    if name == 'prepareGeneration':
+        await service.configure_draft(payload)
+        return service.prepare(payload)
     if name == 'generateToken': return service.generate(payload)
     if name == 'simulateResources': return service.simulate(payload)
     raise ValueError('Declared operation has no implementation')

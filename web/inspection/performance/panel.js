@@ -24,12 +24,23 @@ export function mountTiming(root) {
       dot.append(svg('title',{},label));chart.append(dot);
     }
   }
-  return function render(trace,count,simulated) {
+  return function render(trace,count,simulated,pieces) {
     $('timing-measurements').hidden=simulated;$('timing-simulation').hidden=!simulated;
     if(simulated)return;
     const last=trace.samples.at(-1);
     $('timing-work').hidden=!last;
-    $('timing-work').textContent=last?`Token ${last.token_index}: ${last.work.processed_positions} computed · ${last.work.reused_positions} reused positions`:'';
+    $('timing-work').textContent=last?(last.speculation?.buffered?'Delivered an already-verified token · no decoder work':`${last.speculation?'Round work':'Token '+last.token_index}: ${last.work.processed_positions} computed · ${last.work.reused_positions} reused positions`):'';
+    const rounds=trace.samples.flatMap(s=>s.speculation?.round?[s.speculation.round]:[]);
+    $('speculation-performance').hidden=!rounds.length;
+    const sum=key=>rounds.reduce((n,r)=>n+r[key],0),proposed=rounds.reduce((n,r)=>n+r.proposed_ids.length,0);
+    $('speculation-summary').textContent=`${sum('accepted_count')} / ${proposed} proposals accepted · ${sum('target_calls')} target calls · ${sum('draft_calls')} draft calls. Draft ${format(sum('draft_ms'))}; verification ${format(sum('target_ms'))}.`;
+    const evidence=$('speculation-rounds');evidence.replaceChildren();
+    for(const [index,round] of rounds.entries()){
+      const section=document.createElement('section'),heading=document.createElement('h4');heading.textContent=`Round ${index+1}`;section.append(heading);
+      const describe=(label,ids)=>{const p=document.createElement('p');p.textContent=label+': '+(ids.length?ids.map(id=>`#${id} ${pieces[id]??''}`).join(' · '):'none');section.append(p);};
+      describe('Accepted draft tokens',round.proposed_ids.slice(0,round.accepted_count));describe('Rejected draft tokens',round.proposed_ids.slice(round.accepted_count));describe(round.accepted_count===round.proposed_ids.length?'Target bonus':'Target correction',round.committed_ids.slice(round.accepted_count));describe('Verified output',round.committed_ids);
+      const costs=document.createElement('p');costs.textContent=`Draft: ${round.draft_work.processed_positions} computed positions, ${format(round.draft_ms)}. Target: ${round.target_work.processed_positions} computed positions, ${format(round.target_ms)}.`;section.append(costs);evidence.append(section);
+    }
     const metrics=timingMetrics(trace);
     $('timing-ttft').textContent=format(metrics.ttft);$('timing-count').textContent=String(count);
     $('timing-step').hidden=metrics.step===null;$('timing-step').textContent='Last step · '+format(metrics.step);

@@ -16,7 +16,19 @@ globalThis.ExecutionConfiguration=(()=>{
         const control=definition.properties.control.const,field=definition.properties.value;
         const editor=document.createElement('div');editor.dataset.control=control;panel.append(editor);editors.set(control,editor);
         if(control==='model')continue;
-        if(field.$ref)continue;
+        if(field.$ref){
+          if(control!=='speculation')continue;
+          const schema=Declarations.schemas[field.$ref.split('/').at(-1)];
+          for(const [key,property] of Object.entries(schema.properties)){
+            const label=document.createElement('label'),input=document.createElement(property.enum?'select':'input');
+            label.textContent=property.title;input.id='speculation-'+key;
+            if(property.enum)property.enum.forEach(value=>input.append(new Option(value,value)));
+            else {input.type='number';input.min=property.minimum;input.max=property.maximum;input.step=1;}
+            input.onchange=()=>{if(!input.reportValidity())return;const current=read().experiments.find(e=>e.control===control);change(control,{...current.value,[key]:property.type==='integer'?Number(input.value):input.value});};
+            label.append(input);editor.append(label);fields.push({control,input,field:property,key});
+          }
+          continue;
+        }
         const label=document.createElement('label'),input=document.createElement(field.enum?'select':'input');
         label.textContent=field.title;input.id=control.replaceAll('_','-');
         if(field.type==='boolean')input.type='checkbox';
@@ -32,7 +44,7 @@ globalThis.ExecutionConfiguration=(()=>{
     }
     function refresh(){
       const spec=read();
-      for(const field of fields){const experiment=spec.experiments.find(e=>e.control===field.control);if(field.field.type==='boolean')field.input.checked=experiment.value;else field.input.value=experiment.value;}
+      for(const field of fields){const experiment=spec.experiments.find(e=>e.control===field.control);field.input.disabled=!experiment;if(experiment&&field.field.type==='boolean'){const candidate={experiments:spec.experiments.map(e=>e.control===field.control?{...e,value:!e.value}:e)};try{Declarations.assertShape('ExecutionSpec',candidate);}catch{field.input.disabled=true;}}field.input.closest('[data-control]').hidden=!experiment;if(!experiment)continue;const value=field.key?experiment.value[field.key]:experiment.value;if(field.field.type==='boolean')field.input.checked=value;else field.input.value=value;}
       const active=spec.experiments.filter(e=>e.control!=='model'&&e.value).flatMap(e=>[e.ontology_binding.primary,...e.ontology_binding.related]);
       for(const block of document.querySelectorAll('[data-configuration-owner],.map-node'))block.classList.toggle('configuration-changed',active.includes(block.dataset.configurationOwner||block.dataset.owner));
     }

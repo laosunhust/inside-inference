@@ -3,6 +3,8 @@
 <section id="control-plane" class="control-plane" aria-label="Experiment configuration">
 <h2>Experiment</h2>
 <div id="binding-status" role="status" class="binding-status" hidden></div>
+<button id="disable-resource-mode" type="button" hidden>Turn off residency simulation</button>
+<button id="disable-speculation" type="button" hidden>Turn off speculative decoding</button>
 <div class="configuration-cards">
 <button id="open-input" class="configuration-card input-card" type="button" aria-haspopup="dialog" aria-controls="input-dialog"><strong>Input</strong><small>Reproduce a scenario</small><span class="configuration-indicator" aria-hidden="true">›</span></button>
 <button id="open-system" class="configuration-card system-card" type="button" aria-haspopup="dialog" aria-controls="system-dialog"><strong>Inference system</strong><small id="active-model-summary"></small><span class="configuration-indicator" aria-hidden="true">›</span></button>
@@ -35,11 +37,12 @@
 <dl class="timing-summary"><div><dt>Time to first token</dt><dd id="timing-ttft">—</dd></div><div><dt>Generated tokens</dt><dd id="timing-count">0</dd></div></dl>
 <p id="timing-step" hidden></p>
 <p id="timing-work" hidden></p>
+<div id="speculation-performance" hidden><h4>Speculative decoding</h4><p id="speculation-summary"></p><details><summary>Draft and verification rounds</summary><div id="speculation-rounds"></div></details></div>
 <h4>Inter-token latency</h4>
 <svg id="latency-chart" viewBox="0 0 320 164" role="img" aria-label="Chronological inter-token latency" hidden></svg>
 <p id="latency-empty" class="muted">Use Generate to measure token spacing.</p>
 <details id="timing-values" hidden><summary>Per-token evidence</summary><div class="table-scroll"><table><thead><tr><th>Token</th><th>Context</th><th>Computed</th><th>Reused</th><th>Decoder</th><th>Service</th><th>Interval</th></tr></thead><tbody id="timing-samples"></tbody></table></div></details>
-<details class="timing-method"><summary>How this is measured</summary><p>Time to first token runs from Generate to the first visible text update of a new sequence. Model loading and input preparation happen beforehand.</p><p>Intervals measure consecutive token updates within one continuous generation. Pauses and manual clicks are excluded. Last step measures one manual click to its output update.</p><p>These browser timings include execution, transport and UI work, not physical screen paint. The token count includes end tokens. Context, computed and reused count token positions. Each token’s work and scoped durations are included in Download evidence. Decoder time includes this model’s tensor capture; service time also includes selection, decoding and response construction, but excludes validation and JSON serialization. The execution durations and browser timestamps use independent clocks.</p><p id="timing-boundaries"></p></details>
+<details class="timing-method"><summary>How this is measured</summary><p>Time to first token runs from Generate to the first visible text update of a new sequence. Model loading and input preparation happen beforehand.</p><p>Intervals measure consecutive token updates within one continuous generation. Pauses and manual clicks are excluded. Last step measures one manual click to its output update.</p><p>These browser timings include execution, transport and UI work, not physical screen paint. The token count includes end tokens. Context, computed and reused count token positions. Each token’s work and scoped durations are included in Download evidence. Decoder time includes this model’s tensor capture; service time also includes selection, decoding and response construction, but excludes validation and JSON serialization. The execution durations and browser timestamps use independent clocks. A speculative round may verify several tokens at once: its draft and target work is charged to the first delivered token. Later buffered deliveries have zero decoder work; their publication intervals are not decoder latency.</p><p id="timing-boundaries"></p></details>
 </div></aside></div>
 </section>
 <section id="explanation" class="numerical-inspector" aria-label="Explanation"><h2>Explanation</h2>

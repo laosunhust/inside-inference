@@ -29,7 +29,7 @@ async function evaluate(expression) {
 }
 async function until(expression, attempts=100) {
   for (let i=0; i<attempts; i++) { if (await evaluate(expression)) return; await new Promise(r=>setTimeout(r,100)); }
-  throw new Error(`Timed out: ${expression}\n${await evaluate("document.body.innerText")}`);
+  throw new Error(`Timed out: ${expression}\n${await evaluate("document.body.innerText")}\n${JSON.stringify(errors)}`);
 }
 const timings=[];let measuredAt=performance.now();
 const mark=name=>{const now=performance.now();timings.push({phase:name,milliseconds:now-measuredAt});measuredAt=now;};

@@ -1,72 +1,8 @@
 experiments:
-- id: reference-execution
-  name: Reference model execution
-  question: What happens to actual intermediate values, and to next-token scores, when one input changes while the
-    vocabulary and parameters stay fixed?
-  ontology_binding:
-    primary: ModelExecution
-    related:
-    - Tokenizer
-    - Embedding
-    - PositionEncoding
-    - Normalization
-    - Attention
-    - ResidualAddition
-    - FeedForward
-    - OutputProjection
-    - Decoding
-    - ModelArchitecture
-    - ModelArtifact
-  missing_controls: []
-  contract:
-    target_regime: One decoder-only causal Transformer executed by the shared NumPy engine; the 8K checkpoint exposes
-      every intermediate tensor, the 0.5M and 4M checkpoints expose logits.
-    preserved: Token IDs, embeddings and positions, normalization, causal attention, residuals, feed-forward activation,
-      output projection and unmasked greedy selection over every vocabulary ID, with the declared stop conditions.
-      Every continuation recomputes the prefix when KV reuse is off.
-    omissions: No scheduler, network, cache tiers, accelerator or training process. Host timings are not simulated
-      device latency.
-    evidence_plan: Compare every intermediate tensor with independent 50-digit Decimal equations, upstream exported
-      logits and recorded fixtures; check causal counterfactuals, context boundaries, trace on/off equality and
-      hand recomputation of displayed values.
-    limits: Correct tiny arithmetic supports inspection of this architecture, not learned quality or production
-      performance. Width, scale and inputs change attention patterns, creating false-positive and false-negative
-      risks for judging optimizations.
-  sources: []
-  evidence:
-  - governance/evaluations/results/2026-10/13/first-principles/python-engine.yaml
-  - governance/evaluations/results/2026-10/13/first-principles/panel.yaml
-  variants:
-  - label: Configure reference model
-    input:
-      execution:
-        experiments:
-        - control: model
-          value: tinyllm-8k
-          ontology_binding:
-            primary: ModelArtifact
-            related: []
-        - control: kv_reuse
-          value: false
-          ontology_binding:
-            primary: KVCache
-            related:
-            - ModelExecution
-      workload:
-        kind: fixed-arrivals
-        requests:
-        - request_id: r1
-          arrival_us: 0
-          request:
-            text: the cat was
-            generation:
-              max_new_tokens: 32
-              selection: greedy-lowest-id-tie
-              stopping: model-end-or-budget
 - id: kv-residency
-  name: KV reuse, residency and misses
-  question: When an exact reusable prefix is present, absent or retained in another memory tier under bounded capacity,
-    when do lookup and transfer cost exceed the avoided prefill work?
+  name: KV cache residency
+  question: When device capacity cannot retain earlier prefixes, does retaining them in host memory avoid recomputation
+    on a repeated request, and at what transfer cost?
   ontology_binding:
     primary: KVCache
     related:
@@ -93,7 +29,7 @@ experiments:
   evidence:
   - docs/research/kv-residency-2026-10-09.md
   variants:
-  - label: Configure residency simulation
+  - label: Configure without host retention
     input:
       execution:
         experiments:
@@ -110,8 +46,8 @@ experiments:
             - ModelExecution
         - control: kv_cache
           value:
-            device_kv_bytes: 16384
-            host_kv_bytes: 32768
+            device_kv_bytes: 2560
+            host_kv_bytes: 0
             retention_policy: whole-prefix-lru
           ontology_binding:
             primary: KVCache
@@ -119,7 +55,7 @@ experiments:
             - KVState
         - control: scheduling
           value:
-            max_active_requests: 2
+            max_active_requests: 1
           ontology_binding:
             primary: RequestScheduling
             related: []
@@ -144,7 +80,95 @@ experiments:
         - request_id: r1
           arrival_us: 0
           request:
-            text: the cat was
+            text: the ball.
+            generation:
+              max_new_tokens: 16
+              selection: greedy-lowest-id-tie
+              stopping: model-end-or-budget
+        - request_id: r2
+          arrival_us: 10000
+          request:
+            text: the cup.
+            generation:
+              max_new_tokens: 16
+              selection: greedy-lowest-id-tie
+              stopping: model-end-or-budget
+        - request_id: r3
+          arrival_us: 20000
+          request:
+            text: the ball.
+            generation:
+              max_new_tokens: 16
+              selection: greedy-lowest-id-tie
+              stopping: model-end-or-budget
+  - label: Configure with host retention
+    input:
+      execution:
+        experiments:
+        - control: model
+          value: tinyllm-8k
+          ontology_binding:
+            primary: ModelArtifact
+            related: []
+        - control: kv_reuse
+          value: true
+          ontology_binding:
+            primary: KVCache
+            related:
+            - ModelExecution
+        - control: kv_cache
+          value:
+            device_kv_bytes: 2560
+            host_kv_bytes: 32768
+            retention_policy: whole-prefix-lru
+          ontology_binding:
+            primary: KVCache
+            related:
+            - KVState
+        - control: scheduling
+          value:
+            max_active_requests: 1
+          ontology_binding:
+            primary: RequestScheduling
+            related: []
+        - control: transfer
+          value:
+            link_bytes_per_us: 100
+            link_latency_us: 10
+          ontology_binding:
+            primary: StateTransfer
+            related:
+            - KVState
+        - control: compute_service
+          value:
+            compute_flops_per_us: 1000
+            memory_bytes_per_us: 1000
+          ontology_binding:
+            primary: ComputeService
+            related: []
+      workload:
+        kind: fixed-arrivals
+        requests:
+        - request_id: r1
+          arrival_us: 0
+          request:
+            text: the ball.
+            generation:
+              max_new_tokens: 16
+              selection: greedy-lowest-id-tie
+              stopping: model-end-or-budget
+        - request_id: r2
+          arrival_us: 10000
+          request:
+            text: the cup.
+            generation:
+              max_new_tokens: 16
+              selection: greedy-lowest-id-tie
+              stopping: model-end-or-budget
+        - request_id: r3
+          arrival_us: 20000
+          request:
+            text: the ball.
             generation:
               max_new_tokens: 16
               selection: greedy-lowest-id-tie
@@ -181,9 +205,7 @@ experiments:
     related:
     - ModelExecution
     - KVState
-  missing_controls:
-  - draft_model
-  - speculation
+  missing_controls: []
   contract:
     target_regime: A smaller draft proposes tokens that the target verifies under greedy decoding, with fixed target
       weights, tokenizer, prompt and output policy.
@@ -198,7 +220,68 @@ experiments:
   - title: Fast Inference from Transformers via Speculative Decoding, ICML 2023
     url: https://proceedings.mlr.press/v202/leviathan23a.html
   evidence: []
-  variants: []
+  variants:
+  - label: Configure target-only decoding
+    input:
+      execution:
+        experiments:
+        - control: model
+          value: tinyllm-4m
+          ontology_binding:
+            primary: ModelArtifact
+            related: []
+        - control: kv_reuse
+          value: true
+          ontology_binding:
+            primary: KVCache
+            related:
+            - ModelExecution
+      workload:
+        kind: fixed-arrivals
+        requests:
+        - request_id: r1
+          arrival_us: 0
+          request:
+            text: Once upon a time, there was a little dog.
+            generation:
+              max_new_tokens: 32
+              selection: greedy-lowest-id-tie
+              stopping: model-end-or-budget
+  - label: Configure speculative decoding
+    input:
+      execution:
+        experiments:
+        - control: model
+          value: tinyllm-4m
+          ontology_binding:
+            primary: ModelArtifact
+            related: []
+        - control: kv_reuse
+          value: true
+          ontology_binding:
+            primary: KVCache
+            related:
+            - ModelExecution
+        - control: speculation
+          value:
+            draft_model: tinyllm-500k
+            proposal_tokens: 4
+          ontology_binding:
+            primary: Decoding
+            related:
+            - ModelArtifact
+            - KVState
+      workload:
+        kind: fixed-arrivals
+        requests:
+        - request_id: r1
+          arrival_us: 0
+          request:
+            text: Once upon a time, there was a little dog.
+            generation:
+              max_new_tokens: 32
+              selection: greedy-lowest-id-tie
+              stopping: model-end-or-budget
 - id: positional-encoding
   name: Positional encoding
   question: What happens if the same token appears at a different position, under each declared position mechanism?
@@ -263,7 +346,7 @@ experiments:
   - docs/labs/constrained-fleet.md
   variants: []
 - id: kv-browser-timing
-  name: KV reuse
+  name: Incremental KV caching
   question: How does retaining earlier token positions change the work and latency of generating the next token?
   ontology_binding:
     primary: KVCache

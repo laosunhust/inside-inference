@@ -72,7 +72,7 @@ export async function checkCache({send,evaluate,until,click,base,output}) {
  const logical=({measurements,...rest})=>rest;
  let replayChecked=false;
  for(const c of cases){
-  const input=await evaluate(`(()=>{const input=JSON.parse(document.getElementById('inference-data').textContent);input.execution.experiments.find(e=>e.control==='model').value='tinyllm-8k';input.execution.experiments.find(e=>e.control==='kv_reuse').value=true;const system=${JSON.stringify(c.spec.system)};for(const d of Declarations.schemas.ExecutionControl.oneOf.filter(d=>d.properties.value.$ref)){const control=d.properties.control.const;input.execution.experiments.push({control,value:system[control],ontology_binding:d.properties.ontology_binding.const});}input.workload=${JSON.stringify(c.spec.workload)};return input;})()`);
+  const input=await evaluate(`(()=>{const input=JSON.parse(document.getElementById('inference-data').textContent);input.execution.experiments.find(e=>e.control==='model').value='tinyllm-8k';input.execution.experiments.find(e=>e.control==='kv_reuse').value=true;const system=${JSON.stringify(c.spec.system)};for(const d of Declarations.schemas.ExecutionControl.oneOf.filter(d=>Object.hasOwn(Declarations.schemas.KVResidencySystemConfig.properties,d.properties.control.const))){const control=d.properties.control.const;input.execution.experiments.push({control,value:system[control],ontology_binding:d.properties.ontology_binding.const});}input.workload=${JSON.stringify(c.spec.workload)};return input;})()`);
   // Current generation policy, not the retired standalone chat endpoint.
   input.workload.requests.forEach(r=>r.request.generation.stopping='model-end-or-budget');
   const expected=await evaluate(`Execution.simulateResources(${JSON.stringify(input)})`);Declarations.assertShape('ResourceExecution',expected);
@@ -85,7 +85,7 @@ export async function checkCache({send,evaluate,until,click,base,output}) {
    assert.equal(prediction.selected_id,first.selection.selected_id);
    prediction.logits.forEach((v,i)=>assert.ok(Math.abs(v-first.selection.raw_logits[i])<=1e-10,'Resource/ordinary numerical parity'));
    const incompatible=structuredClone(input);incompatible.execution.experiments.find(e=>e.control==='kv_reuse').value=false;
-   const rejection=await evaluate(`Execution.simulateResources(${JSON.stringify(incompatible)}).then(()=>null,e=>e.message)`);assert.match(rejection,/requires KV reuse/);
+   const rejection=await evaluate(`Execution.simulateResources(${JSON.stringify(incompatible)}).then(()=>null,e=>e.message)`);assert.match(rejection,/GenerationInput:.*kv_reuse/);
   }
   await evaluate(`(()=>{const config=${JSON.stringify(c.spec.system)};const visit=o=>Object.entries(o).forEach(([k,v])=>{if(v&&typeof v==='object')visit(v);else {const e=document.getElementById('resource-'+k);if(e){e.value=v;e.dispatchEvent(new Event('change'));}}});visit(config);})()`);
   await evaluate(`document.getElementById('system-dialog').close();if(document.getElementById('inference-form').hidden)document.getElementById('edit-input').click();`);

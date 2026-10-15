@@ -2500,7 +2500,8 @@
         "stop_reason",
         "work",
         "decoder_ms",
-        "service_ms"
+        "service_ms",
+        "speculation"
       ],
       "properties": {
         "prediction_id": {
@@ -2569,12 +2570,22 @@
         "decoder_ms": {
           "type": "number",
           "minimum": 0,
-          "description": "Copied worker Decoder.run duration; includes model-declared capture. Independent clock domain from browser timestamps."
+          "description": "Copied GenerationPrediction.decoder_ms, including any round work charged to this delivery. Independent clock domain from browser timestamps."
         },
         "service_ms": {
           "type": "number",
           "minimum": 0,
           "description": "Copied worker response-construction duration including decoder; excludes admission and JSON serialization. Cross-domain timestamp arithmetic is undefined."
+        },
+        "speculation": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/SpeculativeDelivery"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
@@ -2653,6 +2664,120 @@
         },
         "input": {
           "$ref": "#/$defs/GenerationInput"
+        }
+      }
+    },
+    "SpeculationRound": {
+      "type": "object",
+      "x-owner": "Decoding",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "draft_model_id",
+        "draft_weights_sha256",
+        "proposed_ids",
+        "target_selected_ids",
+        "accepted_count",
+        "committed_ids",
+        "draft_calls",
+        "target_calls",
+        "draft_work",
+        "target_work",
+        "draft_ms",
+        "target_ms"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "draft_model_id": {
+          "type": "string"
+        },
+        "draft_weights_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "proposed_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "target_selected_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "accepted_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "committed_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "draft_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "target_calls": {
+          "type": "integer",
+          "const": 1
+        },
+        "draft_work": {
+          "$ref": "#/$defs/GenerationWork"
+        },
+        "target_work": {
+          "$ref": "#/$defs/GenerationWork"
+        },
+        "draft_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "target_ms": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "SpeculativeDelivery": {
+      "type": "object",
+      "x-owner": "Decoding",
+      "additionalProperties": false,
+      "required": [
+        "round_id",
+        "token_offset",
+        "buffered",
+        "round"
+      ],
+      "properties": {
+        "round_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "token_offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "buffered": {
+          "type": "boolean"
+        },
+        "round": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/SpeculationRound"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
@@ -4017,7 +4142,8 @@
         "id",
         "contract_sha256",
         "probabilities",
-        "work"
+        "work",
+        "speculation"
       ],
       "properties": {
         "model_id": {
@@ -4087,12 +4213,12 @@
         "decoder_ms": {
           "type": "number",
           "minimum": 0,
-          "description": "Worker perf_counter duration around Decoder.run, including the model capability's tensor capture. Excludes selection, decoding and serialization."
+          "description": "Sum of decoder forward durations charged to this delivery. Speculative rounds charge draft and verification on the first delivery; buffered deliveries have zero decoder work."
         },
         "service_ms": {
           "type": "number",
           "minimum": 0,
-          "description": "Worker perf_counter duration from immediately before Decoder.run through response construction, including selection, decoding, pieces and observation construction. Excludes input admission and JSON serialization. Nested decoder duration is included; no cross-domain timestamp arithmetic."
+          "description": "Worker duration from generation service computation through response construction, excluding input admission and JSON serialization. Speculative first deliveries include the whole round; buffered deliveries include response construction only."
         },
         "nodes": {
           "type": "array",
@@ -4130,6 +4256,16 @@
         },
         "work": {
           "$ref": "#/$defs/GenerationWork"
+        },
+        "speculation": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/SpeculativeDelivery"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
@@ -4607,7 +4743,8 @@
             "kv_cache",
             "scheduling",
             "transfer",
-            "compute_service"
+            "compute_service",
+            "speculation"
           ]
         },
         "value": {
@@ -4723,6 +4860,25 @@
               "const": {
                 "primary": "ComputeService",
                 "related": []
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "control": {
+              "const": "speculation"
+            },
+            "value": {
+              "$ref": "#/$defs/SpeculationConfig"
+            },
+            "ontology_binding": {
+              "const": {
+                "primary": "Decoding",
+                "related": [
+                  "ModelArtifact",
+                  "KVState"
+                ]
               }
             }
           }
@@ -4887,6 +5043,122 @@
                       ]
                     },
                     "maxContains": 1
+                  },
+                  {
+                    "contains": {
+                      "type": "object",
+                      "properties": {
+                        "control": {
+                          "const": "model"
+                        },
+                        "value": {
+                          "const": "tinyllm-8k"
+                        }
+                      },
+                      "required": [
+                        "control",
+                        "value"
+                      ]
+                    }
+                  },
+                  {
+                    "contains": {
+                      "type": "object",
+                      "properties": {
+                        "control": {
+                          "const": "kv_reuse"
+                        },
+                        "value": {
+                          "const": true
+                        }
+                      },
+                      "required": [
+                        "control",
+                        "value"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "if": {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "control": {
+                      "const": "speculation"
+                    }
+                  },
+                  "required": [
+                    "control"
+                  ]
+                }
+              },
+              "then": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "type": "object",
+                      "properties": {
+                        "control": {
+                          "const": "speculation"
+                        }
+                      },
+                      "required": [
+                        "control"
+                      ]
+                    },
+                    "maxContains": 1
+                  },
+                  {
+                    "contains": {
+                      "type": "object",
+                      "properties": {
+                        "control": {
+                          "const": "model"
+                        },
+                        "value": {
+                          "const": "tinyllm-4m"
+                        }
+                      },
+                      "required": [
+                        "control",
+                        "value"
+                      ]
+                    }
+                  },
+                  {
+                    "contains": {
+                      "type": "object",
+                      "properties": {
+                        "control": {
+                          "const": "kv_reuse"
+                        },
+                        "value": {
+                          "const": true
+                        }
+                      },
+                      "required": [
+                        "control",
+                        "value"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "contains": {
+                        "type": "object",
+                        "properties": {
+                          "control": {
+                            "const": "kv_cache"
+                          }
+                        },
+                        "required": [
+                          "control"
+                        ]
+                      }
+                    }
                   }
                 ]
               }
@@ -4953,6 +5225,32 @@
             "type": "string"
           },
           "description": "Request-indexed malformed or incomplete decoding diagnostics; output text remains unmodified."
+        }
+      }
+    },
+    "SpeculationConfig": {
+      "type": "object",
+      "x-owner": "Decoding",
+      "additionalProperties": false,
+      "required": [
+        "draft_model",
+        "proposal_tokens"
+      ],
+      "properties": {
+        "draft_model": {
+          "type": "string",
+          "enum": [
+            "tinyllm-500k"
+          ],
+          "default": "tinyllm-500k",
+          "title": "Draft model"
+        },
+        "proposal_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8,
+          "default": 4,
+          "title": "Draft tokens per round"
         }
       }
     },

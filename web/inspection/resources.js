@@ -10,11 +10,13 @@ export function resourceExperiment(read,change,inspect,configurationUI) {
     if(!keys.some(key=>Object.hasOwn(values,key)))return null;
     return Object.fromEntries(Object.entries(Declarations.schemas.KVResidencySystemConfig.properties).map(([key,field])=>[key,keys.includes(key)?values[key]:field.const]));
   };
-  function configure(value) {
+  function configuredInput(value) {
     const input=structuredClone(read());input.execution.experiments=input.execution.experiments.filter(e=>!keys.includes(e.control));
     if(value)for(const d of definitions){const control=d.properties.control.const;input.execution.experiments.push({control,value:value[control],ontology_binding:d.properties.ontology_binding.const});}
-    change(input);
+    if(!value){input.workload.requests=input.workload.requests.slice(0,1);input.workload.requests[0].arrival_us=0;}
+    return input;
   }
+  function configure(value){const input=configuredInput(value);Declarations.assertShape('GenerationInput',input);change(input);}
   const enableLabel=el('label','Residency simulation · 8K'),enable=el('input');enable.type='checkbox';enable.id='resource-enabled';enableLabel.append(enable);
   configurationUI.editor('kv_cache').append(enableLabel);
   const groups=new Map();
@@ -49,6 +51,9 @@ export function resourceExperiment(read,change,inspect,configurationUI) {
   $('add-request').onclick=()=>{const next=structuredClone(read()),requests=next.workload.requests;let n=1;while(requests.some(r=>r.request_id==='r'+n))n++;requests.push({...structuredClone(requests.at(-1)),request_id:'r'+n});change(next);};
   function render(evidence,view){
     const config=configuration();$('resource-enabled').checked=!!config;
+    let compatible=true;try{Declarations.assertShape('GenerationInput',configuredInput(defaults(Declarations.schemas.KVResidencySystemConfig)));}catch{compatible=false;}
+    $('resource-enabled').disabled=!config&&!compatible;
+    enableLabel.title=!compatible?'Residency simulation requires the 8K model with KV reuse and without speculative decoding':read().workload.requests.length>1?'Turning off uses the first request as a single input arriving at zero':'';
     for(const definition of definitions){
       const control=definition.properties.control.const,group=groups.get(control),schema=Declarations.schemas[definition.properties.value.$ref.split('/').at(-1)];
       group.disabled=!config;group.replaceChildren(fields(schema,config?.[control]??defaults(schema),[control]));
@@ -64,5 +69,5 @@ export function resourceExperiment(read,change,inspect,configurationUI) {
     run.computations.forEach((c,i)=>select.append(new Option(`${c.request_id} · ${c.phase} · ${c.input_ids.length} positions`,String(i))));
     select.value=String(view.computation_index??0);select.onchange=()=>inspect({computation_index:Number(select.value),position:run.computations[Number(select.value)].state_after.token_ids.length-1,surface:'system',observation_id:null});label.append(select);panel.append(label);
   }
-  return {render};
+  return {render,disable:()=>configure(null)};
 }

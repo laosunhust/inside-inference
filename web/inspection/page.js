@@ -9,7 +9,7 @@ import {mountTiming} from './performance/panel.js';
   let resources,observerFrame=null;
   const dispatch=createDispatch(Execution);
   const timing=createTiming(),performancePanel=mountTiming($('interaction-performance'));
-  const renderPerformance=()=>{const trace=timing.evidence();performancePanel(trace,trace.samples.at(-1)?.token_index||0,!!S.controls(state).resources);};
+  const renderPerformance=()=>{const trace=timing.evidence();performancePanel(trace,trace.samples.at(-1)?.token_index||0,!!S.controls(state).resources,state.loaded?.token_pieces||[]);};
   let state=S.create(JSON.parse($('inference-data').textContent)),catalog=null;
   let epoch=0,loadEpoch=0,loading=false,pending=false,running=false,error='',configuration;
   const playback=ExecutionPath.playback(()=>status());
@@ -31,6 +31,14 @@ import {mountTiming} from './performance/panel.js';
   function status() {
     let unavailable='';try{S.nextRequest(state);}catch(e){unavailable=e.message;}
     const disabled=loading||pending||!state.prepared||!!error||!!unavailable;
+    const speculating=state.input.execution.experiments.some(e=>e.control==='speculation');
+    $('model-choice').disabled=!catalog||loading||speculating;$('switch-inspection').disabled=speculating;
+    const resourceMode=!!S.controls(state).resources;
+    $('disable-resource-mode').hidden=!resourceMode;
+    $('disable-speculation').hidden=!speculating;
+    $('disable-resource-mode').textContent=state.input.workload.requests.length>1?'Exit simulation with first request':'Turn off residency simulation';
+    for(const option of $('model-choice').options){const candidate={experiments:state.input.execution.experiments.map(e=>e.control==='model'?{...e,value:option.value}:e)};try{Declarations.assertShape('ExecutionSpec',candidate);option.disabled=false;}catch{option.disabled=true;}}
+    $('model-choice').title=speculating?'Configure target-only decoding to change the target model':resourceMode?'Turn off residency simulation to choose another model':'';
     $('next-token').disabled=disabled||!!S.controls(state).resources;$('continue-tokens').disabled=S.controls(state).resources?(loading||pending||!state.loaded||!!error):disabled;
     $('next-token').title=S.controls(state).resources?'Generate executes the scheduled workload':unavailable;
     $('stop-tokens').hidden=!running;
@@ -71,7 +79,7 @@ import {mountTiming} from './performance/panel.js';
     const stages=S.architecture(state),observation=pass?.nodes.find(n=>n.id===state.view.observation_id);
     const selectedStage=state.view.surface==='architecture'?state.view.architecture_step:observation?stages.findIndex(s=>s.layer===observation.layer&&s.operations.includes(observation.operation.name)):-1;
     document.querySelectorAll('[data-architecture-step]').forEach(item=>item.querySelector('button').classList.toggle('selected-object',Number(item.dataset.architectureStep)===selectedStage));
-    $('computation-caption').textContent=pass&&!pending?`${state.resource?pass.request_id+' · '+pass.phase:pass.request.output_ids.length?'Decode':'Prefill'} · ${S.work(state).processed_positions} computed${S.work(state).reused_positions?` · ${S.work(state).reused_positions} retained`:''}`:'';
+    $('computation-caption').textContent=pass&&!pending?`${pass.speculation?(pass.speculation.buffered?'Verified token from buffer':'Speculative round'):state.resource?pass.request_id+' · '+pass.phase:pass.request.output_ids.length?'Decode':'Prefill'} · ${S.work(state).processed_positions} computed${S.work(state).reused_positions?` · ${S.work(state).reused_positions} retained`:''}`:'';
   }
   function render() {
     $('request-preview').textContent=state.input.workload.requests.map(r=>(state.input.workload.requests.length>1?r.request_id+': ':'')+(r.request.text||'(empty input)')).join(' · ');
@@ -87,12 +95,16 @@ import {mountTiming} from './performance/panel.js';
     $('run-identity').textContent=state.step&&!pending?JSON.stringify(state.step):'';
     $('generation-note').textContent=state.resource?Object.entries(state.resource.decoding_notes).map(([id,note])=>id+': '+note).join(' · '):state.step?.decoding_note || ({end_token:state.step?.text?'End token':'Model ended without text',output_budget:'Token budget reached',context_capacity:'Context full'})[state.step?.stop_reason] || '';
     const controls=S.controls(state);
-    $('interaction-configuration').textContent=`${selected()?.label||controls.model_id} · KV reuse ${controls.kv_reuse?'ON':'OFF'} · ${controls.resources?'Resource simulation':'Browser execution'} · `+state.input.workload.requests.map(r=>`${r.request.generation.max_new_tokens}-token limit`).join(', ');
+    const requests=state.input.workload.requests,budgets=requests.map(r=>r.request.generation.max_new_tokens);
+    const budgetSummary=budgets.every(n=>n===budgets[0])?`${requests.length>1?requests.length+' requests · ':''}${budgets[0]}-token limit${requests.length>1?' each':''}`:requests.map(r=>`${r.request_id}: ${r.request.generation.max_new_tokens}-token limit`).join(', ');
+    $('interaction-configuration').textContent=`${selected()?.label||controls.model_id} · KV reuse ${controls.kv_reuse?'ON':'OFF'} · ${controls.resources?'Resource simulation':'Browser execution'} · ${budgetSummary}`;
+    const speculation=state.input.execution.experiments.find(e=>e.control==='speculation')?.value;
+    if(speculation)$('interaction-configuration').textContent+=` · Draft ${catalog.models.find(m=>m.id===speculation.draft_model).label} · ${speculation.proposal_tokens} proposals/round`;
     $('interaction-settings-values').replaceChildren(Experiments.settings(state.input));
-    if(controls.resources){const run=state.resource?.run;$('timing-simulation').textContent=run?`Virtual duration: ${run.events.at(-1).time_us.toFixed(2)} µs · ${run.computations.reduce((n,c)=>n+c.input_ids.length,0)} computed positions. See the resource timeline for individual events.`:'Simulation uses a virtual clock. Generate to execute the configured workload.';}
+    if(controls.resources){const run=state.resource?.run,count=kind=>run.events.filter(e=>e.kind===kind).length;$('timing-simulation').textContent=run?`Virtual duration: ${run.events.at(-1).time_us.toFixed(2)} µs · ${run.computations.reduce((n,c)=>n+c.input_ids.length,0)} computed positions. ${count('miss')} misses · ${count('local-hit')} local hits · ${count('remote-hit')} remote hits · ${count('transfer-start')} transfers. See the resource timeline for individual events.`:'Simulation uses a virtual clock. Generate to execute the configured workload.';}
     renderSetup();renderPath();status();renderPerformance();
-    $('numerical-inspector').hidden=(!state.prepared&&!S.controls(state).resources)||pending;
-    if((state.prepared||S.controls(state).resources)&&!pending)InspectionDetails.render(state,inspect);else {$('detail-body').replaceChildren();$('concept-body').replaceChildren();$('inspection-context').textContent='';}
+    $('numerical-inspector').hidden=!state.loaded||(!state.prepared&&!S.controls(state).resources)||pending;
+    if(state.loaded&&(state.prepared||S.controls(state).resources)&&!pending)InspectionDetails.render(state,inspect);else {$('detail-body').replaceChildren();$('concept-body').replaceChildren();$('inspection-context').textContent='';}
     configuration?.refresh();systemMap.refresh(state.input.execution);resources?.render(state.resource,state.view);
   }
   function clearPanels() {
@@ -112,7 +124,7 @@ import {mountTiming} from './performance/panel.js';
     try {
       const loaded=await dispatch.invoke('loadModel',{model_id:id});if(ticket!==loadEpoch)return;
       if(JSON.stringify(loaded.model)!==JSON.stringify(selected()))throw Error('Loaded model differs from catalog');
-      state=S.admitModel(state,loaded);loading=false;await prepare();
+      state=S.admitModel(state,loaded);loading=false;if(S.controls(state).resources)render();else await prepare();
     }catch(e){if(ticket===loadEpoch){loading=false;setError(e);render();}}
   }
   function scheduleObserver() {
@@ -172,6 +184,8 @@ import {mountTiming} from './performance/panel.js';
   $('model-choice').onchange=()=>changeModel($('model-choice').value);
   $('retry-model').onclick=()=>changeModel(S.controls(state).model_id);
   $('switch-inspection').onclick=()=>changeModel(catalog.models.find(m=>m.inspection==='tensors').id);
+  $('disable-resource-mode').onclick=()=>resources.disable();
+  $('disable-speculation').onclick=()=>{const input=structuredClone(state.input);input.execution.experiments=input.execution.experiments.filter(e=>e.control!=='speculation');configureExperiment({label:'Turn off speculative decoding',input});};
   $('next-token').onclick=()=>generate();$('continue-tokens').onclick=()=>generate(true);
   $('stop-tokens').onclick=()=>{running=false;status();};
   $('reset').onclick=()=>{stop();state=S.reset(state);clearPanels();render();};

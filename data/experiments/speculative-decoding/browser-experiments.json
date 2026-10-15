@@ -1,0 +1,557 @@
+{
+  "catalog": [
+    {
+      "id": "kv-residency",
+      "variants": 2
+    },
+    {
+      "id": "prefill-decode",
+      "variants": 0
+    },
+    {
+      "id": "speculative-decoding",
+      "variants": 2
+    },
+    {
+      "id": "positional-encoding",
+      "variants": 0
+    },
+    {
+      "id": "constrained-fleet",
+      "variants": 0
+    },
+    {
+      "id": "kv-browser-timing",
+      "variants": 2
+    }
+  ],
+  "speculative": [
+    {
+      "output": [
+        282,
+        466,
+        286,
+        381,
+        3057,
+        4037,
+        316,
+        698,
+        452,
+        584,
+        345,
+        1831,
+        4045,
+        330,
+        4045,
+        736,
+        478,
+        268,
+        379,
+        4037,
+        330,
+        507,
+        268,
+        325,
+        332,
+        345,
+        476,
+        4037,
+        13,
+        4053,
+        3767,
+        331
+      ],
+      "rounds": []
+    },
+    {
+      "output": [
+        282,
+        466,
+        286,
+        381,
+        3057,
+        4037,
+        316,
+        698,
+        452,
+        584,
+        345,
+        1831,
+        4045,
+        330,
+        4045,
+        736,
+        478,
+        268,
+        379,
+        4037,
+        330,
+        507,
+        268,
+        325,
+        332,
+        345,
+        476,
+        4037,
+        13,
+        4053,
+        3767,
+        331
+      ],
+      "rounds": [
+        {
+          "accepted_count": 4,
+          "committed_ids": [
+            282,
+            466,
+            286,
+            381,
+            3057
+          ],
+          "draft_calls": 4,
+          "draft_model_id": "tinyllm-500k",
+          "draft_ms": 14.999999000000486,
+          "draft_weights_sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa",
+          "draft_work": {
+            "matmul_flops": 14376960,
+            "processed_positions": 15,
+            "reused_positions": 39
+          },
+          "id": "bb9852794103668a2739d5089f0a42cc3a0ea3faa229950566a68765ae717dfc",
+          "proposed_ids": [
+            282,
+            466,
+            286,
+            381
+          ],
+          "target_calls": 1,
+          "target_ms": 83.70000100000041,
+          "target_selected_ids": [
+            282,
+            466,
+            286,
+            381,
+            3057
+          ],
+          "target_work": {
+            "matmul_flops": 136871936,
+            "processed_positions": 16,
+            "reused_positions": 0
+          }
+        },
+        {
+          "accepted_count": 3,
+          "committed_ids": [
+            4037,
+            316,
+            698,
+            452
+          ],
+          "draft_calls": 4,
+          "draft_model_id": "tinyllm-500k",
+          "draft_ms": 7.600001000000134,
+          "draft_weights_sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa",
+          "draft_work": {
+            "matmul_flops": 4843520,
+            "processed_positions": 5,
+            "reused_positions": 69
+          },
+          "id": "056f4c3638053152e292b80e2efd50185674cafa17f3725411effbb7a4003416",
+          "proposed_ids": [
+            4037,
+            316,
+            698,
+            1335
+          ],
+          "target_calls": 1,
+          "target_ms": 27.399999000000008,
+          "target_selected_ids": [
+            4037,
+            316,
+            698,
+            452,
+            268
+          ],
+          "target_work": {
+            "matmul_flops": 42987520,
+            "processed_positions": 5,
+            "reused_positions": 16
+          }
+        },
+        {
+          "accepted_count": 0,
+          "committed_ids": [
+            584
+          ],
+          "draft_calls": 4,
+          "draft_model_id": "tinyllm-500k",
+          "draft_ms": 6.89999999999813,
+          "draft_weights_sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa",
+          "draft_work": {
+            "matmul_flops": 3893248,
+            "processed_positions": 4,
+            "reused_positions": 86
+          },
+          "id": "9d56ab3e9be16cf5a0e0de8eac2af6bcbe60eb941bfe4ee2ec517422a4b63642",
+          "proposed_ids": [
+            369,
+            519,
+            268,
+            325
+          ],
+          "target_calls": 1,
+          "target_ms": 27.79999900000263,
+          "target_selected_ids": [
+            584,
+            373,
+            268,
+            976,
+            332
+          ],
+          "target_work": {
+            "matmul_flops": 43069440,
+            "processed_positions": 5,
+            "reused_positions": 20
+          }
+        },
+        {
+          "accepted_count": 2,
+          "committed_ids": [
+            345,
+            1831,
+            4045
+          ],
+          "draft_calls": 4,
+          "draft_model_id": "tinyllm-500k",
+          "draft_ms": 6.699998000001983,
+          "draft_weights_sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa",
+          "draft_work": {
+            "matmul_flops": 3897344,
+            "processed_positions": 4,
+            "reused_positions": 90
+          },
+          "id": "432ea7694cbf5285dd0fbc03e3f27ac11a175bdc58d06d2f828855cde8108927",
+          "proposed_ids": [
+            345,
+            1831,
+            326,
+            4037
+          ],
+          "target_calls": 1,
+          "target_ms": 27.90000099999901,
+          "target_selected_ids": [
+            345,
+            1831,
+            4045,
+            4037,
+            387
+          ],
+          "target_work": {
+            "matmul_flops": 43089920,
+            "processed_positions": 5,
+            "reused_positions": 21
+          }
+        },
+        {
+          "accepted_count": 0,
+          "committed_ids": [
+            330
+          ],
+          "draft_calls": 4,
+          "draft_model_id": "tinyllm-500k",
+          "draft_ms": 7.099999000001134,
+          "draft_weights_sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa",
+          "draft_work": {
+            "matmul_flops": 3909632,
+            "processed_positions": 4,
+            "reused_positions": 102
+          },
+          "id": "3e0851d7758675f7b8e97de6dc7785b47332468b465e6c26921ed09c26ed34cc",
+          "proposed_ids": [
+            261,
+            394,
+            477,
+            407
+          ],
+          "target_calls": 1,
+          "target_ms": 27.90000099999901,
+          "target_selected_ids": [
+            330,
+            394,
+            499,
+            4045,
+            383
+          ],
+          "target_work": {
+            "matmul_flops": 43151360,
+            "processed_positions": 5,
+            "reused_positions": 24
+          }
+        },
+        {
+          "accepted_count": 0,
+          "committed_ids": [
+            4045
+          ],
+          "draft_calls": 4,
+          "draft_model_id": "tinyllm-500k",
+          "draft_ms": 6.799999999998363,
+          "draft_weights_sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa",
+          "draft_work": {
+            "matmul_flops": 3913728,
+            "processed_positions": 4,
+            "reused_positions": 106
+          },
+          "id": "e99e2ff2d473aa76e67533a7ce22a13c4a526924c0ade61fbf0ae5fb688257fd",
+          "proposed_ids": [
+            269,
+            345,
+            466,
+            4045
+          ],
+          "target_calls": 1,
+          "target_ms": 27.69999999999939,
+          "target_selected_ids": [
+            4045,
+            345,
+            1831,
+            4045,
+            504
+          ],
+          "target_work": {
+            "matmul_flops": 43171840,
+            "processed_positions": 5,
+            "reused_positions": 25
+          }
+        },
+        {
+          "accepted_count": 0,
+          "committed_ids": [
+            736
+          ],
+          "draft_calls": 4,
+          "draft_model_id": "tinyllm-500k",
+          "draft_ms": 6.699998999998513,
+          "draft_weights_sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa",
+          "draft_work": {
+            "matmul_flops": 3917824,
+            "processed_positions": 4,
+            "reused_positions": 110
+          },
+          "id": "146ec733d25df435604f27021beebc09c86d0550f8101f55bb0ceec4a3d71c8c",
+          "proposed_ids": [
+            268,
+            434,
+            478,
+            4037
+          ],
+          "target_calls": 1,
+          "target_ms": 27.499999999999858,
+          "target_selected_ids": [
+            736,
+            569,
+            478,
+            4037,
+            330
+          ],
+          "target_work": {
+            "matmul_flops": 43192320,
+            "processed_positions": 5,
+            "reused_positions": 26
+          }
+        },
+        {
+          "accepted_count": 2,
+          "committed_ids": [
+            478,
+            268,
+            379
+          ],
+          "draft_calls": 4,
+          "draft_model_id": "tinyllm-500k",
+          "draft_ms": 6.900000999998213,
+          "draft_weights_sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa",
+          "draft_work": {
+            "matmul_flops": 3921920,
+            "processed_positions": 4,
+            "reused_positions": 114
+          },
+          "id": "4ef060124ddc48a7961c8caca9be040d577ec334d061f18930afc02c66687a70",
+          "proposed_ids": [
+            478,
+            268,
+            324,
+            3057
+          ],
+          "target_calls": 1,
+          "target_ms": 27.40000000000009,
+          "target_selected_ids": [
+            478,
+            268,
+            379,
+            558,
+            4037
+          ],
+          "target_work": {
+            "matmul_flops": 43212800,
+            "processed_positions": 5,
+            "reused_positions": 27
+          }
+        },
+        {
+          "accepted_count": 1,
+          "committed_ids": [
+            4037,
+            330
+          ],
+          "draft_calls": 4,
+          "draft_model_id": "tinyllm-500k",
+          "draft_ms": 7.100001000001299,
+          "draft_weights_sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa",
+          "draft_work": {
+            "matmul_flops": 3934208,
+            "processed_positions": 4,
+            "reused_positions": 126
+          },
+          "id": "62169d5674fe029625c4193fb5863e1a3a54291984935062626d937a08a91b0a",
+          "proposed_ids": [
+            4037,
+            282,
+            466,
+            286
+          ],
+          "target_calls": 1,
+          "target_ms": 29.299998999999133,
+          "target_selected_ids": [
+            4037,
+            330,
+            466,
+            530,
+            381
+          ],
+          "target_work": {
+            "matmul_flops": 43274240,
+            "processed_positions": 5,
+            "reused_positions": 30
+          }
+        },
+        {
+          "accepted_count": 0,
+          "committed_ids": [
+            507
+          ],
+          "draft_calls": 4,
+          "draft_model_id": "tinyllm-500k",
+          "draft_ms": 6.900000999998213,
+          "draft_weights_sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa",
+          "draft_work": {
+            "matmul_flops": 3942400,
+            "processed_positions": 4,
+            "reused_positions": 134
+          },
+          "id": "c779224c9d1c486abf1142a9106d192b7c807fbd4ad3ab96b521c635fe468f26",
+          "proposed_ids": [
+            286,
+            381,
+            558,
+            450
+          ],
+          "target_calls": 1,
+          "target_ms": 27.599999999999625,
+          "target_selected_ids": [
+            507,
+            261,
+            380,
+            450,
+            1366
+          ],
+          "target_work": {
+            "matmul_flops": 43315200,
+            "processed_positions": 5,
+            "reused_positions": 32
+          }
+        },
+        {
+          "accepted_count": 4,
+          "committed_ids": [
+            268,
+            325,
+            332,
+            345,
+            476
+          ],
+          "draft_calls": 4,
+          "draft_model_id": "tinyllm-500k",
+          "draft_ms": 6.89999999999813,
+          "draft_weights_sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa",
+          "draft_work": {
+            "matmul_flops": 3946496,
+            "processed_positions": 4,
+            "reused_positions": 138
+          },
+          "id": "1ca08a67c243f451b91cb24f01aa73202ca298d42b94908d1e1142d05bb3bf5d",
+          "proposed_ids": [
+            268,
+            325,
+            332,
+            345
+          ],
+          "target_calls": 1,
+          "target_ms": 27.499999999999858,
+          "target_selected_ids": [
+            268,
+            325,
+            332,
+            345,
+            476
+          ],
+          "target_work": {
+            "matmul_flops": 43335680,
+            "processed_positions": 5,
+            "reused_positions": 33
+          }
+        },
+        {
+          "accepted_count": 4,
+          "committed_ids": [
+            4037,
+            13,
+            4053,
+            3767,
+            331
+          ],
+          "draft_calls": 4,
+          "draft_model_id": "tinyllm-500k",
+          "draft_ms": 7.800000999999668,
+          "draft_weights_sha256": "e9b86a7ec0ddc60d595269089ec6e458b5eeb5bf0b21f62728398c208bbc93aa",
+          "draft_work": {
+            "matmul_flops": 4956160,
+            "processed_positions": 5,
+            "reused_positions": 157
+          },
+          "id": "dcb2d37e76818897be2b0deef8219a1be0c76262a8b74e210cf63ed01b187735",
+          "proposed_ids": [
+            4037,
+            13,
+            4053,
+            3767
+          ],
+          "target_calls": 1,
+          "target_ms": 27.899999999998926,
+          "target_selected_ids": [
+            4037,
+            13,
+            4053,
+            3767,
+            331
+          ],
+          "target_work": {
+            "matmul_flops": 43438080,
+            "processed_positions": 5,
+            "reused_positions": 38
+          }
+        }
+      ]
+    }
+  ]
+}

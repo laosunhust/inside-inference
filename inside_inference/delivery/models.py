@@ -21,7 +21,7 @@ def resolve_execution(spec):
     values = {item['control']: item['value'] for item in spec['experiments']}
     resources = {key: values[key] for key in SCHEMAS['KVResidencySystemConfig']['properties'] if key in values}
     return {'model_id': values['model'], 'kv_reuse': values['kv_reuse'],
-            'resources': resources or None}
+            'resources': resources or None, 'speculation': values.get('speculation')}
 
 
 def finish_selection(step, selected, model):
@@ -34,11 +34,12 @@ def finish_selection(step, selected, model):
 
 
 class ModelService:
-    """Holds the one loaded model; `read(url)` returns the bytes at an HTTP(S) or file URL."""
+    """Holds a target and, when configured, an independent draft; `read(url)` returns the bytes at an HTTP(S) or file URL."""
 
     def __init__(self, root, read):
         self.root, self.read = root, read
         self.catalog = self.model = self.decoder = self.tokenizer = self.checkpoint = None
+        self.draft = self.speculator = None
 
     async def load_catalog(self):
         if self.catalog is None:
@@ -69,6 +70,7 @@ class ModelService:
     async def load(self, model_id):
         model = self.descriptor(model_id)
         self.model = self.decoder = None
+        self.draft = self.speculator = None
         start = time.perf_counter()
         weights, manifest = [await self.asset(model[k]) for k in ('weights', 'tokenizer')]
         a = model['architecture']
@@ -98,6 +100,27 @@ class ModelService:
             return self.tokenizer.decode_prefix(ids, final=final)
         return self.tokenizer.decode(ids, previous), None
 
+    async def configure_draft(self, payload):
+        controls = resolve_execution(payload['execution'])
+        self.speculator = None
+        config = controls['speculation']
+        if config is None:
+            return
+        from inside_inference.runtimes.speculation import Speculator
+        target = self.loaded(controls['model_id'])
+        if self.draft is None or self.draft.model is None or self.draft.model['id'] != config['draft_model']:
+            self.draft = ModelService(self.root, self.read)
+            self.draft.catalog = self.catalog
+            await self.draft.load(config['draft_model'])
+        draft = self.draft.model
+        if (draft['tokenizer']['sha256'] != target['tokenizer']['sha256']
+                or draft['architecture']['vocabulary'] != target['architecture']['vocabulary']
+                or draft['architecture']['context'] < target['architecture']['context']
+                or draft['stop_ids'] != target['stop_ids']):
+            raise ValueError('Draft tokenizer, vocabulary, context or stop IDs are incompatible')
+        self.draft.decoder.prefix = []
+        self.speculator = Speculator(self, self.draft, config['proposal_tokens'])
+
     def prepare(self, payload):
         controls = resolve_execution(payload['execution'])
         model = self.loaded(controls['model_id'])
@@ -115,6 +138,9 @@ class ModelService:
         if len(ids) > model['architecture']['context']:
             raise ValueError('Input exceeds model context')
         self.decoder.prefix = []
+        if self.speculator is not None:
+            self.speculator.pending = []
+            self.draft.decoder.prefix = []
         return {'input': payload, 'prompt_ids': ids, 'pieces': self.pieces(ids), 'encoding': encoding}
 
     def generate(self, step):
@@ -129,19 +155,25 @@ class ModelService:
                 or any(i in model['stop_ids'] for i in step['output_ids'])):
             raise ValueError('Request has already finished')
         start = time.perf_counter()
-        run = self.decoder.run(ids, controls['kv_reuse'], capture=model['inspection'] == 'tensors')
-        decoder_ms = (time.perf_counter() - start) * 1000
+        speculation = None
+        if controls['speculation'] is not None:
+            if self.speculator is None or self.speculator.proposal_tokens != controls['speculation']['proposal_tokens']:
+                raise ValueError('Prepare the speculative configuration before generation')
+            run, decoder_ms, speculation = self.speculator.next(step)
+        else:
+            run = self.decoder.run(ids, controls['kv_reuse'], capture=model['inspection'] == 'tensors')
+            decoder_ms = (time.perf_counter() - start) * 1000
         logits = run['logits'].astype(float).tolist()
         selection = select_greedy(logits)
         selected = selection['selected_id']
         output, sequence, stop, visible = finish_selection(step, selected, model)
         text, note = self.decode(visible if self.checkpoint is not None else output, step['prefix_ids'][-1], stop is not None)
         identity = hashlib.sha256(canonical([CONTRACT_SHA256, model['weights']['sha256'], model['tokenizer']['sha256'], step])).hexdigest()
-        nodes = observations(run['trace'], ids, run['work'], a, identity + '/', run_id=identity, step=len(output) - 1)
+        nodes = [] if speculation else observations(run['trace'], ids, run['work'], a, identity + '/', run_id=identity, step=len(output) - 1)
         result = {'model_id': model['id'], 'weights_sha256': model['weights']['sha256'], 'tokenizer_sha256': model['tokenizer']['sha256'],
                 'sequence_ids': sequence, 'output_ids': output, 'text': text, 'pieces': self.pieces(sequence),
                 'logits': logits, 'probabilities': selection['probabilities'], 'selected_id': selected, 'stop_reason': stop,
-                'decoder_ms': decoder_ms, 'nodes': nodes, 'decoding_note': note, 'work': run['work'],
+                'decoder_ms': decoder_ms, 'speculation': speculation, 'nodes': nodes, 'decoding_note': note, 'work': run['work'],
                 'request': step, 'id': identity, 'contract_sha256': CONTRACT_SHA256}
         result['service_ms'] = (time.perf_counter() - start) * 1000
         return result
@@ -154,8 +186,6 @@ class ModelService:
             raise ValueError('Configure a KV residency experiment first')
         if self.checkpoint is None:
             raise ValueError('Resource simulation currently requires the 8K state format; select 8K explicitly')
-        if not controls['kv_reuse']:
-            raise ValueError('KV residency simulation requires KV reuse')
         spec = {'system': {**KVResidencySystemConfig().to_dict(), **controls['resources']}, 'workload': payload['workload'],
                 'ontology_binding': EXPERIMENTS['kv-residency']['ontology_binding']}
         run = run_cache_experiment(spec, checkpoint=self.checkpoint)

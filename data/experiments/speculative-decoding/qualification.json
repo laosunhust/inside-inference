@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "site_sha256": "315467d9f8ff08cf86bb5605bded6c2493a90c97430f0e6d6c38de1582965894",
+  "scope": "static-only site; interactive/headless calls in the same browser worker",
+  "parity": [
+    "browser headless operations",
+    "interactive computation",
+    "verified model assets",
+    "browser export"
+  ]
+}

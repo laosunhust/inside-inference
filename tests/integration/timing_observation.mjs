@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createTiming,timingMetrics} from '../../web/inspection/performance/observations.js';
-const timing=createTiming(),prediction=n=>({id:String(n).padStart(64,'0'),output_ids:Array(n).fill(1),request:{prefix_ids:[0],output_ids:Array(n-1).fill(1)},selected_id:1,stop_reason:null,work:{processed_positions:1,reused_positions:n-1,matmul_flops:2},decoder_ms:1,service_ms:2});
+const timing=createTiming(),prediction=n=>({id:String(n).padStart(64,'0'),output_ids:Array(n).fill(1),request:{prefix_ids:[0],output_ids:Array(n-1).fill(1)},selected_id:1,stop_reason:null,work:{processed_positions:1,reused_positions:n-1,matmul_flops:2},speculation:null,decoder_ms:1,service_ms:2});
 const record=(prediction,updated,publishes)=>timing.record(prediction,updated,publishes,updated-1);
 timing.begin('continuous',100,false);record(prediction(1),140,false);
 assert.equal(timingMetrics(timing.evidence()).ttft,null,'No visible text is not TTFT');

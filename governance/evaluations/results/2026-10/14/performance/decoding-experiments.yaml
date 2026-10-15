@@ -1,0 +1,47 @@
+version: 1
+evaluation: governance/evaluations/records/2026-10/14/performance/decoding-experiments.yaml
+evaluation_sha256: 8cccc992b0972fad0e7f7e82fed5c4a7a7711065f73042b12ed5b875416896a2
+outcome: passed
+summary: 'Removed the reference-execution catalog card, retaining its scope and evidence with the default
+  numerical reference documentation. Renamed the supported caching experiments Incremental KV caching
+  and KV cache residency. Residency now compares equal three-request workloads with host retention off/on:
+  the browser checks observe miss/miss/miss versus miss/miss/remote-hit, identical outputs and less computed
+  work with retention. Added a declared 0.5M draft / 4M target greedy speculative mode and configurable
+  proposal length, independent loaded model/KV state, one target forward per verification round, exact-prefix
+  acceptance, target correction/bonus and rejected-prefix rollback. Verified tokens are buffered for the
+  existing token operation: the first delivery charges full round work, subsequent deliveries charge zero
+  decoder work and explicitly reference the round. The same accepted ledger drives displayed proposal
+  decisions, durations, call counts, work, publication intervals and exported evidence. Both variants
+  selected identical 32-token outputs interactively and headlessly; retained headless observations show
+  20/48 accepted proposals, 48 draft calls and 12 target verification rounds. This supports functional
+  parity for the declared workload, not a speedup claim or universal floating-point identity. Synthetic
+  deterministic cases cover first/later rejection, complete acceptance, draft EOS rejection, target EOS,
+  budget/context limits, cache rollback, request changes and buffer accounting. Browser cases cover one-token
+  proposal edits, cold reset, export equality and no output on configuration. Owner steering additionally
+  required de-selection: visible exit actions remove residency/speculation modes; a multi-request residency
+  exit explicitly keeps the first request at arrival zero. Browser checks verify leaving residency re-enables
+  4M generation and leaving speculation preserves the input. Model/KV-reuse restrictions are now executable
+  schema constraints; UI choices derive admission from those same validators. No protected enforcement
+  or limits were modified. Initial harness failures exposed missing loading-state refresh and inspection
+  guards when entering residency directly, premature model-selector enablement before catalog loading,
+  a resource fixture that treated every object control as a resource, and an obsolete runtime-error assertion
+  after schema admission moved earlier. Each was fixed without removing rejection coverage. Desktop and
+  narrow controls, Interaction and expanded round evidence were reviewed; round details have bounded scrolling.
+  Final make test passed 121 tests in 5.85s; make test-integration passed 121 unit tests, 21 integration
+  tests and browser checks in 56.30s, under the 10s/100s budgets. Six preexisting folder warnings remain
+  unchanged: model/ontology domain and core-package splits should precede growth; historical evaluation
+  relocation needs separately scoped approval and preserved provenance. No files were added to those warned
+  folders. Changes are local, uncommitted and not deployed.'
+evidence:
+- data/experiments/catalog.yaml
+- data/experiments/speculative-decoding/browser-experiments.json
+- data/experiments/speculative-decoding/qualification.json
+- data-model/domains/model-family.yaml
+- data-model/domains/experiment.yaml
+- inside_inference/runtimes/speculation.py
+- inside_inference/delivery/models.py
+- tests/unit/execution/test_speculation.py
+- scripts/check/story_models/experiments.mjs
+- scripts/check/cache_browser_check.mjs
+- docs/architecture/inspection.md
+- docs/implementation/naive-inference.md

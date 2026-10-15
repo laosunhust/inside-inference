@@ -3,7 +3,7 @@
 Status: implemented with the [shipped trained checkpoint](../../data/model/README.md)
 and explicit compatible checkpoint loading. Owns the baseline computation boundary. The first trained pilot and its
 limits are recorded under [model preparation](model-preparation.md).
-See the `reference-execution` [experiment declaration](../../data/experiments/catalog.yaml) for its contract, evidence and limitations.
+Default execution is an inspection baseline, not a selectable experiment. Its scope and evidence are recorded below.
 [Milestones](milestones.md) own build order and acceptance;
 [purpose](../purpose/README.md) owns vocabulary and project scope.
 
@@ -106,3 +106,18 @@ The outer workload run binds `ModelArtifactReference`, `InferenceSystem`, and `W
 `GenerationPolicy` owns selection and stopping; `RunOutcome` records selected and
 delivered counts, unused allowance, and the observed stop condition. Checkpoint
 preparation seed remains artifact provenance, not an inference request control.
+
+
+## Baseline scope and evidence
+
+**Target regime.** One decoder-only causal Transformer executed by the shared NumPy engine; the 8K checkpoint exposes every intermediate tensor, the 0.5M and 4M checkpoints expose logits.
+
+**Preserved.** Token IDs, embeddings and positions, normalization, causal attention, residuals, feed-forward activation, output projection and unmasked greedy selection over every vocabulary ID, with the declared stop conditions. Every continuation recomputes the prefix when KV reuse is off.
+
+**Omissions.** No scheduler, network, cache tiers, accelerator or training process. Host timings are not simulated device latency.
+
+**Evidence plan.** Compare every intermediate tensor with independent 50-digit Decimal equations, upstream exported logits and recorded fixtures; check causal counterfactuals, context boundaries, trace on/off equality and hand recomputation of displayed values.
+
+**Limits.** Correct tiny arithmetic supports inspection of this architecture, not learned quality or production performance. Width, scale and inputs change attention patterns, creating false-positive and false-negative risks for judging optimizations.
+
+Evidence: [python-engine](../../governance/evaluations/results/2026-10/13/first-principles/python-engine.yaml), [panel](../../governance/evaluations/results/2026-10/13/first-principles/panel.yaml).

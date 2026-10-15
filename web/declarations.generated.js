@@ -2498,7 +2498,8 @@ globalThis.Declarations = (() => {
       "stop_reason",
       "work",
       "decoder_ms",
-      "service_ms"
+      "service_ms",
+      "speculation"
     ],
     "properties": {
       "prediction_id": {
@@ -2567,12 +2568,22 @@ globalThis.Declarations = (() => {
       "decoder_ms": {
         "type": "number",
         "minimum": 0,
-        "description": "Copied worker Decoder.run duration; includes model-declared capture. Independent clock domain from browser timestamps."
+        "description": "Copied GenerationPrediction.decoder_ms, including any round work charged to this delivery. Independent clock domain from browser timestamps."
       },
       "service_ms": {
         "type": "number",
         "minimum": 0,
         "description": "Copied worker response-construction duration including decoder; excludes admission and JSON serialization. Cross-domain timestamp arithmetic is undefined."
+      },
+      "speculation": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/SpeculativeDelivery"
+          },
+          {
+            "type": "null"
+          }
+        ]
       }
     }
   },
@@ -2651,6 +2662,120 @@ globalThis.Declarations = (() => {
       },
       "input": {
         "$ref": "#/$defs/GenerationInput"
+      }
+    }
+  },
+  "SpeculationRound": {
+    "type": "object",
+    "x-owner": "Decoding",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "draft_model_id",
+      "draft_weights_sha256",
+      "proposed_ids",
+      "target_selected_ids",
+      "accepted_count",
+      "committed_ids",
+      "draft_calls",
+      "target_calls",
+      "draft_work",
+      "target_work",
+      "draft_ms",
+      "target_ms"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "draft_model_id": {
+        "type": "string"
+      },
+      "draft_weights_sha256": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "proposed_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "target_selected_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "accepted_count": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "committed_ids": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "draft_calls": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "target_calls": {
+        "type": "integer",
+        "const": 1
+      },
+      "draft_work": {
+        "$ref": "#/$defs/GenerationWork"
+      },
+      "target_work": {
+        "$ref": "#/$defs/GenerationWork"
+      },
+      "draft_ms": {
+        "type": "number",
+        "minimum": 0
+      },
+      "target_ms": {
+        "type": "number",
+        "minimum": 0
+      }
+    }
+  },
+  "SpeculativeDelivery": {
+    "type": "object",
+    "x-owner": "Decoding",
+    "additionalProperties": false,
+    "required": [
+      "round_id",
+      "token_offset",
+      "buffered",
+      "round"
+    ],
+    "properties": {
+      "round_id": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "token_offset": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "buffered": {
+        "type": "boolean"
+      },
+      "round": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/SpeculationRound"
+          },
+          {
+            "type": "null"
+          }
+        ]
       }
     }
   },
@@ -4015,7 +4140,8 @@ globalThis.Declarations = (() => {
       "id",
       "contract_sha256",
       "probabilities",
-      "work"
+      "work",
+      "speculation"
     ],
     "properties": {
       "model_id": {
@@ -4085,12 +4211,12 @@ globalThis.Declarations = (() => {
       "decoder_ms": {
         "type": "number",
         "minimum": 0,
-        "description": "Worker perf_counter duration around Decoder.run, including the model capability's tensor capture. Excludes selection, decoding and serialization."
+        "description": "Sum of decoder forward durations charged to this delivery. Speculative rounds charge draft and verification on the first delivery; buffered deliveries have zero decoder work."
       },
       "service_ms": {
         "type": "number",
         "minimum": 0,
-        "description": "Worker perf_counter duration from immediately before Decoder.run through response construction, including selection, decoding, pieces and observation construction. Excludes input admission and JSON serialization. Nested decoder duration is included; no cross-domain timestamp arithmetic."
+        "description": "Worker duration from generation service computation through response construction, excluding input admission and JSON serialization. Speculative first deliveries include the whole round; buffered deliveries include response construction only."
       },
       "nodes": {
         "type": "array",
@@ -4128,6 +4254,16 @@ globalThis.Declarations = (() => {
       },
       "work": {
         "$ref": "#/$defs/GenerationWork"
+      },
+      "speculation": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/SpeculativeDelivery"
+          },
+          {
+            "type": "null"
+          }
+        ]
       }
     }
   },
@@ -4605,7 +4741,8 @@ globalThis.Declarations = (() => {
           "kv_cache",
           "scheduling",
           "transfer",
-          "compute_service"
+          "compute_service",
+          "speculation"
         ]
       },
       "value": {
@@ -4721,6 +4858,25 @@ globalThis.Declarations = (() => {
             "const": {
               "primary": "ComputeService",
               "related": []
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "control": {
+            "const": "speculation"
+          },
+          "value": {
+            "$ref": "#/$defs/SpeculationConfig"
+          },
+          "ontology_binding": {
+            "const": {
+              "primary": "Decoding",
+              "related": [
+                "ModelArtifact",
+                "KVState"
+              ]
             }
           }
         }
@@ -4885,6 +5041,122 @@ globalThis.Declarations = (() => {
                     ]
                   },
                   "maxContains": 1
+                },
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "model"
+                      },
+                      "value": {
+                        "const": "tinyllm-8k"
+                      }
+                    },
+                    "required": [
+                      "control",
+                      "value"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "kv_reuse"
+                      },
+                      "value": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "control",
+                      "value"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "if": {
+              "contains": {
+                "type": "object",
+                "properties": {
+                  "control": {
+                    "const": "speculation"
+                  }
+                },
+                "required": [
+                  "control"
+                ]
+              }
+            },
+            "then": {
+              "allOf": [
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "speculation"
+                      }
+                    },
+                    "required": [
+                      "control"
+                    ]
+                  },
+                  "maxContains": 1
+                },
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "model"
+                      },
+                      "value": {
+                        "const": "tinyllm-4m"
+                      }
+                    },
+                    "required": [
+                      "control",
+                      "value"
+                    ]
+                  }
+                },
+                {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "control": {
+                        "const": "kv_reuse"
+                      },
+                      "value": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "control",
+                      "value"
+                    ]
+                  }
+                },
+                {
+                  "not": {
+                    "contains": {
+                      "type": "object",
+                      "properties": {
+                        "control": {
+                          "const": "kv_cache"
+                        }
+                      },
+                      "required": [
+                        "control"
+                      ]
+                    }
+                  }
                 }
               ]
             }
@@ -4951,6 +5223,32 @@ globalThis.Declarations = (() => {
           "type": "string"
         },
         "description": "Request-indexed malformed or incomplete decoding diagnostics; output text remains unmodified."
+      }
+    }
+  },
+  "SpeculationConfig": {
+    "type": "object",
+    "x-owner": "Decoding",
+    "additionalProperties": false,
+    "required": [
+      "draft_model",
+      "proposal_tokens"
+    ],
+    "properties": {
+      "draft_model": {
+        "type": "string",
+        "enum": [
+          "tinyllm-500k"
+        ],
+        "default": "tinyllm-500k",
+        "title": "Draft model"
+      },
+      "proposal_tokens": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 8,
+        "default": 4,
+        "title": "Draft tokens per round"
       }
     }
   },
@@ -7653,17 +7951,17 @@ globalThis.Declarations = (() => {
     "lifetime": "Configuration is fixed for a run; observations identify the work that actually executed.",
     "owns": [
       "Prediction-step evidence and the selected token; the implemented algorithm is autoregressive greedy selection.",
-      "The algorithmic boundary for future draft proposal, target verification, acceptance and rollback."
+      "Greedy draft proposal, block target verification, acceptance, correction, rollback and buffered verified delivery."
     ],
     "excludes": [
       "Requested generation policy, owned by GenerationPolicy.",
       "Forward tensor equations, response transport and inter-request scheduling.",
-      "Declaring this boundary does not implement speculative decoding or distribution-preserving sampling."
+      "Distribution-preserving stochastic sampling is not implemented."
     ],
     "capability_reads": [],
     "projections": {
       "Token selection": {
-        "meaning": "Inspect the executed choice from target logits. The current algorithm is greedy; draft verification is not implemented.",
+        "meaning": "Inspect the executed choice from target logits. Both target-only and draft verification use greedy selection.",
         "fields": {
           "TokenSelection": [
             "raw_logits",
@@ -7674,7 +7972,10 @@ globalThis.Declarations = (() => {
       }
     },
     "schemas": [
-      "TokenSelection"
+      "TokenSelection",
+      "SpeculationConfig",
+      "SpeculationRound",
+      "SpeculativeDelivery"
     ]
   },
   "RequestScheduling": {
@@ -7819,90 +8120,10 @@ globalThis.Declarations = (() => {
 };
   const operationOwners = {"token_embedding": "Embedding", "embedding": "Embedding", "position_embedding": "PositionEncoding", "ln1_mean": "Normalization", "ln1_variance": "Normalization", "ln1": "Normalization", "ln2_mean": "Normalization", "ln2_variance": "Normalization", "ln2": "Normalization", "ln_final_mean": "Normalization", "ln_final_variance": "Normalization", "ln_final": "Normalization", "query": "Attention", "key": "Attention", "value": "Attention", "scores": "Attention", "causal_mask": "Attention", "attention": "Attention", "weighted_values": "Attention", "attention_output": "Attention", "attention_residual": "ResidualAddition", "ff_residual": "ResidualAddition", "ff_up": "FeedForward", "gelu": "FeedForward", "ff_down": "FeedForward", "logits": "OutputProjection", "input_ids": "Tokenizer", "retained_keys": "KVState", "retained_values": "KVState"};
   const experiments = {
-  "reference-execution": {
-    "id": "reference-execution",
-    "name": "Reference model execution",
-    "question": "What happens to actual intermediate values, and to next-token scores, when one input changes while the vocabulary and parameters stay fixed?",
-    "ontology_binding": {
-      "primary": "ModelExecution",
-      "related": [
-        "Tokenizer",
-        "Embedding",
-        "PositionEncoding",
-        "Normalization",
-        "Attention",
-        "ResidualAddition",
-        "FeedForward",
-        "OutputProjection",
-        "Decoding",
-        "ModelArchitecture",
-        "ModelArtifact"
-      ]
-    },
-    "missing_controls": [],
-    "contract": {
-      "target_regime": "One decoder-only causal Transformer executed by the shared NumPy engine; the 8K checkpoint exposes every intermediate tensor, the 0.5M and 4M checkpoints expose logits.",
-      "preserved": "Token IDs, embeddings and positions, normalization, causal attention, residuals, feed-forward activation, output projection and unmasked greedy selection over every vocabulary ID, with the declared stop conditions. Every continuation recomputes the prefix when KV reuse is off.",
-      "omissions": "No scheduler, network, cache tiers, accelerator or training process. Host timings are not simulated device latency.",
-      "evidence_plan": "Compare every intermediate tensor with independent 50-digit Decimal equations, upstream exported logits and recorded fixtures; check causal counterfactuals, context boundaries, trace on/off equality and hand recomputation of displayed values.",
-      "limits": "Correct tiny arithmetic supports inspection of this architecture, not learned quality or production performance. Width, scale and inputs change attention patterns, creating false-positive and false-negative risks for judging optimizations."
-    },
-    "sources": [],
-    "evidence": [
-      "governance/evaluations/results/2026-10/13/first-principles/python-engine.yaml",
-      "governance/evaluations/results/2026-10/13/first-principles/panel.yaml"
-    ],
-    "variants": [
-      {
-        "label": "Configure reference model",
-        "input": {
-          "execution": {
-            "experiments": [
-              {
-                "control": "model",
-                "value": "tinyllm-8k",
-                "ontology_binding": {
-                  "primary": "ModelArtifact",
-                  "related": []
-                }
-              },
-              {
-                "control": "kv_reuse",
-                "value": false,
-                "ontology_binding": {
-                  "primary": "KVCache",
-                  "related": [
-                    "ModelExecution"
-                  ]
-                }
-              }
-            ]
-          },
-          "workload": {
-            "kind": "fixed-arrivals",
-            "requests": [
-              {
-                "request_id": "r1",
-                "arrival_us": 0,
-                "request": {
-                  "text": "the cat was",
-                  "generation": {
-                    "max_new_tokens": 32,
-                    "selection": "greedy-lowest-id-tie",
-                    "stopping": "model-end-or-budget"
-                  }
-                }
-              }
-            ]
-          }
-        }
-      }
-    ]
-  },
   "kv-residency": {
     "id": "kv-residency",
-    "name": "KV reuse, residency and misses",
-    "question": "When an exact reusable prefix is present, absent or retained in another memory tier under bounded capacity, when do lookup and transfer cost exceed the avoided prefill work?",
+    "name": "KV cache residency",
+    "question": "When device capacity cannot retain earlier prefixes, does retaining them in host memory avoid recomputation on a repeated request, and at what transfer cost?",
     "ontology_binding": {
       "primary": "KVCache",
       "related": [
@@ -7926,7 +8147,7 @@ globalThis.Declarations = (() => {
     ],
     "variants": [
       {
-        "label": "Configure residency simulation",
+        "label": "Configure without host retention",
         "input": {
           "execution": {
             "experiments": [
@@ -7951,8 +8172,8 @@ globalThis.Declarations = (() => {
               {
                 "control": "kv_cache",
                 "value": {
-                  "device_kv_bytes": 16384,
-                  "host_kv_bytes": 32768,
+                  "device_kv_bytes": 2560,
+                  "host_kv_bytes": 0,
                   "retention_policy": "whole-prefix-lru"
                 },
                 "ontology_binding": {
@@ -7965,7 +8186,7 @@ globalThis.Declarations = (() => {
               {
                 "control": "scheduling",
                 "value": {
-                  "max_active_requests": 2
+                  "max_active_requests": 1
                 },
                 "ontology_binding": {
                   "primary": "RequestScheduling",
@@ -8005,7 +8226,147 @@ globalThis.Declarations = (() => {
                 "request_id": "r1",
                 "arrival_us": 0,
                 "request": {
-                  "text": "the cat was",
+                  "text": "the ball.",
+                  "generation": {
+                    "max_new_tokens": 16,
+                    "selection": "greedy-lowest-id-tie",
+                    "stopping": "model-end-or-budget"
+                  }
+                }
+              },
+              {
+                "request_id": "r2",
+                "arrival_us": 10000,
+                "request": {
+                  "text": "the cup.",
+                  "generation": {
+                    "max_new_tokens": 16,
+                    "selection": "greedy-lowest-id-tie",
+                    "stopping": "model-end-or-budget"
+                  }
+                }
+              },
+              {
+                "request_id": "r3",
+                "arrival_us": 20000,
+                "request": {
+                  "text": "the ball.",
+                  "generation": {
+                    "max_new_tokens": 16,
+                    "selection": "greedy-lowest-id-tie",
+                    "stopping": "model-end-or-budget"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "label": "Configure with host retention",
+        "input": {
+          "execution": {
+            "experiments": [
+              {
+                "control": "model",
+                "value": "tinyllm-8k",
+                "ontology_binding": {
+                  "primary": "ModelArtifact",
+                  "related": []
+                }
+              },
+              {
+                "control": "kv_reuse",
+                "value": true,
+                "ontology_binding": {
+                  "primary": "KVCache",
+                  "related": [
+                    "ModelExecution"
+                  ]
+                }
+              },
+              {
+                "control": "kv_cache",
+                "value": {
+                  "device_kv_bytes": 2560,
+                  "host_kv_bytes": 32768,
+                  "retention_policy": "whole-prefix-lru"
+                },
+                "ontology_binding": {
+                  "primary": "KVCache",
+                  "related": [
+                    "KVState"
+                  ]
+                }
+              },
+              {
+                "control": "scheduling",
+                "value": {
+                  "max_active_requests": 1
+                },
+                "ontology_binding": {
+                  "primary": "RequestScheduling",
+                  "related": []
+                }
+              },
+              {
+                "control": "transfer",
+                "value": {
+                  "link_bytes_per_us": 100,
+                  "link_latency_us": 10
+                },
+                "ontology_binding": {
+                  "primary": "StateTransfer",
+                  "related": [
+                    "KVState"
+                  ]
+                }
+              },
+              {
+                "control": "compute_service",
+                "value": {
+                  "compute_flops_per_us": 1000,
+                  "memory_bytes_per_us": 1000
+                },
+                "ontology_binding": {
+                  "primary": "ComputeService",
+                  "related": []
+                }
+              }
+            ]
+          },
+          "workload": {
+            "kind": "fixed-arrivals",
+            "requests": [
+              {
+                "request_id": "r1",
+                "arrival_us": 0,
+                "request": {
+                  "text": "the ball.",
+                  "generation": {
+                    "max_new_tokens": 16,
+                    "selection": "greedy-lowest-id-tie",
+                    "stopping": "model-end-or-budget"
+                  }
+                }
+              },
+              {
+                "request_id": "r2",
+                "arrival_us": 10000,
+                "request": {
+                  "text": "the cup.",
+                  "generation": {
+                    "max_new_tokens": 16,
+                    "selection": "greedy-lowest-id-tie",
+                    "stopping": "model-end-or-budget"
+                  }
+                }
+              },
+              {
+                "request_id": "r3",
+                "arrival_us": 20000,
+                "request": {
+                  "text": "the ball.",
                   "generation": {
                     "max_new_tokens": 16,
                     "selection": "greedy-lowest-id-tie",
@@ -8056,10 +8417,7 @@ globalThis.Declarations = (() => {
         "KVState"
       ]
     },
-    "missing_controls": [
-      "draft_model",
-      "speculation"
-    ],
+    "missing_controls": [],
     "contract": {
       "target_regime": "A smaller draft proposes tokens that the target verifies under greedy decoding, with fixed target weights, tokenizer, prompt and output policy.",
       "preserved": "Exact agreement with target-only greedy output; proposals, verification, acceptance and rollback as distinct events; rejected work still counts as operations and bytes.",
@@ -8074,7 +8432,110 @@ globalThis.Declarations = (() => {
       }
     ],
     "evidence": [],
-    "variants": []
+    "variants": [
+      {
+        "label": "Configure target-only decoding",
+        "input": {
+          "execution": {
+            "experiments": [
+              {
+                "control": "model",
+                "value": "tinyllm-4m",
+                "ontology_binding": {
+                  "primary": "ModelArtifact",
+                  "related": []
+                }
+              },
+              {
+                "control": "kv_reuse",
+                "value": true,
+                "ontology_binding": {
+                  "primary": "KVCache",
+                  "related": [
+                    "ModelExecution"
+                  ]
+                }
+              }
+            ]
+          },
+          "workload": {
+            "kind": "fixed-arrivals",
+            "requests": [
+              {
+                "request_id": "r1",
+                "arrival_us": 0,
+                "request": {
+                  "text": "Once upon a time, there was a little dog.",
+                  "generation": {
+                    "max_new_tokens": 32,
+                    "selection": "greedy-lowest-id-tie",
+                    "stopping": "model-end-or-budget"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "label": "Configure speculative decoding",
+        "input": {
+          "execution": {
+            "experiments": [
+              {
+                "control": "model",
+                "value": "tinyllm-4m",
+                "ontology_binding": {
+                  "primary": "ModelArtifact",
+                  "related": []
+                }
+              },
+              {
+                "control": "kv_reuse",
+                "value": true,
+                "ontology_binding": {
+                  "primary": "KVCache",
+                  "related": [
+                    "ModelExecution"
+                  ]
+                }
+              },
+              {
+                "control": "speculation",
+                "value": {
+                  "draft_model": "tinyllm-500k",
+                  "proposal_tokens": 4
+                },
+                "ontology_binding": {
+                  "primary": "Decoding",
+                  "related": [
+                    "ModelArtifact",
+                    "KVState"
+                  ]
+                }
+              }
+            ]
+          },
+          "workload": {
+            "kind": "fixed-arrivals",
+            "requests": [
+              {
+                "request_id": "r1",
+                "arrival_us": 0,
+                "request": {
+                  "text": "Once upon a time, there was a little dog.",
+                  "generation": {
+                    "max_new_tokens": 32,
+                    "selection": "greedy-lowest-id-tie",
+                    "stopping": "model-end-or-budget"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   "positional-encoding": {
     "id": "positional-encoding",
@@ -8151,7 +8612,7 @@ globalThis.Declarations = (() => {
   },
   "kv-browser-timing": {
     "id": "kv-browser-timing",
-    "name": "KV reuse",
+    "name": "Incremental KV caching",
     "question": "How does retaining earlier token positions change the work and latency of generating the next token?",
     "ontology_binding": {
       "primary": "KVCache",
@@ -8263,7 +8724,7 @@ globalThis.Declarations = (() => {
     ]
   }
 };
-  const hash = "af83f248f8fdb2481caf7cb02631cdce2dc7800094c457ad4b9072293d30a251";
+  const hash = "6bc8728b7d8609b16bc86575a01b5cbeee6017e8b53b4746a4c4ba1d4f3396ca";
   const assertShape = (name, value) => {
     const check = CompiledContracts[name];
     if (!check) throw new Error('Unknown declaration: ' + name);

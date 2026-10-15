@@ -420,7 +420,8 @@ $defs:
         type: array
         items:
           $ref: '#/$defs/ExperimentSpec'
-        description: Complete selectable inputs; selecting a variant configures workload and execution without generating output.
+        description: Complete selectable inputs; selecting a variant configures workload and execution without generating
+          output.
       missing_controls:
         type: array
         uniqueItems: true
@@ -505,6 +506,7 @@ $defs:
     - work
     - decoder_ms
     - service_ms
+    - speculation
     properties:
       prediction_id:
         type: string
@@ -525,7 +527,8 @@ $defs:
       started_ms:
         type: number
         minimum: 0
-        description: performance.now at the start of the generation gesture, after prior model loading and input preparation.
+        description: performance.now at the start of the generation gesture, after prior model loading and input
+          preparation.
       dispatched_ms:
         type: number
         minimum: 0
@@ -558,18 +561,24 @@ $defs:
       decoder_ms:
         type: number
         minimum: 0
-        description: Copied worker Decoder.run duration; includes model-declared capture. Independent clock domain
-          from browser timestamps.
+        description: Copied GenerationPrediction.decoder_ms, including any round work charged to this delivery. Independent clock domain from browser timestamps.
       service_ms:
         type: number
         minimum: 0
-        description: Copied worker response-construction duration including decoder; excludes admission and JSON serialization.
-          Cross-domain timestamp arithmetic is undefined.
+        description: Copied worker response-construction duration including decoder; excludes admission and JSON
+          serialization. Cross-domain timestamp arithmetic is undefined.
+      speculation:
+        oneOf:
+        - $ref: '#/$defs/SpeculativeDelivery'
+        - type: 'null'
   BrowserGenerationTiming:
     type: object
     x-owner: ExperimentObservation
     additionalProperties: false
-    required: [clock, samples, observers]
+    required:
+    - clock
+    - samples
+    - observers
     properties:
       clock:
         type: string
@@ -580,14 +589,19 @@ $defs:
           $ref: '#/$defs/BrowserTokenTiming'
       observers:
         type: array
-        description: Completed synchronous inspection/chart update batches. An uncovered sample has no observer measurement yet or its update was skipped; absence never means zero cost. Browser clock only.
+        description: Completed synchronous inspection/chart update batches. An uncovered sample has no observer
+          measurement yet or its update was skipped; absence never means zero cost. Browser clock only.
         items:
           $ref: '#/$defs/BrowserObserverBatch'
   BrowserObserverBatch:
     type: object
     x-owner: ExperimentObservation
     additionalProperties: false
-    required: [first_token, last_token, started_ms, finished_ms]
+    required:
+    - first_token
+    - last_token
+    - started_ms
+    - finished_ms
     properties:
       first_token:
         type: integer
@@ -598,19 +612,106 @@ $defs:
       started_ms:
         type: number
         minimum: 0
-        description: Browser performance.now before synchronous inspection and performance rendering; excludes deferred layout and paint.
+        description: Browser performance.now before synchronous inspection and performance rendering; excludes deferred
+          layout and paint.
       finished_ms:
         type: number
         minimum: 0
-        description: Browser performance.now after rendering. Minus started_ms is synchronous update duration; minus token publication is completion lag including scheduling, not total observer overhead.
+        description: Browser performance.now after rendering. Minus started_ms is synchronous update duration; minus
+          token publication is completion lag including scheduling, not total observer overhead.
   ExperimentSpec:
     type: object
     x-owner: ExperimentSpec
     additionalProperties: false
-    required: [label, input]
+    required:
+    - label
+    - input
     properties:
       label:
         type: string
         pattern: '[\s\S]+'
       input:
         $ref: '#/$defs/GenerationInput'
+  SpeculationRound:
+    type: object
+    x-owner: Decoding
+    additionalProperties: false
+    required:
+    - id
+    - draft_model_id
+    - draft_weights_sha256
+    - proposed_ids
+    - target_selected_ids
+    - accepted_count
+    - committed_ids
+    - draft_calls
+    - target_calls
+    - draft_work
+    - target_work
+    - draft_ms
+    - target_ms
+    properties:
+      id:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      draft_model_id:
+        type: string
+      draft_weights_sha256:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      proposed_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+      target_selected_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+      accepted_count:
+        type: integer
+        minimum: 0
+      committed_ids:
+        type: array
+        items:
+          type: integer
+          minimum: 0
+      draft_calls:
+        type: integer
+        minimum: 0
+      target_calls:
+        type: integer
+        const: 1
+      draft_work:
+        $ref: '#/$defs/GenerationWork'
+      target_work:
+        $ref: '#/$defs/GenerationWork'
+      draft_ms:
+        type: number
+        minimum: 0
+      target_ms:
+        type: number
+        minimum: 0
+  SpeculativeDelivery:
+    type: object
+    x-owner: Decoding
+    additionalProperties: false
+    required:
+    - round_id
+    - token_offset
+    - buffered
+    - round
+    properties:
+      round_id:
+        type: string
+        pattern: ^[0-9a-f]{64}$
+      token_offset:
+        type: integer
+        minimum: 0
+      buffered:
+        type: boolean
+      round:
+        oneOf:
+        - $ref: '#/$defs/SpeculationRound'
+        - type: 'null'

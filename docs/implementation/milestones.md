@@ -129,7 +129,7 @@ Current M1 evidence: the untrained reference implements the full path, tensor
 capture, unmasked greedy generation, and saved-run replay. Independent Decimal
 and hand-calculated fixtures cover its binary64 arithmetic; browser checks cover
 live/offline navigation and changed-input execution. See the
-[reference-execution experiment](../../data/experiments/catalog.yaml). This supports the implemented computation and inspection requirements; it does
+[reference computation boundary](naive-inference.md). This supports the implemented computation and inspection requirements; it does
 not establish completion of every milestone gate. T1's reviewed coverage gate and L1's learned-behavior gate remain
 unmet. A separate [trained pilot](../research/checkpoint-pilot-2026-10-09.md) exists;
 Cached execution now has [separate M2 evidence](../research/kv-residency-2026-10-09.md);

@@ -225,3 +225,36 @@ build and unit harness reject competing appearance rules and direct JavaScript
 paint assignments. `primary` is the common action-button variant; token-inspection
 controls retain a quieter shared variant. This build check does not parse arbitrary
 SVG drawing code or prove visual accessibility.
+
+## Greedy speculative decoding
+
+The speculative configuration pairs the 0.5M draft with the 4M target and exposes
+proposal length in the system configuration. The catalog owns matching workloads
+and target-only/speculative variants. Configuration loads compatible artifacts and
+prepares input without producing output. Both models retain independent KV arrays.
+
+One target forward verifies all proposed positions. Matching greedy tokens are
+accepted until the first mismatch, then a target correction is selected; a fully
+accepted block can include a target bonus. EOS, output budget and context capacity
+bound commitment. Rejected KV positions are trimmed from both models. Reset and
+preparation start a cold sequence. No stochastic rejection sampling is implemented.
+
+The existing token-delivery operation releases one verified token at a time. Its
+first delivery retains the full round record: draft proposals, target choices,
+accepted count, verified output, model identity, forward work, call counts and scoped
+durations. Buffered deliveries reference that round and charge zero additional
+decoder work. Every delivery still measures its own service and browser publication
+boundaries. Interaction and exported timing evidence consume this same ledger. A
+small buffered publication interval is not a claim of equally fast target decoding.
+
+Turning off speculation preserves the workload and target. Residency simulation has
+an explicit exit as well; for multiple requests the action states that it keeps the
+first request as a single input arriving at zero. Incompatible model choices remain
+disabled while the mode is active. Default model execution and tensor inspection
+remain available outside the experiment catalog.
+
+Correctness is agreement with target-only greedy output for tested workloads, plus
+first/later rejection, complete acceptance, EOS, rollback and capacity counterexamples.
+Different matrix shapes can change floating-point rounding near tied logits; observed
+sequence divergence is a failed parity result, not something to hide. Acceptance
+rate and fewer target calls do not independently establish a speedup.

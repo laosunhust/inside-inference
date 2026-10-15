@@ -20,7 +20,7 @@ class ExperimentCatalogTests(unittest.TestCase):
     def test_admitted_catalog_and_derived_status(self):
         experiments = self.admit(self.catalog)
         executable = {e['id'] for e in experiments if not e['missing_controls']}
-        self.assertEqual(executable, {'reference-execution', 'kv-residency', 'kv-browser-timing'})
+        self.assertEqual(executable, {'kv-residency', 'kv-browser-timing', 'speculative-decoding'})
         self.assertIn('constrained-fleet', {e['id'] for e in experiments})
 
     def test_executable_settings_form_a_valid_execution(self):
@@ -45,7 +45,7 @@ class ExperimentCatalogTests(unittest.TestCase):
         self.assertEqual(left,right)
 
     def test_rejects_invalid_experiments(self):
-        def first(c): return c['experiments'][0]
+        def first(c): return next(e for e in c['experiments'] if e['id']=='kv-browser-timing')
         def setup(c): return first(c)['variants'][0]['input']
         cases = [
             (lambda c: c['experiments'].append(copy.deepcopy(first(c))), 'duplicate experiment id'),
@@ -53,7 +53,7 @@ class ExperimentCatalogTests(unittest.TestCase):
             (lambda c: setup(c)['workload']['requests'][0]['request']['generation'].update(max_new_tokens=0), 'minimum'),
             (lambda c: setup(c).pop('workload'), 'workload'),
             (lambda c: setup(c)['execution']['experiments'].pop(), 'too short'),
-            (lambda c: setup(c)['execution']['experiments'].append(copy.deepcopy(c['experiments'][1]['variants'][0]['input']['execution']['experiments'][2])), 'contain'),
+            (lambda c: setup(c)['execution']['experiments'].append(copy.deepcopy(next(e for e in c['experiments'] if e['id']=='kv-residency')['variants'][0]['input']['execution']['experiments'][2])), 'contain'),
             (lambda c: first(c).update(variants=[]), 'variants'),
             (lambda c: first(c).update(missing_controls=['future_control']), 'variants'),
             (lambda c: first(c).update(missing_controls=['kv_reuse'],variants=[]), 'declared controls'),

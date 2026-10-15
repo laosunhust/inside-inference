@@ -26,8 +26,7 @@ $defs:
     properties:
       base_url:
         type: string
-        description: Relative URL or HTTP(S) object-storage prefix; identical fetch protocol locally and
-          remotely.
+        description: Relative URL or HTTP(S) object-storage prefix; identical fetch protocol locally and remotely.
         pattern: '[\s\S]+'
   LlamaArchitecture:
     type: object
@@ -302,6 +301,7 @@ $defs:
     - contract_sha256
     - probabilities
     - work
+    - speculation
     properties:
       model_id:
         type: string
@@ -354,11 +354,14 @@ $defs:
       decoder_ms:
         type: number
         minimum: 0
-        description: Worker perf_counter duration around Decoder.run, including the model capability's tensor capture. Excludes selection, decoding and serialization.
+        description: Sum of decoder forward durations charged to this delivery. Speculative rounds charge draft
+          and verification on the first delivery; buffered deliveries have zero decoder work.
       service_ms:
         type: number
         minimum: 0
-        description: Worker perf_counter duration from immediately before Decoder.run through response construction, including selection, decoding, pieces and observation construction. Excludes input admission and JSON serialization. Nested decoder duration is included; no cross-domain timestamp arithmetic.
+        description: Worker duration from generation service computation through response construction, excluding
+          input admission and JSON serialization. Speculative first deliveries include the whole round; buffered
+          deliveries include response construction only.
       nodes:
         type: array
         items:
@@ -367,8 +370,8 @@ $defs:
         type:
         - string
         - 'null'
-        description: Malformed output or incomplete terminal encoding. Valid pending byte or UTF-8 prefixes
-          while generation can continue have no diagnostic.
+        description: Malformed output or incomplete terminal encoding. Valid pending byte or UTF-8 prefixes while
+          generation can continue have no diagnostic.
       request:
         $ref: '#/$defs/GenerationStep'
       id:
@@ -387,6 +390,10 @@ $defs:
         maxItems: 4096
       work:
         $ref: '#/$defs/GenerationWork'
+      speculation:
+        oneOf:
+        - $ref: '#/$defs/SpeculativeDelivery'
+        - type: 'null'
   ModelSource:
     type: object
     x-owner: ModelArtifact
@@ -527,8 +534,7 @@ $defs:
       - owner: Attention
         label: Attention
         scope: layer
-        detail: Project Q/K/V, apply positional rotation when configured, mix causal values, and project
-          the result.
+        detail: Project Q/K/V, apply positional rotation when configured, mix causal values, and project the result.
         inputs:
         - 2
         operations:
@@ -679,6 +685,7 @@ $defs:
         - scheduling
         - transfer
         - compute_service
+        - speculation
       value:
         type:
         - string
@@ -747,6 +754,17 @@ $defs:
           const:
             primary: ComputeService
             related: []
+    - properties:
+        control:
+          const: speculation
+        value:
+          $ref: '#/$defs/SpeculationConfig'
+        ontology_binding:
+          const:
+            primary: Decoding
+            related:
+            - ModelArtifact
+            - KVState
   ExecutionSpec:
     type: object
     x-owner: ExecutionSpec
@@ -841,9 +859,75 @@ $defs:
                 required:
                 - control
               maxContains: 1
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: model
+                  value:
+                    const: tinyllm-8k
+                required:
+                - control
+                - value
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: kv_reuse
+                  value:
+                    const: true
+                required:
+                - control
+                - value
+        - if:
+            contains:
+              type: object
+              properties:
+                control:
+                  const: speculation
+              required:
+              - control
+          then:
+            allOf:
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: speculation
+                required:
+                - control
+              maxContains: 1
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: model
+                  value:
+                    const: tinyllm-4m
+                required:
+                - control
+                - value
+            - contains:
+                type: object
+                properties:
+                  control:
+                    const: kv_reuse
+                  value:
+                    const: true
+                required:
+                - control
+                - value
+            - not:
+                contains:
+                  type: object
+                  properties:
+                    control:
+                      const: kv_cache
+                  required:
+                  - control
     description: Exactly one model and one KV reuse assignment. The implemented resource simulation additionally
-      requires cache, scheduling, transfer and compute-service controls together; partial and duplicate
-      assignments fail before execution.
+      requires cache, scheduling, transfer and compute-service controls together; partial and duplicate assignments
+      fail before execution.
   GenerationWork:
     type: object
     x-owner: ModelExecution
@@ -865,8 +949,8 @@ $defs:
         type: integer
         minimum: 0
         maximum: 9007199254740991
-        description: Executed dense and attention matrix multiply/add operations, counted as two FLOPs
-          per multiply-add. Excludes normalization, activation and softmax.
+        description: Executed dense and attention matrix multiply/add operations, counted as two FLOPs per multiply-add.
+          Excludes normalization, activation and softmax.
   ResourceExecution:
     type: object
     x-owner: ExperimentExecution
@@ -889,5 +973,24 @@ $defs:
         type: object
         additionalProperties:
           type: string
-        description: Request-indexed malformed or incomplete decoding diagnostics; output text remains
-          unmodified.
+        description: Request-indexed malformed or incomplete decoding diagnostics; output text remains unmodified.
+  SpeculationConfig:
+    type: object
+    x-owner: Decoding
+    additionalProperties: false
+    required:
+    - draft_model
+    - proposal_tokens
+    properties:
+      draft_model:
+        type: string
+        enum:
+        - tinyllm-500k
+        default: tinyllm-500k
+        title: Draft model
+      proposal_tokens:
+        type: integer
+        minimum: 1
+        maximum: 8
+        default: 4
+        title: Draft tokens per round

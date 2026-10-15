@@ -24,7 +24,7 @@ export function createTiming() {
     const sample={prediction_id:prediction.id,token_index:prediction.output_ids.length,
       ...gesture,dispatched_ms:dispatched,updated_ms:updated,publishes_text:publishes,
       context_length:prediction.request.prefix_ids.length+prediction.request.output_ids.length,
-      selected_id:prediction.selected_id,stop_reason:prediction.stop_reason,
+      selected_id:prediction.selected_id,stop_reason:prediction.stop_reason,speculation:structuredClone(prediction.speculation),
       work:structuredClone(prediction.work),decoder_ms:prediction.decoder_ms,service_ms:prediction.service_ms};
     Declarations.assertShape('BrowserTokenTiming',sample);
     if(dispatched<sample.started_ms || updated<dispatched || (samples.length && (updated<samples.at(-1).updated_ms || sample.token_index!==samples.at(-1).token_index+1)))

@@ -4,7 +4,7 @@ from typing import Any
 from inside_inference.contract_runtime import Declaration
 
 EXECUTION_OPERATIONS = {'replayCache': {'request': 'ExecutionReplayInput', 'response': 'CacheRun'}, 'modelCatalog': {'request': None, 'response': 'ModelCatalog'}, 'loadModel': {'request': 'ModelSelection', 'response': 'ModelLoadResult'}, 'prepareGeneration': {'request': 'GenerationInput', 'response': 'GenerationPrepared'}, 'generateToken': {'request': 'GenerationStep', 'response': 'GenerationPrediction'}, 'simulateResources': {'request': 'GenerationInput', 'response': 'ResourceExecution'}}
-CONTRACT_SHA256 = 'af83f248f8fdb2481caf7cb02631cdce2dc7800094c457ad4b9072293d30a251'
+CONTRACT_SHA256 = '6bc8728b7d8609b16bc86575a01b5cbeee6017e8b53b4746a4c4ba1d4f3396ca'
 SCHEMAS = {'ModelArchitecture': {'type': 'object',
                        'x-owner': 'ModelArchitecture',
                        'additionalProperties': False,
@@ -1124,7 +1124,8 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                      'stop_reason',
                                      'work',
                                      'decoder_ms',
-                                     'service_ms'],
+                                     'service_ms',
+                                     'speculation'],
                         'properties': {'prediction_id': {'type': 'string',
                                                          'pattern': '^[0-9a-f]{64}$'},
                                        'token_index': {'type': 'integer',
@@ -1233,12 +1234,14 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                        'decoder_ms': {'type': 'number',
                                                       'minimum': 0,
                                                       'description': 'Copied '
-                                                                     'worker '
-                                                                     'Decoder.run '
-                                                                     'duration; '
-                                                                     'includes '
-                                                                     'model-declared '
-                                                                     'capture. '
+                                                                     'GenerationPrediction.decoder_ms, '
+                                                                     'including '
+                                                                     'any '
+                                                                     'round '
+                                                                     'work '
+                                                                     'charged '
+                                                                     'to this '
+                                                                     'delivery. '
                                                                      'Independent '
                                                                      'clock '
                                                                      'domain '
@@ -1261,7 +1264,9 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                      'timestamp '
                                                                      'arithmetic '
                                                                      'is '
-                                                                     'undefined.'}}},
+                                                                     'undefined.'},
+                                       'speculation': {'oneOf': [{'$ref': '#/$defs/SpeculativeDelivery'},
+                                                                 {'type': 'null'}]}}},
  'BrowserGenerationTiming': {'type': 'object',
                              'x-owner': 'ExperimentObservation',
                              'additionalProperties': False,
@@ -1355,6 +1360,62 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                     'properties': {'label': {'type': 'string',
                                              'pattern': '[\\s\\S]+'},
                                    'input': {'$ref': '#/$defs/GenerationInput'}}},
+ 'SpeculationRound': {'type': 'object',
+                      'x-owner': 'Decoding',
+                      'additionalProperties': False,
+                      'required': ['id',
+                                   'draft_model_id',
+                                   'draft_weights_sha256',
+                                   'proposed_ids',
+                                   'target_selected_ids',
+                                   'accepted_count',
+                                   'committed_ids',
+                                   'draft_calls',
+                                   'target_calls',
+                                   'draft_work',
+                                   'target_work',
+                                   'draft_ms',
+                                   'target_ms'],
+                      'properties': {'id': {'type': 'string',
+                                            'pattern': '^[0-9a-f]{64}$'},
+                                     'draft_model_id': {'type': 'string'},
+                                     'draft_weights_sha256': {'type': 'string',
+                                                              'pattern': '^[0-9a-f]{64}$'},
+                                     'proposed_ids': {'type': 'array',
+                                                      'items': {'type': 'integer',
+                                                                'minimum': 0}},
+                                     'target_selected_ids': {'type': 'array',
+                                                             'items': {'type': 'integer',
+                                                                       'minimum': 0}},
+                                     'accepted_count': {'type': 'integer',
+                                                        'minimum': 0},
+                                     'committed_ids': {'type': 'array',
+                                                       'items': {'type': 'integer',
+                                                                 'minimum': 0}},
+                                     'draft_calls': {'type': 'integer',
+                                                     'minimum': 0},
+                                     'target_calls': {'type': 'integer',
+                                                      'const': 1},
+                                     'draft_work': {'$ref': '#/$defs/GenerationWork'},
+                                     'target_work': {'$ref': '#/$defs/GenerationWork'},
+                                     'draft_ms': {'type': 'number',
+                                                  'minimum': 0},
+                                     'target_ms': {'type': 'number',
+                                                   'minimum': 0}}},
+ 'SpeculativeDelivery': {'type': 'object',
+                         'x-owner': 'Decoding',
+                         'additionalProperties': False,
+                         'required': ['round_id',
+                                      'token_offset',
+                                      'buffered',
+                                      'round'],
+                         'properties': {'round_id': {'type': 'string',
+                                                     'pattern': '^[0-9a-f]{64}$'},
+                                        'token_offset': {'type': 'integer',
+                                                         'minimum': 0},
+                                        'buffered': {'type': 'boolean'},
+                                        'round': {'oneOf': [{'$ref': '#/$defs/SpeculationRound'},
+                                                            {'type': 'null'}]}}},
  'InspectionState': {'type': 'object',
                      'x-owner': 'InspectionState',
                      'additionalProperties': False,
@@ -2082,7 +2143,8 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                        'id',
                                        'contract_sha256',
                                        'probabilities',
-                                       'work'],
+                                       'work',
+                                       'speculation'],
                           'properties': {'model_id': {'type': 'string'},
                                          'weights_sha256': {'type': 'string',
                                                             'pattern': '^[0-9a-f]{64}$'},
@@ -2117,56 +2179,59 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                   'context_capacity']},
                                          'decoder_ms': {'type': 'number',
                                                         'minimum': 0,
-                                                        'description': 'Worker '
-                                                                       'perf_counter '
-                                                                       'duration '
-                                                                       'around '
-                                                                       'Decoder.run, '
-                                                                       'including '
-                                                                       'the '
-                                                                       'model '
-                                                                       "capability's "
-                                                                       'tensor '
-                                                                       'capture. '
-                                                                       'Excludes '
-                                                                       'selection, '
-                                                                       'decoding '
+                                                        'description': 'Sum of '
+                                                                       'decoder '
+                                                                       'forward '
+                                                                       'durations '
+                                                                       'charged '
+                                                                       'to '
+                                                                       'this '
+                                                                       'delivery. '
+                                                                       'Speculative '
+                                                                       'rounds '
+                                                                       'charge '
+                                                                       'draft '
                                                                        'and '
-                                                                       'serialization.'},
+                                                                       'verification '
+                                                                       'on the '
+                                                                       'first '
+                                                                       'delivery; '
+                                                                       'buffered '
+                                                                       'deliveries '
+                                                                       'have '
+                                                                       'zero '
+                                                                       'decoder '
+                                                                       'work.'},
                                          'service_ms': {'type': 'number',
                                                         'minimum': 0,
                                                         'description': 'Worker '
-                                                                       'perf_counter '
                                                                        'duration '
                                                                        'from '
-                                                                       'immediately '
-                                                                       'before '
-                                                                       'Decoder.run '
+                                                                       'generation '
+                                                                       'service '
+                                                                       'computation '
                                                                        'through '
                                                                        'response '
                                                                        'construction, '
-                                                                       'including '
-                                                                       'selection, '
-                                                                       'decoding, '
-                                                                       'pieces '
-                                                                       'and '
-                                                                       'observation '
-                                                                       'construction. '
-                                                                       'Excludes '
+                                                                       'excluding '
                                                                        'input '
                                                                        'admission '
                                                                        'and '
                                                                        'JSON '
                                                                        'serialization. '
-                                                                       'Nested '
-                                                                       'decoder '
-                                                                       'duration '
-                                                                       'is '
-                                                                       'included; '
-                                                                       'no '
-                                                                       'cross-domain '
-                                                                       'timestamp '
-                                                                       'arithmetic.'},
+                                                                       'Speculative '
+                                                                       'first '
+                                                                       'deliveries '
+                                                                       'include '
+                                                                       'the '
+                                                                       'whole '
+                                                                       'round; '
+                                                                       'buffered '
+                                                                       'deliveries '
+                                                                       'include '
+                                                                       'response '
+                                                                       'construction '
+                                                                       'only.'},
                                          'nodes': {'type': 'array',
                                                    'items': {'$ref': '#/$defs/TensorObservation'}},
                                          'decoding_note': {'type': ['string',
@@ -2201,7 +2266,9 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                      'maximum': 1},
                                                            'minItems': 384,
                                                            'maxItems': 4096},
-                                         'work': {'$ref': '#/$defs/GenerationWork'}}},
+                                         'work': {'$ref': '#/$defs/GenerationWork'},
+                                         'speculation': {'oneOf': [{'$ref': '#/$defs/SpeculativeDelivery'},
+                                                                   {'type': 'null'}]}}},
  'ModelSource': {'type': 'object',
                  'x-owner': 'ModelArtifact',
                  'additionalProperties': False,
@@ -2529,7 +2596,8 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                           'kv_cache',
                                                           'scheduling',
                                                           'transfer',
-                                                          'compute_service']},
+                                                          'compute_service',
+                                                          'speculation']},
                                      'value': {'type': ['string',
                                                         'boolean',
                                                         'object']},
@@ -2560,7 +2628,12 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                 {'properties': {'control': {'const': 'compute_service'},
                                                 'value': {'$ref': '#/$defs/ComputeServiceConfig'},
                                                 'ontology_binding': {'const': {'primary': 'ComputeService',
-                                                                               'related': []}}}}]},
+                                                                               'related': []}}}},
+                                {'properties': {'control': {'const': 'speculation'},
+                                                'value': {'$ref': '#/$defs/SpeculationConfig'},
+                                                'ontology_binding': {'const': {'primary': 'Decoding',
+                                                                               'related': ['ModelArtifact',
+                                                                                           'KVState']}}}}]},
  'ExecutionSpec': {'type': 'object',
                    'x-owner': 'ExecutionSpec',
                    'additionalProperties': False,
@@ -2604,7 +2677,37 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                                 {'contains': {'type': 'object',
                                                                                               'properties': {'control': {'const': 'compute_service'}},
                                                                                               'required': ['control']},
-                                                                                 'maxContains': 1}]}}]}},
+                                                                                 'maxContains': 1},
+                                                                                {'contains': {'type': 'object',
+                                                                                              'properties': {'control': {'const': 'model'},
+                                                                                                             'value': {'const': 'tinyllm-8k'}},
+                                                                                              'required': ['control',
+                                                                                                           'value']}},
+                                                                                {'contains': {'type': 'object',
+                                                                                              'properties': {'control': {'const': 'kv_reuse'},
+                                                                                                             'value': {'const': True}},
+                                                                                              'required': ['control',
+                                                                                                           'value']}}]}},
+                                                            {'if': {'contains': {'type': 'object',
+                                                                                 'properties': {'control': {'const': 'speculation'}},
+                                                                                 'required': ['control']}},
+                                                             'then': {'allOf': [{'contains': {'type': 'object',
+                                                                                              'properties': {'control': {'const': 'speculation'}},
+                                                                                              'required': ['control']},
+                                                                                 'maxContains': 1},
+                                                                                {'contains': {'type': 'object',
+                                                                                              'properties': {'control': {'const': 'model'},
+                                                                                                             'value': {'const': 'tinyllm-4m'}},
+                                                                                              'required': ['control',
+                                                                                                           'value']}},
+                                                                                {'contains': {'type': 'object',
+                                                                                              'properties': {'control': {'const': 'kv_reuse'},
+                                                                                                             'value': {'const': True}},
+                                                                                              'required': ['control',
+                                                                                                           'value']}},
+                                                                                {'not': {'contains': {'type': 'object',
+                                                                                                      'properties': {'control': {'const': 'kv_cache'}},
+                                                                                                      'required': ['control']}}}]}}]}},
                    'description': 'Exactly one model and one KV reuse '
                                   'assignment. The implemented resource '
                                   'simulation additionally requires cache, '
@@ -2664,6 +2767,21 @@ SCHEMAS = {'ModelArchitecture': {'type': 'object',
                                                                         'text '
                                                                         'remains '
                                                                         'unmodified.'}}},
+ 'SpeculationConfig': {'type': 'object',
+                       'x-owner': 'Decoding',
+                       'additionalProperties': False,
+                       'required': ['draft_model', 'proposal_tokens'],
+                       'properties': {'draft_model': {'type': 'string',
+                                                      'enum': ['tinyllm-500k'],
+                                                      'default': 'tinyllm-500k',
+                                                      'title': 'Draft model'},
+                                      'proposal_tokens': {'type': 'integer',
+                                                          'minimum': 1,
+                                                          'maximum': 8,
+                                                          'default': 4,
+                                                          'title': 'Draft '
+                                                                   'tokens per '
+                                                                   'round'}}},
  'InferenceMap': {'type': 'object',
                   'x-owner': 'InferenceSystem',
                   'additionalProperties': False,
@@ -3833,6 +3951,12 @@ class ExperimentSource(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class SpeculationConfig(Declaration):
+    draft_model: str = 'tinyllm-500k'
+    proposal_tokens: int = 4
+
+
+@dataclass(frozen=True, kw_only=True)
 class ExecutionControl(Declaration):
     control: str
     value: str | bool | dict[str, Any]
@@ -3882,6 +4006,31 @@ class GenerationWork(Declaration):
 
 
 @dataclass(frozen=True, kw_only=True)
+class SpeculationRound(Declaration):
+    id: str
+    draft_model_id: str
+    draft_weights_sha256: str
+    proposed_ids: tuple[int, ...]
+    target_selected_ids: tuple[int, ...]
+    accepted_count: int
+    committed_ids: tuple[int, ...]
+    draft_calls: int
+    target_calls: int
+    draft_work: GenerationWork
+    target_work: GenerationWork
+    draft_ms: float
+    target_ms: float
+
+
+@dataclass(frozen=True, kw_only=True)
+class SpeculativeDelivery(Declaration):
+    round_id: str
+    token_offset: int
+    buffered: bool
+    round: SpeculationRound | None
+
+
+@dataclass(frozen=True, kw_only=True)
 class BrowserTokenTiming(Declaration):
     prediction_id: str
     token_index: int
@@ -3897,6 +4046,7 @@ class BrowserTokenTiming(Declaration):
     work: GenerationWork
     decoder_ms: float
     service_ms: float
+    speculation: SpeculativeDelivery | None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -4122,6 +4272,7 @@ class GenerationPrediction(Declaration):
     contract_sha256: str
     probabilities: tuple[float, ...]
     work: GenerationWork
+    speculation: SpeculativeDelivery | None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -4284,104 +4435,14 @@ class InferenceMap(Declaration):
     relationships: tuple[InferenceMapRelationship, ...]
 
 
-MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'RunOutcome': RunOutcome, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'OntologyBinding': OntologyBinding, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'TokenSelection': TokenSelection, 'CacheComputation': CacheComputation, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ExecutionReplayInput': ExecutionReplayInput, 'AbstractionContract': AbstractionContract, 'ExperimentSource': ExperimentSource, 'ExecutionControl': ExecutionControl, 'ExecutionSpec': ExecutionSpec, 'GenerationInput': GenerationInput, 'ExperimentSpec': ExperimentSpec, 'ExperimentDesign': ExperimentDesign, 'ExperimentCatalog': ExperimentCatalog, 'GenerationWork': GenerationWork, 'BrowserTokenTiming': BrowserTokenTiming, 'BrowserObserverBatch': BrowserObserverBatch, 'BrowserGenerationTiming': BrowserGenerationTiming, 'InspectionState': InspectionState, 'ApiError': ApiError, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Token': Token, 'Span': Span, 'Encoding': Encoding, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough, 'ResourceExecution': ResourceExecution, 'CollectiveCommunicationBoundary': CollectiveCommunicationBoundary, 'ComputeKernelBoundary': ComputeKernelBoundary, 'DeviceRuntimeBoundary': DeviceRuntimeBoundary, 'InferenceEngineBoundary': InferenceEngineBoundary, 'RequestEndpointBoundary': RequestEndpointBoundary, 'RequestRouterBoundary': RequestRouterBoundary, 'ResourcePoolBoundary': ResourcePoolBoundary, 'StateManagerBoundary': StateManagerBoundary, 'InferenceMapNode': InferenceMapNode, 'InferenceMapRelationship': InferenceMapRelationship, 'InferenceMap': InferenceMap}
+MODELS = {'ModelArchitecture': ModelArchitecture, 'ModelArtifactReference': ModelArtifactReference, 'InitializationProvenance': InitializationProvenance, 'TrainingProvenance': TrainingProvenance, 'KVState': KVState, 'ModelWeights': ModelWeights, 'ModelArtifact': ModelArtifact, 'GenerationPolicy': GenerationPolicy, 'InferenceRequest': InferenceRequest, 'RequestArrival': RequestArrival, 'Workload': Workload, 'ComputeServiceConfig': ComputeServiceConfig, 'KVCacheConfig': KVCacheConfig, 'RequestSchedulingConfig': RequestSchedulingConfig, 'StateTransferConfig': StateTransferConfig, 'KVResidencySystemConfig': KVResidencySystemConfig, 'RunOutcome': RunOutcome, 'AttentionOperation': AttentionOperation, 'EmbeddingOperation': EmbeddingOperation, 'FeedForwardOperation': FeedForwardOperation, 'KVStateOperation': KVStateOperation, 'NormalizationOperation': NormalizationOperation, 'OutputProjectionOperation': OutputProjectionOperation, 'PositionEncodingOperation': PositionEncodingOperation, 'ResidualAdditionOperation': ResidualAdditionOperation, 'TokenizerOperation': TokenizerOperation, 'TensorObservation': TensorObservation, 'OntologyBinding': OntologyBinding, 'KVExperimentInput': KVExperimentInput, 'CacheEvent': CacheEvent, 'CacheMeasurement': CacheMeasurement, 'TokenSelection': TokenSelection, 'CacheComputation': CacheComputation, 'ExecutionBackend': ExecutionBackend, 'ExecutionProvenance': ExecutionProvenance, 'KVRunBinding': KVRunBinding, 'CacheRun': CacheRun, 'ExecutionReplayInput': ExecutionReplayInput, 'AbstractionContract': AbstractionContract, 'ExperimentSource': ExperimentSource, 'SpeculationConfig': SpeculationConfig, 'ExecutionControl': ExecutionControl, 'ExecutionSpec': ExecutionSpec, 'GenerationInput': GenerationInput, 'ExperimentSpec': ExperimentSpec, 'ExperimentDesign': ExperimentDesign, 'ExperimentCatalog': ExperimentCatalog, 'GenerationWork': GenerationWork, 'SpeculationRound': SpeculationRound, 'SpeculativeDelivery': SpeculativeDelivery, 'BrowserTokenTiming': BrowserTokenTiming, 'BrowserObserverBatch': BrowserObserverBatch, 'BrowserGenerationTiming': BrowserGenerationTiming, 'InspectionState': InspectionState, 'ApiError': ApiError, 'ResourceNode': ResourceNode, 'ResourceLink': ResourceLink, 'ResourceGraph': ResourceGraph, 'Token': Token, 'Span': Span, 'Encoding': Encoding, 'Turn': Turn, 'CustomerSubmission': CustomerSubmission, 'CustomerConsumption': CustomerConsumption, 'CustomerCancellation': CustomerCancellation, 'CustomerInteraction': CustomerInteraction, 'ModelAsset': ModelAsset, 'ModelStorage': ModelStorage, 'LlamaArchitecture': LlamaArchitecture, 'ModelDescriptor': ModelDescriptor, 'ModelCatalog': ModelCatalog, 'ModelSelection': ModelSelection, 'ModelLoadResult': ModelLoadResult, 'GenerationPrepared': GenerationPrepared, 'GenerationStep': GenerationStep, 'GenerationPrediction': GenerationPrediction, 'ModelSource': ModelSource, 'ModelSources': ModelSources, 'GenerationDefaults': GenerationDefaults, 'GenerationEvidence': GenerationEvidence, 'ArchitectureStage': ArchitectureStage, 'ArchitectureWalkthrough': ArchitectureWalkthrough, 'ResourceExecution': ResourceExecution, 'CollectiveCommunicationBoundary': CollectiveCommunicationBoundary, 'ComputeKernelBoundary': ComputeKernelBoundary, 'DeviceRuntimeBoundary': DeviceRuntimeBoundary, 'InferenceEngineBoundary': InferenceEngineBoundary, 'RequestEndpointBoundary': RequestEndpointBoundary, 'RequestRouterBoundary': RequestRouterBoundary, 'ResourcePoolBoundary': ResourcePoolBoundary, 'StateManagerBoundary': StateManagerBoundary, 'InferenceMapNode': InferenceMapNode, 'InferenceMapRelationship': InferenceMapRelationship, 'InferenceMap': InferenceMap}
 OPERATION_OWNERS = {'token_embedding': 'Embedding', 'embedding': 'Embedding', 'position_embedding': 'PositionEncoding', 'ln1_mean': 'Normalization', 'ln1_variance': 'Normalization', 'ln1': 'Normalization', 'ln2_mean': 'Normalization', 'ln2_variance': 'Normalization', 'ln2': 'Normalization', 'ln_final_mean': 'Normalization', 'ln_final_variance': 'Normalization', 'ln_final': 'Normalization', 'query': 'Attention', 'key': 'Attention', 'value': 'Attention', 'scores': 'Attention', 'causal_mask': 'Attention', 'attention': 'Attention', 'weighted_values': 'Attention', 'attention_output': 'Attention', 'attention_residual': 'ResidualAddition', 'ff_residual': 'ResidualAddition', 'ff_up': 'FeedForward', 'gelu': 'FeedForward', 'ff_down': 'FeedForward', 'logits': 'OutputProjection', 'input_ids': 'Tokenizer', 'retained_keys': 'KVState', 'retained_values': 'KVState'}
-EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
-                         'name': 'Reference model execution',
-                         'question': 'What happens to actual intermediate '
-                                     'values, and to next-token scores, when '
-                                     'one input changes while the vocabulary '
-                                     'and parameters stay fixed?',
-                         'ontology_binding': {'primary': 'ModelExecution',
-                                              'related': ['Tokenizer',
-                                                          'Embedding',
-                                                          'PositionEncoding',
-                                                          'Normalization',
-                                                          'Attention',
-                                                          'ResidualAddition',
-                                                          'FeedForward',
-                                                          'OutputProjection',
-                                                          'Decoding',
-                                                          'ModelArchitecture',
-                                                          'ModelArtifact']},
-                         'missing_controls': [],
-                         'contract': {'target_regime': 'One decoder-only '
-                                                       'causal Transformer '
-                                                       'executed by the shared '
-                                                       'NumPy engine; the 8K '
-                                                       'checkpoint exposes '
-                                                       'every intermediate '
-                                                       'tensor, the 0.5M and '
-                                                       '4M checkpoints expose '
-                                                       'logits.',
-                                      'preserved': 'Token IDs, embeddings and '
-                                                   'positions, normalization, '
-                                                   'causal attention, '
-                                                   'residuals, feed-forward '
-                                                   'activation, output '
-                                                   'projection and unmasked '
-                                                   'greedy selection over '
-                                                   'every vocabulary ID, with '
-                                                   'the declared stop '
-                                                   'conditions. Every '
-                                                   'continuation recomputes '
-                                                   'the prefix when KV reuse '
-                                                   'is off.',
-                                      'omissions': 'No scheduler, network, '
-                                                   'cache tiers, accelerator '
-                                                   'or training process. Host '
-                                                   'timings are not simulated '
-                                                   'device latency.',
-                                      'evidence_plan': 'Compare every '
-                                                       'intermediate tensor '
-                                                       'with independent '
-                                                       '50-digit Decimal '
-                                                       'equations, upstream '
-                                                       'exported logits and '
-                                                       'recorded fixtures; '
-                                                       'check causal '
-                                                       'counterfactuals, '
-                                                       'context boundaries, '
-                                                       'trace on/off equality '
-                                                       'and hand recomputation '
-                                                       'of displayed values.',
-                                      'limits': 'Correct tiny arithmetic '
-                                                'supports inspection of this '
-                                                'architecture, not learned '
-                                                'quality or production '
-                                                'performance. Width, scale and '
-                                                'inputs change attention '
-                                                'patterns, creating '
-                                                'false-positive and '
-                                                'false-negative risks for '
-                                                'judging optimizations.'},
-                         'sources': [],
-                         'evidence': ['governance/evaluations/results/2026-10/13/first-principles/python-engine.yaml',
-                                      'governance/evaluations/results/2026-10/13/first-principles/panel.yaml'],
-                         'variants': [{'label': 'Configure reference model',
-                                       'input': {'execution': {'experiments': [{'control': 'model',
-                                                                                'value': 'tinyllm-8k',
-                                                                                'ontology_binding': {'primary': 'ModelArtifact',
-                                                                                                     'related': []}},
-                                                                               {'control': 'kv_reuse',
-                                                                                'value': False,
-                                                                                'ontology_binding': {'primary': 'KVCache',
-                                                                                                     'related': ['ModelExecution']}}]},
-                                                 'workload': {'kind': 'fixed-arrivals',
-                                                              'requests': [{'request_id': 'r1',
-                                                                            'arrival_us': 0,
-                                                                            'request': {'text': 'the '
-                                                                                                'cat '
-                                                                                                'was',
-                                                                                        'generation': {'max_new_tokens': 32,
-                                                                                                       'selection': 'greedy-lowest-id-tie',
-                                                                                                       'stopping': 'model-end-or-budget'}}}]}}}]},
- 'kv-residency': {'id': 'kv-residency',
-                  'name': 'KV reuse, residency and misses',
-                  'question': 'When an exact reusable prefix is present, '
-                              'absent or retained in another memory tier under '
-                              'bounded capacity, when do lookup and transfer '
-                              'cost exceed the avoided prefill work?',
+EXPERIMENTS = {'kv-residency': {'id': 'kv-residency',
+                  'name': 'KV cache residency',
+                  'question': 'When device capacity cannot retain earlier '
+                              'prefixes, does retaining them in host memory '
+                              'avoid recomputation on a repeated request, and '
+                              'at what transfer cost?',
                   'ontology_binding': {'primary': 'KVCache',
                                        'related': ['KVState',
                                                    'RequestScheduling',
@@ -4431,7 +4492,7 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                          'calibration.'},
                   'sources': [],
                   'evidence': ['docs/research/kv-residency-2026-10-09.md'],
-                  'variants': [{'label': 'Configure residency simulation',
+                  'variants': [{'label': 'Configure without host retention',
                                 'input': {'execution': {'experiments': [{'control': 'model',
                                                                          'value': 'tinyllm-8k',
                                                                          'ontology_binding': {'primary': 'ModelArtifact',
@@ -4441,13 +4502,13 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                                                          'ontology_binding': {'primary': 'KVCache',
                                                                                               'related': ['ModelExecution']}},
                                                                         {'control': 'kv_cache',
-                                                                         'value': {'device_kv_bytes': 16384,
-                                                                                   'host_kv_bytes': 32768,
+                                                                         'value': {'device_kv_bytes': 2560,
+                                                                                   'host_kv_bytes': 0,
                                                                                    'retention_policy': 'whole-prefix-lru'},
                                                                          'ontology_binding': {'primary': 'KVCache',
                                                                                               'related': ['KVState']}},
                                                                         {'control': 'scheduling',
-                                                                         'value': {'max_active_requests': 2},
+                                                                         'value': {'max_active_requests': 1},
                                                                          'ontology_binding': {'primary': 'RequestScheduling',
                                                                                               'related': []}},
                                                                         {'control': 'transfer',
@@ -4464,8 +4525,72 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                                        'requests': [{'request_id': 'r1',
                                                                      'arrival_us': 0,
                                                                      'request': {'text': 'the '
-                                                                                         'cat '
-                                                                                         'was',
+                                                                                         'ball.',
+                                                                                 'generation': {'max_new_tokens': 16,
+                                                                                                'selection': 'greedy-lowest-id-tie',
+                                                                                                'stopping': 'model-end-or-budget'}}},
+                                                                    {'request_id': 'r2',
+                                                                     'arrival_us': 10000,
+                                                                     'request': {'text': 'the '
+                                                                                         'cup.',
+                                                                                 'generation': {'max_new_tokens': 16,
+                                                                                                'selection': 'greedy-lowest-id-tie',
+                                                                                                'stopping': 'model-end-or-budget'}}},
+                                                                    {'request_id': 'r3',
+                                                                     'arrival_us': 20000,
+                                                                     'request': {'text': 'the '
+                                                                                         'ball.',
+                                                                                 'generation': {'max_new_tokens': 16,
+                                                                                                'selection': 'greedy-lowest-id-tie',
+                                                                                                'stopping': 'model-end-or-budget'}}}]}}},
+                               {'label': 'Configure with host retention',
+                                'input': {'execution': {'experiments': [{'control': 'model',
+                                                                         'value': 'tinyllm-8k',
+                                                                         'ontology_binding': {'primary': 'ModelArtifact',
+                                                                                              'related': []}},
+                                                                        {'control': 'kv_reuse',
+                                                                         'value': True,
+                                                                         'ontology_binding': {'primary': 'KVCache',
+                                                                                              'related': ['ModelExecution']}},
+                                                                        {'control': 'kv_cache',
+                                                                         'value': {'device_kv_bytes': 2560,
+                                                                                   'host_kv_bytes': 32768,
+                                                                                   'retention_policy': 'whole-prefix-lru'},
+                                                                         'ontology_binding': {'primary': 'KVCache',
+                                                                                              'related': ['KVState']}},
+                                                                        {'control': 'scheduling',
+                                                                         'value': {'max_active_requests': 1},
+                                                                         'ontology_binding': {'primary': 'RequestScheduling',
+                                                                                              'related': []}},
+                                                                        {'control': 'transfer',
+                                                                         'value': {'link_bytes_per_us': 100,
+                                                                                   'link_latency_us': 10},
+                                                                         'ontology_binding': {'primary': 'StateTransfer',
+                                                                                              'related': ['KVState']}},
+                                                                        {'control': 'compute_service',
+                                                                         'value': {'compute_flops_per_us': 1000,
+                                                                                   'memory_bytes_per_us': 1000},
+                                                                         'ontology_binding': {'primary': 'ComputeService',
+                                                                                              'related': []}}]},
+                                          'workload': {'kind': 'fixed-arrivals',
+                                                       'requests': [{'request_id': 'r1',
+                                                                     'arrival_us': 0,
+                                                                     'request': {'text': 'the '
+                                                                                         'ball.',
+                                                                                 'generation': {'max_new_tokens': 16,
+                                                                                                'selection': 'greedy-lowest-id-tie',
+                                                                                                'stopping': 'model-end-or-budget'}}},
+                                                                    {'request_id': 'r2',
+                                                                     'arrival_us': 10000,
+                                                                     'request': {'text': 'the '
+                                                                                         'cup.',
+                                                                                 'generation': {'max_new_tokens': 16,
+                                                                                                'selection': 'greedy-lowest-id-tie',
+                                                                                                'stopping': 'model-end-or-budget'}}},
+                                                                    {'request_id': 'r3',
+                                                                     'arrival_us': 20000,
+                                                                     'request': {'text': 'the '
+                                                                                         'ball.',
                                                                                  'generation': {'max_new_tokens': 16,
                                                                                                 'selection': 'greedy-lowest-id-tie',
                                                                                                 'stopping': 'model-end-or-budget'}}}]}}}]},
@@ -4513,7 +4638,7 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                           'ontology_binding': {'primary': 'Decoding',
                                                'related': ['ModelExecution',
                                                            'KVState']},
-                          'missing_controls': ['draft_model', 'speculation'],
+                          'missing_controls': [],
                           'contract': {'target_regime': 'A smaller draft '
                                                         'proposes tokens that '
                                                         'the target verifies '
@@ -4554,7 +4679,62 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                                                 'Decoding, ICML 2023',
                                        'url': 'https://proceedings.mlr.press/v202/leviathan23a.html'}],
                           'evidence': [],
-                          'variants': []},
+                          'variants': [{'label': 'Configure target-only '
+                                                 'decoding',
+                                        'input': {'execution': {'experiments': [{'control': 'model',
+                                                                                 'value': 'tinyllm-4m',
+                                                                                 'ontology_binding': {'primary': 'ModelArtifact',
+                                                                                                      'related': []}},
+                                                                                {'control': 'kv_reuse',
+                                                                                 'value': True,
+                                                                                 'ontology_binding': {'primary': 'KVCache',
+                                                                                                      'related': ['ModelExecution']}}]},
+                                                  'workload': {'kind': 'fixed-arrivals',
+                                                               'requests': [{'request_id': 'r1',
+                                                                             'arrival_us': 0,
+                                                                             'request': {'text': 'Once '
+                                                                                                 'upon '
+                                                                                                 'a '
+                                                                                                 'time, '
+                                                                                                 'there '
+                                                                                                 'was '
+                                                                                                 'a '
+                                                                                                 'little '
+                                                                                                 'dog.',
+                                                                                         'generation': {'max_new_tokens': 32,
+                                                                                                        'selection': 'greedy-lowest-id-tie',
+                                                                                                        'stopping': 'model-end-or-budget'}}}]}}},
+                                       {'label': 'Configure speculative '
+                                                 'decoding',
+                                        'input': {'execution': {'experiments': [{'control': 'model',
+                                                                                 'value': 'tinyllm-4m',
+                                                                                 'ontology_binding': {'primary': 'ModelArtifact',
+                                                                                                      'related': []}},
+                                                                                {'control': 'kv_reuse',
+                                                                                 'value': True,
+                                                                                 'ontology_binding': {'primary': 'KVCache',
+                                                                                                      'related': ['ModelExecution']}},
+                                                                                {'control': 'speculation',
+                                                                                 'value': {'draft_model': 'tinyllm-500k',
+                                                                                           'proposal_tokens': 4},
+                                                                                 'ontology_binding': {'primary': 'Decoding',
+                                                                                                      'related': ['ModelArtifact',
+                                                                                                                  'KVState']}}]},
+                                                  'workload': {'kind': 'fixed-arrivals',
+                                                               'requests': [{'request_id': 'r1',
+                                                                             'arrival_us': 0,
+                                                                             'request': {'text': 'Once '
+                                                                                                 'upon '
+                                                                                                 'a '
+                                                                                                 'time, '
+                                                                                                 'there '
+                                                                                                 'was '
+                                                                                                 'a '
+                                                                                                 'little '
+                                                                                                 'dog.',
+                                                                                         'generation': {'max_new_tokens': 32,
+                                                                                                        'selection': 'greedy-lowest-id-tie',
+                                                                                                        'stopping': 'model-end-or-budget'}}}]}}}]},
  'positional-encoding': {'id': 'positional-encoding',
                          'name': 'Positional encoding',
                          'question': 'What happens if the same token appears '
@@ -4654,7 +4834,7 @@ EXPERIMENTS = {'reference-execution': {'id': 'reference-execution',
                        'evidence': ['docs/labs/constrained-fleet.md'],
                        'variants': []},
  'kv-browser-timing': {'id': 'kv-browser-timing',
-                       'name': 'KV reuse',
+                       'name': 'Incremental KV caching',
                        'question': 'How does retaining earlier token positions '
                                    'change the work and latency of generating '
                                    'the next token?',
